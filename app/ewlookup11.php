@@ -21,7 +21,7 @@ class clookup {
 	var $PageID = "lookup";
 
 	// Project ID
-	var $ProjectID = "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Page object name
 	var $PageObjName = "lookup";

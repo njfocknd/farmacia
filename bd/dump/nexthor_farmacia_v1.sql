@@ -12,16 +12,16 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 SHOW WARNINGS;
 -- -----------------------------------------------------
--- Schema nexthor_farmacia
+-- Schema nexthor_farmacia2
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `nexthor_farmacia` ;
+DROP SCHEMA IF EXISTS `nexthor_farmacia2` ;
 
 -- -----------------------------------------------------
--- Schema nexthor_farmacia
+-- Schema nexthor_farmacia2
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `nexthor_farmacia` DEFAULT CHARACTER SET utf8 ;
+CREATE SCHEMA IF NOT EXISTS `nexthor_farmacia2` DEFAULT CHARACTER SET utf8 ;
 SHOW WARNINGS;
-USE `nexthor_farmacia` ;
+USE `nexthor_farmacia2` ;
 
 -- -----------------------------------------------------
 -- Table `pais`

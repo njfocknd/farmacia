@@ -7,8 +7,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitarioinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "medicamentoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -24,7 +22,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 	var $PageID = 'list';
 
 	// Project ID
-	var $ProjectID = "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
 	var $TableName = 'registro_sanitario';
@@ -258,12 +256,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->MultiDeleteUrl = "registro_sanitariodelete.php";
 		$this->MultiUpdateUrl = "registro_sanitarioupdate.php";
 
-		// Table object (medicamento)
-		if (!isset($GLOBALS['medicamento'])) $GLOBALS['medicamento'] = new cmedicamento();
-
-		// Table object (pais)
-		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -304,43 +296,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 	//
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
-
-		// Get export parameters
-		$custom = "";
-		if (@$_GET["export"] <> "") {
-			$this->Export = $_GET["export"];
-			$custom = @$_GET["custom"];
-		} elseif (@$_POST["export"] <> "") {
-			$this->Export = $_POST["export"];
-			$custom = @$_POST["custom"];
-		} elseif (ew_IsHttpPost()) {
-			if (@$_POST["exporttype"] <> "")
-				$this->Export = $_POST["exporttype"];
-			$custom = @$_POST["custom"];
-		} else {
-			$this->setExportReturnUrl(ew_CurrentUrl());
-		}
-		$gsExportFile = $this->TableVar; // Get export file, used in header
-
-		// Get custom export parameters
-		if ($this->Export <> "" && $custom <> "") {
-			$this->CustomExport = $this->Export;
-			$this->Export = "print";
-		}
-		$gsCustomExport = $this->CustomExport;
-		$gsExport = $this->Export; // Get export parameter, used in header
-
-		// Update Export URLs
-		if (defined("EW_USE_PHPEXCEL"))
-			$this->ExportExcelCustom = FALSE;
-		if ($this->ExportExcelCustom)
-			$this->ExportExcelUrl .= "&amp;custom=1";
-		if (defined("EW_USE_PHPWORD"))
-			$this->ExportWordCustom = FALSE;
-		if ($this->ExportWordCustom)
-			$this->ExportWordUrl .= "&amp;custom=1";
-		if ($this->ExportPdfCustom)
-			$this->ExportPdfUrl .= "&amp;custom=1";
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 
 		// Get grid add count
@@ -350,9 +305,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Set up list options
 		$this->SetupListOptions();
-
-		// Setup export options
-		$this->SetupExportOptions();
+		$this->idregistro_sanitario->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -494,9 +447,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			// Handle reset command
 			$this->ResetCmd();
 
-			// Set up master detail parameters
-			$this->SetUpMasterParms();
-
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -580,55 +530,12 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Build filter
 		$sFilter = "";
-
-		// Restore master/detail filter
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
-
-		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "pais") {
-			global $pais;
-			$rsmaster = $pais->LoadRs($this->DbMasterFilter);
-			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
-			if (!$this->MasterRecordExists) {
-				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("paislist.php"); // Return to master page
-			} else {
-				$pais->LoadListRowValues($rsmaster);
-				$pais->RowType = EW_ROWTYPE_MASTER; // Master row
-				$pais->RenderListRow();
-				$rsmaster->Close();
-			}
-		}
-
-		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "medicamento") {
-			global $medicamento;
-			$rsmaster = $medicamento->LoadRs($this->DbMasterFilter);
-			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
-			if (!$this->MasterRecordExists) {
-				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("medicamentolist.php"); // Return to master page
-			} else {
-				$medicamento->LoadListRowValues($rsmaster);
-				$medicamento->RowType = EW_ROWTYPE_MASTER; // Master row
-				$medicamento->RenderListRow();
-				$rsmaster->Close();
-			}
-		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
 		$this->CurrentFilter = "";
-
-		// Export data only
-		if ($this->CustomExport == "" && in_array($this->Export, array("html","word","excel","xml","csv","email","pdf"))) {
-			$this->ExportData();
-			$this->Page_Terminate(); // Terminate response
-			exit();
-		}
 
 		// Load record count first
 		$bSelectLimit = EW_SELECT_LIMIT;
@@ -837,10 +744,11 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idmedicamento); // idmedicamento
+			$this->UpdateSort($this->idregistro_sanitario); // idregistro_sanitario
 			$this->UpdateSort($this->descripcion); // descripcion
 			$this->UpdateSort($this->idpais); // idpais
 			$this->UpdateSort($this->estado); // estado
+			$this->UpdateSort($this->idproducto); // idproducto
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -869,23 +777,15 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
-			// Reset master/detail keys
-			if ($this->Command == "resetall") {
-				$this->setCurrentMasterTable(""); // Clear master table
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-				$this->idpais->setSessionValue("");
-				$this->idmedicamento->setSessionValue("");
-			}
-
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idmedicamento->setSort("");
+				$this->idregistro_sanitario->setSort("");
 				$this->descripcion->setSort("");
 				$this->idpais->setSort("");
 				$this->estado->setSort("");
+				$this->idproducto->setSort("");
 			}
 
 			// Reset start position
@@ -1197,10 +1097,10 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
-		$this->idmedicamento->setDbValue($rs->fields('idmedicamento'));
 		$this->descripcion->setDbValue($rs->fields('descripcion'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
 	}
 
 	// Load DbValue from recordset
@@ -1208,10 +1108,10 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idregistro_sanitario->DbValue = $row['idregistro_sanitario'];
-		$this->idmedicamento->DbValue = $row['idmedicamento'];
 		$this->descripcion->DbValue = $row['descripcion'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->estado->DbValue = $row['estado'];
+		$this->idproducto->DbValue = $row['idproducto'];
 	}
 
 	// Load old record
@@ -1254,10 +1154,10 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Common render codes for all row types
 		// idregistro_sanitario
-		// idmedicamento
 		// descripcion
 		// idpais
 		// estado
+		// idproducto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1265,56 +1165,12 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			$this->idregistro_sanitario->ViewValue = $this->idregistro_sanitario->CurrentValue;
 			$this->idregistro_sanitario->ViewCustomAttributes = "";
 
-			// idmedicamento
-			if (strval($this->idmedicamento->CurrentValue) <> "") {
-				$sFilterWrk = "`idmedicamento`" . ew_SearchString("=", $this->idmedicamento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmedicamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `medicamento`";
-			$sWhereWrk = "";
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmedicamento, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmedicamento->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idmedicamento->ViewValue = $this->idmedicamento->CurrentValue;
-				}
-			} else {
-				$this->idmedicamento->ViewValue = NULL;
-			}
-			$this->idmedicamento->ViewCustomAttributes = "";
-
 			// descripcion
 			$this->descripcion->ViewValue = $this->descripcion->CurrentValue;
 			$this->descripcion->ViewCustomAttributes = "";
 
 			// idpais
-			if (strval($this->idpais->CurrentValue) <> "") {
-				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
-			$sWhereWrk = "";
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpais->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idpais->ViewValue = $this->idpais->CurrentValue;
-				}
-			} else {
-				$this->idpais->ViewValue = NULL;
-			}
+			$this->idpais->ViewValue = $this->idpais->CurrentValue;
 			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
@@ -1334,10 +1190,14 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idmedicamento
-			$this->idmedicamento->LinkCustomAttributes = "";
-			$this->idmedicamento->HrefValue = "";
-			$this->idmedicamento->TooltipValue = "";
+			// idproducto
+			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+			$this->idproducto->ViewCustomAttributes = "";
+
+			// idregistro_sanitario
+			$this->idregistro_sanitario->LinkCustomAttributes = "";
+			$this->idregistro_sanitario->HrefValue = "";
+			$this->idregistro_sanitario->TooltipValue = "";
 
 			// descripcion
 			$this->descripcion->LinkCustomAttributes = "";
@@ -1353,241 +1213,16 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// idproducto
+			$this->idproducto->LinkCustomAttributes = "";
+			$this->idproducto->HrefValue = "";
+			$this->idproducto->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
-	}
-
-	// Set up export options
-	function SetupExportOptions() {
-		global $Language;
-
-		// Printer friendly
-		$item = &$this->ExportOptions->Add("print");
-		$item->Body = "<a href=\"" . $this->ExportPrintUrl . "\" class=\"ewExportLink ewPrint\" title=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\">" . $Language->Phrase("PrinterFriendly") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Excel
-		$item = &$this->ExportOptions->Add("excel");
-		$item->Body = "<a href=\"" . $this->ExportExcelUrl . "\" class=\"ewExportLink ewExcel\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\">" . $Language->Phrase("ExportToExcel") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Word
-		$item = &$this->ExportOptions->Add("word");
-		$item->Body = "<a href=\"" . $this->ExportWordUrl . "\" class=\"ewExportLink ewWord\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\">" . $Language->Phrase("ExportToWord") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Html
-		$item = &$this->ExportOptions->Add("html");
-		$item->Body = "<a href=\"" . $this->ExportHtmlUrl . "\" class=\"ewExportLink ewHtml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\">" . $Language->Phrase("ExportToHtml") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Xml
-		$item = &$this->ExportOptions->Add("xml");
-		$item->Body = "<a href=\"" . $this->ExportXmlUrl . "\" class=\"ewExportLink ewXml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\">" . $Language->Phrase("ExportToXml") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Csv
-		$item = &$this->ExportOptions->Add("csv");
-		$item->Body = "<a href=\"" . $this->ExportCsvUrl . "\" class=\"ewExportLink ewCsv\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\">" . $Language->Phrase("ExportToCsv") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Pdf
-		$item = &$this->ExportOptions->Add("pdf");
-		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Email
-		$item = &$this->ExportOptions->Add("email");
-		$url = "";
-		$item->Body = "<button id=\"emf_registro_sanitario\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_registro_sanitario',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fregistro_sanitariolist,sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
-		$item->Visible = FALSE;
-
-		// Drop down button for export
-		$this->ExportOptions->UseButtonGroup = TRUE;
-		$this->ExportOptions->UseImageAndText = TRUE;
-		$this->ExportOptions->UseDropDownButton = FALSE;
-		if ($this->ExportOptions->UseButtonGroup && ew_IsMobile())
-			$this->ExportOptions->UseDropDownButton = TRUE;
-		$this->ExportOptions->DropDownButtonPhrase = $Language->Phrase("ButtonExport");
-
-		// Add group option item
-		$item = &$this->ExportOptions->Add($this->ExportOptions->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
-	}
-
-	// Export data in HTML/CSV/Word/Excel/XML/Email/PDF format
-	function ExportData() {
-		$utf8 = (strtolower(EW_CHARSET) == "utf-8");
-		$bSelectLimit = EW_SELECT_LIMIT;
-
-		// Load recordset
-		if ($bSelectLimit) {
-			$this->TotalRecs = $this->SelectRecordCount();
-		} else {
-			if ($rs = $this->LoadRecordset())
-				$this->TotalRecs = $rs->RecordCount();
-		}
-		$this->StartRec = 1;
-
-		// Export all
-		if ($this->ExportAll) {
-			set_time_limit(EW_EXPORT_ALL_TIME_LIMIT);
-			$this->DisplayRecs = $this->TotalRecs;
-			$this->StopRec = $this->TotalRecs;
-		} else { // Export one page only
-			$this->SetUpStartRec(); // Set up start record position
-
-			// Set the last record to display
-			if ($this->DisplayRecs <= 0) {
-				$this->StopRec = $this->TotalRecs;
-			} else {
-				$this->StopRec = $this->StartRec + $this->DisplayRecs - 1;
-			}
-		}
-		if ($bSelectLimit)
-			$rs = $this->LoadRecordset($this->StartRec-1, $this->DisplayRecs <= 0 ? $this->TotalRecs : $this->DisplayRecs);
-		if (!$rs) {
-			header("Content-Type:"); // Remove header
-			header("Content-Disposition:");
-			$this->ShowMessage();
-			return;
-		}
-		$this->ExportDoc = ew_ExportDocument($this, "h");
-		$Doc = &$this->ExportDoc;
-		if ($bSelectLimit) {
-			$this->StartRec = 1;
-			$this->StopRec = $this->DisplayRecs <= 0 ? $this->TotalRecs : $this->DisplayRecs;
-		} else {
-
-			//$this->StartRec = $this->StartRec;
-			//$this->StopRec = $this->StopRec;
-
-		}
-
-		// Call Page Exporting server event
-		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
-		$ParentTable = "";
-
-		// Export master record
-		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "pais") {
-			global $pais;
-			if (!isset($pais)) $pais = new cpais;
-			$rsmaster = $pais->LoadRs($this->DbMasterFilter); // Load master record
-			if ($rsmaster && !$rsmaster->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("v"); // Change to vertical
-				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
-					$pais->ExportDocument($Doc, $rsmaster, 1, 1);
-					$Doc->ExportEmptyRow();
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsmaster->Close();
-			}
-		}
-
-		// Export master record
-		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "medicamento") {
-			global $medicamento;
-			if (!isset($medicamento)) $medicamento = new cmedicamento;
-			$rsmaster = $medicamento->LoadRs($this->DbMasterFilter); // Load master record
-			if ($rsmaster && !$rsmaster->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("v"); // Change to vertical
-				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
-					$medicamento->ExportDocument($Doc, $rsmaster, 1, 1);
-					$Doc->ExportEmptyRow();
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsmaster->Close();
-			}
-		}
-		$sHeader = $this->PageHeader;
-		$this->Page_DataRendering($sHeader);
-		$Doc->Text .= $sHeader;
-		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "");
-		$sFooter = $this->PageFooter;
-		$this->Page_DataRendered($sFooter);
-		$Doc->Text .= $sFooter;
-
-		// Close recordset
-		$rs->Close();
-
-		// Export header and footer
-		$Doc->ExportHeaderAndFooter();
-
-		// Call Page Exported server event
-		$this->Page_Exported();
-
-		// Clean output buffer
-		if (!EW_DEBUG_ENABLED && ob_get_length())
-			ob_end_clean();
-
-		// Write debug message if enabled
-		if (EW_DEBUG_ENABLED)
-			echo ew_DebugMsg();
-
-		// Output data
-		$Doc->Export();
-	}
-
-	// Set up master/detail based on QueryString
-	function SetUpMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "pais") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idpais"] <> "") {
-					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
-					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
-					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
-					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "medicamento") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idmedicamento"] <> "") {
-					$GLOBALS["medicamento"]->idmedicamento->setQueryStringValue($_GET["fk_idmedicamento"]);
-					$this->idmedicamento->setQueryStringValue($GLOBALS["medicamento"]->idmedicamento->QueryStringValue);
-					$this->idmedicamento->setSessionValue($this->idmedicamento->QueryStringValue);
-					if (!is_numeric($GLOBALS["medicamento"]->idmedicamento->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "pais") {
-				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "medicamento") {
-				if ($this->idmedicamento->QueryStringValue == "") $this->idmedicamento->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -1738,7 +1373,6 @@ Page_Rendering();
 $registro_sanitario_list->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
-<?php if ($registro_sanitario->Export == "") { ?>
 <script type="text/javascript">
 
 // Page object
@@ -1766,64 +1400,25 @@ fregistro_sanitariolist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-fregistro_sanitariolist.Lists["x_idmedicamento"] = {"LinkField":"x_idmedicamento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fregistro_sanitariolist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-
 // Form object for search
+
 var fregistro_sanitariolistsrch = new ew_Form("fregistro_sanitariolistsrch");
 </script>
 <script type="text/javascript">
 
 // Write your client script here, no need to add script tags.
 </script>
-<?php } ?>
-<?php if ($registro_sanitario->Export == "") { ?>
 <div class="ewToolbar">
-<?php if ($registro_sanitario->Export == "") { ?>
 <?php $Breadcrumb->Render(); ?>
-<?php } ?>
-<?php if ($registro_sanitario_list->TotalRecs > 0 && $registro_sanitario->getCurrentMasterTable() == "" && $registro_sanitario_list->ExportOptions->Visible()) { ?>
+<?php if ($registro_sanitario_list->TotalRecs > 0 && $registro_sanitario_list->ExportOptions->Visible()) { ?>
 <?php $registro_sanitario_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($registro_sanitario_list->SearchOptions->Visible()) { ?>
 <?php $registro_sanitario_list->SearchOptions->Render("body") ?>
 <?php } ?>
-<?php if ($registro_sanitario->Export == "") { ?>
 <?php echo $Language->SelectionForm(); ?>
-<?php } ?>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
-<?php if (($registro_sanitario->Export == "") || (EW_EXPORT_MASTER_RECORD && $registro_sanitario->Export == "print")) { ?>
-<?php
-$gsMasterReturnUrl = "paislist.php";
-if ($registro_sanitario_list->DbMasterFilter <> "" && $registro_sanitario->getCurrentMasterTable() == "pais") {
-	if ($registro_sanitario_list->MasterRecordExists) {
-		if ($registro_sanitario->getCurrentMasterTable() == $registro_sanitario->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
-?>
-<?php if ($registro_sanitario_list->ExportOptions->Visible()) { ?>
-<div class="ewListExportOptions"><?php $registro_sanitario_list->ExportOptions->Render("body") ?></div>
-<?php } ?>
-<?php include_once $EW_RELATIVE_PATH . "paismaster.php" ?>
-<?php
-	}
-}
-?>
-<?php
-$gsMasterReturnUrl = "medicamentolist.php";
-if ($registro_sanitario_list->DbMasterFilter <> "" && $registro_sanitario->getCurrentMasterTable() == "medicamento") {
-	if ($registro_sanitario_list->MasterRecordExists) {
-		if ($registro_sanitario->getCurrentMasterTable() == $registro_sanitario->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
-?>
-<?php if ($registro_sanitario_list->ExportOptions->Visible()) { ?>
-<div class="ewListExportOptions"><?php $registro_sanitario_list->ExportOptions->Render("body") ?></div>
-<?php } ?>
-<?php include_once $EW_RELATIVE_PATH . "medicamentomaster.php" ?>
-<?php
-	}
-}
-?>
-<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
@@ -1901,12 +1496,12 @@ $registro_sanitario_list->RenderListOptions();
 // Render list options (header, left)
 $registro_sanitario_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($registro_sanitario->idmedicamento->Visible) { // idmedicamento ?>
-	<?php if ($registro_sanitario->SortUrl($registro_sanitario->idmedicamento) == "") { ?>
-		<th data-name="idmedicamento"><div id="elh_registro_sanitario_idmedicamento" class="registro_sanitario_idmedicamento"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->idmedicamento->FldCaption() ?></div></div></th>
+<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
+	<?php if ($registro_sanitario->SortUrl($registro_sanitario->idregistro_sanitario) == "") { ?>
+		<th data-name="idregistro_sanitario"><div id="elh_registro_sanitario_idregistro_sanitario" class="registro_sanitario_idregistro_sanitario"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->idregistro_sanitario->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="idmedicamento"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idmedicamento) ?>',1);"><div id="elh_registro_sanitario_idmedicamento" class="registro_sanitario_idmedicamento">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idmedicamento->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idmedicamento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idmedicamento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idregistro_sanitario"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idregistro_sanitario) ?>',1);"><div id="elh_registro_sanitario_idregistro_sanitario" class="registro_sanitario_idregistro_sanitario">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idregistro_sanitario->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idregistro_sanitario->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idregistro_sanitario->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1934,6 +1529,15 @@ $registro_sanitario_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->estado) ?>',1);"><div id="elh_registro_sanitario_estado" class="registro_sanitario_estado">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
+	<?php if ($registro_sanitario->SortUrl($registro_sanitario->idproducto) == "") { ?>
+		<th data-name="idproducto"><div id="elh_registro_sanitario_idproducto" class="registro_sanitario_idproducto"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->idproducto->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idproducto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idproducto) ?>',1);"><div id="elh_registro_sanitario_idproducto" class="registro_sanitario_idproducto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idproducto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idproducto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idproducto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -2002,10 +1606,10 @@ while ($registro_sanitario_list->RecCnt < $registro_sanitario_list->StopRec) {
 // Render list options (body, left)
 $registro_sanitario_list->ListOptions->Render("body", "left", $registro_sanitario_list->RowCnt);
 ?>
-	<?php if ($registro_sanitario->idmedicamento->Visible) { // idmedicamento ?>
-		<td data-name="idmedicamento"<?php echo $registro_sanitario->idmedicamento->CellAttributes() ?>>
-<span<?php echo $registro_sanitario->idmedicamento->ViewAttributes() ?>>
-<?php echo $registro_sanitario->idmedicamento->ListViewValue() ?></span>
+	<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
+		<td data-name="idregistro_sanitario"<?php echo $registro_sanitario->idregistro_sanitario->CellAttributes() ?>>
+<span<?php echo $registro_sanitario->idregistro_sanitario->ViewAttributes() ?>>
+<?php echo $registro_sanitario->idregistro_sanitario->ListViewValue() ?></span>
 <a id="<?php echo $registro_sanitario_list->PageObjName . "_row_" . $registro_sanitario_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
@@ -2024,6 +1628,12 @@ $registro_sanitario_list->ListOptions->Render("body", "left", $registro_sanitari
 		<td data-name="estado"<?php echo $registro_sanitario->estado->CellAttributes() ?>>
 <span<?php echo $registro_sanitario->estado->ViewAttributes() ?>>
 <?php echo $registro_sanitario->estado->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
+		<td data-name="idproducto"<?php echo $registro_sanitario->idproducto->CellAttributes() ?>>
+<span<?php echo $registro_sanitario->idproducto->ViewAttributes() ?>>
+<?php echo $registro_sanitario->idproducto->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php
@@ -2052,7 +1662,6 @@ $registro_sanitario_list->ListOptions->Render("body", "right", $registro_sanitar
 if ($registro_sanitario_list->Recordset)
 	$registro_sanitario_list->Recordset->Close();
 ?>
-<?php if ($registro_sanitario->Export == "") { ?>
 <div class="ewGridLowerPanel">
 <?php if ($registro_sanitario->CurrentAction <> "gridadd" && $registro_sanitario->CurrentAction <> "gridedit") { ?>
 <form name="ewPagerForm" class="ewForm form-inline ewPagerForm" action="<?php echo ew_CurrentPage() ?>">
@@ -2109,7 +1718,6 @@ if ($registro_sanitario_list->Recordset)
 </div>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
 </div>
 <?php } ?>
 <?php if ($registro_sanitario_list->TotalRecs == 0 && $registro_sanitario->CurrentAction == "") { // Show other options ?>
@@ -2123,25 +1731,21 @@ if ($registro_sanitario_list->Recordset)
 </div>
 <div class="clearfix"></div>
 <?php } ?>
-<?php if ($registro_sanitario->Export == "") { ?>
 <script type="text/javascript">
 fregistro_sanitariolistsrch.Init();
 fregistro_sanitariolist.Init();
 </script>
-<?php } ?>
 <?php
 $registro_sanitario_list->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
-<?php if ($registro_sanitario->Export == "") { ?>
 <script type="text/javascript">
 
 // Write your table-specific startup script here
 // document.write("page loaded");
 
 </script>
-<?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
 $registro_sanitario_list->Page_Terminate();

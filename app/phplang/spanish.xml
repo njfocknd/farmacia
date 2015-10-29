@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" standalone="yes"?>
-<ew-language date="2015/10/22" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
+<ew-language date="2015/10/28" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
 	<locale>
 		<phrase id="locale" value=""/><!-- *** system locale for this language -->
 		<phrase id="use_system_locale" value="0"/><!-- *** change to "0" to disable system locale and use the following settings *** -->
@@ -414,27 +414,65 @@
 		<phrase id="or" value="o"/>
 	</global>
 	<project><phrase id="bodytitle" value="Farmacia"/>
-<phrase id="footertext" value="Nexthor 2015"/>
-<menu id="3"><phrase id="menutext" value="Medicamento"/>
+<phrase id="footertext" value="Nexthor 2015. Proyecto Seminario"/>
+<menu id="10"><phrase id="menutext" value="Catálogos"/>
 </menu>
-<menu id="6"><phrase id="menutext" value="Catálogos"/>
+<menu id="6"><phrase id="menutext" value="pais"/>
 </menu>
-<menu id="5"><phrase id="menutext" value="Registro Sanitario"/>
+<menu id="1"><phrase id="menutext" value="departamento"/>
 </menu>
-<menu id="4"><phrase id="menutext" value="País"/>
+<menu id="5"><phrase id="menutext" value="municipio"/>
 </menu>
-<menu id="2"><phrase id="menutext" value="Marca"/>
+<menu id="2"><phrase id="menutext" value="empresa"/>
 </menu>
-<menu id="1"><phrase id="menutext" value="Laboratorio"/>
+<menu id="9"><phrase id="menutext" value="sucursal"/>
 </menu>
-<table id="laboratorio"><phrase id="tblcaption" value="Laboratorio"/>
-<field id="idlaboratorio"><phrase id="fldcaption" value="idlaboratorio"/>
+<menu id="3"><phrase id="menutext" value="fabricante"/>
+</menu>
+<menu id="4"><phrase id="menutext" value="marca"/>
+</menu>
+<menu id="7"><phrase id="menutext" value="producto"/>
+</menu>
+<menu id="8"><phrase id="menutext" value="registro sanitario"/>
+</menu>
+<table id="departamento"><phrase id="tblcaption" value="Departamento"/>
+<field id="iddepartamento"><phrase id="fldcaption" value="iddepartamento"/>
 </field>
 <field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
 <field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<field id="state"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+</table>
+<table id="empresa"><phrase id="tblcaption" value="Empresa"/>
+<field id="idempresa"><phrase id="fldcaption" value="idempresa"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+</field>
+<field id="direccion"><phrase id="fldcaption" value="direccion"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
+<phrase id="fldtagvalue1" value="Activa"/>
+<phrase id="fldtagcaption1" value="Activa"/>
+<phrase id="fldtagvalue2" value="Inactiva"/>
+<phrase id="fldtagcaption2" value="Inactiva"/>
+</field>
+<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+</field>
+</table>
+<table id="fabricante"><phrase id="tblcaption" value="Fabricante"/>
+<field id="idfabricante"><phrase id="fldcaption" value="idfabricante"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+</field>
+<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -444,27 +482,25 @@
 <table id="marca"><phrase id="tblcaption" value="Marca"/>
 <field id="idmarca"><phrase id="fldcaption" value="idmarca"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<field id="idfabricante"><phrase id="fldcaption" value="idfabricante"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="idlaboratorio"><phrase id="fldcaption" value="Laboratorio"/>
-</field>
 </table>
-<table id="medicamento"><phrase id="tblcaption" value="medicamento"/>
-<field id="idmedicamento"><phrase id="fldcaption" value="idmedicamento"/>
+<table id="municipio"><phrase id="tblcaption" value="Municipio"/>
+<field id="idmunicipio"><phrase id="fldcaption" value="idmunicipio"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
 </field>
-<field id="idpais"><phrase id="fldcaption" value="País"/>
+<field id="iddepartamento"><phrase id="fldcaption" value="iddepartamento"/>
 </field>
-<field id="idmarca"><phrase id="fldcaption" value="Marca"/>
-</field>
-<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<field id="state"><phrase id="fldcaption" value="state"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -483,20 +519,54 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 </table>
-<table id="registro_sanitario"><phrase id="tblcaption" value="registro sanitario"/>
-<field id="idregistro_sanitario"><phrase id="fldcaption" value="idregistro sanitario"/>
+<table id="producto"><phrase id="tblcaption" value="País"/>
+<field id="idproducto"><phrase id="fldcaption" value="idproducto"/>
 </field>
-<field id="descripcion"><phrase id="fldcaption" value="Descripción"/>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
 </field>
-<field id="idpais"><phrase id="fldcaption" value="País"/>
+<field id="idpais"><phrase id="fldcaption" value="idpais"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<field id="idmarca"><phrase id="fldcaption" value="idmarca"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="idmedicamento"><phrase id="fldcaption" value="Medicamento"/>
+</table>
+<table id="registro_sanitario"><phrase id="tblcaption" value="registro sanitario"/>
+<field id="idregistro_sanitario"><phrase id="fldcaption" value="idregistro sanitario"/>
+</field>
+<field id="descripcion"><phrase id="fldcaption" value="descripcion"/>
+</field>
+<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="idproducto"><phrase id="fldcaption" value="idproducto"/>
+</field>
+</table>
+<table id="sucursal"><phrase id="tblcaption" value="Sucursal"/>
+<field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+</field>
+<field id="direccion"><phrase id="fldcaption" value="direccion"/>
+</field>
+<field id="idmunicipio"><phrase id="fldcaption" value="idmunicipio"/>
+</field>
+<field id="idempresa"><phrase id="fldcaption" value="idempresa"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 </table>
 </project>

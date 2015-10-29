@@ -7,7 +7,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitarioinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -23,7 +22,7 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 	var $PageID = 'delete';
 
 	// Project ID
-	var $ProjectID = "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
 	var $TableName = 'registro_sanitario';
@@ -202,9 +201,6 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 			$GLOBALS["Table"] = &$GLOBALS["registro_sanitario"];
 		}
 
-		// Table object (pais)
-		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'delete', TRUE);
@@ -226,6 +222,7 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
+		$this->idregistro_sanitario->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -316,9 +313,6 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 	function Page_Main() {
 		global $Language;
 
-		// Set up master/detail parameters
-		$this->SetUpMasterParms();
-
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
@@ -399,9 +393,9 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 		$this->Row_Selected($row);
 		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
 		$this->descripcion->setDbValue($rs->fields('descripcion'));
-		$this->idmedicamento->setDbValue($rs->fields('idmedicamento'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
 	}
 
 	// Load DbValue from recordset
@@ -410,9 +404,9 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idregistro_sanitario->DbValue = $row['idregistro_sanitario'];
 		$this->descripcion->DbValue = $row['descripcion'];
-		$this->idmedicamento->DbValue = $row['idmedicamento'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->estado->DbValue = $row['estado'];
+		$this->idproducto->DbValue = $row['idproducto'];
 	}
 
 	// Render row values based on field settings
@@ -428,9 +422,9 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 		// Common render codes for all row types
 		// idregistro_sanitario
 		// descripcion
-		// idmedicamento
 		// idpais
 		// estado
+		// idproducto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -442,52 +436,8 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 			$this->descripcion->ViewValue = $this->descripcion->CurrentValue;
 			$this->descripcion->ViewCustomAttributes = "";
 
-			// idmedicamento
-			if (strval($this->idmedicamento->CurrentValue) <> "") {
-				$sFilterWrk = "`idmedicamento`" . ew_SearchString("=", $this->idmedicamento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmedicamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `medicamento`";
-			$sWhereWrk = "";
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmedicamento, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmedicamento->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idmedicamento->ViewValue = $this->idmedicamento->CurrentValue;
-				}
-			} else {
-				$this->idmedicamento->ViewValue = NULL;
-			}
-			$this->idmedicamento->ViewCustomAttributes = "";
-
 			// idpais
-			if (strval($this->idpais->CurrentValue) <> "") {
-				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
-			$sWhereWrk = "";
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpais->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idpais->ViewValue = $this->idpais->CurrentValue;
-				}
-			} else {
-				$this->idpais->ViewValue = NULL;
-			}
+			$this->idpais->ViewValue = $this->idpais->CurrentValue;
 			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
@@ -507,15 +457,19 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// idproducto
+			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+			$this->idproducto->ViewCustomAttributes = "";
+
+			// idregistro_sanitario
+			$this->idregistro_sanitario->LinkCustomAttributes = "";
+			$this->idregistro_sanitario->HrefValue = "";
+			$this->idregistro_sanitario->TooltipValue = "";
+
 			// descripcion
 			$this->descripcion->LinkCustomAttributes = "";
 			$this->descripcion->HrefValue = "";
 			$this->descripcion->TooltipValue = "";
-
-			// idmedicamento
-			$this->idmedicamento->LinkCustomAttributes = "";
-			$this->idmedicamento->HrefValue = "";
-			$this->idmedicamento->TooltipValue = "";
 
 			// idpais
 			$this->idpais->LinkCustomAttributes = "";
@@ -526,6 +480,11 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// idproducto
+			$this->idproducto->LinkCustomAttributes = "";
+			$this->idproducto->HrefValue = "";
+			$this->idproducto->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -609,48 +568,6 @@ class cregistro_sanitario_delete extends cregistro_sanitario {
 			}
 		}
 		return $DeleteRows;
-	}
-
-	// Set up master/detail based on QueryString
-	function SetUpMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "pais") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idpais"] <> "") {
-					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
-					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
-					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
-					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "pais") {
-				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -768,10 +685,8 @@ fregistro_sanitariodelete.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-fregistro_sanitariodelete.Lists["x_idmedicamento"] = {"LinkField":"x_idmedicamento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fregistro_sanitariodelete.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-
 // Form object for search
+
 </script>
 <script type="text/javascript">
 
@@ -813,17 +728,20 @@ $registro_sanitario_delete->ShowMessage();
 <?php echo $registro_sanitario->TableCustomInnerHtml ?>
 	<thead>
 	<tr class="ewTableHeader">
+<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
+		<th><span id="elh_registro_sanitario_idregistro_sanitario" class="registro_sanitario_idregistro_sanitario"><?php echo $registro_sanitario->idregistro_sanitario->FldCaption() ?></span></th>
+<?php } ?>
 <?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
 		<th><span id="elh_registro_sanitario_descripcion" class="registro_sanitario_descripcion"><?php echo $registro_sanitario->descripcion->FldCaption() ?></span></th>
-<?php } ?>
-<?php if ($registro_sanitario->idmedicamento->Visible) { // idmedicamento ?>
-		<th><span id="elh_registro_sanitario_idmedicamento" class="registro_sanitario_idmedicamento"><?php echo $registro_sanitario->idmedicamento->FldCaption() ?></span></th>
 <?php } ?>
 <?php if ($registro_sanitario->idpais->Visible) { // idpais ?>
 		<th><span id="elh_registro_sanitario_idpais" class="registro_sanitario_idpais"><?php echo $registro_sanitario->idpais->FldCaption() ?></span></th>
 <?php } ?>
 <?php if ($registro_sanitario->estado->Visible) { // estado ?>
 		<th><span id="elh_registro_sanitario_estado" class="registro_sanitario_estado"><?php echo $registro_sanitario->estado->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
+		<th><span id="elh_registro_sanitario_idproducto" class="registro_sanitario_idproducto"><?php echo $registro_sanitario->idproducto->FldCaption() ?></span></th>
 <?php } ?>
 	</tr>
 	</thead>
@@ -846,19 +764,19 @@ while (!$registro_sanitario_delete->Recordset->EOF) {
 	$registro_sanitario_delete->RenderRow();
 ?>
 	<tr<?php echo $registro_sanitario->RowAttributes() ?>>
+<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
+		<td<?php echo $registro_sanitario->idregistro_sanitario->CellAttributes() ?>>
+<span id="el<?php echo $registro_sanitario_delete->RowCnt ?>_registro_sanitario_idregistro_sanitario" class="form-group registro_sanitario_idregistro_sanitario">
+<span<?php echo $registro_sanitario->idregistro_sanitario->ViewAttributes() ?>>
+<?php echo $registro_sanitario->idregistro_sanitario->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
 <?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
 		<td<?php echo $registro_sanitario->descripcion->CellAttributes() ?>>
 <span id="el<?php echo $registro_sanitario_delete->RowCnt ?>_registro_sanitario_descripcion" class="form-group registro_sanitario_descripcion">
 <span<?php echo $registro_sanitario->descripcion->ViewAttributes() ?>>
 <?php echo $registro_sanitario->descripcion->ListViewValue() ?></span>
-</span>
-</td>
-<?php } ?>
-<?php if ($registro_sanitario->idmedicamento->Visible) { // idmedicamento ?>
-		<td<?php echo $registro_sanitario->idmedicamento->CellAttributes() ?>>
-<span id="el<?php echo $registro_sanitario_delete->RowCnt ?>_registro_sanitario_idmedicamento" class="form-group registro_sanitario_idmedicamento">
-<span<?php echo $registro_sanitario->idmedicamento->ViewAttributes() ?>>
-<?php echo $registro_sanitario->idmedicamento->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
@@ -875,6 +793,14 @@ while (!$registro_sanitario_delete->Recordset->EOF) {
 <span id="el<?php echo $registro_sanitario_delete->RowCnt ?>_registro_sanitario_estado" class="form-group registro_sanitario_estado">
 <span<?php echo $registro_sanitario->estado->ViewAttributes() ?>>
 <?php echo $registro_sanitario->estado->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
+		<td<?php echo $registro_sanitario->idproducto->CellAttributes() ?>>
+<span id="el<?php echo $registro_sanitario_delete->RowCnt ?>_registro_sanitario_idproducto" class="form-group registro_sanitario_idproducto">
+<span<?php echo $registro_sanitario->idproducto->ViewAttributes() ?>>
+<?php echo $registro_sanitario->idproducto->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

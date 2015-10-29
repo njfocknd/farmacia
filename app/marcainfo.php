@@ -9,7 +9,7 @@ $marca = NULL;
 class cmarca extends cTable {
 	var $idmarca;
 	var $nombre;
-	var $idlaboratorio;
+	var $idfabricante;
 	var $estado;
 
 	//
@@ -45,10 +45,10 @@ class cmarca extends cTable {
 		$this->nombre = new cField('marca', 'marca', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['nombre'] = &$this->nombre;
 
-		// idlaboratorio
-		$this->idlaboratorio = new cField('marca', 'marca', 'x_idlaboratorio', 'idlaboratorio', '`idlaboratorio`', '`idlaboratorio`', 3, -1, FALSE, '`idlaboratorio`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idlaboratorio->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idlaboratorio'] = &$this->idlaboratorio;
+		// idfabricante
+		$this->idfabricante = new cField('marca', 'marca', 'x_idfabricante', 'idfabricante', '`idfabricante`', '`idfabricante`', 3, -1, FALSE, '`idfabricante`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idfabricante->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idfabricante'] = &$this->idfabricante;
 
 		// estado
 		$this->estado = new cField('marca', 'marca', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
@@ -70,77 +70,6 @@ class cmarca extends cTable {
 		} else {
 			$ofld->setSort("");
 		}
-	}
-
-	// Current master table name
-	function getCurrentMasterTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
-	}
-
-	function setCurrentMasterTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
-	}
-
-	// Session master WHERE clause
-	function GetMasterFilter() {
-
-		// Master filter
-		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "laboratorio") {
-			if ($this->idlaboratorio->getSessionValue() <> "")
-				$sMasterFilter .= "`idlaboratorio`=" . ew_QuotedValue($this->idlaboratorio->getSessionValue(), EW_DATATYPE_NUMBER);
-			else
-				return "";
-		}
-		return $sMasterFilter;
-	}
-
-	// Session detail WHERE clause
-	function GetDetailFilter() {
-
-		// Detail filter
-		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "laboratorio") {
-			if ($this->idlaboratorio->getSessionValue() <> "")
-				$sDetailFilter .= "`idlaboratorio`=" . ew_QuotedValue($this->idlaboratorio->getSessionValue(), EW_DATATYPE_NUMBER);
-			else
-				return "";
-		}
-		return $sDetailFilter;
-	}
-
-	// Master filter
-	function SqlMasterFilter_laboratorio() {
-		return "`idlaboratorio`=@idlaboratorio@";
-	}
-
-	// Detail filter
-	function SqlDetailFilter_laboratorio() {
-		return "`idlaboratorio`=@idlaboratorio@";
-	}
-
-	// Current detail table name
-	function getCurrentDetailTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
-	}
-
-	function setCurrentDetailTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
-	}
-
-	// Get detail url
-	function GetDetailUrl() {
-
-		// Detail url
-		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "medicamento") {
-			$sDetailUrl = $GLOBALS["medicamento"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idmarca=" . urlencode($this->idmarca->CurrentValue);
-		}
-		if ($sDetailUrl == "") {
-			$sDetailUrl = "marcalist.php";
-		}
-		return $sDetailUrl;
 	}
 
 	// Table level SQL
@@ -174,7 +103,7 @@ class cmarca extends cTable {
 
 	function getSqlWhere() { // Where
 		$sWhere = ($this->_SqlWhere <> "") ? $this->_SqlWhere : "";
-		$this->TableFilter = "";
+		$this->TableFilter = "`estado` = 'Activo'";
 		ew_AddFilter($sWhere, $this->TableFilter);
 		return $sWhere;
 	}
@@ -416,14 +345,6 @@ class cmarca extends cTable {
 	// Update
 	function Update(&$rs, $where = "", $rsold = NULL) {
 		global $conn;
-
-		// Cascade update detail field 'idmarca'
-		if (!is_null($rsold) && (isset($rs['idmarca']) && $rsold['idmarca'] <> $rs['idmarca'])) {
-			if (!isset($GLOBALS["medicamento"])) $GLOBALS["medicamento"] = new cmedicamento();
-			$rscascade = array();
-			$rscascade['idmarca'] = $rs['idmarca']; 
-			$GLOBALS["medicamento"]->Update($rscascade, "`idmarca` = " . ew_QuotedValue($rsold['idmarca'], EW_DATATYPE_NUMBER));
-		}
 		return $conn->Execute($this->UpdateSQL($rs, $where));
 	}
 
@@ -446,11 +367,6 @@ class cmarca extends cTable {
 	// Delete
 	function Delete(&$rs, $where = "") {
 		global $conn;
-
-		// Cascade delete detail table 'medicamento'
-		if (!isset($GLOBALS["medicamento"])) $GLOBALS["medicamento"] = new cmedicamento();
-		$rscascade = array();
-		$GLOBALS["medicamento"]->Delete($rscascade, "`idmarca` = " . ew_QuotedValue($rs['idmarca'], EW_DATATYPE_NUMBER));
 		return $conn->Execute($this->DeleteSQL($rs, $where));
 	}
 
@@ -509,10 +425,7 @@ class cmarca extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("marcaedit.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("marcaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("marcaedit.php", $this->UrlParm($parm));
 	}
 
 	// Inline edit URL
@@ -522,10 +435,7 @@ class cmarca extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("marcaadd.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("marcaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("marcaadd.php", $this->UrlParm($parm));
 	}
 
 	// Inline copy URL
@@ -619,7 +529,7 @@ class cmarca extends cTable {
 	function LoadListRowValues(&$rs) {
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->idlaboratorio->setDbValue($rs->fields('idlaboratorio'));
+		$this->idfabricante->setDbValue($rs->fields('idfabricante'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -633,7 +543,7 @@ class cmarca extends cTable {
    // Common render codes
 		// idmarca
 		// nombre
-		// idlaboratorio
+		// idfabricante
 		// estado
 		// idmarca
 
@@ -644,29 +554,9 @@ class cmarca extends cTable {
 		$this->nombre->ViewValue = $this->nombre->CurrentValue;
 		$this->nombre->ViewCustomAttributes = "";
 
-		// idlaboratorio
-		if (strval($this->idlaboratorio->CurrentValue) <> "") {
-			$sFilterWrk = "`idlaboratorio`" . ew_SearchString("=", $this->idlaboratorio->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idlaboratorio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `laboratorio`";
-		$sWhereWrk = "";
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idlaboratorio, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idlaboratorio->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idlaboratorio->ViewValue = $this->idlaboratorio->CurrentValue;
-			}
-		} else {
-			$this->idlaboratorio->ViewValue = NULL;
-		}
-		$this->idlaboratorio->ViewCustomAttributes = "";
+		// idfabricante
+		$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+		$this->idfabricante->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -695,10 +585,10 @@ class cmarca extends cTable {
 		$this->nombre->HrefValue = "";
 		$this->nombre->TooltipValue = "";
 
-		// idlaboratorio
-		$this->idlaboratorio->LinkCustomAttributes = "";
-		$this->idlaboratorio->HrefValue = "";
-		$this->idlaboratorio->TooltipValue = "";
+		// idfabricante
+		$this->idfabricante->LinkCustomAttributes = "";
+		$this->idfabricante->HrefValue = "";
+		$this->idfabricante->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
@@ -728,43 +618,17 @@ class cmarca extends cTable {
 		$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 		$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
-		// idlaboratorio
-		$this->idlaboratorio->EditAttrs["class"] = "form-control";
-		$this->idlaboratorio->EditCustomAttributes = "";
-		if ($this->idlaboratorio->getSessionValue() <> "") {
-			$this->idlaboratorio->CurrentValue = $this->idlaboratorio->getSessionValue();
-		if (strval($this->idlaboratorio->CurrentValue) <> "") {
-			$sFilterWrk = "`idlaboratorio`" . ew_SearchString("=", $this->idlaboratorio->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idlaboratorio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `laboratorio`";
-		$sWhereWrk = "";
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idlaboratorio, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idlaboratorio->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idlaboratorio->ViewValue = $this->idlaboratorio->CurrentValue;
-			}
-		} else {
-			$this->idlaboratorio->ViewValue = NULL;
-		}
-		$this->idlaboratorio->ViewCustomAttributes = "";
-		} else {
-		}
+		// idfabricante
+		$this->idfabricante->EditAttrs["class"] = "form-control";
+		$this->idfabricante->EditCustomAttributes = "";
+		$this->idfabricante->EditValue = ew_HtmlEncode($this->idfabricante->CurrentValue);
+		$this->idfabricante->PlaceHolder = ew_RemoveHtml($this->idfabricante->FldCaption());
 
 		// estado
-		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
@@ -793,12 +657,12 @@ class cmarca extends cTable {
 				if ($ExportPageType == "view") {
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->idlaboratorio->Exportable) $Doc->ExportCaption($this->idlaboratorio);
+					if ($this->idfabricante->Exportable) $Doc->ExportCaption($this->idfabricante);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->idlaboratorio->Exportable) $Doc->ExportCaption($this->idlaboratorio);
+					if ($this->idfabricante->Exportable) $Doc->ExportCaption($this->idfabricante);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
@@ -833,12 +697,12 @@ class cmarca extends cTable {
 					if ($ExportPageType == "view") {
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->idlaboratorio->Exportable) $Doc->ExportField($this->idlaboratorio);
+						if ($this->idfabricante->Exportable) $Doc->ExportField($this->idfabricante);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->idlaboratorio->Exportable) $Doc->ExportField($this->idlaboratorio);
+						if ($this->idfabricante->Exportable) $Doc->ExportField($this->idfabricante);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();

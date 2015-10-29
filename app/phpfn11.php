@@ -9,8 +9,8 @@
 function ew_AutoLoad($class) {
 	global $EW_RELATIVE_PATH;
 	if (substr($class, 0, 1) == "c") {
-		if ($class == "cnexthor_farmacia_db") {
-			$file = "nexthor_farmaciadb.php";
+		if ($class == "cnexthor_empresa_db") {
+			$file = "nexthor_empresadb.php";
 		} else {
 		$fn = "%cls%info.php";
 		$file = str_replace("%cls%", substr($class, 1), $fn);
@@ -31,7 +31,7 @@ if (!function_exists("G")) {
 function CurrentProjectID() {
 	if (isset($GLOBALS["Page"]))
 		return $GLOBALS["Page"]->ProjectID;
-	return "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	return "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 }
 
 // Get current page object
@@ -594,103 +594,12 @@ class cExportXml extends cExportBase {
 // Class for export to PDF
 //
 class cExportPdf extends cExportBase {
-
-	// Table header
-	function ExportTableHeader() {
-		$this->Text .= "<table class=\"ewTable\">\r\n";
-	}
-
-	// Export a value (caption, field value, or aggregate)
-	function ExportValueEx(&$fld, $val, $usestyle = TRUE) {
-		$wrkval = strval($val);
-		$wrkval = "<td" . (($usestyle && EW_EXPORT_CSS_STYLES) ? $fld->CellStyles() : "") . ">" . $wrkval . "</td>\r\n";
-		$this->Line .= $wrkval;
-		$this->Text .= $wrkval;
-	}
-
-	// Begin a row
-	function BeginExportRow($rowcnt = 0, $usestyle = TRUE) {
-		$this->FldCnt = 0;
-		if ($this->Horizontal) {
-			if ($rowcnt == -1)
-				$this->Table->CssClass = "ewTableFooter";
-			elseif ($rowcnt == 0)
-				$this->Table->CssClass = "ewTableHeader";
-			else
-				$this->Table->CssClass = (($rowcnt % 2) == 1) ? "ewTableRow" : "ewTableAltRow";
-			$this->Line = "<tr" . (($usestyle && EW_EXPORT_CSS_STYLES) ? $this->Table->RowStyles() : "") . ">";
-			$this->Text .= $this->Line;
-		}
-	}
-
-	// End a row
-	function EndExportRow() {
-		if ($this->Horizontal) {
-			$this->Line .= "</tr>";
-			$this->Text .= "</tr>";
-			$this->Header = $this->Line;
-		}
-	}
-
-	// Page break
-	function ExportPageBreak() {
-		if ($this->Horizontal) {
-			$this->Text .= "</table>\r\n"; // end current table
-			$this->Text .= "<p style=\"page-break-after:always;\">&nbsp;</p>\r\n"; // page break
-			$this->Text .= "<table class=\"ewTable ewTableBorder\">\r\n"; // new page header
-			$this->Text .= $this->Header;
-		}
-	}
-
-	// Export a field
-	function ExportField(&$fld) {
-		$ExportValue = $fld->ExportValue();
-		if ($fld->FldViewTag == "IMAGE") {
-			$ExportValue = ew_GetFileImgTag($fld, $fld->GetTempImage());
-		} else {
-			$ExportValue = str_replace("<br>", "\r\n", $ExportValue);
-			$ExportValue = strip_tags($ExportValue);
-			$ExportValue = str_replace("\r\n", "<br>", $ExportValue);
-		}
-		if ($this->Horizontal) {
-			$this->ExportValueEx($fld, $ExportValue);
-		} else { // Vertical, export as a row
-			$this->FldCnt++;
-			$fld->CellCssClass = ($this->FldCnt % 2 == 1) ? "ewTableRow" : "ewTableAltRow";
-			$this->Text .= "<tr><td" . ((EW_EXPORT_CSS_STYLES) ? $fld->CellStyles() : "") . ">" . $fld->ExportCaption() . "</td>";
-			$this->Text .= "<td" . ((EW_EXPORT_CSS_STYLES) ? $fld->CellStyles() : "") . ">" .
-				$ExportValue . "</td></tr>";
-		}
-	}
-
-	// Add HTML tags
-	function ExportHeaderAndFooter() {
-		$header = "<html><head>\r\n";
-		$header .= $this->CharsetMetaTag();
-		if (EW_EXPORT_CSS_STYLES && EW_PDF_STYLESHEET_FILENAME <> "")
-			$header .= "<style type=\"text/css\">" . file_get_contents(EW_PDF_STYLESHEET_FILENAME) . "</style>\r\n";
-		$header .= "</" . "head>\r\n<body>\r\n";
-		$this->Text = $header . $this->Text . "</body></html>";
-	}
+	var $PageOrientation = "portrait"; // To be setup after creating an instance
+	var $PageSize = "a4"; // To be setup after creating an instance
 
 	// Export
 	function Export() {
-		global $gsExportFile;
-		include_once "dompdf061/dompdf_config.inc.php";
-		@ini_set("memory_limit", EW_PDF_MEMORY_LIMIT);
-		set_time_limit(EW_PDF_TIME_LIMIT);
-		$dompdf = new DOMPDF();
-		$dompdf->load_html($this->Text);
-		$dompdf->set_paper($this->Table->ExportPageSize, $this->Table->ExportPageOrientation);
-		$dompdf->render();
-		if (!EW_DEBUG_ENABLED && ob_get_length())
-			ob_end_clean();
-		$dompdf->stream($gsExportFile . ".pdf", array("Attachment" => 1)); // 0 to open in browser, 1 to download
-	}
-
-	// Destructor
-	function __destruct() {
-		ew_DeleteTmpImages();
+		echo $this->Text;
 	}
 }
 
@@ -2540,6 +2449,147 @@ class cListOption {
 }
 ?>
 <?php
+include_once 'PHPWord.php';
+$EW_EXPORT['word'] = 'cExportWord2'; // Replace the default cExportWord class
+
+//
+// Class for export to Word by PHPWord
+// 
+class cExportWord2 extends cExportBase {
+	var $phpword, $section, $rowheight, $cellwidth, $styleTable, $phpwordTbl;
+	var $rowtype;
+
+	// Constructor
+	function __construct(&$tbl, $style) {
+		parent::__construct($tbl, $style);
+		$this->phpword = new PHPWord();
+		$this->section = $this->phpword->createSection();
+		$this->rowheight = 0;
+		$this->cellwidth = 0;
+		$this->styleTable = array("borderSize" => 6, "borderColor" => "A9A9A9", "cellMargin" => 60); // Customize table cell styles here
+		$this->phpword->addTableStyle("ewPHPWord", $this->styleTable);
+		$this->phpwordTbl = $this->section->addTable("ewPHPWord");
+	}
+
+	// Table header
+	function ExportTableHeader() {
+	}
+
+	// Field aggregate
+	function ExportAggregate(&$fld, $type) {
+		$this->FldCnt++;
+		if ($this->Horizontal) {
+			global $Language;
+			if ($this->FldCnt == 1)
+				$this->phpwordTbl->addRow(0);
+			$val = "";
+			if (in_array($type, array("TOTAL", "COUNT", "AVERAGE")))
+				$val = $Language->Phrase($type) . ": " . ew_ConvertToUtf8($fld->ExportValue());
+			$this->phpwordTbl->addCell($this->cellwidth, array("gridSpan" => 1))->addText(trim($val));
+		}
+	}
+
+	// Field caption
+	function ExportCaption(&$fld) {
+		$this->FldCnt++;
+		$this->ExportCaptionBy($fld, $this->FldCnt - 1, $this->RowCnt);
+	}
+
+	// Field caption by column and row
+	function ExportCaptionBy(&$fld, $col, $row) {
+		if ($col == 0)
+			$this->phpwordTbl->addRow(0);
+		$val = ew_ConvertToUtf8($fld->ExportCaption());
+		$this->phpwordTbl->addCell($this->cellwidth, array("gridSpan" => 1, "bgColor" => "E4E4E4"))->addText(trim($val), array("bold" => TRUE)); // Customize table header cell styles here
+	}
+
+	// Field value by column and row
+	function ExportValueBy(&$fld, $col, $row) {
+		if ($col == 0)
+			$this->phpwordTbl->addRow(0);
+		$val = "";
+		if ($fld->FldViewTag == "IMAGE") { // Image
+			$imagefn = $fld->GetTempImage();
+			$cell =	$this->phpwordTbl->addCell($this->cellwidth);
+			if (!$fld->UploadMultiple || strpos($imagefn,',') === FALSE) {
+				$fn = ew_AppRoot() . $imagefn;
+				if ($imagefn <> "" && file_exists($fn) && !is_dir($fn)) {
+					$cell->addImage($imagefn);
+				}
+			} else {
+				$ar = explode(",", $imagefn);
+				foreach ($ar as $imagefn) {
+					$fn = ew_AppRoot() . $imagefn;
+					if (!file_exists($fn) || is_dir($fn))
+						continue;
+					$cell->addImage($fn);
+				}
+			}
+		} else { // Formatted Text
+			$val = ew_ConvertToUtf8($fld->ExportValue());
+			if ($this->rowtype > 0) { // Not table header/footer
+				if (in_array($fld->FldType, array(4, 5, 6, 14, 131))) // If float or currency
+					$val = ew_ConvertToUtf8($fld->CurrentValue); // Use original value instead of formatted value
+			}
+			$this->phpwordTbl->addCell($this->cellwidth, array("gridSpan" => 1))->addText(trim($val));
+		}
+	}
+
+	// Begin a row
+	function BeginExportRow($rowcnt = 0, $usestyle = TRUE) {
+		$this->RowCnt++;
+		$this->FldCnt = 0;
+		$this->rowtype = $rowcnt;
+	}
+
+	// End a row
+	function EndExportRow() {}
+
+	// Empty row
+	function ExportEmptyRow() {
+		$this->RowCnt++;
+	}
+
+	// Page break
+	function ExportPageBreak() {}
+
+	// Export a field
+	function ExportField(&$fld) {
+		$this->FldCnt++;
+		if ($this->Horizontal) {
+			$this->ExportValueBy($fld, $this->FldCnt - 1, $this->RowCnt);
+		} else { // Vertical, export as a row
+			$this->RowCnt++;
+			$this->ExportCaptionBy($fld, 0, $this->RowCnt);
+			$this->ExportValueBy($fld, 1, $this->RowCnt);
+		}
+	}
+
+	// Table footer
+	function ExportTableFooter() {}
+
+	// Add HTML tags
+	function ExportHeaderAndFooter() {}
+
+	// Export
+	function Export() {
+		global $gsExportFile;
+		if (!EW_DEBUG_ENABLED && ob_get_length())
+			ob_end_clean();
+		header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document' . ((EW_CHARSET <> "") ? ";charset=" . EW_CHARSET : ""));
+		header('Content-Disposition: attachment; filename=' . $gsExportFile . '.docx');
+		header('Cache-Control: max-age=0');
+		$objWriter = PHPWord_IOFactory::createWriter($this->phpword, 'Word2007');
+		$objWriter->save('php://output');
+	}
+
+	// Destructor
+	function __destruct() {
+		ew_DeleteTmpImages();
+	}
+}
+?>
+<?php
 include_once 'phpexcel180/Classes/PHPExcel.php';
 $EW_EXPORT['excel'] = 'cExportExcel5'; // Replace the default cExportExcel class
 $EW_EXPORT['excel2007'] = 'cExportExcel2007';
@@ -2734,147 +2784,6 @@ class cExportExcel2007 extends cExportExcel5 {
 		header('Cache-Control: max-age=0');
 		$objWriter = PHPExcel_IOFactory::createWriter($this->phpexcel, 'Excel2007');
 		$objWriter->save('php://output');
-	}
-}
-?>
-<?php
-include_once 'PHPWord.php';
-$EW_EXPORT['word'] = 'cExportWord2'; // Replace the default cExportWord class
-
-//
-// Class for export to Word by PHPWord
-// 
-class cExportWord2 extends cExportBase {
-	var $phpword, $section, $rowheight, $cellwidth, $styleTable, $phpwordTbl;
-	var $rowtype;
-
-	// Constructor
-	function __construct(&$tbl, $style) {
-		parent::__construct($tbl, $style);
-		$this->phpword = new PHPWord();
-		$this->section = $this->phpword->createSection();
-		$this->rowheight = 0;
-		$this->cellwidth = 0;
-		$this->styleTable = array("borderSize" => 6, "borderColor" => "A9A9A9", "cellMargin" => 60); // Customize table cell styles here
-		$this->phpword->addTableStyle("ewPHPWord", $this->styleTable);
-		$this->phpwordTbl = $this->section->addTable("ewPHPWord");
-	}
-
-	// Table header
-	function ExportTableHeader() {
-	}
-
-	// Field aggregate
-	function ExportAggregate(&$fld, $type) {
-		$this->FldCnt++;
-		if ($this->Horizontal) {
-			global $Language;
-			if ($this->FldCnt == 1)
-				$this->phpwordTbl->addRow(0);
-			$val = "";
-			if (in_array($type, array("TOTAL", "COUNT", "AVERAGE")))
-				$val = $Language->Phrase($type) . ": " . ew_ConvertToUtf8($fld->ExportValue());
-			$this->phpwordTbl->addCell($this->cellwidth, array("gridSpan" => 1))->addText(trim($val));
-		}
-	}
-
-	// Field caption
-	function ExportCaption(&$fld) {
-		$this->FldCnt++;
-		$this->ExportCaptionBy($fld, $this->FldCnt - 1, $this->RowCnt);
-	}
-
-	// Field caption by column and row
-	function ExportCaptionBy(&$fld, $col, $row) {
-		if ($col == 0)
-			$this->phpwordTbl->addRow(0);
-		$val = ew_ConvertToUtf8($fld->ExportCaption());
-		$this->phpwordTbl->addCell($this->cellwidth, array("gridSpan" => 1, "bgColor" => "E4E4E4"))->addText(trim($val), array("bold" => TRUE)); // Customize table header cell styles here
-	}
-
-	// Field value by column and row
-	function ExportValueBy(&$fld, $col, $row) {
-		if ($col == 0)
-			$this->phpwordTbl->addRow(0);
-		$val = "";
-		if ($fld->FldViewTag == "IMAGE") { // Image
-			$imagefn = $fld->GetTempImage();
-			$cell =	$this->phpwordTbl->addCell($this->cellwidth);
-			if (!$fld->UploadMultiple || strpos($imagefn,',') === FALSE) {
-				$fn = ew_AppRoot() . $imagefn;
-				if ($imagefn <> "" && file_exists($fn) && !is_dir($fn)) {
-					$cell->addImage($imagefn);
-				}
-			} else {
-				$ar = explode(",", $imagefn);
-				foreach ($ar as $imagefn) {
-					$fn = ew_AppRoot() . $imagefn;
-					if (!file_exists($fn) || is_dir($fn))
-						continue;
-					$cell->addImage($fn);
-				}
-			}
-		} else { // Formatted Text
-			$val = ew_ConvertToUtf8($fld->ExportValue());
-			if ($this->rowtype > 0) { // Not table header/footer
-				if (in_array($fld->FldType, array(4, 5, 6, 14, 131))) // If float or currency
-					$val = ew_ConvertToUtf8($fld->CurrentValue); // Use original value instead of formatted value
-			}
-			$this->phpwordTbl->addCell($this->cellwidth, array("gridSpan" => 1))->addText(trim($val));
-		}
-	}
-
-	// Begin a row
-	function BeginExportRow($rowcnt = 0, $usestyle = TRUE) {
-		$this->RowCnt++;
-		$this->FldCnt = 0;
-		$this->rowtype = $rowcnt;
-	}
-
-	// End a row
-	function EndExportRow() {}
-
-	// Empty row
-	function ExportEmptyRow() {
-		$this->RowCnt++;
-	}
-
-	// Page break
-	function ExportPageBreak() {}
-
-	// Export a field
-	function ExportField(&$fld) {
-		$this->FldCnt++;
-		if ($this->Horizontal) {
-			$this->ExportValueBy($fld, $this->FldCnt - 1, $this->RowCnt);
-		} else { // Vertical, export as a row
-			$this->RowCnt++;
-			$this->ExportCaptionBy($fld, 0, $this->RowCnt);
-			$this->ExportValueBy($fld, 1, $this->RowCnt);
-		}
-	}
-
-	// Table footer
-	function ExportTableFooter() {}
-
-	// Add HTML tags
-	function ExportHeaderAndFooter() {}
-
-	// Export
-	function Export() {
-		global $gsExportFile;
-		if (!EW_DEBUG_ENABLED && ob_get_length())
-			ob_end_clean();
-		header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document' . ((EW_CHARSET <> "") ? ";charset=" . EW_CHARSET : ""));
-		header('Content-Disposition: attachment; filename=' . $gsExportFile . '.docx');
-		header('Cache-Control: max-age=0');
-		$objWriter = PHPWord_IOFactory::createWriter($this->phpword, 'Word2007');
-		$objWriter->save('php://output');
-	}
-
-	// Destructor
-	function __destruct() {
-		ew_DeleteTmpImages();
 	}
 }
 ?>

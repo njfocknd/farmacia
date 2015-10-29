@@ -7,8 +7,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "laboratoriogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -24,7 +22,7 @@ class cpais_list extends cpais {
 	var $PageID = 'list';
 
 	// Project ID
-	var $ProjectID = "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
 	var $TableName = 'pais';
@@ -251,7 +249,7 @@ class cpais_list extends cpais {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "paisadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
+		$this->AddUrl = "paisadd.php";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -298,43 +296,6 @@ class cpais_list extends cpais {
 	//
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
-
-		// Get export parameters
-		$custom = "";
-		if (@$_GET["export"] <> "") {
-			$this->Export = $_GET["export"];
-			$custom = @$_GET["custom"];
-		} elseif (@$_POST["export"] <> "") {
-			$this->Export = $_POST["export"];
-			$custom = @$_POST["custom"];
-		} elseif (ew_IsHttpPost()) {
-			if (@$_POST["exporttype"] <> "")
-				$this->Export = $_POST["exporttype"];
-			$custom = @$_POST["custom"];
-		} else {
-			$this->setExportReturnUrl(ew_CurrentUrl());
-		}
-		$gsExportFile = $this->TableVar; // Get export file, used in header
-
-		// Get custom export parameters
-		if ($this->Export <> "" && $custom <> "") {
-			$this->CustomExport = $this->Export;
-			$this->Export = "print";
-		}
-		$gsCustomExport = $this->CustomExport;
-		$gsExport = $this->Export; // Get export parameter, used in header
-
-		// Update Export URLs
-		if (defined("EW_USE_PHPEXCEL"))
-			$this->ExportExcelCustom = FALSE;
-		if ($this->ExportExcelCustom)
-			$this->ExportExcelUrl .= "&amp;custom=1";
-		if (defined("EW_USE_PHPWORD"))
-			$this->ExportWordCustom = FALSE;
-		if ($this->ExportWordCustom)
-			$this->ExportWordUrl .= "&amp;custom=1";
-		if ($this->ExportPdfCustom)
-			$this->ExportPdfUrl .= "&amp;custom=1";
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 
 		// Get grid add count
@@ -344,9 +305,7 @@ class cpais_list extends cpais {
 
 		// Set up list options
 		$this->SetupListOptions();
-
-		// Setup export options
-		$this->SetupExportOptions();
+		$this->idpais->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -363,22 +322,6 @@ class cpais_list extends cpais {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'registro_sanitario'
-			if (@$_POST["grid"] == "fregistro_sanitariogrid") {
-				if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
-				$GLOBALS["registro_sanitario_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'laboratorio'
-			if (@$_POST["grid"] == "flaboratoriogrid") {
-				if (!isset($GLOBALS["laboratorio_grid"])) $GLOBALS["laboratorio_grid"] = new claboratorio_grid;
-				$GLOBALS["laboratorio_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -594,13 +537,6 @@ class cpais_list extends cpais {
 		$this->setSessionWhere($sFilter);
 		$this->CurrentFilter = "";
 
-		// Export data only
-		if ($this->CustomExport == "" && in_array($this->Export, array("html","word","excel","xml","csv","email","pdf"))) {
-			$this->ExportData();
-			$this->Page_Terminate(); // Terminate response
-			exit();
-		}
-
 		// Load record count first
 		$bSelectLimit = EW_SELECT_LIMIT;
 		if ($bSelectLimit) {
@@ -808,6 +744,7 @@ class cpais_list extends cpais {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
+			$this->UpdateSort($this->idpais); // idpais
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
@@ -842,6 +779,7 @@ class cpais_list extends cpais {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
+				$this->idpais->setSort("");
 				$this->nombre->setSort("");
 				$this->estado->setSort("");
 			}
@@ -873,31 +811,6 @@ class cpais_list extends cpais {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
-
-		// "detail_registro_sanitario"
-		$item = &$this->ListOptions->Add("detail_registro_sanitario");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = TRUE && !$this->ShowMultipleDetails;
-		$item->OnLeft = FALSE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
-
-		// "detail_laboratorio"
-		$item = &$this->ListOptions->Add("detail_laboratorio");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = TRUE && !$this->ShowMultipleDetails;
-		$item->OnLeft = FALSE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["laboratorio_grid"])) $GLOBALS["laboratorio_grid"] = new claboratorio_grid;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$this->ListOptions->Add("details");
-			$item->CssStyle = "white-space: nowrap;";
-			$item->Visible = $this->ShowMultipleDetails;
-			$item->OnLeft = FALSE;
-			$item->ShowInButtonGroup = FALSE;
-		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -942,82 +855,6 @@ class cpais_list extends cpais {
 		} else {
 			$oListOpt->Body = "";
 		}
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_registro_sanitario"
-		$oListOpt = &$this->ListOptions->Items["detail_registro_sanitario"];
-		if (TRUE) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("registro_sanitario", "TblCaption");
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("registro_sanitariolist.php?" . EW_TABLE_SHOW_MASTER . "=pais&fk_idpais=" . strval($this->idpais->CurrentValue) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["registro_sanitario_grid"]->DetailView) {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=registro_sanitario")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "registro_sanitario";
-			}
-			if ($GLOBALS["registro_sanitario_grid"]->DetailEdit) {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=registro_sanitario")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "registro_sanitario";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-
-		// "detail_laboratorio"
-		$oListOpt = &$this->ListOptions->Items["detail_laboratorio"];
-		if (TRUE) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("laboratorio", "TblCaption");
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("laboratoriolist.php?" . EW_TABLE_SHOW_MASTER . "=pais&fk_idpais=" . strval($this->idpais->CurrentValue) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["laboratorio_grid"]->DetailView) {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=laboratorio")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "laboratorio";
-			}
-			if ($GLOBALS["laboratorio_grid"]->DetailEdit) {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=laboratorio")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "laboratorio";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$this->ListOptions->Items["details"];
-			$oListOpt->Body = $body;
-		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -1038,37 +875,6 @@ class cpais_list extends cpais {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
-		$option = $options["detail"];
-		$DetailTableLink = "";
-		$item = &$option->Add("detailadd_registro_sanitario");
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=registro_sanitario") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["registro_sanitario"]->TableCaption() . "</a>";
-		$item->Visible = ($GLOBALS["registro_sanitario"]->DetailAdd);
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "registro_sanitario";
-		}
-		$item = &$option->Add("detailadd_laboratorio");
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=laboratorio") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["laboratorio"]->TableCaption() . "</a>";
-		$item->Visible = ($GLOBALS["laboratorio"]->DetailAdd);
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "laboratorio";
-		}
-
-		// Add multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$option->Add("detailsadd");
-			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
-			$item->Visible = ($DetailTableLink <> "");
-
-			// Hide single master/detail items
-			$ar = explode(",", $DetailTableLink);
-			$cnt = count($ar);
-			for ($i = 0; $i < $cnt; $i++) {
-				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
-					$item->Visible = FALSE;
-			}
-		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1370,6 +1176,11 @@ class cpais_list extends cpais {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// idpais
+			$this->idpais->LinkCustomAttributes = "";
+			$this->idpais->HrefValue = "";
+			$this->idpais->TooltipValue = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1384,146 +1195,6 @@ class cpais_list extends cpais {
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
-	}
-
-	// Set up export options
-	function SetupExportOptions() {
-		global $Language;
-
-		// Printer friendly
-		$item = &$this->ExportOptions->Add("print");
-		$item->Body = "<a href=\"" . $this->ExportPrintUrl . "\" class=\"ewExportLink ewPrint\" title=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\">" . $Language->Phrase("PrinterFriendly") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Excel
-		$item = &$this->ExportOptions->Add("excel");
-		$item->Body = "<a href=\"" . $this->ExportExcelUrl . "\" class=\"ewExportLink ewExcel\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\">" . $Language->Phrase("ExportToExcel") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Word
-		$item = &$this->ExportOptions->Add("word");
-		$item->Body = "<a href=\"" . $this->ExportWordUrl . "\" class=\"ewExportLink ewWord\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\">" . $Language->Phrase("ExportToWord") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Html
-		$item = &$this->ExportOptions->Add("html");
-		$item->Body = "<a href=\"" . $this->ExportHtmlUrl . "\" class=\"ewExportLink ewHtml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\">" . $Language->Phrase("ExportToHtml") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Xml
-		$item = &$this->ExportOptions->Add("xml");
-		$item->Body = "<a href=\"" . $this->ExportXmlUrl . "\" class=\"ewExportLink ewXml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\">" . $Language->Phrase("ExportToXml") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Csv
-		$item = &$this->ExportOptions->Add("csv");
-		$item->Body = "<a href=\"" . $this->ExportCsvUrl . "\" class=\"ewExportLink ewCsv\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\">" . $Language->Phrase("ExportToCsv") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Pdf
-		$item = &$this->ExportOptions->Add("pdf");
-		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Email
-		$item = &$this->ExportOptions->Add("email");
-		$url = "";
-		$item->Body = "<button id=\"emf_pais\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_pais',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fpaislist,sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
-		$item->Visible = FALSE;
-
-		// Drop down button for export
-		$this->ExportOptions->UseButtonGroup = TRUE;
-		$this->ExportOptions->UseImageAndText = TRUE;
-		$this->ExportOptions->UseDropDownButton = FALSE;
-		if ($this->ExportOptions->UseButtonGroup && ew_IsMobile())
-			$this->ExportOptions->UseDropDownButton = TRUE;
-		$this->ExportOptions->DropDownButtonPhrase = $Language->Phrase("ButtonExport");
-
-		// Add group option item
-		$item = &$this->ExportOptions->Add($this->ExportOptions->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
-	}
-
-	// Export data in HTML/CSV/Word/Excel/XML/Email/PDF format
-	function ExportData() {
-		$utf8 = (strtolower(EW_CHARSET) == "utf-8");
-		$bSelectLimit = EW_SELECT_LIMIT;
-
-		// Load recordset
-		if ($bSelectLimit) {
-			$this->TotalRecs = $this->SelectRecordCount();
-		} else {
-			if ($rs = $this->LoadRecordset())
-				$this->TotalRecs = $rs->RecordCount();
-		}
-		$this->StartRec = 1;
-
-		// Export all
-		if ($this->ExportAll) {
-			set_time_limit(EW_EXPORT_ALL_TIME_LIMIT);
-			$this->DisplayRecs = $this->TotalRecs;
-			$this->StopRec = $this->TotalRecs;
-		} else { // Export one page only
-			$this->SetUpStartRec(); // Set up start record position
-
-			// Set the last record to display
-			if ($this->DisplayRecs <= 0) {
-				$this->StopRec = $this->TotalRecs;
-			} else {
-				$this->StopRec = $this->StartRec + $this->DisplayRecs - 1;
-			}
-		}
-		if ($bSelectLimit)
-			$rs = $this->LoadRecordset($this->StartRec-1, $this->DisplayRecs <= 0 ? $this->TotalRecs : $this->DisplayRecs);
-		if (!$rs) {
-			header("Content-Type:"); // Remove header
-			header("Content-Disposition:");
-			$this->ShowMessage();
-			return;
-		}
-		$this->ExportDoc = ew_ExportDocument($this, "h");
-		$Doc = &$this->ExportDoc;
-		if ($bSelectLimit) {
-			$this->StartRec = 1;
-			$this->StopRec = $this->DisplayRecs <= 0 ? $this->TotalRecs : $this->DisplayRecs;
-		} else {
-
-			//$this->StartRec = $this->StartRec;
-			//$this->StopRec = $this->StopRec;
-
-		}
-
-		// Call Page Exporting server event
-		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
-		$ParentTable = "";
-		$sHeader = $this->PageHeader;
-		$this->Page_DataRendering($sHeader);
-		$Doc->Text .= $sHeader;
-		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "");
-		$sFooter = $this->PageFooter;
-		$this->Page_DataRendered($sFooter);
-		$Doc->Text .= $sFooter;
-
-		// Close recordset
-		$rs->Close();
-
-		// Export header and footer
-		$Doc->ExportHeaderAndFooter();
-
-		// Call Page Exported server event
-		$this->Page_Exported();
-
-		// Clean output buffer
-		if (!EW_DEBUG_ENABLED && ob_get_length())
-			ob_end_clean();
-
-		// Write debug message if enabled
-		if (EW_DEBUG_ENABLED)
-			echo ew_DebugMsg();
-
-		// Output data
-		$Doc->Export();
 	}
 
 	// Set up Breadcrumb
@@ -1674,7 +1345,6 @@ Page_Rendering();
 $pais_list->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
-<?php if ($pais->Export == "") { ?>
 <script type="text/javascript">
 
 // Page object
@@ -1710,24 +1380,17 @@ var fpaislistsrch = new ew_Form("fpaislistsrch");
 
 // Write your client script here, no need to add script tags.
 </script>
-<?php } ?>
-<?php if ($pais->Export == "") { ?>
 <div class="ewToolbar">
-<?php if ($pais->Export == "") { ?>
 <?php $Breadcrumb->Render(); ?>
-<?php } ?>
 <?php if ($pais_list->TotalRecs > 0 && $pais_list->ExportOptions->Visible()) { ?>
 <?php $pais_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($pais_list->SearchOptions->Visible()) { ?>
 <?php $pais_list->SearchOptions->Render("body") ?>
 <?php } ?>
-<?php if ($pais->Export == "") { ?>
 <?php echo $Language->SelectionForm(); ?>
-<?php } ?>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
@@ -1805,6 +1468,15 @@ $pais_list->RenderListOptions();
 // Render list options (header, left)
 $pais_list->ListOptions->Render("header", "left");
 ?>
+<?php if ($pais->idpais->Visible) { // idpais ?>
+	<?php if ($pais->SortUrl($pais->idpais) == "") { ?>
+		<th data-name="idpais"><div id="elh_pais_idpais" class="pais_idpais"><div class="ewTableHeaderCaption"><?php echo $pais->idpais->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idpais"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $pais->SortUrl($pais->idpais) ?>',1);"><div id="elh_pais_idpais" class="pais_idpais">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pais->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($pais->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pais->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php if ($pais->nombre->Visible) { // nombre ?>
 	<?php if ($pais->SortUrl($pais->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_pais_nombre" class="pais_nombre"><div class="ewTableHeaderCaption"><?php echo $pais->nombre->FldCaption() ?></div></div></th>
@@ -1888,11 +1560,17 @@ while ($pais_list->RecCnt < $pais_list->StopRec) {
 // Render list options (body, left)
 $pais_list->ListOptions->Render("body", "left", $pais_list->RowCnt);
 ?>
+	<?php if ($pais->idpais->Visible) { // idpais ?>
+		<td data-name="idpais"<?php echo $pais->idpais->CellAttributes() ?>>
+<span<?php echo $pais->idpais->ViewAttributes() ?>>
+<?php echo $pais->idpais->ListViewValue() ?></span>
+<a id="<?php echo $pais_list->PageObjName . "_row_" . $pais_list->RowCnt ?>"></a></td>
+	<?php } ?>
 	<?php if ($pais->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $pais->nombre->CellAttributes() ?>>
 <span<?php echo $pais->nombre->ViewAttributes() ?>>
 <?php echo $pais->nombre->ListViewValue() ?></span>
-<a id="<?php echo $pais_list->PageObjName . "_row_" . $pais_list->RowCnt ?>"></a></td>
+</td>
 	<?php } ?>
 	<?php if ($pais->estado->Visible) { // estado ?>
 		<td data-name="estado"<?php echo $pais->estado->CellAttributes() ?>>
@@ -1926,7 +1604,6 @@ $pais_list->ListOptions->Render("body", "right", $pais_list->RowCnt);
 if ($pais_list->Recordset)
 	$pais_list->Recordset->Close();
 ?>
-<?php if ($pais->Export == "") { ?>
 <div class="ewGridLowerPanel">
 <?php if ($pais->CurrentAction <> "gridadd" && $pais->CurrentAction <> "gridedit") { ?>
 <form name="ewPagerForm" class="ewForm form-inline ewPagerForm" action="<?php echo ew_CurrentPage() ?>">
@@ -1983,7 +1660,6 @@ if ($pais_list->Recordset)
 </div>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
 </div>
 <?php } ?>
 <?php if ($pais_list->TotalRecs == 0 && $pais->CurrentAction == "") { // Show other options ?>
@@ -1997,25 +1673,21 @@ if ($pais_list->Recordset)
 </div>
 <div class="clearfix"></div>
 <?php } ?>
-<?php if ($pais->Export == "") { ?>
 <script type="text/javascript">
 fpaislistsrch.Init();
 fpaislist.Init();
 </script>
-<?php } ?>
 <?php
 $pais_list->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
-<?php if ($pais->Export == "") { ?>
 <script type="text/javascript">
 
 // Write your table-specific startup script here
 // document.write("page loaded");
 
 </script>
-<?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
 $pais_list->Page_Terminate();

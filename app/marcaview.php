@@ -7,8 +7,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "laboratorioinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "medicamentogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -24,7 +22,7 @@ class cmarca_view extends cmarca {
 	var $PageID = 'view';
 
 	// Project ID
-	var $ProjectID = "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
 	var $TableName = 'marca';
@@ -247,9 +245,6 @@ class cmarca_view extends cmarca {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (laboratorio)
-		if (!isset($GLOBALS['laboratorio'])) $GLOBALS['laboratorio'] = new claboratorio();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
@@ -283,51 +278,7 @@ class cmarca_view extends cmarca {
 	//
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
-
-		// Get export parameters
-		$custom = "";
-		if (@$_GET["export"] <> "") {
-			$this->Export = $_GET["export"];
-			$custom = @$_GET["custom"];
-		} elseif (@$_POST["export"] <> "") {
-			$this->Export = $_POST["export"];
-			$custom = @$_POST["custom"];
-		} elseif (ew_IsHttpPost()) {
-			if (@$_POST["exporttype"] <> "")
-				$this->Export = $_POST["exporttype"];
-			$custom = @$_POST["custom"];
-		} else {
-			$this->setExportReturnUrl(ew_CurrentUrl());
-		}
-		$gsExportFile = $this->TableVar; // Get export file, used in header
-		if (@$_GET["idmarca"] <> "") {
-			if ($gsExportFile <> "") $gsExportFile .= "_";
-			$gsExportFile .= ew_StripSlashes($_GET["idmarca"]);
-		}
-
-		// Get custom export parameters
-		if ($this->Export <> "" && $custom <> "") {
-			$this->CustomExport = $this->Export;
-			$this->Export = "print";
-		}
-		$gsCustomExport = $this->CustomExport;
-		$gsExport = $this->Export; // Get export parameter, used in header
-
-		// Update Export URLs
-		if (defined("EW_USE_PHPEXCEL"))
-			$this->ExportExcelCustom = FALSE;
-		if ($this->ExportExcelCustom)
-			$this->ExportExcelUrl .= "&amp;custom=1";
-		if (defined("EW_USE_PHPWORD"))
-			$this->ExportWordCustom = FALSE;
-		if ($this->ExportWordCustom)
-			$this->ExportWordUrl .= "&amp;custom=1";
-		if ($this->ExportPdfCustom)
-			$this->ExportPdfUrl .= "&amp;custom=1";
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-
-		// Setup export options
-		$this->SetupExportOptions();
 		$this->idmarca->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
@@ -345,14 +296,6 @@ class cmarca_view extends cmarca {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'medicamento'
-			if (@$_POST["grid"] == "fmedicamentogrid") {
-				if (!isset($GLOBALS["medicamento_grid"])) $GLOBALS["medicamento_grid"] = new cmedicamento_grid;
-				$GLOBALS["medicamento_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -435,9 +378,6 @@ class cmarca_view extends cmarca {
 		$sReturnUrl = "";
 		$bMatchRecord = FALSE;
 
-		// Set up master/detail parameters
-		$this->SetUpMasterParms();
-
 		// Set up Breadcrumb
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
@@ -459,13 +399,6 @@ class cmarca_view extends cmarca {
 						$sReturnUrl = "marcalist.php"; // No matching record, return to list
 					}
 			}
-
-			// Export data only
-			if ($this->CustomExport == "" && in_array($this->Export, array("html","word","excel","xml","csv","email","pdf"))) {
-				$this->ExportData();
-				$this->Page_Terminate(); // Terminate response
-				exit();
-			}
 		} else {
 			$sReturnUrl = "marcalist.php"; // Not page request, return to list
 		}
@@ -476,9 +409,6 @@ class cmarca_view extends cmarca {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
-
-		// Set up detail parameters
-		$this->SetUpDetailParms();
 	}
 
 	// Set up other options
@@ -496,85 +426,6 @@ class cmarca_view extends cmarca {
 		$item = &$option->Add("edit");
 		$item->Body = "<a class=\"ewAction ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("ViewPageEditLink") . "</a>";
 		$item->Visible = ($this->EditUrl <> "");
-
-		// Show detail edit/copy
-		if ($this->getCurrentDetailTable() <> "") {
-
-			// Detail Edit
-			$item = &$option->Add("detailedit");
-			$item->Body = "<a class=\"ewAction ewDetailEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable())) . "\">" . $Language->Phrase("MasterDetailEditLink") . "</a>";
-			$item->Visible = (TRUE);
-		}
-		$option = &$options["detail"];
-		$DetailTableLink = "";
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_medicamento"
-		$item = &$option->Add("detail_medicamento");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("medicamento", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("medicamentolist.php?" . EW_TABLE_SHOW_MASTER . "=marca&fk_idmarca=" . strval($this->idmarca->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["medicamento_grid"] && $GLOBALS["medicamento_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=medicamento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "medicamento";
-		}
-		if ($GLOBALS["medicamento_grid"] && $GLOBALS["medicamento_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=medicamento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "medicamento";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "medicamento";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$option->Add("details");
-			$oListOpt->Body = $body;
-		}
-
-		// Set up detail default
-		$option = &$options["detail"];
-		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
-		$option->UseImageAndText = TRUE;
-		$ar = explode(",", $DetailTableLink);
-		$cnt = count($ar);
-		$option->UseDropDownButton = ($cnt > 1);
-		$option->UseButtonGroup = TRUE;
-		$item = &$option->Add($option->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
 
 		// Set up action default
 		$option = &$options["action"];
@@ -623,23 +474,6 @@ class cmarca_view extends cmarca {
 		}
 	}
 
-	// Load recordset
-	function LoadRecordset($offset = -1, $rowcnt = -1) {
-		global $conn;
-
-		// Load List page SQL
-		$sSql = $this->SelectSQL();
-
-		// Load recordset
-		$conn->raiseErrorFn = 'ew_ErrorFn';
-		$rs = $conn->SelectLimit($sSql, $rowcnt, $offset);
-		$conn->raiseErrorFn = '';
-
-		// Call Recordset Selected event
-		$this->Recordset_Selected($rs);
-		return $rs;
-	}
-
 	// Load row based on key values
 	function LoadRow() {
 		global $conn, $Security, $Language;
@@ -671,7 +505,7 @@ class cmarca_view extends cmarca {
 		$this->Row_Selected($row);
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->idlaboratorio->setDbValue($rs->fields('idlaboratorio'));
+		$this->idfabricante->setDbValue($rs->fields('idfabricante'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -681,7 +515,7 @@ class cmarca_view extends cmarca {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
-		$this->idlaboratorio->DbValue = $row['idlaboratorio'];
+		$this->idfabricante->DbValue = $row['idfabricante'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -704,7 +538,7 @@ class cmarca_view extends cmarca {
 		// Common render codes for all row types
 		// idmarca
 		// nombre
-		// idlaboratorio
+		// idfabricante
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -717,29 +551,9 @@ class cmarca_view extends cmarca {
 			$this->nombre->ViewValue = $this->nombre->CurrentValue;
 			$this->nombre->ViewCustomAttributes = "";
 
-			// idlaboratorio
-			if (strval($this->idlaboratorio->CurrentValue) <> "") {
-				$sFilterWrk = "`idlaboratorio`" . ew_SearchString("=", $this->idlaboratorio->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idlaboratorio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `laboratorio`";
-			$sWhereWrk = "";
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idlaboratorio, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idlaboratorio->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idlaboratorio->ViewValue = $this->idlaboratorio->CurrentValue;
-				}
-			} else {
-				$this->idlaboratorio->ViewValue = NULL;
-			}
-			$this->idlaboratorio->ViewCustomAttributes = "";
+			// idfabricante
+			$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+			$this->idfabricante->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -768,10 +582,10 @@ class cmarca_view extends cmarca {
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
 
-			// idlaboratorio
-			$this->idlaboratorio->LinkCustomAttributes = "";
-			$this->idlaboratorio->HrefValue = "";
-			$this->idlaboratorio->TooltipValue = "";
+			// idfabricante
+			$this->idfabricante->LinkCustomAttributes = "";
+			$this->idfabricante->HrefValue = "";
+			$this->idfabricante->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -782,230 +596,6 @@ class cmarca_view extends cmarca {
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
-	}
-
-	// Set up export options
-	function SetupExportOptions() {
-		global $Language;
-
-		// Printer friendly
-		$item = &$this->ExportOptions->Add("print");
-		$item->Body = "<a href=\"" . $this->ExportPrintUrl . "\" class=\"ewExportLink ewPrint\" title=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\">" . $Language->Phrase("PrinterFriendly") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Excel
-		$item = &$this->ExportOptions->Add("excel");
-		$item->Body = "<a href=\"" . $this->ExportExcelUrl . "\" class=\"ewExportLink ewExcel\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\">" . $Language->Phrase("ExportToExcel") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Word
-		$item = &$this->ExportOptions->Add("word");
-		$item->Body = "<a href=\"" . $this->ExportWordUrl . "\" class=\"ewExportLink ewWord\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\">" . $Language->Phrase("ExportToWord") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Html
-		$item = &$this->ExportOptions->Add("html");
-		$item->Body = "<a href=\"" . $this->ExportHtmlUrl . "\" class=\"ewExportLink ewHtml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\">" . $Language->Phrase("ExportToHtml") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Xml
-		$item = &$this->ExportOptions->Add("xml");
-		$item->Body = "<a href=\"" . $this->ExportXmlUrl . "\" class=\"ewExportLink ewXml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\">" . $Language->Phrase("ExportToXml") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Csv
-		$item = &$this->ExportOptions->Add("csv");
-		$item->Body = "<a href=\"" . $this->ExportCsvUrl . "\" class=\"ewExportLink ewCsv\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\">" . $Language->Phrase("ExportToCsv") . "</a>";
-		$item->Visible = FALSE;
-
-		// Export to Pdf
-		$item = &$this->ExportOptions->Add("pdf");
-		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = TRUE;
-
-		// Export to Email
-		$item = &$this->ExportOptions->Add("email");
-		$url = "";
-		$item->Body = "<button id=\"emf_marca\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_marca',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fmarcaview,key:" . ew_ArrayToJsonAttr($this->RecKey) . ",sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
-		$item->Visible = FALSE;
-
-		// Drop down button for export
-		$this->ExportOptions->UseButtonGroup = TRUE;
-		$this->ExportOptions->UseImageAndText = TRUE;
-		$this->ExportOptions->UseDropDownButton = FALSE;
-		if ($this->ExportOptions->UseButtonGroup && ew_IsMobile())
-			$this->ExportOptions->UseDropDownButton = TRUE;
-		$this->ExportOptions->DropDownButtonPhrase = $Language->Phrase("ButtonExport");
-
-		// Add group option item
-		$item = &$this->ExportOptions->Add($this->ExportOptions->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
-
-		// Hide options for export
-		if ($this->Export <> "")
-			$this->ExportOptions->HideAllOptions();
-	}
-
-	// Export data in HTML/CSV/Word/Excel/XML/Email/PDF format
-	function ExportData() {
-		$utf8 = (strtolower(EW_CHARSET) == "utf-8");
-		$bSelectLimit = FALSE;
-
-		// Load recordset
-		if ($bSelectLimit) {
-			$this->TotalRecs = $this->SelectRecordCount();
-		} else {
-			if ($rs = $this->LoadRecordset())
-				$this->TotalRecs = $rs->RecordCount();
-		}
-		$this->StartRec = 1;
-		$this->SetUpStartRec(); // Set up start record position
-
-		// Set the last record to display
-		if ($this->DisplayRecs <= 0) {
-			$this->StopRec = $this->TotalRecs;
-		} else {
-			$this->StopRec = $this->StartRec + $this->DisplayRecs - 1;
-		}
-		if (!$rs) {
-			header("Content-Type:"); // Remove header
-			header("Content-Disposition:");
-			$this->ShowMessage();
-			return;
-		}
-		$this->ExportDoc = ew_ExportDocument($this, "v");
-		$Doc = &$this->ExportDoc;
-		if ($bSelectLimit) {
-			$this->StartRec = 1;
-			$this->StopRec = $this->DisplayRecs <= 0 ? $this->TotalRecs : $this->DisplayRecs;
-		} else {
-
-			//$this->StartRec = $this->StartRec;
-			//$this->StopRec = $this->StopRec;
-
-		}
-
-		// Call Page Exporting server event
-		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
-		$ParentTable = "";
-		$sHeader = $this->PageHeader;
-		$this->Page_DataRendering($sHeader);
-		$Doc->Text .= $sHeader;
-		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "view");
-
-		// Export detail records (medicamento)
-		if (EW_EXPORT_DETAIL_RECORDS && in_array("medicamento", explode(",", $this->getCurrentDetailTable()))) {
-			global $medicamento;
-			if (!isset($medicamento)) $medicamento = new cmedicamento;
-			$rsdetail = $medicamento->LoadRs($medicamento->GetDetailFilter()); // Load detail records
-			if ($rsdetail && !$rsdetail->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("h"); // Change to horizontal
-				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
-					$Doc->ExportEmptyRow();
-					$detailcnt = $rsdetail->RecordCount();
-					$medicamento->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsdetail->Close();
-			}
-		}
-		$sFooter = $this->PageFooter;
-		$this->Page_DataRendered($sFooter);
-		$Doc->Text .= $sFooter;
-
-		// Close recordset
-		$rs->Close();
-
-		// Export header and footer
-		$Doc->ExportHeaderAndFooter();
-
-		// Call Page Exported server event
-		$this->Page_Exported();
-
-		// Clean output buffer
-		if (!EW_DEBUG_ENABLED && ob_get_length())
-			ob_end_clean();
-
-		// Write debug message if enabled
-		if (EW_DEBUG_ENABLED)
-			echo ew_DebugMsg();
-
-		// Output data
-		$Doc->Export();
-	}
-
-	// Set up master/detail based on QueryString
-	function SetUpMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "laboratorio") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idlaboratorio"] <> "") {
-					$GLOBALS["laboratorio"]->idlaboratorio->setQueryStringValue($_GET["fk_idlaboratorio"]);
-					$this->idlaboratorio->setQueryStringValue($GLOBALS["laboratorio"]->idlaboratorio->QueryStringValue);
-					$this->idlaboratorio->setSessionValue($this->idlaboratorio->QueryStringValue);
-					if (!is_numeric($GLOBALS["laboratorio"]->idlaboratorio->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-			$this->setSessionWhere($this->GetDetailFilter());
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "laboratorio") {
-				if ($this->idlaboratorio->QueryStringValue == "") $this->idlaboratorio->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("medicamento", $DetailTblVar)) {
-				if (!isset($GLOBALS["medicamento_grid"]))
-					$GLOBALS["medicamento_grid"] = new cmedicamento_grid;
-				if ($GLOBALS["medicamento_grid"]->DetailView) {
-					$GLOBALS["medicamento_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["medicamento_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["medicamento_grid"]->setStartRecordNumber(1);
-					$GLOBALS["medicamento_grid"]->idmarca->FldIsDetailKey = TRUE;
-					$GLOBALS["medicamento_grid"]->idmarca->CurrentValue = $this->idmarca->CurrentValue;
-					$GLOBALS["medicamento_grid"]->idmarca->setSessionValue($GLOBALS["medicamento_grid"]->idmarca->CurrentValue);
-				}
-			}
-		}
 	}
 
 	// Set up Breadcrumb
@@ -1123,7 +713,6 @@ Page_Rendering();
 $marca_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
-<?php if ($marca->Export == "") { ?>
 <script type="text/javascript">
 
 // Page object
@@ -1150,31 +739,23 @@ fmarcaview.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-fmarcaview.Lists["x_idlaboratorio"] = {"LinkField":"x_idlaboratorio","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-
 // Form object for search
+
 </script>
 <script type="text/javascript">
 
 // Write your client script here, no need to add script tags.
 </script>
-<?php } ?>
-<?php if ($marca->Export == "") { ?>
 <div class="ewToolbar">
-<?php if ($marca->Export == "") { ?>
 <?php $Breadcrumb->Render(); ?>
-<?php } ?>
 <?php $marca_view->ExportOptions->Render("body") ?>
 <?php
 	foreach ($marca_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
-<?php if ($marca->Export == "") { ?>
 <?php echo $Language->SelectionForm(); ?>
-<?php } ?>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
 <?php $marca_view->ShowPageHeader(); ?>
 <?php
 $marca_view->ShowMessage();
@@ -1207,13 +788,13 @@ $marca_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
-<?php if ($marca->idlaboratorio->Visible) { // idlaboratorio ?>
-	<tr id="r_idlaboratorio">
-		<td><span id="elh_marca_idlaboratorio"><?php echo $marca->idlaboratorio->FldCaption() ?></span></td>
-		<td<?php echo $marca->idlaboratorio->CellAttributes() ?>>
-<span id="el_marca_idlaboratorio" class="form-group">
-<span<?php echo $marca->idlaboratorio->ViewAttributes() ?>>
-<?php echo $marca->idlaboratorio->ViewValue ?></span>
+<?php if ($marca->idfabricante->Visible) { // idfabricante ?>
+	<tr id="r_idfabricante">
+		<td><span id="elh_marca_idfabricante"><?php echo $marca->idfabricante->FldCaption() ?></span></td>
+		<td<?php echo $marca->idfabricante->CellAttributes() ?>>
+<span id="el_marca_idfabricante" class="form-group">
+<span<?php echo $marca->idfabricante->ViewAttributes() ?>>
+<?php echo $marca->idfabricante->ViewValue ?></span>
 </span>
 </td>
 	</tr>
@@ -1230,14 +811,6 @@ $marca_view->ShowMessage();
 	</tr>
 <?php } ?>
 </table>
-<?php
-	if (in_array("medicamento", explode(",", $marca->getCurrentDetailTable())) && $medicamento->DetailView) {
-?>
-<?php if ($marca->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("medicamento", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "medicamentogrid.php" ?>
-<?php } ?>
 </form>
 <script type="text/javascript">
 fmarcaview.Init();
@@ -1247,14 +820,12 @@ $marca_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
-<?php if ($marca->Export == "") { ?>
 <script type="text/javascript">
 
 // Write your table-specific startup script here
 // document.write("page loaded");
 
 </script>
-<?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
 $marca_view->Page_Terminate();

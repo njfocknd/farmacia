@@ -1,9 +1,0 @@
-﻿<?xml version="1.0"?>
-<configuration date="2015/10/22" author="e.World Technology Ltd.">
-<project id="{C0C79806-72F1-499A-85E8-EA9F21972FBF}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/10/22 23:33:23" languagefolder="phplang" userlevel="">
-<table id="laboratorio" name="laboratorio" caption="Laboratorio" userlevel="" priv="1"/>
-<table id="marca" name="marca" caption="Marca" userlevel="" priv="1"/>
-<table id="medicamento" name="medicamento" caption="medicamento" userlevel="" priv="1"/>
-<table id="pais" name="pais" caption="País" userlevel="" priv="1"/>
-<table id="registro_sanitario" name="registro_sanitario" caption="registro sanitario" userlevel="" priv="1"/>
-</project></configuration>

@@ -7,8 +7,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "laboratoriogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -24,7 +22,7 @@ class cpais_edit extends cpais {
 	var $PageID = 'edit';
 
 	// Project ID
-	var $ProjectID = "{C0C79806-72F1-499A-85E8-EA9F21972FBF}";
+	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
 	var $TableName = 'pais';
@@ -227,6 +225,7 @@ class cpais_edit extends cpais {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
+		$this->idpais->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -243,22 +242,6 @@ class cpais_edit extends cpais {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'registro_sanitario'
-			if (@$_POST["grid"] == "fregistro_sanitariogrid") {
-				if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
-				$GLOBALS["registro_sanitario_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'laboratorio'
-			if (@$_POST["grid"] == "flaboratoriogrid") {
-				if (!isset($GLOBALS["laboratorio_grid"])) $GLOBALS["laboratorio_grid"] = new claboratorio_grid;
-				$GLOBALS["laboratorio_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -338,9 +321,6 @@ class cpais_edit extends cpais {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
-
-			// Set up detail parameters
-			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
@@ -364,26 +344,17 @@ class cpais_edit extends cpais {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("paislist.php"); // No matching record, return to list
 				}
-
-				// Set up detail parameters
-				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
-						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
-					else
-						$sReturnUrl = $this->getReturnUrl();
+					$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
-
-					// Set up detail parameters
-					$this->SetUpDetailParms();
 				}
 		}
 
@@ -441,14 +412,14 @@ class cpais_edit extends cpais {
 
 		// Load from form
 		global $objForm;
+		if (!$this->idpais->FldIsDetailKey)
+			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->idpais->FldIsDetailKey)
-			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 	}
 
 	// Restore form values
@@ -545,6 +516,11 @@ class cpais_edit extends cpais {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// idpais
+			$this->idpais->LinkCustomAttributes = "";
+			$this->idpais->HrefValue = "";
+			$this->idpais->TooltipValue = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -556,6 +532,12 @@ class cpais_edit extends cpais {
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
+			// idpais
+			$this->idpais->EditAttrs["class"] = "form-control";
+			$this->idpais->EditCustomAttributes = "";
+			$this->idpais->EditValue = $this->idpais->CurrentValue;
+			$this->idpais->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -563,17 +545,18 @@ class cpais_edit extends cpais {
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
 			// estado
-			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
 			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// nombre
+			// idpais
 
+			$this->idpais->HrefValue = "";
+
+			// nombre
 			$this->nombre->HrefValue = "";
 
 			// estado
@@ -603,19 +586,8 @@ class cpais_edit extends cpais {
 		if (!$this->nombre->FldIsDetailKey && !is_null($this->nombre->FormValue) && $this->nombre->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->nombre->FldCaption(), $this->nombre->ReqErrMsg));
 		}
-		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+		if ($this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-
-		// Validate detail grid
-		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("registro_sanitario", $DetailTblVar) && $GLOBALS["registro_sanitario"]->DetailEdit) {
-			if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid(); // get detail page object
-			$GLOBALS["registro_sanitario_grid"]->ValidateGridForm();
-		}
-		if (in_array("laboratorio", $DetailTblVar) && $GLOBALS["laboratorio"]->DetailEdit) {
-			if (!isset($GLOBALS["laboratorio_grid"])) $GLOBALS["laboratorio_grid"] = new claboratorio_grid(); // get detail page object
-			$GLOBALS["laboratorio_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -645,10 +617,6 @@ class cpais_edit extends cpais {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
-			// Begin transaction
-			if ($this->getCurrentDetailTable() <> "")
-				$conn->BeginTrans();
-
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
@@ -671,28 +639,6 @@ class cpais_edit extends cpais {
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
 				}
-
-				// Update detail records
-				if ($EditRow) {
-					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-					if (in_array("registro_sanitario", $DetailTblVar) && $GLOBALS["registro_sanitario"]->DetailEdit) {
-						if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid(); // Get detail page object
-						$EditRow = $GLOBALS["registro_sanitario_grid"]->GridUpdate();
-					}
-					if (in_array("laboratorio", $DetailTblVar) && $GLOBALS["laboratorio"]->DetailEdit) {
-						if (!isset($GLOBALS["laboratorio_grid"])) $GLOBALS["laboratorio_grid"] = new claboratorio_grid(); // Get detail page object
-						$EditRow = $GLOBALS["laboratorio_grid"]->GridUpdate();
-					}
-				}
-
-				// Commit/Rollback transaction
-				if ($this->getCurrentDetailTable() <> "") {
-					if ($EditRow) {
-						$conn->CommitTrans(); // Commit transaction
-					} else {
-						$conn->RollbackTrans(); // Rollback transaction
-					}
-				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
 
@@ -712,51 +658,6 @@ class cpais_edit extends cpais {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
-	}
-
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("registro_sanitario", $DetailTblVar)) {
-				if (!isset($GLOBALS["registro_sanitario_grid"]))
-					$GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
-				if ($GLOBALS["registro_sanitario_grid"]->DetailEdit) {
-					$GLOBALS["registro_sanitario_grid"]->CurrentMode = "edit";
-					$GLOBALS["registro_sanitario_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["registro_sanitario_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["registro_sanitario_grid"]->setStartRecordNumber(1);
-					$GLOBALS["registro_sanitario_grid"]->idpais->FldIsDetailKey = TRUE;
-					$GLOBALS["registro_sanitario_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
-					$GLOBALS["registro_sanitario_grid"]->idpais->setSessionValue($GLOBALS["registro_sanitario_grid"]->idpais->CurrentValue);
-				}
-			}
-			if (in_array("laboratorio", $DetailTblVar)) {
-				if (!isset($GLOBALS["laboratorio_grid"]))
-					$GLOBALS["laboratorio_grid"] = new claboratorio_grid;
-				if ($GLOBALS["laboratorio_grid"]->DetailEdit) {
-					$GLOBALS["laboratorio_grid"]->CurrentMode = "edit";
-					$GLOBALS["laboratorio_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["laboratorio_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["laboratorio_grid"]->setStartRecordNumber(1);
-					$GLOBALS["laboratorio_grid"]->idpais->FldIsDetailKey = TRUE;
-					$GLOBALS["laboratorio_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
-					$GLOBALS["laboratorio_grid"]->idpais->setSessionValue($GLOBALS["laboratorio_grid"]->idpais->CurrentValue);
-				}
-			}
-		}
 	}
 
 	// Set up Breadcrumb
@@ -946,6 +847,18 @@ $pais_edit->ShowMessage();
 <input type="hidden" name="t" value="pais">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
+<?php if ($pais->idpais->Visible) { // idpais ?>
+	<div id="r_idpais" class="form-group">
+		<label id="elh_pais_idpais" class="col-sm-2 control-label ewLabel"><?php echo $pais->idpais->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $pais->idpais->CellAttributes() ?>>
+<span id="el_pais_idpais">
+<span<?php echo $pais->idpais->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $pais->idpais->EditValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_idpais" name="x_idpais" id="x_idpais" value="<?php echo ew_HtmlEncode($pais->idpais->CurrentValue) ?>">
+<?php echo $pais->idpais->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 <?php if ($pais->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_pais_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $pais->nombre->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -958,49 +871,35 @@ $pais_edit->ShowMessage();
 <?php } ?>
 <?php if ($pais->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_pais_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $pais->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_pais_estado" class="col-sm-2 control-label ewLabel"><?php echo $pais->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $pais->estado->CellAttributes() ?>>
 <span id="el_pais_estado">
-<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $pais->estado->EditAttributes() ?>>
+<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $pais->estado->EditAttributes() ?>></div>
+<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
 <?php
-if (is_array($pais->estado->EditValue)) {
-	$arwrk = $pais->estado->EditValue;
+$arwrk = $pais->estado->EditValue;
+if (is_array($arwrk)) {
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($pais->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($pais->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
+
+		// Note: No spacing within the LABEL tag
 ?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
+<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
+<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $pais->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
+<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
 <?php
 	}
 }
 ?>
-</select>
+</div>
 </span>
 <?php echo $pais->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
-<input type="hidden" data-field="x_idpais" name="x_idpais" id="x_idpais" value="<?php echo ew_HtmlEncode($pais->idpais->CurrentValue) ?>">
-<?php
-	if (in_array("registro_sanitario", explode(",", $pais->getCurrentDetailTable())) && $registro_sanitario->DetailEdit) {
-?>
-<?php if ($pais->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("registro_sanitario", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "registro_sanitariogrid.php" ?>
-<?php } ?>
-<?php
-	if (in_array("laboratorio", explode(",", $pais->getCurrentDetailTable())) && $laboratorio->DetailEdit) {
-?>
-<?php if ($pais->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("laboratorio", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "laboratoriogrid.php" ?>
-<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

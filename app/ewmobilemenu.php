@@ -3,12 +3,16 @@
 
 // Generate all menu items
 $RootMenu->IsRoot = TRUE;
-$RootMenu->AddMenuItem(3, "mmi_medicamento", $Language->MenuPhrase("3", "MenuText"), "medicamentolist.php?cmd=resetall", -1, "", TRUE, FALSE);
-$RootMenu->AddMenuItem(6, "mmci_Cate1logos", $Language->MenuPhrase("6", "MenuText"), "", -1, "", TRUE, FALSE, TRUE);
-$RootMenu->AddMenuItem(5, "mmi_registro_sanitario", $Language->MenuPhrase("5", "MenuText"), "registro_sanitariolist.php?cmd=resetall", 6, "", TRUE, FALSE);
-$RootMenu->AddMenuItem(4, "mmi_pais", $Language->MenuPhrase("4", "MenuText"), "paislist.php", 6, "", TRUE, FALSE);
-$RootMenu->AddMenuItem(2, "mmi_marca", $Language->MenuPhrase("2", "MenuText"), "marcalist.php?cmd=resetall", 6, "", TRUE, FALSE);
-$RootMenu->AddMenuItem(1, "mmi_laboratorio", $Language->MenuPhrase("1", "MenuText"), "laboratoriolist.php?cmd=resetall", 6, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(10, "mmci_Cate1logos", $Language->MenuPhrase("10", "MenuText"), "", -1, "", TRUE, FALSE, TRUE);
+$RootMenu->AddMenuItem(6, "mmi_pais", $Language->MenuPhrase("6", "MenuText"), "paislist.php", 10, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(1, "mmi_departamento", $Language->MenuPhrase("1", "MenuText"), "departamentolist.php", 6, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(5, "mmi_municipio", $Language->MenuPhrase("5", "MenuText"), "municipiolist.php", 1, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(2, "mmi_empresa", $Language->MenuPhrase("2", "MenuText"), "empresalist.php", 10, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(9, "mmi_sucursal", $Language->MenuPhrase("9", "MenuText"), "sucursallist.php", 2, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(3, "mmi_fabricante", $Language->MenuPhrase("3", "MenuText"), "fabricantelist.php", 10, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(4, "mmi_marca", $Language->MenuPhrase("4", "MenuText"), "marcalist.php", 3, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(7, "mmi_producto", $Language->MenuPhrase("7", "MenuText"), "productolist.php", 4, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(8, "mmi_registro_sanitario", $Language->MenuPhrase("8", "MenuText"), "registro_sanitariolist.php", 7, "", TRUE, FALSE);
 $RootMenu->Render();
 ?>
 <!-- End Main Menu -->

@@ -26,10 +26,10 @@ define("EW_DATE_SEPARATOR", "/", TRUE); // Date separator
 define("EW_UNFORMAT_YEAR", 50, TRUE); // Unformat year
 define("EW_PROJECT_NAME", "nexthor_farmacia", TRUE); // Project name
 define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME . "", TRUE); // Config file name
-define("EW_PROJECT_ID", "{C0C79806-72F1-499A-85E8-EA9F21972FBF}", TRUE); // Project ID (GUID)
+define("EW_PROJECT_ID", "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", 'Rcz61KuEKuOuEoz2', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", 'dCz298PdF4JKdPP1', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/nexthor_farmacia.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -50,7 +50,7 @@ define("EW_CONN_HOST", 'localhost', TRUE);
 define("EW_CONN_PORT", 3306, TRUE);
 define("EW_CONN_USER", 'root', TRUE);
 define("EW_CONN_PASS", '', TRUE);
-define("EW_CONN_DB", 'nexthor_farmacia', TRUE);
+define("EW_CONN_DB", 'nexthor_empresa', TRUE);
 
 // ADODB (Access/SQL Server)
 define("EW_CODEPAGE", 65001, TRUE); // Code page
@@ -487,10 +487,10 @@ $MobileDetect = NULL;
 $Breadcrumb = NULL;
 ?>
 <?php
-define("EW_USE_PHPEXCEL", TRUE, TRUE);
+define("EW_USE_PHPWORD", TRUE, TRUE);
 ?>
 <?php
-define("EW_USE_PHPWORD", TRUE, TRUE);
+define("EW_USE_PHPEXCEL", TRUE, TRUE);
 ?>
 <?php
 
@@ -513,7 +513,5 @@ define("EW_MENU_ROOT_GROUP_TITLE_AS_SUBMENU", TRUE, TRUE);
 define("EW_SHOW_RIGHT_MENU", TRUE, TRUE);
 ?>
 <?php
-define("EW_PDF_STYLESHEET_FILENAME", "phpcss/ewpdf.css", TRUE); // export PDF CSS styles
-define("EW_PDF_MEMORY_LIMIT", "128M", TRUE); // Memory limit
-define("EW_PDF_TIME_LIMIT", 120, TRUE); // Time limit
+define("EW_PDF_STYLESHEET_FILENAME", "", TRUE); // Export PDF CSS styles
 ?>

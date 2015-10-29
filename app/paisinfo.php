@@ -66,34 +66,6 @@ class cpais extends cTable {
 		}
 	}
 
-	// Current detail table name
-	function getCurrentDetailTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
-	}
-
-	function setCurrentDetailTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
-	}
-
-	// Get detail url
-	function GetDetailUrl() {
-
-		// Detail url
-		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "registro_sanitario") {
-			$sDetailUrl = $GLOBALS["registro_sanitario"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idpais=" . urlencode($this->idpais->CurrentValue);
-		}
-		if ($this->getCurrentDetailTable() == "laboratorio") {
-			$sDetailUrl = $GLOBALS["laboratorio"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idpais=" . urlencode($this->idpais->CurrentValue);
-		}
-		if ($sDetailUrl == "") {
-			$sDetailUrl = "paislist.php";
-		}
-		return $sDetailUrl;
-	}
-
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -125,7 +97,7 @@ class cpais extends cTable {
 
 	function getSqlWhere() { // Where
 		$sWhere = ($this->_SqlWhere <> "") ? $this->_SqlWhere : "";
-		$this->TableFilter = "";
+		$this->TableFilter = "`estado` = 'Activo'";
 		ew_AddFilter($sWhere, $this->TableFilter);
 		return $sWhere;
 	}
@@ -447,10 +419,7 @@ class cpais extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("paisedit.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("paisedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("paisedit.php", $this->UrlParm($parm));
 	}
 
 	// Inline edit URL
@@ -460,10 +429,7 @@ class cpais extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("paisadd.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("paisadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("paisadd.php", $this->UrlParm($parm));
 	}
 
 	// Inline copy URL
@@ -636,12 +602,10 @@ class cpais extends cTable {
 		$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
 		// estado
-		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
