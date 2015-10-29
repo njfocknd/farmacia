@@ -9,6 +9,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -309,6 +311,22 @@ class cproducto_view extends cproducto {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'producto_bodega'
+			if (@$_POST["grid"] == "fproducto_bodegagrid") {
+				if (!isset($GLOBALS["producto_bodega_grid"])) $GLOBALS["producto_bodega_grid"] = new cproducto_bodega_grid;
+				$GLOBALS["producto_bodega_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto_sucursal'
+			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
+				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+				$GLOBALS["producto_sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -488,6 +506,62 @@ class cproducto_view extends cproducto {
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
+		// "detail_producto_bodega"
+		$item = &$option->Add("detail_producto_bodega");
+		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_bodega", "TblCaption");
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_bodegalist.php?" . EW_TABLE_SHOW_MASTER . "=producto&fk_idproducto=" . strval($this->idproducto->CurrentValue) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["producto_bodega_grid"] && $GLOBALS["producto_bodega_grid"]->DetailView) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "producto_bodega";
+		}
+		if ($GLOBALS["producto_bodega_grid"] && $GLOBALS["producto_bodega_grid"]->DetailEdit) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "producto_bodega";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = TRUE;
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto_bodega";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
+		// "detail_producto_sucursal"
+		$item = &$option->Add("detail_producto_sucursal");
+		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_sucursal", "TblCaption");
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_sucursallist.php?" . EW_TABLE_SHOW_MASTER . "=producto&fk_idproducto=" . strval($this->idproducto->CurrentValue) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["producto_sucursal_grid"] && $GLOBALS["producto_sucursal_grid"]->DetailView) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "producto_sucursal";
+		}
+		if ($GLOBALS["producto_sucursal_grid"] && $GLOBALS["producto_sucursal_grid"]->DetailEdit) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "producto_sucursal";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = TRUE;
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto_sucursal";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
 			$body = $Language->Phrase("MultipleMasterDetails");
@@ -605,6 +679,7 @@ class cproducto_view extends cproducto {
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -616,6 +691,7 @@ class cproducto_view extends cproducto {
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
+		$this->existencia->DbValue = $row['existencia'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -640,6 +716,7 @@ class cproducto_view extends cproducto {
 		// idmarca
 		// nombre
 		// idpais
+		// existencia
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -710,6 +787,10 @@ class cproducto_view extends cproducto {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
+			// existencia
+			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -746,6 +827,11 @@ class cproducto_view extends cproducto {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// existencia
+			$this->existencia->LinkCustomAttributes = "";
+			$this->existencia->HrefValue = "";
+			$this->existencia->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -825,6 +911,34 @@ class cproducto_view extends cproducto {
 					$GLOBALS["registro_sanitario_grid"]->idproducto->FldIsDetailKey = TRUE;
 					$GLOBALS["registro_sanitario_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
 					$GLOBALS["registro_sanitario_grid"]->idproducto->setSessionValue($GLOBALS["registro_sanitario_grid"]->idproducto->CurrentValue);
+				}
+			}
+			if (in_array("producto_bodega", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_bodega_grid"]))
+					$GLOBALS["producto_bodega_grid"] = new cproducto_bodega_grid;
+				if ($GLOBALS["producto_bodega_grid"]->DetailView) {
+					$GLOBALS["producto_bodega_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_bodega_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_bodega_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_bodega_grid"]->idproducto->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_bodega_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
+					$GLOBALS["producto_bodega_grid"]->idproducto->setSessionValue($GLOBALS["producto_bodega_grid"]->idproducto->CurrentValue);
+				}
+			}
+			if (in_array("producto_sucursal", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_sucursal_grid"]))
+					$GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+				if ($GLOBALS["producto_sucursal_grid"]->DetailView) {
+					$GLOBALS["producto_sucursal_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_sucursal_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_sucursal_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_sucursal_grid"]->idproducto->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_sucursal_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
+					$GLOBALS["producto_sucursal_grid"]->idproducto->setSessionValue($GLOBALS["producto_sucursal_grid"]->idproducto->CurrentValue);
 				}
 			}
 		}
@@ -1044,6 +1158,17 @@ $producto_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
+<?php if ($producto->existencia->Visible) { // existencia ?>
+	<tr id="r_existencia">
+		<td><span id="elh_producto_existencia"><?php echo $producto->existencia->FldCaption() ?></span></td>
+		<td<?php echo $producto->existencia->CellAttributes() ?>>
+<span id="el_producto_existencia" class="form-group">
+<span<?php echo $producto->existencia->ViewAttributes() ?>>
+<?php echo $producto->existencia->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
 <?php if ($producto->estado->Visible) { // estado ?>
 	<tr id="r_estado">
 		<td><span id="elh_producto_estado"><?php echo $producto->estado->FldCaption() ?></span></td>
@@ -1063,6 +1188,22 @@ $producto_view->ShowMessage();
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("registro_sanitario", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "registro_sanitariogrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("producto_bodega", explode(",", $producto->getCurrentDetailTable())) && $producto_bodega->DetailView) {
+?>
+<?php if ($producto->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_bodega", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "producto_bodegagrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("producto_sucursal", explode(",", $producto->getCurrentDetailTable())) && $producto_sucursal->DetailView) {
+?>
+<?php if ($producto->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_sucursal", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "producto_sucursalgrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">

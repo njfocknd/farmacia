@@ -269,6 +269,22 @@ class cproducto_grid extends cproducto {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'producto_bodega'
+			if (@$_POST["grid"] == "fproducto_bodegagrid") {
+				if (!isset($GLOBALS["producto_bodega_grid"])) $GLOBALS["producto_bodega_grid"] = new cproducto_bodega_grid;
+				$GLOBALS["producto_bodega_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto_sucursal'
+			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
+				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+				$GLOBALS["producto_sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -704,6 +720,8 @@ class cproducto_grid extends cproducto {
 			return FALSE;
 		if ($objForm->HasValue("x_idpais") && $objForm->HasValue("o_idpais") && $this->idpais->CurrentValue <> $this->idpais->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_existencia") && $objForm->HasValue("o_existencia") && $this->existencia->CurrentValue <> $this->existencia->OldValue)
+			return FALSE;
 		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
 			return FALSE;
 		return TRUE;
@@ -996,6 +1014,8 @@ class cproducto_grid extends cproducto {
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
 		$this->idpais->CurrentValue = NULL;
 		$this->idpais->OldValue = $this->idpais->CurrentValue;
+		$this->existencia->CurrentValue = 0;
+		$this->existencia->OldValue = $this->existencia->CurrentValue;
 		$this->estado->CurrentValue = "Activo";
 		$this->estado->OldValue = $this->estado->CurrentValue;
 	}
@@ -1018,6 +1038,10 @@ class cproducto_grid extends cproducto {
 			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		}
 		$this->idpais->setOldValue($objForm->GetValue("o_idpais"));
+		if (!$this->existencia->FldIsDetailKey) {
+			$this->existencia->setFormValue($objForm->GetValue("x_existencia"));
+		}
+		$this->existencia->setOldValue($objForm->GetValue("o_existencia"));
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
@@ -1034,6 +1058,7 @@ class cproducto_grid extends cproducto {
 		$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->idpais->CurrentValue = $this->idpais->FormValue;
+		$this->existencia->CurrentValue = $this->existencia->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
@@ -1087,6 +1112,7 @@ class cproducto_grid extends cproducto {
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -1098,6 +1124,7 @@ class cproducto_grid extends cproducto {
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
+		$this->existencia->DbValue = $row['existencia'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1144,6 +1171,7 @@ class cproducto_grid extends cproducto {
 		// idmarca
 		// nombre
 		// idpais
+		// existencia
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -1214,6 +1242,10 @@ class cproducto_grid extends cproducto {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
+			// existencia
+			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -1245,6 +1277,11 @@ class cproducto_grid extends cproducto {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// existencia
+			$this->existencia->LinkCustomAttributes = "";
+			$this->existencia->HrefValue = "";
+			$this->existencia->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -1346,6 +1383,12 @@ class cproducto_grid extends cproducto {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idpais->EditValue = $arwrk;
 
+			// existencia
+			$this->existencia->EditAttrs["class"] = "form-control";
+			$this->existencia->EditCustomAttributes = "";
+			$this->existencia->EditValue = ew_HtmlEncode($this->existencia->CurrentValue);
+			$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
+
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
@@ -1365,6 +1408,9 @@ class cproducto_grid extends cproducto {
 
 			// idpais
 			$this->idpais->HrefValue = "";
+
+			// existencia
+			$this->existencia->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -1464,6 +1510,12 @@ class cproducto_grid extends cproducto {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idpais->EditValue = $arwrk;
 
+			// existencia
+			$this->existencia->EditAttrs["class"] = "form-control";
+			$this->existencia->EditCustomAttributes = "";
+			$this->existencia->EditValue = ew_HtmlEncode($this->existencia->CurrentValue);
+			$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
+
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
@@ -1483,6 +1535,9 @@ class cproducto_grid extends cproducto {
 
 			// idpais
 			$this->idpais->HrefValue = "";
+
+			// existencia
+			$this->existencia->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -1513,6 +1568,12 @@ class cproducto_grid extends cproducto {
 		}
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
+		}
+		if (!$this->existencia->FldIsDetailKey && !is_null($this->existencia->FormValue) && $this->existencia->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->existencia->FldCaption(), $this->existencia->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->existencia->FormValue)) {
+			ew_AddMessage($gsFormError, $this->existencia->FldErrMsg());
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
@@ -1634,6 +1695,9 @@ class cproducto_grid extends cproducto {
 			// idpais
 			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
 
+			// existencia
+			$this->existencia->SetDbValueDef($rsnew, $this->existencia->CurrentValue, 0, $this->existencia->ReadOnly);
+
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
 
@@ -1692,6 +1756,9 @@ class cproducto_grid extends cproducto {
 
 		// idpais
 		$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, FALSE);
+
+		// existencia
+		$this->existencia->SetDbValueDef($rsnew, $this->existencia->CurrentValue, 0, strval($this->existencia->CurrentValue) == "");
 
 		// estado
 		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");

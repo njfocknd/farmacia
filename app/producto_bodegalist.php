@@ -6,10 +6,10 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "sucursalinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "bodegagridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_bodegainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "bodegainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_sucursalinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -17,9 +17,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$sucursal_list = NULL; // Initialize page object first
+$producto_bodega_list = NULL; // Initialize page object first
 
-class csucursal_list extends csucursal {
+class cproducto_bodega_list extends cproducto_bodega {
 
 	// Page ID
 	var $PageID = 'list';
@@ -28,13 +28,13 @@ class csucursal_list extends csucursal {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'sucursal';
+	var $TableName = 'producto_bodega';
 
 	// Page object name
-	var $PageObjName = 'sucursal_list';
+	var $PageObjName = 'producto_bodega_list';
 
 	// Grid form hidden field names
-	var $FormName = 'fsucursallist';
+	var $FormName = 'fproducto_bodegalist';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -238,10 +238,10 @@ class csucursal_list extends csucursal {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (sucursal)
-		if (!isset($GLOBALS["sucursal"]) || get_class($GLOBALS["sucursal"]) == "csucursal") {
-			$GLOBALS["sucursal"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["sucursal"];
+		// Table object (producto_bodega)
+		if (!isset($GLOBALS["producto_bodega"]) || get_class($GLOBALS["producto_bodega"]) == "cproducto_bodega") {
+			$GLOBALS["producto_bodega"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["producto_bodega"];
 		}
 
 		// Initialize URLs
@@ -252,15 +252,21 @@ class csucursal_list extends csucursal {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "sucursaladd.php?" . EW_TABLE_SHOW_DETAIL . "=";
+		$this->AddUrl = "producto_bodegaadd.php";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
-		$this->MultiDeleteUrl = "sucursaldelete.php";
-		$this->MultiUpdateUrl = "sucursalupdate.php";
+		$this->MultiDeleteUrl = "producto_bodegadelete.php";
+		$this->MultiUpdateUrl = "producto_bodegaupdate.php";
 
-		// Table object (empresa)
-		if (!isset($GLOBALS['empresa'])) $GLOBALS['empresa'] = new cempresa();
+		// Table object (producto)
+		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
+
+		// Table object (bodega)
+		if (!isset($GLOBALS['bodega'])) $GLOBALS['bodega'] = new cbodega();
+
+		// Table object (producto_sucursal)
+		if (!isset($GLOBALS['producto_sucursal'])) $GLOBALS['producto_sucursal'] = new cproducto_sucursal();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -268,7 +274,7 @@ class csucursal_list extends csucursal {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'sucursal', TRUE);
+			define("EW_TABLE_NAME", 'producto_bodega', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -327,22 +333,6 @@ class csucursal_list extends csucursal {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'bodega'
-			if (@$_POST["grid"] == "fbodegagrid") {
-				if (!isset($GLOBALS["bodega_grid"])) $GLOBALS["bodega_grid"] = new cbodega_grid;
-				$GLOBALS["bodega_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'producto_sucursal'
-			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
-				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
-				$GLOBALS["producto_sucursal_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -379,13 +369,13 @@ class csucursal_list extends csucursal {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $sucursal;
+		global $EW_EXPORT, $producto_bodega;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($sucursal);
+				$doc = new $class($producto_bodega);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -497,10 +487,12 @@ class csucursal_list extends csucursal {
 			}
 
 			// Get default search criteria
-			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
+			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
 
-			// Get basic search values
-			$this->LoadBasicSearchValues();
+			// Get and validate search values for advanced search
+			$this->LoadSearchValues(); // Get search values
+			if (!$this->ValidateSearch())
+				$this->setFailureMessage($gsSearchError);
 
 			// Restore search parms from Session if not searching / reset / export
 			if (($this->Export <> "" || $this->Command <> "search" && $this->Command <> "reset" && $this->Command <> "resetall") && $this->CheckSearchParms())
@@ -512,9 +504,9 @@ class csucursal_list extends csucursal {
 			// Set up sorting order
 			$this->SetUpSortOrder();
 
-			// Get basic search criteria
+			// Get search criteria for advanced search
 			if ($gsSearchError == "")
-				$sSrchBasic = $this->BasicSearchWhere();
+				$sSrchAdvanced = $this->AdvancedSearchWhere();
 		}
 
 		// Restore display records
@@ -530,10 +522,10 @@ class csucursal_list extends csucursal {
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
 
-			// Load basic search from default
-			$this->BasicSearch->LoadDefault();
-			if ($this->BasicSearch->Keyword != "")
-				$sSrchBasic = $this->BasicSearchWhere();
+			// Load advanced search from default
+			if ($this->LoadAdvancedSearchDefault()) {
+				$sSrchAdvanced = $this->AdvancedSearchWhere();
+			}
 		}
 
 		// Build search criteria
@@ -562,17 +554,49 @@ class csucursal_list extends csucursal {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "empresa") {
-			global $empresa;
-			$rsmaster = $empresa->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "producto") {
+			global $producto;
+			$rsmaster = $producto->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("empresalist.php"); // Return to master page
+				$this->Page_Terminate("productolist.php"); // Return to master page
 			} else {
-				$empresa->LoadListRowValues($rsmaster);
-				$empresa->RowType = EW_ROWTYPE_MASTER; // Master row
-				$empresa->RenderListRow();
+				$producto->LoadListRowValues($rsmaster);
+				$producto->RowType = EW_ROWTYPE_MASTER; // Master row
+				$producto->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "bodega") {
+			global $bodega;
+			$rsmaster = $bodega->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("bodegalist.php"); // Return to master page
+			} else {
+				$bodega->LoadListRowValues($rsmaster);
+				$bodega->RowType = EW_ROWTYPE_MASTER; // Master row
+				$bodega->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "producto_sucursal") {
+			global $producto_sucursal;
+			$rsmaster = $producto_sucursal->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("producto_sucursallist.php"); // Return to master page
+			} else {
+				$producto_sucursal->LoadListRowValues($rsmaster);
+				$producto_sucursal->RowType = EW_ROWTYPE_MASTER; // Master row
+				$producto_sucursal->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -625,130 +649,101 @@ class csucursal_list extends csucursal {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idsucursal->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idsucursal->FormValue))
+			$this->idproducto_bodega->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idproducto_bodega->FormValue))
 				return FALSE;
 		}
 		return TRUE;
 	}
 
-	// Return basic search SQL
-	function BasicSearchSQL($arKeywords, $type) {
+	// Advanced search WHERE clause based on QueryString
+	function AdvancedSearchWhere($Default = FALSE) {
+		global $Security;
 		$sWhere = "";
-		$this->BuildBasicSearchSQL($sWhere, $this->nombre, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->direccion, $arKeywords, $type);
+		$this->BuildSearchSql($sWhere, $this->idproducto_bodega, $Default, FALSE); // idproducto_bodega
+		$this->BuildSearchSql($sWhere, $this->idproducto, $Default, FALSE); // idproducto
+		$this->BuildSearchSql($sWhere, $this->idbodega, $Default, FALSE); // idbodega
+		$this->BuildSearchSql($sWhere, $this->idproducto_sucursal, $Default, FALSE); // idproducto_sucursal
+		$this->BuildSearchSql($sWhere, $this->existencia, $Default, FALSE); // existencia
+		$this->BuildSearchSql($sWhere, $this->estado, $Default, FALSE); // estado
+
+		// Set up search parm
+		if (!$Default && $sWhere <> "") {
+			$this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->idproducto_bodega->AdvancedSearch->Save(); // idproducto_bodega
+			$this->idproducto->AdvancedSearch->Save(); // idproducto
+			$this->idbodega->AdvancedSearch->Save(); // idbodega
+			$this->idproducto_sucursal->AdvancedSearch->Save(); // idproducto_sucursal
+			$this->existencia->AdvancedSearch->Save(); // existencia
+			$this->estado->AdvancedSearch->Save(); // estado
+		}
 		return $sWhere;
 	}
 
-	// Build basic search SQL
-	function BuildBasicSearchSql(&$Where, &$Fld, $arKeywords, $type) {
-		$sDefCond = ($type == "OR") ? "OR" : "AND";
-		$sCond = $sDefCond;
-		$arSQL = array(); // Array for SQL parts
-		$arCond = array(); // Array for search conditions
-		$cnt = count($arKeywords);
-		$j = 0; // Number of SQL parts
-		for ($i = 0; $i < $cnt; $i++) {
-			$Keyword = $arKeywords[$i];
-			$Keyword = trim($Keyword);
-			if (EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
-				$Keyword = preg_replace(EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
-				$ar = explode("\\", $Keyword);
-			} else {
-				$ar = array($Keyword);
-			}
-			foreach ($ar as $Keyword) {
-				if ($Keyword <> "") {
-					$sWrk = "";
-					if ($Keyword == "OR" && $type == "") {
-						if ($j > 0)
-							$arCond[$j-1] = "OR";
-					} elseif ($Keyword == EW_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NULL";
-					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NOT NULL";
-					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
-						$sFldExpression = ($Fld->FldVirtualExpression <> $Fld->FldExpression) ? $Fld->FldVirtualExpression : $Fld->FldBasicSearchExpression;
-						$sWrk = $sFldExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING));
-					}
-					if ($sWrk <> "") {
-						$arSQL[$j] = $sWrk;
-						$arCond[$j] = $sDefCond;
-						$j += 1;
-					}
-				}
-			}
+	// Build search SQL
+	function BuildSearchSql(&$Where, &$Fld, $Default, $MultiValue) {
+		$FldParm = substr($Fld->FldVar, 2);
+		$FldVal = ($Default) ? $Fld->AdvancedSearch->SearchValueDefault : $Fld->AdvancedSearch->SearchValue; // @$_GET["x_$FldParm"]
+		$FldOpr = ($Default) ? $Fld->AdvancedSearch->SearchOperatorDefault : $Fld->AdvancedSearch->SearchOperator; // @$_GET["z_$FldParm"]
+		$FldCond = ($Default) ? $Fld->AdvancedSearch->SearchConditionDefault : $Fld->AdvancedSearch->SearchCondition; // @$_GET["v_$FldParm"]
+		$FldVal2 = ($Default) ? $Fld->AdvancedSearch->SearchValue2Default : $Fld->AdvancedSearch->SearchValue2; // @$_GET["y_$FldParm"]
+		$FldOpr2 = ($Default) ? $Fld->AdvancedSearch->SearchOperator2Default : $Fld->AdvancedSearch->SearchOperator2; // @$_GET["w_$FldParm"]
+		$sWrk = "";
+
+		//$FldVal = ew_StripSlashes($FldVal);
+		if (is_array($FldVal)) $FldVal = implode(",", $FldVal);
+
+		//$FldVal2 = ew_StripSlashes($FldVal2);
+		if (is_array($FldVal2)) $FldVal2 = implode(",", $FldVal2);
+		$FldOpr = strtoupper(trim($FldOpr));
+		if ($FldOpr == "") $FldOpr = "=";
+		$FldOpr2 = strtoupper(trim($FldOpr2));
+		if ($FldOpr2 == "") $FldOpr2 = "=";
+		if (EW_SEARCH_MULTI_VALUE_OPTION == 1 || $FldOpr <> "LIKE" ||
+			($FldOpr2 <> "LIKE" && $FldVal2 <> ""))
+			$MultiValue = FALSE;
+		if ($MultiValue) {
+			$sWrk1 = ($FldVal <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr, $FldVal) : ""; // Field value 1
+			$sWrk2 = ($FldVal2 <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr2, $FldVal2) : ""; // Field value 2
+			$sWrk = $sWrk1; // Build final SQL
+			if ($sWrk2 <> "")
+				$sWrk = ($sWrk <> "") ? "($sWrk) $FldCond ($sWrk2)" : $sWrk2;
+		} else {
+			$FldVal = $this->ConvertSearchValue($Fld, $FldVal);
+			$FldVal2 = $this->ConvertSearchValue($Fld, $FldVal2);
+			$sWrk = ew_GetSearchSql($Fld, $FldVal, $FldOpr, $FldCond, $FldVal2, $FldOpr2);
 		}
-		$cnt = count($arSQL);
-		$bQuoted = FALSE;
-		$sSql = "";
-		if ($cnt > 0) {
-			for ($i = 0; $i < $cnt-1; $i++) {
-				if ($arCond[$i] == "OR") {
-					if (!$bQuoted) $sSql .= "(";
-					$bQuoted = TRUE;
-				}
-				$sSql .= $arSQL[$i];
-				if ($bQuoted && $arCond[$i] <> "OR") {
-					$sSql .= ")";
-					$bQuoted = FALSE;
-				}
-				$sSql .= " " . $arCond[$i] . " ";
-			}
-			$sSql .= $arSQL[$cnt-1];
-			if ($bQuoted)
-				$sSql .= ")";
-		}
-		if ($sSql <> "") {
-			if ($Where <> "") $Where .= " OR ";
-			$Where .=  "(" . $sSql . ")";
-		}
+		ew_AddFilter($Where, $sWrk);
 	}
 
-	// Return basic search WHERE clause based on search keyword and type
-	function BasicSearchWhere($Default = FALSE) {
-		global $Security;
-		$sSearchStr = "";
-		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
-		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
-		if ($sSearchKeyword <> "") {
-			$sSearch = trim($sSearchKeyword);
-			if ($sSearchType <> "=") {
-				$ar = array();
-
-				// Match quoted keywords (i.e.: "...")
-				if (preg_match_all('/"([^"]*)"/i', $sSearch, $matches, PREG_SET_ORDER)) {
-					foreach ($matches as $match) {
-						$p = strpos($sSearch, $match[0]);
-						$str = substr($sSearch, 0, $p);
-						$sSearch = substr($sSearch, $p + strlen($match[0]));
-						if (strlen(trim($str)) > 0)
-							$ar = array_merge($ar, explode(" ", trim($str)));
-						$ar[] = $match[1]; // Save quoted keyword
-					}
-				}
-
-				// Match individual keywords
-				if (strlen(trim($sSearch)) > 0)
-					$ar = array_merge($ar, explode(" ", trim($sSearch)));
-				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
-			} else {
-				$sSearchStr = $this->BasicSearchSQL(array($sSearch), $sSearchType);
-			}
-			if (!$Default) $this->Command = "search";
+	// Convert search value
+	function ConvertSearchValue(&$Fld, $FldVal) {
+		if ($FldVal == EW_NULL_VALUE || $FldVal == EW_NOT_NULL_VALUE)
+			return $FldVal;
+		$Value = $FldVal;
+		if ($Fld->FldDataType == EW_DATATYPE_BOOLEAN) {
+			if ($FldVal <> "") $Value = ($FldVal == "1" || strtolower(strval($FldVal)) == "y" || strtolower(strval($FldVal)) == "t") ? $Fld->TrueValue : $Fld->FalseValue;
+		} elseif ($Fld->FldDataType == EW_DATATYPE_DATE) {
+			if ($FldVal <> "") $Value = ew_UnFormatDateTime($FldVal, $Fld->FldDateTimeFormat);
 		}
-		if (!$Default && $this->Command == "search") {
-			$this->BasicSearch->setKeyword($sSearchKeyword);
-			$this->BasicSearch->setType($sSearchType);
-		}
-		return $sSearchStr;
+		return $Value;
 	}
 
 	// Check if search parm exists
 	function CheckSearchParms() {
-
-		// Check basic search
-		if ($this->BasicSearch->IssetSession())
+		if ($this->idproducto_bodega->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->idproducto->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->idbodega->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->idproducto_sucursal->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->existencia->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->estado->AdvancedSearch->IssetSession())
 			return TRUE;
 		return FALSE;
 	}
@@ -760,8 +755,8 @@ class csucursal_list extends csucursal {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
-		// Clear basic search parameters
-		$this->ResetBasicSearchParms();
+		// Clear advanced search parameters
+		$this->ResetAdvancedSearchParms();
 	}
 
 	// Load advanced search default values
@@ -769,17 +764,27 @@ class csucursal_list extends csucursal {
 		return FALSE;
 	}
 
-	// Clear all basic search parameters
-	function ResetBasicSearchParms() {
-		$this->BasicSearch->UnsetSession();
+	// Clear all advanced search parameters
+	function ResetAdvancedSearchParms() {
+		$this->idproducto_bodega->AdvancedSearch->UnsetSession();
+		$this->idproducto->AdvancedSearch->UnsetSession();
+		$this->idbodega->AdvancedSearch->UnsetSession();
+		$this->idproducto_sucursal->AdvancedSearch->UnsetSession();
+		$this->existencia->AdvancedSearch->UnsetSession();
+		$this->estado->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
-		// Restore basic search values
-		$this->BasicSearch->Load();
+		// Restore advanced search values
+		$this->idproducto_bodega->AdvancedSearch->Load();
+		$this->idproducto->AdvancedSearch->Load();
+		$this->idbodega->AdvancedSearch->Load();
+		$this->idproducto_sucursal->AdvancedSearch->Load();
+		$this->existencia->AdvancedSearch->Load();
+		$this->estado->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -789,9 +794,10 @@ class csucursal_list extends csucursal {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->nombre); // nombre
-			$this->UpdateSort($this->idmunicipio); // idmunicipio
-			$this->UpdateSort($this->idempresa); // idempresa
+			$this->UpdateSort($this->idproducto); // idproducto
+			$this->UpdateSort($this->idbodega); // idbodega
+			$this->UpdateSort($this->idproducto_sucursal); // idproducto_sucursal
+			$this->UpdateSort($this->existencia); // existencia
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -825,16 +831,19 @@ class csucursal_list extends csucursal {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->idempresa->setSessionValue("");
+				$this->idproducto->setSessionValue("");
+				$this->idbodega->setSessionValue("");
+				$this->idproducto_sucursal->setSessionValue("");
 			}
 
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->nombre->setSort("");
-				$this->idmunicipio->setSort("");
-				$this->idempresa->setSort("");
+				$this->idproducto->setSort("");
+				$this->idbodega->setSort("");
+				$this->idproducto_sucursal->setSort("");
+				$this->existencia->setSort("");
 			}
 
 			// Reset start position
@@ -858,37 +867,6 @@ class csucursal_list extends csucursal {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
-
-		// "edit"
-		$item = &$this->ListOptions->Add("edit");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = TRUE;
-		$item->OnLeft = FALSE;
-
-		// "detail_bodega"
-		$item = &$this->ListOptions->Add("detail_bodega");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = TRUE && !$this->ShowMultipleDetails;
-		$item->OnLeft = FALSE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["bodega_grid"])) $GLOBALS["bodega_grid"] = new cbodega_grid;
-
-		// "detail_producto_sucursal"
-		$item = &$this->ListOptions->Add("detail_producto_sucursal");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = TRUE && !$this->ShowMultipleDetails;
-		$item->OnLeft = FALSE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$this->ListOptions->Add("details");
-			$item->CssStyle = "white-space: nowrap;";
-			$item->Visible = $this->ShowMultipleDetails;
-			$item->OnLeft = FALSE;
-			$item->ShowInButtonGroup = FALSE;
-		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -926,93 +904,9 @@ class csucursal_list extends csucursal {
 		else
 			$oListOpt->Body = "";
 
-		// "edit"
-		$oListOpt = &$this->ListOptions->Items["edit"];
-		if (TRUE) {
-			$oListOpt->Body = "<a class=\"ewRowLink ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("EditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("EditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("EditLink") . "</a>";
-		} else {
-			$oListOpt->Body = "";
-		}
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_bodega"
-		$oListOpt = &$this->ListOptions->Items["detail_bodega"];
-		if (TRUE) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("bodega", "TblCaption");
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("bodegalist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["bodega_grid"]->DetailView) {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "bodega";
-			}
-			if ($GLOBALS["bodega_grid"]->DetailEdit) {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "bodega";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-
-		// "detail_producto_sucursal"
-		$oListOpt = &$this->ListOptions->Items["detail_producto_sucursal"];
-		if (TRUE) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_sucursal", "TblCaption");
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_sucursallist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["producto_sucursal_grid"]->DetailView) {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "producto_sucursal";
-			}
-			if ($GLOBALS["producto_sucursal_grid"]->DetailEdit) {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "producto_sucursal";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$this->ListOptions->Items["details"];
-			$oListOpt->Body = $body;
-		}
-
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
-		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->idsucursal->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
+		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->idproducto_bodega->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
 		$this->RenderListOptionsExt();
 
 		// Call ListOptions_Rendered event
@@ -1023,43 +917,6 @@ class csucursal_list extends csucursal {
 	function SetupOtherOptions() {
 		global $Language, $Security;
 		$options = &$this->OtherOptions;
-		$option = $options["addedit"];
-
-		// Add
-		$item = &$option->Add("add");
-		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
-		$item->Visible = ($this->AddUrl <> "");
-		$option = $options["detail"];
-		$DetailTableLink = "";
-		$item = &$option->Add("detailadd_bodega");
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=bodega") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["bodega"]->TableCaption() . "</a>";
-		$item->Visible = ($GLOBALS["bodega"]->DetailAdd);
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "bodega";
-		}
-		$item = &$option->Add("detailadd_producto_sucursal");
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=producto_sucursal") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["producto_sucursal"]->TableCaption() . "</a>";
-		$item->Visible = ($GLOBALS["producto_sucursal"]->DetailAdd);
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "producto_sucursal";
-		}
-
-		// Add multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$option->Add("detailsadd");
-			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
-			$item->Visible = ($DetailTableLink <> "");
-
-			// Hide single master/detail items
-			$ar = explode(",", $DetailTableLink);
-			$cnt = count($ar);
-			for ($i = 0; $i < $cnt; $i++) {
-				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
-					$item->Visible = FALSE;
-			}
-		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1086,7 +943,7 @@ class csucursal_list extends csucursal {
 
 				// Add custom action
 				$item = &$option->Add("custom_" . $action);
-				$item->Body = "<a class=\"ewAction ewCustomAction\" href=\"\" onclick=\"ew_SubmitSelected(document.fsucursallist, '" . ew_CurrentUrl() . "', null, '" . $action . "');return false;\">" . $name . "</a>";
+				$item->Body = "<a class=\"ewAction ewCustomAction\" href=\"\" onclick=\"ew_SubmitSelected(document.fproducto_bodegalist, '" . ew_CurrentUrl() . "', null, '" . $action . "');return false;\">" . $name . "</a>";
 			}
 
 			// Hide grid edit, multi-delete and multi-update
@@ -1153,16 +1010,18 @@ class csucursal_list extends csucursal {
 		$this->SearchOptions->Tag = "div";
 		$this->SearchOptions->TagClassName = "ewSearchOption";
 
-		// Search button
-		$item = &$this->SearchOptions->Add("searchtoggle");
-		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
-		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fsucursallistsrch\">" . $Language->Phrase("SearchBtn") . "</button>";
-		$item->Visible = TRUE;
-
 		// Show all button
 		$item = &$this->SearchOptions->Add("showall");
 		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
 		$item->Visible = ($this->SearchWhere <> $this->DefaultSearchWhere);
+
+		// Advanced search button
+		$item = &$this->SearchOptions->Add("advancedsearch");
+		if (ew_IsMobile())
+			$item->Body = "<a class=\"btn btn-default ewAdvancedSearch\" title=\"" . $Language->Phrase("AdvancedSearch") . "\" data-caption=\"" . $Language->Phrase("AdvancedSearch") . "\" href=\"producto_bodegasrch.php\">" . $Language->Phrase("AdvancedSearchBtn") . "</a>";
+		else
+			$item->Body = "<button type=\"button\" class=\"btn btn-default ewAdvancedSearch\" title=\"" . $Language->Phrase("AdvancedSearch") . "\" data-caption=\"" . $Language->Phrase("AdvancedSearch") . "\" onclick=\"ew_SearchDialogShow({lnk:this,url:'producto_bodegasrch.php'});\">" . $Language->Phrase("AdvancedSearchBtn") . "</a>";
+		$item->Visible = TRUE;
 
 		// Button group for search
 		$this->SearchOptions->UseDropDownButton = FALSE;
@@ -1224,11 +1083,41 @@ class csucursal_list extends csucursal {
 		}
 	}
 
-	// Load basic search values
-	function LoadBasicSearchValues() {
-		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
-		if ($this->BasicSearch->Keyword <> "") $this->Command = "search";
-		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	//  Load search values for validation
+	function LoadSearchValues() {
+		global $objForm;
+
+		// Load search values
+		// idproducto_bodega
+
+		$this->idproducto_bodega->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idproducto_bodega"]);
+		if ($this->idproducto_bodega->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->idproducto_bodega->AdvancedSearch->SearchOperator = @$_GET["z_idproducto_bodega"];
+
+		// idproducto
+		$this->idproducto->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idproducto"]);
+		if ($this->idproducto->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->idproducto->AdvancedSearch->SearchOperator = @$_GET["z_idproducto"];
+
+		// idbodega
+		$this->idbodega->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idbodega"]);
+		if ($this->idbodega->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->idbodega->AdvancedSearch->SearchOperator = @$_GET["z_idbodega"];
+
+		// idproducto_sucursal
+		$this->idproducto_sucursal->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idproducto_sucursal"]);
+		if ($this->idproducto_sucursal->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->idproducto_sucursal->AdvancedSearch->SearchOperator = @$_GET["z_idproducto_sucursal"];
+
+		// existencia
+		$this->existencia->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_existencia"]);
+		if ($this->existencia->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->existencia->AdvancedSearch->SearchOperator = @$_GET["z_existencia"];
+
+		// estado
+		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_estado"]);
+		if ($this->estado->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->estado->AdvancedSearch->SearchOperator = @$_GET["z_estado"];
 	}
 
 	// Load recordset
@@ -1277,11 +1166,11 @@ class csucursal_list extends csucursal {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
-		$this->idempresa->setDbValue($rs->fields('idempresa'));
+		$this->idproducto_bodega->setDbValue($rs->fields('idproducto_bodega'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idbodega->setDbValue($rs->fields('idbodega'));
+		$this->idproducto_sucursal->setDbValue($rs->fields('idproducto_sucursal'));
+		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -1289,11 +1178,11 @@ class csucursal_list extends csucursal {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->nombre->DbValue = $row['nombre'];
-		$this->direccion->DbValue = $row['direccion'];
-		$this->idmunicipio->DbValue = $row['idmunicipio'];
-		$this->idempresa->DbValue = $row['idempresa'];
+		$this->idproducto_bodega->DbValue = $row['idproducto_bodega'];
+		$this->idproducto->DbValue = $row['idproducto'];
+		$this->idbodega->DbValue = $row['idbodega'];
+		$this->idproducto_sucursal->DbValue = $row['idproducto_sucursal'];
+		$this->existencia->DbValue = $row['existencia'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1302,8 +1191,8 @@ class csucursal_list extends csucursal {
 
 		// Load key values from Session
 		$bValidKey = TRUE;
-		if (strval($this->getKey("idsucursal")) <> "")
-			$this->idsucursal->CurrentValue = $this->getKey("idsucursal"); // idsucursal
+		if (strval($this->getKey("idproducto_bodega")) <> "")
+			$this->idproducto_bodega->CurrentValue = $this->getKey("idproducto_bodega"); // idproducto_bodega
 		else
 			$bValidKey = FALSE;
 
@@ -1336,31 +1225,23 @@ class csucursal_list extends csucursal {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idsucursal
-		// nombre
-		// direccion
-		// idmunicipio
-		// idempresa
+		// idproducto_bodega
+		// idproducto
+		// idbodega
+		// idproducto_sucursal
+		// existencia
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idsucursal
-			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-			$this->idsucursal->ViewCustomAttributes = "";
+			// idproducto_bodega
+			$this->idproducto_bodega->ViewValue = $this->idproducto_bodega->CurrentValue;
+			$this->idproducto_bodega->ViewCustomAttributes = "";
 
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
-
-			// direccion
-			$this->direccion->ViewValue = $this->direccion->CurrentValue;
-			$this->direccion->ViewCustomAttributes = "";
-
-			// idmunicipio
-			if (strval($this->idmunicipio->CurrentValue) <> "") {
-				$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
+			// idproducto
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1371,25 +1252,25 @@ class csucursal_list extends csucursal {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmunicipio->ViewValue = $rswrk->fields('DispFld');
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 				}
 			} else {
-				$this->idmunicipio->ViewValue = NULL;
+				$this->idproducto->ViewValue = NULL;
 			}
-			$this->idmunicipio->ViewCustomAttributes = "";
+			$this->idproducto->ViewCustomAttributes = "";
 
-			// idempresa
-			if (strval($this->idempresa->CurrentValue) <> "") {
-				$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+			// idbodega
+			if (strval($this->idbodega->CurrentValue) <> "") {
+				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1400,20 +1281,49 @@ class csucursal_list extends csucursal {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+			$this->Lookup_Selecting($this->idbodega, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
+			$sSqlWrk .= " ORDER BY `descripcion`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idempresa->ViewValue = $rswrk->fields('DispFld');
+					$this->idbodega->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+					$this->idbodega->ViewValue = $this->idbodega->CurrentValue;
 				}
 			} else {
-				$this->idempresa->ViewValue = NULL;
+				$this->idbodega->ViewValue = NULL;
 			}
-			$this->idempresa->ViewCustomAttributes = "";
+			$this->idbodega->ViewCustomAttributes = "";
+
+			// idproducto_sucursal
+			if (strval($this->idproducto_sucursal->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto_sucursal`" . ew_SearchString("=", $this->idproducto_sucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto_sucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproducto_sucursal->ViewValue = $rswrk->fields('DispFld');
+					$this->idproducto_sucursal->ViewValue .= ew_ValueSeparator(2,$this->idproducto_sucursal) . $rswrk->fields('Disp3Fld');
+					$rswrk->Close();
+				} else {
+					$this->idproducto_sucursal->ViewValue = $this->idproducto_sucursal->CurrentValue;
+				}
+			} else {
+				$this->idproducto_sucursal->ViewValue = NULL;
+			}
+			$this->idproducto_sucursal->ViewCustomAttributes = "";
+
+			// existencia
+			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1432,25 +1342,63 @@ class csucursal_list extends csucursal {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// nombre
-			$this->nombre->LinkCustomAttributes = "";
-			$this->nombre->HrefValue = "";
-			$this->nombre->TooltipValue = "";
+			// idproducto
+			$this->idproducto->LinkCustomAttributes = "";
+			$this->idproducto->HrefValue = "";
+			$this->idproducto->TooltipValue = "";
 
-			// idmunicipio
-			$this->idmunicipio->LinkCustomAttributes = "";
-			$this->idmunicipio->HrefValue = "";
-			$this->idmunicipio->TooltipValue = "";
+			// idbodega
+			$this->idbodega->LinkCustomAttributes = "";
+			$this->idbodega->HrefValue = "";
+			$this->idbodega->TooltipValue = "";
 
-			// idempresa
-			$this->idempresa->LinkCustomAttributes = "";
-			$this->idempresa->HrefValue = "";
-			$this->idempresa->TooltipValue = "";
+			// idproducto_sucursal
+			$this->idproducto_sucursal->LinkCustomAttributes = "";
+			$this->idproducto_sucursal->HrefValue = "";
+			$this->idproducto_sucursal->TooltipValue = "";
+
+			// existencia
+			$this->existencia->LinkCustomAttributes = "";
+			$this->existencia->HrefValue = "";
+			$this->existencia->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Validate search
+	function ValidateSearch() {
+		global $gsSearchError;
+
+		// Initialize
+		$gsSearchError = "";
+
+		// Check if validation required
+		if (!EW_SERVER_VALIDATE)
+			return TRUE;
+
+		// Return validate result
+		$ValidateSearch = ($gsSearchError == "");
+
+		// Call Form_CustomValidate event
+		$sFormCustomError = "";
+		$ValidateSearch = $ValidateSearch && $this->Form_CustomValidate($sFormCustomError);
+		if ($sFormCustomError <> "") {
+			ew_AddMessage($gsSearchError, $sFormCustomError);
+		}
+		return $ValidateSearch;
+	}
+
+	// Load advanced search
+	function LoadAdvancedSearch() {
+		$this->idproducto_bodega->AdvancedSearch->Load();
+		$this->idproducto->AdvancedSearch->Load();
+		$this->idbodega->AdvancedSearch->Load();
+		$this->idproducto_sucursal->AdvancedSearch->Load();
+		$this->existencia->AdvancedSearch->Load();
+		$this->estado->AdvancedSearch->Load();
 	}
 
 	// Set up master/detail based on QueryString
@@ -1465,13 +1413,35 @@ class csucursal_list extends csucursal {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "empresa") {
+			if ($sMasterTblVar == "producto") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_idempresa"] <> "") {
-					$GLOBALS["empresa"]->idempresa->setQueryStringValue($_GET["fk_idempresa"]);
-					$this->idempresa->setQueryStringValue($GLOBALS["empresa"]->idempresa->QueryStringValue);
-					$this->idempresa->setSessionValue($this->idempresa->QueryStringValue);
-					if (!is_numeric($GLOBALS["empresa"]->idempresa->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idproducto"] <> "") {
+					$GLOBALS["producto"]->idproducto->setQueryStringValue($_GET["fk_idproducto"]);
+					$this->idproducto->setQueryStringValue($GLOBALS["producto"]->idproducto->QueryStringValue);
+					$this->idproducto->setSessionValue($this->idproducto->QueryStringValue);
+					if (!is_numeric($GLOBALS["producto"]->idproducto->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+			if ($sMasterTblVar == "bodega") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idbodega"] <> "") {
+					$GLOBALS["bodega"]->idbodega->setQueryStringValue($_GET["fk_idbodega"]);
+					$this->idbodega->setQueryStringValue($GLOBALS["bodega"]->idbodega->QueryStringValue);
+					$this->idbodega->setSessionValue($this->idbodega->QueryStringValue);
+					if (!is_numeric($GLOBALS["bodega"]->idbodega->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+			if ($sMasterTblVar == "producto_sucursal") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idproducto_sucursal"] <> "") {
+					$GLOBALS["producto_sucursal"]->idproducto_sucursal->setQueryStringValue($_GET["fk_idproducto_sucursal"]);
+					$this->idproducto_sucursal->setQueryStringValue($GLOBALS["producto_sucursal"]->idproducto_sucursal->QueryStringValue);
+					$this->idproducto_sucursal->setSessionValue($this->idproducto_sucursal->QueryStringValue);
+					if (!is_numeric($GLOBALS["producto_sucursal"]->idproducto_sucursal->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -1487,8 +1457,14 @@ class csucursal_list extends csucursal {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "empresa") {
-				if ($this->idempresa->QueryStringValue == "") $this->idempresa->setSessionValue("");
+			if ($sMasterTblVar <> "producto") {
+				if ($this->idproducto->QueryStringValue == "") $this->idproducto->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "bodega") {
+				if ($this->idbodega->QueryStringValue == "") $this->idbodega->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "producto_sucursal") {
+				if ($this->idproducto_sucursal->QueryStringValue == "") $this->idproducto_sucursal->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -1628,34 +1604,34 @@ class csucursal_list extends csucursal {
 <?php
 
 // Create page object
-if (!isset($sucursal_list)) $sucursal_list = new csucursal_list();
+if (!isset($producto_bodega_list)) $producto_bodega_list = new cproducto_bodega_list();
 
 // Page init
-$sucursal_list->Page_Init();
+$producto_bodega_list->Page_Init();
 
 // Page main
-$sucursal_list->Page_Main();
+$producto_bodega_list->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$sucursal_list->Page_Render();
+$producto_bodega_list->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var sucursal_list = new ew_Page("sucursal_list");
-sucursal_list.PageID = "list"; // Page ID
-var EW_PAGE_ID = sucursal_list.PageID; // For backward compatibility
+var producto_bodega_list = new ew_Page("producto_bodega_list");
+producto_bodega_list.PageID = "list"; // Page ID
+var EW_PAGE_ID = producto_bodega_list.PageID; // For backward compatibility
 
 // Form object
-var fsucursallist = new ew_Form("fsucursallist");
-fsucursallist.FormKeyCountName = '<?php echo $sucursal_list->FormKeyCountName ?>';
+var fproducto_bodegalist = new ew_Form("fproducto_bodegalist");
+fproducto_bodegalist.FormKeyCountName = '<?php echo $producto_bodega_list->FormKeyCountName ?>';
 
 // Form_CustomValidate event
-fsucursallist.Form_CustomValidate = 
+fproducto_bodegalist.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1664,17 +1640,18 @@ fsucursallist.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fsucursallist.ValidateRequired = true;
+fproducto_bodegalist.ValidateRequired = true;
 <?php } else { ?>
-fsucursallist.ValidateRequired = false; 
+fproducto_bodegalist.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fsucursallist.Lists["x_idmunicipio"] = {"LinkField":"x_idmunicipio","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fsucursallist.Lists["x_idempresa"] = {"LinkField":"x_idempresa","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_bodegalist.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_bodegalist.Lists["x_idbodega"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_bodegalist.Lists["x_idproducto_sucursal"] = {"LinkField":"x_idproducto_sucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_idproducto","","x_idsucursal",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
-var fsucursallistsrch = new ew_Form("fsucursallistsrch");
+var fproducto_bodegalistsrch = new ew_Form("fproducto_bodegalistsrch");
 </script>
 <script type="text/javascript">
 
@@ -1682,26 +1659,54 @@ var fsucursallistsrch = new ew_Form("fsucursallistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($sucursal_list->TotalRecs > 0 && $sucursal->getCurrentMasterTable() == "" && $sucursal_list->ExportOptions->Visible()) { ?>
-<?php $sucursal_list->ExportOptions->Render("body") ?>
+<?php if ($producto_bodega_list->TotalRecs > 0 && $producto_bodega->getCurrentMasterTable() == "" && $producto_bodega_list->ExportOptions->Visible()) { ?>
+<?php $producto_bodega_list->ExportOptions->Render("body") ?>
 <?php } ?>
-<?php if ($sucursal_list->SearchOptions->Visible()) { ?>
-<?php $sucursal_list->SearchOptions->Render("body") ?>
+<?php if ($producto_bodega_list->SearchOptions->Visible()) { ?>
+<?php $producto_bodega_list->SearchOptions->Render("body") ?>
 <?php } ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php if (($sucursal->Export == "") || (EW_EXPORT_MASTER_RECORD && $sucursal->Export == "print")) { ?>
+<?php if (($producto_bodega->Export == "") || (EW_EXPORT_MASTER_RECORD && $producto_bodega->Export == "print")) { ?>
 <?php
-$gsMasterReturnUrl = "empresalist.php";
-if ($sucursal_list->DbMasterFilter <> "" && $sucursal->getCurrentMasterTable() == "empresa") {
-	if ($sucursal_list->MasterRecordExists) {
-		if ($sucursal->getCurrentMasterTable() == $sucursal->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+$gsMasterReturnUrl = "productolist.php";
+if ($producto_bodega_list->DbMasterFilter <> "" && $producto_bodega->getCurrentMasterTable() == "producto") {
+	if ($producto_bodega_list->MasterRecordExists) {
+		if ($producto_bodega->getCurrentMasterTable() == $producto_bodega->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
 ?>
-<?php if ($sucursal_list->ExportOptions->Visible()) { ?>
-<div class="ewListExportOptions"><?php $sucursal_list->ExportOptions->Render("body") ?></div>
+<?php if ($producto_bodega_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_bodega_list->ExportOptions->Render("body") ?></div>
 <?php } ?>
-<?php include_once $EW_RELATIVE_PATH . "empresamaster.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productomaster.php" ?>
+<?php
+	}
+}
+?>
+<?php
+$gsMasterReturnUrl = "bodegalist.php";
+if ($producto_bodega_list->DbMasterFilter <> "" && $producto_bodega->getCurrentMasterTable() == "bodega") {
+	if ($producto_bodega_list->MasterRecordExists) {
+		if ($producto_bodega->getCurrentMasterTable() == $producto_bodega->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($producto_bodega_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_bodega_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "bodegamaster.php" ?>
+<?php
+	}
+}
+?>
+<?php
+$gsMasterReturnUrl = "producto_sucursallist.php";
+if ($producto_bodega_list->DbMasterFilter <> "" && $producto_bodega->getCurrentMasterTable() == "producto_sucursal") {
+	if ($producto_bodega_list->MasterRecordExists) {
+		if ($producto_bodega->getCurrentMasterTable() == $producto_bodega->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($producto_bodega_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_bodega_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_sucursalmaster.php" ?>
 <?php
 	}
 }
@@ -1710,206 +1715,194 @@ if ($sucursal_list->DbMasterFilter <> "" && $sucursal->getCurrentMasterTable() =
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
-		$sucursal_list->TotalRecs = $sucursal->SelectRecordCount();
+		$producto_bodega_list->TotalRecs = $producto_bodega->SelectRecordCount();
 	} else {
-		if ($sucursal_list->Recordset = $sucursal_list->LoadRecordset())
-			$sucursal_list->TotalRecs = $sucursal_list->Recordset->RecordCount();
+		if ($producto_bodega_list->Recordset = $producto_bodega_list->LoadRecordset())
+			$producto_bodega_list->TotalRecs = $producto_bodega_list->Recordset->RecordCount();
 	}
-	$sucursal_list->StartRec = 1;
-	if ($sucursal_list->DisplayRecs <= 0 || ($sucursal->Export <> "" && $sucursal->ExportAll)) // Display all records
-		$sucursal_list->DisplayRecs = $sucursal_list->TotalRecs;
-	if (!($sucursal->Export <> "" && $sucursal->ExportAll))
-		$sucursal_list->SetUpStartRec(); // Set up start record position
+	$producto_bodega_list->StartRec = 1;
+	if ($producto_bodega_list->DisplayRecs <= 0 || ($producto_bodega->Export <> "" && $producto_bodega->ExportAll)) // Display all records
+		$producto_bodega_list->DisplayRecs = $producto_bodega_list->TotalRecs;
+	if (!($producto_bodega->Export <> "" && $producto_bodega->ExportAll))
+		$producto_bodega_list->SetUpStartRec(); // Set up start record position
 	if ($bSelectLimit)
-		$sucursal_list->Recordset = $sucursal_list->LoadRecordset($sucursal_list->StartRec-1, $sucursal_list->DisplayRecs);
+		$producto_bodega_list->Recordset = $producto_bodega_list->LoadRecordset($producto_bodega_list->StartRec-1, $producto_bodega_list->DisplayRecs);
 
 	// Set no record found message
-	if ($sucursal->CurrentAction == "" && $sucursal_list->TotalRecs == 0) {
-		if ($sucursal_list->SearchWhere == "0=101")
-			$sucursal_list->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
+	if ($producto_bodega->CurrentAction == "" && $producto_bodega_list->TotalRecs == 0) {
+		if ($producto_bodega_list->SearchWhere == "0=101")
+			$producto_bodega_list->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else
-			$sucursal_list->setWarningMessage($Language->Phrase("NoRecord"));
+			$producto_bodega_list->setWarningMessage($Language->Phrase("NoRecord"));
 	}
-$sucursal_list->RenderOtherOptions();
+$producto_bodega_list->RenderOtherOptions();
 ?>
-<?php if ($sucursal->Export == "" && $sucursal->CurrentAction == "") { ?>
-<form name="fsucursallistsrch" id="fsucursallistsrch" class="form-inline ewForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($sucursal_list->SearchWhere <> "") ? " in" : " in"; ?>
-<div id="fsucursallistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
-<input type="hidden" name="cmd" value="search">
-<input type="hidden" name="t" value="sucursal">
-	<div class="ewBasicSearch">
-<div id="xsr_1" class="ewRow">
-	<div class="ewQuickSearch input-group">
-	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($sucursal_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
-	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($sucursal_list->BasicSearch->getType()) ?>">
-	<div class="input-group-btn">
-		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $sucursal_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
-		<ul class="dropdown-menu pull-right" role="menu">
-			<li<?php if ($sucursal_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
-			<li<?php if ($sucursal_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
-			<li<?php if ($sucursal_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
-			<li<?php if ($sucursal_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
-		</ul>
-	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("QuickSearchBtn") ?></button>
-	</div>
-	</div>
-</div>
-	</div>
-</div>
-</form>
-<?php } ?>
-<?php $sucursal_list->ShowPageHeader(); ?>
+<?php $producto_bodega_list->ShowPageHeader(); ?>
 <?php
-$sucursal_list->ShowMessage();
+$producto_bodega_list->ShowMessage();
 ?>
-<?php if ($sucursal_list->TotalRecs > 0 || $sucursal->CurrentAction <> "") { ?>
+<?php if ($producto_bodega_list->TotalRecs > 0 || $producto_bodega->CurrentAction <> "") { ?>
 <div class="ewGrid">
-<form name="fsucursallist" id="fsucursallist" class="form-inline ewForm ewListForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($sucursal_list->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $sucursal_list->Token ?>">
+<form name="fproducto_bodegalist" id="fproducto_bodegalist" class="form-inline ewForm ewListForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($producto_bodega_list->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_bodega_list->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="sucursal">
-<div id="gmp_sucursal" class="<?php if (ew_IsResponsiveLayout()) { echo "table-responsive "; } ?>ewGridMiddlePanel">
-<?php if ($sucursal_list->TotalRecs > 0) { ?>
-<table id="tbl_sucursallist" class="table ewTable">
-<?php echo $sucursal->TableCustomInnerHtml ?>
+<input type="hidden" name="t" value="producto_bodega">
+<div id="gmp_producto_bodega" class="<?php if (ew_IsResponsiveLayout()) { echo "table-responsive "; } ?>ewGridMiddlePanel">
+<?php if ($producto_bodega_list->TotalRecs > 0) { ?>
+<table id="tbl_producto_bodegalist" class="table ewTable">
+<?php echo $producto_bodega->TableCustomInnerHtml ?>
 <thead><!-- Table header -->
 	<tr class="ewTableHeader">
 <?php
 
 // Render list options
-$sucursal_list->RenderListOptions();
+$producto_bodega_list->RenderListOptions();
 
 // Render list options (header, left)
-$sucursal_list->ListOptions->Render("header", "left");
+$producto_bodega_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($sucursal->nombre->Visible) { // nombre ?>
-	<?php if ($sucursal->SortUrl($sucursal->nombre) == "") { ?>
-		<th data-name="nombre"><div id="elh_sucursal_nombre" class="sucursal_nombre"><div class="ewTableHeaderCaption"><?php echo $sucursal->nombre->FldCaption() ?></div></div></th>
+<?php if ($producto_bodega->idproducto->Visible) { // idproducto ?>
+	<?php if ($producto_bodega->SortUrl($producto_bodega->idproducto) == "") { ?>
+		<th data-name="idproducto"><div id="elh_producto_bodega_idproducto" class="producto_bodega_idproducto"><div class="ewTableHeaderCaption"><?php echo $producto_bodega->idproducto->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="nombre"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->nombre) ?>',1);"><div id="elh_sucursal_nombre" class="sucursal_nombre">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idproducto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_bodega->SortUrl($producto_bodega->idproducto) ?>',1);"><div id="elh_producto_bodega_idproducto" class="producto_bodega_idproducto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_bodega->idproducto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_bodega->idproducto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_bodega->idproducto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($sucursal->idmunicipio->Visible) { // idmunicipio ?>
-	<?php if ($sucursal->SortUrl($sucursal->idmunicipio) == "") { ?>
-		<th data-name="idmunicipio"><div id="elh_sucursal_idmunicipio" class="sucursal_idmunicipio"><div class="ewTableHeaderCaption"><?php echo $sucursal->idmunicipio->FldCaption() ?></div></div></th>
+<?php if ($producto_bodega->idbodega->Visible) { // idbodega ?>
+	<?php if ($producto_bodega->SortUrl($producto_bodega->idbodega) == "") { ?>
+		<th data-name="idbodega"><div id="elh_producto_bodega_idbodega" class="producto_bodega_idbodega"><div class="ewTableHeaderCaption"><?php echo $producto_bodega->idbodega->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="idmunicipio"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->idmunicipio) ?>',1);"><div id="elh_sucursal_idmunicipio" class="sucursal_idmunicipio">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->idmunicipio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->idmunicipio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->idmunicipio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idbodega"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_bodega->SortUrl($producto_bodega->idbodega) ?>',1);"><div id="elh_producto_bodega_idbodega" class="producto_bodega_idbodega">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_bodega->idbodega->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_bodega->idbodega->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_bodega->idbodega->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($sucursal->idempresa->Visible) { // idempresa ?>
-	<?php if ($sucursal->SortUrl($sucursal->idempresa) == "") { ?>
-		<th data-name="idempresa"><div id="elh_sucursal_idempresa" class="sucursal_idempresa"><div class="ewTableHeaderCaption"><?php echo $sucursal->idempresa->FldCaption() ?></div></div></th>
+<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
+	<?php if ($producto_bodega->SortUrl($producto_bodega->idproducto_sucursal) == "") { ?>
+		<th data-name="idproducto_sucursal"><div id="elh_producto_bodega_idproducto_sucursal" class="producto_bodega_idproducto_sucursal"><div class="ewTableHeaderCaption"><?php echo $producto_bodega->idproducto_sucursal->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="idempresa"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->idempresa) ?>',1);"><div id="elh_sucursal_idempresa" class="sucursal_idempresa">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->idempresa->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->idempresa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->idempresa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idproducto_sucursal"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_bodega->SortUrl($producto_bodega->idproducto_sucursal) ?>',1);"><div id="elh_producto_bodega_idproducto_sucursal" class="producto_bodega_idproducto_sucursal">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_bodega->idproducto_sucursal->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_bodega->idproducto_sucursal->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_bodega->idproducto_sucursal->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_bodega->existencia->Visible) { // existencia ?>
+	<?php if ($producto_bodega->SortUrl($producto_bodega->existencia) == "") { ?>
+		<th data-name="existencia"><div id="elh_producto_bodega_existencia" class="producto_bodega_existencia"><div class="ewTableHeaderCaption"><?php echo $producto_bodega->existencia->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="existencia"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_bodega->SortUrl($producto_bodega->existencia) ?>',1);"><div id="elh_producto_bodega_existencia" class="producto_bodega_existencia">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_bodega->existencia->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_bodega->existencia->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_bodega->existencia->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
 <?php
 
 // Render list options (header, right)
-$sucursal_list->ListOptions->Render("header", "right");
+$producto_bodega_list->ListOptions->Render("header", "right");
 ?>
 	</tr>
 </thead>
 <tbody>
 <?php
-if ($sucursal->ExportAll && $sucursal->Export <> "") {
-	$sucursal_list->StopRec = $sucursal_list->TotalRecs;
+if ($producto_bodega->ExportAll && $producto_bodega->Export <> "") {
+	$producto_bodega_list->StopRec = $producto_bodega_list->TotalRecs;
 } else {
 
 	// Set the last record to display
-	if ($sucursal_list->TotalRecs > $sucursal_list->StartRec + $sucursal_list->DisplayRecs - 1)
-		$sucursal_list->StopRec = $sucursal_list->StartRec + $sucursal_list->DisplayRecs - 1;
+	if ($producto_bodega_list->TotalRecs > $producto_bodega_list->StartRec + $producto_bodega_list->DisplayRecs - 1)
+		$producto_bodega_list->StopRec = $producto_bodega_list->StartRec + $producto_bodega_list->DisplayRecs - 1;
 	else
-		$sucursal_list->StopRec = $sucursal_list->TotalRecs;
+		$producto_bodega_list->StopRec = $producto_bodega_list->TotalRecs;
 }
-$sucursal_list->RecCnt = $sucursal_list->StartRec - 1;
-if ($sucursal_list->Recordset && !$sucursal_list->Recordset->EOF) {
-	$sucursal_list->Recordset->MoveFirst();
+$producto_bodega_list->RecCnt = $producto_bodega_list->StartRec - 1;
+if ($producto_bodega_list->Recordset && !$producto_bodega_list->Recordset->EOF) {
+	$producto_bodega_list->Recordset->MoveFirst();
 	$bSelectLimit = EW_SELECT_LIMIT;
-	if (!$bSelectLimit && $sucursal_list->StartRec > 1)
-		$sucursal_list->Recordset->Move($sucursal_list->StartRec - 1);
-} elseif (!$sucursal->AllowAddDeleteRow && $sucursal_list->StopRec == 0) {
-	$sucursal_list->StopRec = $sucursal->GridAddRowCount;
+	if (!$bSelectLimit && $producto_bodega_list->StartRec > 1)
+		$producto_bodega_list->Recordset->Move($producto_bodega_list->StartRec - 1);
+} elseif (!$producto_bodega->AllowAddDeleteRow && $producto_bodega_list->StopRec == 0) {
+	$producto_bodega_list->StopRec = $producto_bodega->GridAddRowCount;
 }
 
 // Initialize aggregate
-$sucursal->RowType = EW_ROWTYPE_AGGREGATEINIT;
-$sucursal->ResetAttrs();
-$sucursal_list->RenderRow();
-while ($sucursal_list->RecCnt < $sucursal_list->StopRec) {
-	$sucursal_list->RecCnt++;
-	if (intval($sucursal_list->RecCnt) >= intval($sucursal_list->StartRec)) {
-		$sucursal_list->RowCnt++;
+$producto_bodega->RowType = EW_ROWTYPE_AGGREGATEINIT;
+$producto_bodega->ResetAttrs();
+$producto_bodega_list->RenderRow();
+while ($producto_bodega_list->RecCnt < $producto_bodega_list->StopRec) {
+	$producto_bodega_list->RecCnt++;
+	if (intval($producto_bodega_list->RecCnt) >= intval($producto_bodega_list->StartRec)) {
+		$producto_bodega_list->RowCnt++;
 
 		// Set up key count
-		$sucursal_list->KeyCount = $sucursal_list->RowIndex;
+		$producto_bodega_list->KeyCount = $producto_bodega_list->RowIndex;
 
 		// Init row class and style
-		$sucursal->ResetAttrs();
-		$sucursal->CssClass = "";
-		if ($sucursal->CurrentAction == "gridadd") {
+		$producto_bodega->ResetAttrs();
+		$producto_bodega->CssClass = "";
+		if ($producto_bodega->CurrentAction == "gridadd") {
 		} else {
-			$sucursal_list->LoadRowValues($sucursal_list->Recordset); // Load row values
+			$producto_bodega_list->LoadRowValues($producto_bodega_list->Recordset); // Load row values
 		}
-		$sucursal->RowType = EW_ROWTYPE_VIEW; // Render view
+		$producto_bodega->RowType = EW_ROWTYPE_VIEW; // Render view
 
 		// Set up row id / data-rowindex
-		$sucursal->RowAttrs = array_merge($sucursal->RowAttrs, array('data-rowindex'=>$sucursal_list->RowCnt, 'id'=>'r' . $sucursal_list->RowCnt . '_sucursal', 'data-rowtype'=>$sucursal->RowType));
+		$producto_bodega->RowAttrs = array_merge($producto_bodega->RowAttrs, array('data-rowindex'=>$producto_bodega_list->RowCnt, 'id'=>'r' . $producto_bodega_list->RowCnt . '_producto_bodega', 'data-rowtype'=>$producto_bodega->RowType));
 
 		// Render row
-		$sucursal_list->RenderRow();
+		$producto_bodega_list->RenderRow();
 
 		// Render list options
-		$sucursal_list->RenderListOptions();
+		$producto_bodega_list->RenderListOptions();
 ?>
-	<tr<?php echo $sucursal->RowAttributes() ?>>
+	<tr<?php echo $producto_bodega->RowAttributes() ?>>
 <?php
 
 // Render list options (body, left)
-$sucursal_list->ListOptions->Render("body", "left", $sucursal_list->RowCnt);
+$producto_bodega_list->ListOptions->Render("body", "left", $producto_bodega_list->RowCnt);
 ?>
-	<?php if ($sucursal->nombre->Visible) { // nombre ?>
-		<td data-name="nombre"<?php echo $sucursal->nombre->CellAttributes() ?>>
-<span<?php echo $sucursal->nombre->ViewAttributes() ?>>
-<?php echo $sucursal->nombre->ListViewValue() ?></span>
-<a id="<?php echo $sucursal_list->PageObjName . "_row_" . $sucursal_list->RowCnt ?>"></a></td>
+	<?php if ($producto_bodega->idproducto->Visible) { // idproducto ?>
+		<td data-name="idproducto"<?php echo $producto_bodega->idproducto->CellAttributes() ?>>
+<span<?php echo $producto_bodega->idproducto->ViewAttributes() ?>>
+<?php echo $producto_bodega->idproducto->ListViewValue() ?></span>
+<a id="<?php echo $producto_bodega_list->PageObjName . "_row_" . $producto_bodega_list->RowCnt ?>"></a></td>
 	<?php } ?>
-	<?php if ($sucursal->idmunicipio->Visible) { // idmunicipio ?>
-		<td data-name="idmunicipio"<?php echo $sucursal->idmunicipio->CellAttributes() ?>>
-<span<?php echo $sucursal->idmunicipio->ViewAttributes() ?>>
-<?php echo $sucursal->idmunicipio->ListViewValue() ?></span>
+	<?php if ($producto_bodega->idbodega->Visible) { // idbodega ?>
+		<td data-name="idbodega"<?php echo $producto_bodega->idbodega->CellAttributes() ?>>
+<span<?php echo $producto_bodega->idbodega->ViewAttributes() ?>>
+<?php echo $producto_bodega->idbodega->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($sucursal->idempresa->Visible) { // idempresa ?>
-		<td data-name="idempresa"<?php echo $sucursal->idempresa->CellAttributes() ?>>
-<span<?php echo $sucursal->idempresa->ViewAttributes() ?>>
-<?php echo $sucursal->idempresa->ListViewValue() ?></span>
+	<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
+		<td data-name="idproducto_sucursal"<?php echo $producto_bodega->idproducto_sucursal->CellAttributes() ?>>
+<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
+<?php echo $producto_bodega->idproducto_sucursal->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_bodega->existencia->Visible) { // existencia ?>
+		<td data-name="existencia"<?php echo $producto_bodega->existencia->CellAttributes() ?>>
+<span<?php echo $producto_bodega->existencia->ViewAttributes() ?>>
+<?php echo $producto_bodega->existencia->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php
 
 // Render list options (body, right)
-$sucursal_list->ListOptions->Render("body", "right", $sucursal_list->RowCnt);
+$producto_bodega_list->ListOptions->Render("body", "right", $producto_bodega_list->RowCnt);
 ?>
 	</tr>
 <?php
 	}
-	if ($sucursal->CurrentAction <> "gridadd")
-		$sucursal_list->Recordset->MoveNext();
+	if ($producto_bodega->CurrentAction <> "gridadd")
+		$producto_bodega_list->Recordset->MoveNext();
 }
 ?>
 </tbody>
 </table>
 <?php } ?>
-<?php if ($sucursal->CurrentAction == "") { ?>
+<?php if ($producto_bodega->CurrentAction == "") { ?>
 <input type="hidden" name="a_list" id="a_list" value="">
 <?php } ?>
 </div>
@@ -1917,60 +1910,60 @@ $sucursal_list->ListOptions->Render("body", "right", $sucursal_list->RowCnt);
 <?php
 
 // Close recordset
-if ($sucursal_list->Recordset)
-	$sucursal_list->Recordset->Close();
+if ($producto_bodega_list->Recordset)
+	$producto_bodega_list->Recordset->Close();
 ?>
 <div class="ewGridLowerPanel">
-<?php if ($sucursal->CurrentAction <> "gridadd" && $sucursal->CurrentAction <> "gridedit") { ?>
+<?php if ($producto_bodega->CurrentAction <> "gridadd" && $producto_bodega->CurrentAction <> "gridedit") { ?>
 <form name="ewPagerForm" class="ewForm form-inline ewPagerForm" action="<?php echo ew_CurrentPage() ?>">
-<?php if (!isset($sucursal_list->Pager)) $sucursal_list->Pager = new cPrevNextPager($sucursal_list->StartRec, $sucursal_list->DisplayRecs, $sucursal_list->TotalRecs) ?>
-<?php if ($sucursal_list->Pager->RecordCount > 0) { ?>
+<?php if (!isset($producto_bodega_list->Pager)) $producto_bodega_list->Pager = new cPrevNextPager($producto_bodega_list->StartRec, $producto_bodega_list->DisplayRecs, $producto_bodega_list->TotalRecs) ?>
+<?php if ($producto_bodega_list->Pager->RecordCount > 0) { ?>
 <div class="ewPager">
 <span><?php echo $Language->Phrase("Page") ?>&nbsp;</span>
 <div class="ewPrevNext"><div class="input-group">
 <div class="input-group-btn">
 <!--first page button-->
-	<?php if ($sucursal_list->Pager->FirstButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerFirst") ?>" href="<?php echo $sucursal_list->PageUrl() ?>start=<?php echo $sucursal_list->Pager->FirstButton->Start ?>"><span class="icon-first ewIcon"></span></a>
+	<?php if ($producto_bodega_list->Pager->FirstButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerFirst") ?>" href="<?php echo $producto_bodega_list->PageUrl() ?>start=<?php echo $producto_bodega_list->Pager->FirstButton->Start ?>"><span class="icon-first ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerFirst") ?>"><span class="icon-first ewIcon"></span></a>
 	<?php } ?>
 <!--previous page button-->
-	<?php if ($sucursal_list->Pager->PrevButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerPrevious") ?>" href="<?php echo $sucursal_list->PageUrl() ?>start=<?php echo $sucursal_list->Pager->PrevButton->Start ?>"><span class="icon-prev ewIcon"></span></a>
+	<?php if ($producto_bodega_list->Pager->PrevButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerPrevious") ?>" href="<?php echo $producto_bodega_list->PageUrl() ?>start=<?php echo $producto_bodega_list->Pager->PrevButton->Start ?>"><span class="icon-prev ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerPrevious") ?>"><span class="icon-prev ewIcon"></span></a>
 	<?php } ?>
 </div>
 <!--current page number-->
-	<input class="form-control input-sm" type="text" name="<?php echo EW_TABLE_PAGE_NO ?>" value="<?php echo $sucursal_list->Pager->CurrentPage ?>">
+	<input class="form-control input-sm" type="text" name="<?php echo EW_TABLE_PAGE_NO ?>" value="<?php echo $producto_bodega_list->Pager->CurrentPage ?>">
 <div class="input-group-btn">
 <!--next page button-->
-	<?php if ($sucursal_list->Pager->NextButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerNext") ?>" href="<?php echo $sucursal_list->PageUrl() ?>start=<?php echo $sucursal_list->Pager->NextButton->Start ?>"><span class="icon-next ewIcon"></span></a>
+	<?php if ($producto_bodega_list->Pager->NextButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerNext") ?>" href="<?php echo $producto_bodega_list->PageUrl() ?>start=<?php echo $producto_bodega_list->Pager->NextButton->Start ?>"><span class="icon-next ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerNext") ?>"><span class="icon-next ewIcon"></span></a>
 	<?php } ?>
 <!--last page button-->
-	<?php if ($sucursal_list->Pager->LastButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerLast") ?>" href="<?php echo $sucursal_list->PageUrl() ?>start=<?php echo $sucursal_list->Pager->LastButton->Start ?>"><span class="icon-last ewIcon"></span></a>
+	<?php if ($producto_bodega_list->Pager->LastButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerLast") ?>" href="<?php echo $producto_bodega_list->PageUrl() ?>start=<?php echo $producto_bodega_list->Pager->LastButton->Start ?>"><span class="icon-last ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerLast") ?>"><span class="icon-last ewIcon"></span></a>
 	<?php } ?>
 </div>
 </div>
 </div>
-<span>&nbsp;<?php echo $Language->Phrase("of") ?>&nbsp;<?php echo $sucursal_list->Pager->PageCount ?></span>
+<span>&nbsp;<?php echo $Language->Phrase("of") ?>&nbsp;<?php echo $producto_bodega_list->Pager->PageCount ?></span>
 </div>
 <div class="ewPager ewRec">
-	<span><?php echo $Language->Phrase("Record") ?>&nbsp;<?php echo $sucursal_list->Pager->FromIndex ?>&nbsp;<?php echo $Language->Phrase("To") ?>&nbsp;<?php echo $sucursal_list->Pager->ToIndex ?>&nbsp;<?php echo $Language->Phrase("Of") ?>&nbsp;<?php echo $sucursal_list->Pager->RecordCount ?></span>
+	<span><?php echo $Language->Phrase("Record") ?>&nbsp;<?php echo $producto_bodega_list->Pager->FromIndex ?>&nbsp;<?php echo $Language->Phrase("To") ?>&nbsp;<?php echo $producto_bodega_list->Pager->ToIndex ?>&nbsp;<?php echo $Language->Phrase("Of") ?>&nbsp;<?php echo $producto_bodega_list->Pager->RecordCount ?></span>
 </div>
 <?php } ?>
 </form>
 <?php } ?>
 <div class="ewListOtherOptions">
 <?php
-	foreach ($sucursal_list->OtherOptions as &$option)
+	foreach ($producto_bodega_list->OtherOptions as &$option)
 		$option->Render("body", "bottom");
 ?>
 </div>
@@ -1978,10 +1971,10 @@ if ($sucursal_list->Recordset)
 </div>
 </div>
 <?php } ?>
-<?php if ($sucursal_list->TotalRecs == 0 && $sucursal->CurrentAction == "") { // Show other options ?>
+<?php if ($producto_bodega_list->TotalRecs == 0 && $producto_bodega->CurrentAction == "") { // Show other options ?>
 <div class="ewListOtherOptions">
 <?php
-	foreach ($sucursal_list->OtherOptions as &$option) {
+	foreach ($producto_bodega_list->OtherOptions as &$option) {
 		$option->ButtonClass = "";
 		$option->Render("body", "");
 	}
@@ -1990,11 +1983,11 @@ if ($sucursal_list->Recordset)
 <div class="clearfix"></div>
 <?php } ?>
 <script type="text/javascript">
-fsucursallistsrch.Init();
-fsucursallist.Init();
+fproducto_bodegalistsrch.Init();
+fproducto_bodegalist.Init();
 </script>
 <?php
-$sucursal_list->ShowPageFooter();
+$producto_bodega_list->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -2006,5 +1999,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$sucursal_list->Page_Terminate();
+$producto_bodega_list->Page_Terminate();
 ?>

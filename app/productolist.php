@@ -9,6 +9,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -331,6 +333,22 @@ class cproducto_list extends cproducto {
 			if (@$_POST["grid"] == "fregistro_sanitariogrid") {
 				if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
 				$GLOBALS["registro_sanitario_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto_bodega'
+			if (@$_POST["grid"] == "fproducto_bodegagrid") {
+				if (!isset($GLOBALS["producto_bodega_grid"])) $GLOBALS["producto_bodega_grid"] = new cproducto_bodega_grid;
+				$GLOBALS["producto_bodega_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto_sucursal'
+			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
+				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+				$GLOBALS["producto_sucursal_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -782,6 +800,7 @@ class cproducto_list extends cproducto {
 			$this->UpdateSort($this->idmarca); // idmarca
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idpais); // idpais
+			$this->UpdateSort($this->existencia); // existencia
 			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
@@ -826,6 +845,7 @@ class cproducto_list extends cproducto {
 				$this->idmarca->setSort("");
 				$this->nombre->setSort("");
 				$this->idpais->setSort("");
+				$this->existencia->setSort("");
 				$this->estado->setSort("");
 			}
 
@@ -864,6 +884,22 @@ class cproducto_list extends cproducto {
 		$item->OnLeft = FALSE;
 		$item->ShowInButtonGroup = FALSE;
 		if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
+
+		// "detail_producto_bodega"
+		$item = &$this->ListOptions->Add("detail_producto_bodega");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["producto_bodega_grid"])) $GLOBALS["producto_bodega_grid"] = new cproducto_bodega_grid;
+
+		// "detail_producto_sucursal"
+		$item = &$this->ListOptions->Add("detail_producto_sucursal");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
 
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
@@ -945,6 +981,56 @@ class cproducto_list extends cproducto {
 			$oListOpt->Body = $body;
 			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
 		}
+
+		// "detail_producto_bodega"
+		$oListOpt = &$this->ListOptions->Items["detail_producto_bodega"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_bodega", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_bodegalist.php?" . EW_TABLE_SHOW_MASTER . "=producto&fk_idproducto=" . strval($this->idproducto->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["producto_bodega_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "producto_bodega";
+			}
+			if ($GLOBALS["producto_bodega_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "producto_bodega";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+
+		// "detail_producto_sucursal"
+		$oListOpt = &$this->ListOptions->Items["detail_producto_sucursal"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_sucursal", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_sucursallist.php?" . EW_TABLE_SHOW_MASTER . "=producto&fk_idproducto=" . strval($this->idproducto->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["producto_sucursal_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "producto_sucursal";
+			}
+			if ($GLOBALS["producto_sucursal_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "producto_sucursal";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
 		if ($this->ShowMultipleDetails) {
 			$body = $Language->Phrase("MultipleMasterDetails");
 			$body = "<div class=\"btn-group\">";
@@ -996,6 +1082,20 @@ class cproducto_list extends cproducto {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "registro_sanitario";
+		}
+		$item = &$option->Add("detailadd_producto_bodega");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=producto_bodega") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["producto_bodega"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["producto_bodega"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto_bodega";
+		}
+		$item = &$option->Add("detailadd_producto_sucursal");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=producto_sucursal") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["producto_sucursal"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["producto_sucursal"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto_sucursal";
 		}
 
 		// Add multiple details
@@ -1233,6 +1333,7 @@ class cproducto_list extends cproducto {
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -1244,6 +1345,7 @@ class cproducto_list extends cproducto {
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
+		$this->existencia->DbValue = $row['existencia'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1290,6 +1392,7 @@ class cproducto_list extends cproducto {
 		// idmarca
 		// nombre
 		// idpais
+		// existencia
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -1360,6 +1463,10 @@ class cproducto_list extends cproducto {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
+			// existencia
+			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -1391,6 +1498,11 @@ class cproducto_list extends cproducto {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// existencia
+			$this->existencia->LinkCustomAttributes = "";
+			$this->existencia->HrefValue = "";
+			$this->existencia->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -1761,6 +1873,15 @@ $producto_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($producto->existencia->Visible) { // existencia ?>
+	<?php if ($producto->SortUrl($producto->existencia) == "") { ?>
+		<th data-name="existencia"><div id="elh_producto_existencia" class="producto_existencia"><div class="ewTableHeaderCaption"><?php echo $producto->existencia->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="existencia"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->existencia) ?>',1);"><div id="elh_producto_existencia" class="producto_existencia">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->existencia->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->existencia->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->existencia->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php if ($producto->estado->Visible) { // estado ?>
 	<?php if ($producto->SortUrl($producto->estado) == "") { ?>
 		<th data-name="estado"><div id="elh_producto_estado" class="producto_estado"><div class="ewTableHeaderCaption"><?php echo $producto->estado->FldCaption() ?></div></div></th>
@@ -1851,6 +1972,12 @@ $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 		<td data-name="idpais"<?php echo $producto->idpais->CellAttributes() ?>>
 <span<?php echo $producto->idpais->ViewAttributes() ?>>
 <?php echo $producto->idpais->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto->existencia->Visible) { // existencia ?>
+		<td data-name="existencia"<?php echo $producto->existencia->CellAttributes() ?>>
+<span<?php echo $producto->existencia->ViewAttributes() ?>>
+<?php echo $producto->existencia->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 	<?php if ($producto->estado->Visible) { // estado ?>

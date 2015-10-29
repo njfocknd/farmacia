@@ -3,6 +3,7 @@
 // idmarca
 // nombre
 // idpais
+// existencia
 // estado
 
 ?>
@@ -39,6 +40,17 @@
 <span id="el_producto_idpais" class="form-group">
 <span<?php echo $producto->idpais->ViewAttributes() ?>>
 <?php echo $producto->idpais->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($producto->existencia->Visible) { // existencia ?>
+		<tr id="r_existencia">
+			<td><?php echo $producto->existencia->FldCaption() ?></td>
+			<td<?php echo $producto->existencia->CellAttributes() ?>>
+<span id="el_producto_existencia" class="form-group">
+<span<?php echo $producto->existencia->ViewAttributes() ?>>
+<?php echo $producto->existencia->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

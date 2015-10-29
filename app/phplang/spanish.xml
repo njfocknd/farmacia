@@ -427,6 +427,12 @@
 </menu>
 <menu id="9"><phrase id="menutext" value="Sucursal"/>
 </menu>
+<menu id="14"><phrase id="menutext" value="producto sucursal"/>
+</menu>
+<menu id="11"><phrase id="menutext" value="Bodega"/>
+</menu>
+<menu id="13"><phrase id="menutext" value="producto bodega"/>
+</menu>
 <menu id="3"><phrase id="menutext" value="Fabricante"/>
 </menu>
 <menu id="4"><phrase id="menutext" value="Marca"/>
@@ -434,6 +440,8 @@
 <menu id="7"><phrase id="menutext" value="Producto"/>
 </menu>
 <menu id="8"><phrase id="menutext" value="Registro Sanitario"/>
+</menu>
+<menu id="12"><phrase id="menutext" value="Tipo Bodega"/>
 </menu>
 <table id="departamento"><phrase id="tblcaption" value="Departamento"/>
 <field id="iddepartamento"><phrase id="fldcaption" value="iddepartamento"/>
@@ -534,6 +542,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="existencia"><phrase id="fldcaption" value="Existencia"/>
+</field>
 </table>
 <table id="registro_sanitario"><phrase id="tblcaption" value="registro sanitario"/>
 <field id="idregistro_sanitario"><phrase id="fldcaption" value="idregistro sanitario"/>
@@ -561,6 +571,68 @@
 <field id="idmunicipio"><phrase id="fldcaption" value="Municipio"/>
 </field>
 <field id="idempresa"><phrase id="fldcaption" value="Empresa"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+</table>
+<table id="bodega"><phrase id="tblcaption" value="Bodega"/>
+<field id="idbodega"><phrase id="fldcaption" value="idbodega"/>
+</field>
+<field id="descripcion"><phrase id="fldcaption" value="Descripción"/>
+</field>
+<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
+</field>
+<field id="idtipo_bodega"><phrase id="fldcaption" value="Tipo Bodega"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+</table>
+<table id="tipo_bodega"><phrase id="tblcaption" value="Producto en Sucursal"/>
+<field id="idtipo_bodega"><phrase id="fldcaption" value="idtipo bodega"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+</table>
+<table id="producto_bodega"><phrase id="tblcaption" value="Producto en Bodega"/>
+<field id="idproducto_bodega"><phrase id="fldcaption" value="idproducto bodega"/>
+</field>
+<field id="idproducto"><phrase id="fldcaption" value="Producto"/>
+</field>
+<field id="idbodega"><phrase id="fldcaption" value="Bodega"/>
+</field>
+<field id="existencia"><phrase id="fldcaption" value="Existencia"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="idproducto_sucursal"><phrase id="fldcaption" value="Producto Sucursal"/>
+</field>
+</table>
+<table id="producto_sucursal"><phrase id="tblcaption" value="Producto en Sucursal"/>
+<field id="idproducto_sucursal"><phrase id="fldcaption" value="idproducto sucursal"/>
+</field>
+<field id="idproducto"><phrase id="fldcaption" value="Producto"/>
+</field>
+<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
+</field>
+<field id="existencia"><phrase id="fldcaption" value="Existecia"/>
 </field>
 <field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>

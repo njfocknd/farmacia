@@ -1,17 +1,17 @@
 <?php
 
 // Global variable for table object
-$sucursal = NULL;
+$producto_bodega = NULL;
 
 //
-// Table class for sucursal
+// Table class for producto_bodega
 //
-class csucursal extends cTable {
-	var $idsucursal;
-	var $nombre;
-	var $direccion;
-	var $idmunicipio;
-	var $idempresa;
+class cproducto_bodega extends cTable {
+	var $idproducto_bodega;
+	var $idproducto;
+	var $idbodega;
+	var $idproducto_sucursal;
+	var $existencia;
 	var $estado;
 
 	//
@@ -22,8 +22,8 @@ class csucursal extends cTable {
 
 		// Language object
 		if (!isset($Language)) $Language = new cLanguage();
-		$this->TableVar = 'sucursal';
-		$this->TableName = 'sucursal';
+		$this->TableVar = 'producto_bodega';
+		$this->TableName = 'producto_bodega';
 		$this->TableType = 'TABLE';
 		$this->ExportAll = TRUE;
 		$this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
@@ -38,31 +38,33 @@ class csucursal extends cTable {
 		$this->UserIDAllowSecurity = 0; // User ID Allow
 		$this->BasicSearch = new cBasicSearch($this->TableVar);
 
-		// idsucursal
-		$this->idsucursal = new cField('sucursal', 'sucursal', 'x_idsucursal', 'idsucursal', '`idsucursal`', '`idsucursal`', 3, -1, FALSE, '`idsucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idsucursal->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idsucursal'] = &$this->idsucursal;
+		// idproducto_bodega
+		$this->idproducto_bodega = new cField('producto_bodega', 'producto_bodega', 'x_idproducto_bodega', 'idproducto_bodega', '`idproducto_bodega`', '`idproducto_bodega`', 3, -1, FALSE, '`idproducto_bodega`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idproducto_bodega->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idproducto_bodega'] = &$this->idproducto_bodega;
 
-		// nombre
-		$this->nombre = new cField('sucursal', 'sucursal', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['nombre'] = &$this->nombre;
+		// idproducto
+		$this->idproducto = new cField('producto_bodega', 'producto_bodega', 'x_idproducto', 'idproducto', '`idproducto`', '`idproducto`', 3, -1, FALSE, '`idproducto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idproducto->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idproducto'] = &$this->idproducto;
 
-		// direccion
-		$this->direccion = new cField('sucursal', 'sucursal', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['direccion'] = &$this->direccion;
+		// idbodega
+		$this->idbodega = new cField('producto_bodega', 'producto_bodega', 'x_idbodega', 'idbodega', '`idbodega`', '`idbodega`', 3, -1, FALSE, '`idbodega`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idbodega->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idbodega'] = &$this->idbodega;
 
-		// idmunicipio
-		$this->idmunicipio = new cField('sucursal', 'sucursal', 'x_idmunicipio', 'idmunicipio', '`idmunicipio`', '`idmunicipio`', 3, -1, FALSE, '`idmunicipio`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idmunicipio->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idmunicipio'] = &$this->idmunicipio;
+		// idproducto_sucursal
+		$this->idproducto_sucursal = new cField('producto_bodega', 'producto_bodega', 'x_idproducto_sucursal', 'idproducto_sucursal', '`idproducto_sucursal`', '`idproducto_sucursal`', 3, -1, FALSE, '`idproducto_sucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idproducto_sucursal->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idproducto_sucursal'] = &$this->idproducto_sucursal;
 
-		// idempresa
-		$this->idempresa = new cField('sucursal', 'sucursal', 'x_idempresa', 'idempresa', '`idempresa`', '`idempresa`', 3, -1, FALSE, '`idempresa`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idempresa->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idempresa'] = &$this->idempresa;
+		// existencia
+		$this->existencia = new cField('producto_bodega', 'producto_bodega', 'x_existencia', 'existencia', '`existencia`', '`existencia`', 3, -1, FALSE, '`existencia`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->existencia->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['existencia'] = &$this->existencia;
 
 		// estado
-		$this->estado = new cField('sucursal', 'sucursal', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->estado = new cField('producto_bodega', 'producto_bodega', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
 	}
 
@@ -97,9 +99,21 @@ class csucursal extends cTable {
 
 		// Master filter
 		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "empresa") {
-			if ($this->idempresa->getSessionValue() <> "")
-				$sMasterFilter .= "`idempresa`=" . ew_QuotedValue($this->idempresa->getSessionValue(), EW_DATATYPE_NUMBER);
+		if ($this->getCurrentMasterTable() == "producto") {
+			if ($this->idproducto->getSessionValue() <> "")
+				$sMasterFilter .= "`idproducto`=" . ew_QuotedValue($this->idproducto->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "bodega") {
+			if ($this->idbodega->getSessionValue() <> "")
+				$sMasterFilter .= "`idbodega`=" . ew_QuotedValue($this->idbodega->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "producto_sucursal") {
+			if ($this->idproducto_sucursal->getSessionValue() <> "")
+				$sMasterFilter .= "`idproducto_sucursal`=" . ew_QuotedValue($this->idproducto_sucursal->getSessionValue(), EW_DATATYPE_NUMBER);
 			else
 				return "";
 		}
@@ -111,9 +125,21 @@ class csucursal extends cTable {
 
 		// Detail filter
 		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "empresa") {
-			if ($this->idempresa->getSessionValue() <> "")
-				$sDetailFilter .= "`idempresa`=" . ew_QuotedValue($this->idempresa->getSessionValue(), EW_DATATYPE_NUMBER);
+		if ($this->getCurrentMasterTable() == "producto") {
+			if ($this->idproducto->getSessionValue() <> "")
+				$sDetailFilter .= "`idproducto`=" . ew_QuotedValue($this->idproducto->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "bodega") {
+			if ($this->idbodega->getSessionValue() <> "")
+				$sDetailFilter .= "`idbodega`=" . ew_QuotedValue($this->idbodega->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "producto_sucursal") {
+			if ($this->idproducto_sucursal->getSessionValue() <> "")
+				$sDetailFilter .= "`idproducto_sucursal`=" . ew_QuotedValue($this->idproducto_sucursal->getSessionValue(), EW_DATATYPE_NUMBER);
 			else
 				return "";
 		}
@@ -121,48 +147,40 @@ class csucursal extends cTable {
 	}
 
 	// Master filter
-	function SqlMasterFilter_empresa() {
-		return "`idempresa`=@idempresa@";
+	function SqlMasterFilter_producto() {
+		return "`idproducto`=@idproducto@";
 	}
 
 	// Detail filter
-	function SqlDetailFilter_empresa() {
-		return "`idempresa`=@idempresa@";
+	function SqlDetailFilter_producto() {
+		return "`idproducto`=@idproducto@";
 	}
 
-	// Current detail table name
-	function getCurrentDetailTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	// Master filter
+	function SqlMasterFilter_bodega() {
+		return "`idbodega`=@idbodega@";
 	}
 
-	function setCurrentDetailTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	// Detail filter
+	function SqlDetailFilter_bodega() {
+		return "`idbodega`=@idbodega@";
 	}
 
-	// Get detail url
-	function GetDetailUrl() {
+	// Master filter
+	function SqlMasterFilter_producto_sucursal() {
+		return "`idproducto_sucursal`=@idproducto_sucursal@";
+	}
 
-		// Detail url
-		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "bodega") {
-			$sDetailUrl = $GLOBALS["bodega"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
-		}
-		if ($this->getCurrentDetailTable() == "producto_sucursal") {
-			$sDetailUrl = $GLOBALS["producto_sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
-		}
-		if ($sDetailUrl == "") {
-			$sDetailUrl = "sucursallist.php";
-		}
-		return $sDetailUrl;
+	// Detail filter
+	function SqlDetailFilter_producto_sucursal() {
+		return "`idproducto_sucursal`=@idproducto_sucursal@";
 	}
 
 	// Table level SQL
 	var $_SqlFrom = "";
 
 	function getSqlFrom() { // From
-		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`sucursal`";
+		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`producto_bodega`";
 	}
 
 	function SqlFrom() { // For backward compatibility
@@ -385,7 +403,7 @@ class csucursal extends cTable {
 	}
 
 	// Update Table
-	var $UpdateTable = "`sucursal`";
+	var $UpdateTable = "`producto_bodega`";
 
 	// INSERT statement
 	function InsertSQL(&$rs) {
@@ -438,8 +456,8 @@ class csucursal extends cTable {
 	function DeleteSQL(&$rs, $where = "") {
 		$sql = "DELETE FROM " . $this->UpdateTable . " WHERE ";
 		if ($rs) {
-			if (array_key_exists('idsucursal', $rs))
-				ew_AddFilter($where, ew_QuotedName('idsucursal') . '=' . ew_QuotedValue($rs['idsucursal'], $this->idsucursal->FldDataType));
+			if (array_key_exists('idproducto_bodega', $rs))
+				ew_AddFilter($where, ew_QuotedName('idproducto_bodega') . '=' . ew_QuotedValue($rs['idproducto_bodega'], $this->idproducto_bodega->FldDataType));
 		}
 		$filter = $this->CurrentFilter;
 		ew_AddFilter($filter, $where);
@@ -458,15 +476,15 @@ class csucursal extends cTable {
 
 	// Key filter WHERE clause
 	function SqlKeyFilter() {
-		return "`idsucursal` = @idsucursal@";
+		return "`idproducto_bodega` = @idproducto_bodega@";
 	}
 
 	// Key filter
 	function KeyFilter() {
 		$sKeyFilter = $this->SqlKeyFilter();
-		if (!is_numeric($this->idsucursal->CurrentValue))
+		if (!is_numeric($this->idproducto_bodega->CurrentValue))
 			$sKeyFilter = "0=1"; // Invalid key
-		$sKeyFilter = str_replace("@idsucursal@", ew_AdjustSql($this->idsucursal->CurrentValue), $sKeyFilter); // Replace key value
+		$sKeyFilter = str_replace("@idproducto_bodega@", ew_AdjustSql($this->idproducto_bodega->CurrentValue), $sKeyFilter); // Replace key value
 		return $sKeyFilter;
 	}
 
@@ -480,7 +498,7 @@ class csucursal extends cTable {
 		if (@$_SESSION[$name] <> "") {
 			return $_SESSION[$name];
 		} else {
-			return "sucursallist.php";
+			return "producto_bodegalist.php";
 		}
 	}
 
@@ -490,31 +508,28 @@ class csucursal extends cTable {
 
 	// List URL
 	function GetListUrl() {
-		return "sucursallist.php";
+		return "producto_bodegalist.php";
 	}
 
 	// View URL
 	function GetViewUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("sucursalview.php", $this->UrlParm($parm));
+			return $this->KeyUrl("producto_bodegaview.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("sucursalview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("producto_bodegaview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Add URL
 	function GetAddUrl($parm = "") {
 		if ($parm <> "")
-			return "sucursaladd.php?" . $this->UrlParm($parm);
+			return "producto_bodegaadd.php?" . $this->UrlParm($parm);
 		else
-			return "sucursaladd.php";
+			return "producto_bodegaadd.php";
 	}
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("sucursaledit.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("sucursaledit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("producto_bodegaedit.php", $this->UrlParm($parm));
 	}
 
 	// Inline edit URL
@@ -524,10 +539,7 @@ class csucursal extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("sucursaladd.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("sucursaladd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("producto_bodegaadd.php", $this->UrlParm($parm));
 	}
 
 	// Inline copy URL
@@ -537,15 +549,15 @@ class csucursal extends cTable {
 
 	// Delete URL
 	function GetDeleteUrl() {
-		return $this->KeyUrl("sucursaldelete.php", $this->UrlParm());
+		return $this->KeyUrl("producto_bodegadelete.php", $this->UrlParm());
 	}
 
 	// Add key value to URL
 	function KeyUrl($url, $parm = "") {
 		$sUrl = $url . "?";
 		if ($parm <> "") $sUrl .= $parm . "&";
-		if (!is_null($this->idsucursal->CurrentValue)) {
-			$sUrl .= "idsucursal=" . urlencode($this->idsucursal->CurrentValue);
+		if (!is_null($this->idproducto_bodega->CurrentValue)) {
+			$sUrl .= "idproducto_bodega=" . urlencode($this->idproducto_bodega->CurrentValue);
 		} else {
 			return "javascript:alert(ewLanguage.Phrase('InvalidRecord'));";
 		}
@@ -577,7 +589,7 @@ class csucursal extends cTable {
 			$arKeys = ew_StripSlashes($_GET["key_m"]);
 			$cnt = count($arKeys);
 		} elseif (isset($_GET)) {
-			$arKeys[] = @$_GET["idsucursal"]; // idsucursal
+			$arKeys[] = @$_GET["idproducto_bodega"]; // idproducto_bodega
 
 			//return $arKeys; // Do not return yet, so the values will also be checked by the following code
 		}
@@ -598,7 +610,7 @@ class csucursal extends cTable {
 		$sKeyFilter = "";
 		foreach ($arKeys as $key) {
 			if ($sKeyFilter <> "") $sKeyFilter .= " OR ";
-			$this->idsucursal->CurrentValue = $key;
+			$this->idproducto_bodega->CurrentValue = $key;
 			$sKeyFilter .= "(" . $this->KeyFilter() . ")";
 		}
 		return $sKeyFilter;
@@ -619,11 +631,11 @@ class csucursal extends cTable {
 
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
-		$this->idempresa->setDbValue($rs->fields('idempresa'));
+		$this->idproducto_bodega->setDbValue($rs->fields('idproducto_bodega'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idbodega->setDbValue($rs->fields('idbodega'));
+		$this->idproducto_sucursal->setDbValue($rs->fields('idproducto_sucursal'));
+		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -635,29 +647,21 @@ class csucursal extends cTable {
 		$this->Row_Rendering();
 
    // Common render codes
-		// idsucursal
-		// nombre
-		// direccion
-		// idmunicipio
-		// idempresa
+		// idproducto_bodega
+		// idproducto
+		// idbodega
+		// idproducto_sucursal
+		// existencia
 		// estado
-		// idsucursal
+		// idproducto_bodega
 
-		$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-		$this->idsucursal->ViewCustomAttributes = "";
+		$this->idproducto_bodega->ViewValue = $this->idproducto_bodega->CurrentValue;
+		$this->idproducto_bodega->ViewCustomAttributes = "";
 
-		// nombre
-		$this->nombre->ViewValue = $this->nombre->CurrentValue;
-		$this->nombre->ViewCustomAttributes = "";
-
-		// direccion
-		$this->direccion->ViewValue = $this->direccion->CurrentValue;
-		$this->direccion->ViewCustomAttributes = "";
-
-		// idmunicipio
-		if (strval($this->idmunicipio->CurrentValue) <> "") {
-			$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
+		// idproducto
+		if (strval($this->idproducto->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 		$sWhereWrk = "";
 		$lookuptblfilter = "`estado` = 'Activo'";
 		if (strval($lookuptblfilter) <> "") {
@@ -668,25 +672,25 @@ class csucursal extends cTable {
 		}
 
 		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
+		$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = $conn->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idmunicipio->ViewValue = $rswrk->fields('DispFld');
+				$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 				$rswrk->Close();
 			} else {
-				$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
+				$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			}
 		} else {
-			$this->idmunicipio->ViewValue = NULL;
+			$this->idproducto->ViewValue = NULL;
 		}
-		$this->idmunicipio->ViewCustomAttributes = "";
+		$this->idproducto->ViewCustomAttributes = "";
 
-		// idempresa
-		if (strval($this->idempresa->CurrentValue) <> "") {
-			$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+		// idbodega
+		if (strval($this->idbodega->CurrentValue) <> "") {
+			$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
 		$sWhereWrk = "";
 		$lookuptblfilter = "`estado` = 'Activo'";
 		if (strval($lookuptblfilter) <> "") {
@@ -697,20 +701,49 @@ class csucursal extends cTable {
 		}
 
 		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+		$this->Lookup_Selecting($this->idbodega, $sWhereWrk);
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
+		$sSqlWrk .= " ORDER BY `descripcion`";
 			$rswrk = $conn->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idempresa->ViewValue = $rswrk->fields('DispFld');
+				$this->idbodega->ViewValue = $rswrk->fields('DispFld');
 				$rswrk->Close();
 			} else {
-				$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+				$this->idbodega->ViewValue = $this->idbodega->CurrentValue;
 			}
 		} else {
-			$this->idempresa->ViewValue = NULL;
+			$this->idbodega->ViewValue = NULL;
 		}
-		$this->idempresa->ViewCustomAttributes = "";
+		$this->idbodega->ViewCustomAttributes = "";
+
+		// idproducto_sucursal
+		if (strval($this->idproducto_sucursal->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto_sucursal`" . ew_SearchString("=", $this->idproducto_sucursal->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
+		$sWhereWrk = "";
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idproducto_sucursal, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idproducto_sucursal->ViewValue = $rswrk->fields('DispFld');
+				$this->idproducto_sucursal->ViewValue .= ew_ValueSeparator(2,$this->idproducto_sucursal) . $rswrk->fields('Disp3Fld');
+				$rswrk->Close();
+			} else {
+				$this->idproducto_sucursal->ViewValue = $this->idproducto_sucursal->CurrentValue;
+			}
+		} else {
+			$this->idproducto_sucursal->ViewValue = NULL;
+		}
+		$this->idproducto_sucursal->ViewCustomAttributes = "";
+
+		// existencia
+		$this->existencia->ViewValue = $this->existencia->CurrentValue;
+		$this->existencia->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -729,30 +762,30 @@ class csucursal extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
-		// idsucursal
-		$this->idsucursal->LinkCustomAttributes = "";
-		$this->idsucursal->HrefValue = "";
-		$this->idsucursal->TooltipValue = "";
+		// idproducto_bodega
+		$this->idproducto_bodega->LinkCustomAttributes = "";
+		$this->idproducto_bodega->HrefValue = "";
+		$this->idproducto_bodega->TooltipValue = "";
 
-		// nombre
-		$this->nombre->LinkCustomAttributes = "";
-		$this->nombre->HrefValue = "";
-		$this->nombre->TooltipValue = "";
+		// idproducto
+		$this->idproducto->LinkCustomAttributes = "";
+		$this->idproducto->HrefValue = "";
+		$this->idproducto->TooltipValue = "";
 
-		// direccion
-		$this->direccion->LinkCustomAttributes = "";
-		$this->direccion->HrefValue = "";
-		$this->direccion->TooltipValue = "";
+		// idbodega
+		$this->idbodega->LinkCustomAttributes = "";
+		$this->idbodega->HrefValue = "";
+		$this->idbodega->TooltipValue = "";
 
-		// idmunicipio
-		$this->idmunicipio->LinkCustomAttributes = "";
-		$this->idmunicipio->HrefValue = "";
-		$this->idmunicipio->TooltipValue = "";
+		// idproducto_sucursal
+		$this->idproducto_sucursal->LinkCustomAttributes = "";
+		$this->idproducto_sucursal->HrefValue = "";
+		$this->idproducto_sucursal->TooltipValue = "";
 
-		// idempresa
-		$this->idempresa->LinkCustomAttributes = "";
-		$this->idempresa->HrefValue = "";
-		$this->idempresa->TooltipValue = "";
+		// existencia
+		$this->existencia->LinkCustomAttributes = "";
+		$this->existencia->HrefValue = "";
+		$this->existencia->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
@@ -770,36 +803,20 @@ class csucursal extends cTable {
 		// Call Row Rendering event
 		$this->Row_Rendering();
 
-		// idsucursal
-		$this->idsucursal->EditAttrs["class"] = "form-control";
-		$this->idsucursal->EditCustomAttributes = "";
-		$this->idsucursal->EditValue = $this->idsucursal->CurrentValue;
-		$this->idsucursal->ViewCustomAttributes = "";
+		// idproducto_bodega
+		$this->idproducto_bodega->EditAttrs["class"] = "form-control";
+		$this->idproducto_bodega->EditCustomAttributes = "";
+		$this->idproducto_bodega->EditValue = $this->idproducto_bodega->CurrentValue;
+		$this->idproducto_bodega->ViewCustomAttributes = "";
 
-		// nombre
-		$this->nombre->EditAttrs["class"] = "form-control";
-		$this->nombre->EditCustomAttributes = "";
-		$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
-		$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
-
-		// direccion
-		$this->direccion->EditAttrs["class"] = "form-control";
-		$this->direccion->EditCustomAttributes = "";
-		$this->direccion->EditValue = ew_HtmlEncode($this->direccion->CurrentValue);
-		$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
-
-		// idmunicipio
-		$this->idmunicipio->EditAttrs["class"] = "form-control";
-		$this->idmunicipio->EditCustomAttributes = "";
-
-		// idempresa
-		$this->idempresa->EditAttrs["class"] = "form-control";
-		$this->idempresa->EditCustomAttributes = "";
-		if ($this->idempresa->getSessionValue() <> "") {
-			$this->idempresa->CurrentValue = $this->idempresa->getSessionValue();
-		if (strval($this->idempresa->CurrentValue) <> "") {
-			$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+		// idproducto
+		$this->idproducto->EditAttrs["class"] = "form-control";
+		$this->idproducto->EditCustomAttributes = "";
+		if ($this->idproducto->getSessionValue() <> "") {
+			$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
+		if (strval($this->idproducto->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 		$sWhereWrk = "";
 		$lookuptblfilter = "`estado` = 'Activo'";
 		if (strval($lookuptblfilter) <> "") {
@@ -810,28 +827,102 @@ class csucursal extends cTable {
 		}
 
 		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+		$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = $conn->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idempresa->ViewValue = $rswrk->fields('DispFld');
+				$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 				$rswrk->Close();
 			} else {
-				$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+				$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			}
 		} else {
-			$this->idempresa->ViewValue = NULL;
+			$this->idproducto->ViewValue = NULL;
 		}
-		$this->idempresa->ViewCustomAttributes = "";
+		$this->idproducto->ViewCustomAttributes = "";
 		} else {
 		}
 
+		// idbodega
+		$this->idbodega->EditAttrs["class"] = "form-control";
+		$this->idbodega->EditCustomAttributes = "";
+		if ($this->idbodega->getSessionValue() <> "") {
+			$this->idbodega->CurrentValue = $this->idbodega->getSessionValue();
+		if (strval($this->idbodega->CurrentValue) <> "") {
+			$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idbodega, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `descripcion`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idbodega->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idbodega->ViewValue = $this->idbodega->CurrentValue;
+			}
+		} else {
+			$this->idbodega->ViewValue = NULL;
+		}
+		$this->idbodega->ViewCustomAttributes = "";
+		} else {
+		}
+
+		// idproducto_sucursal
+		$this->idproducto_sucursal->EditAttrs["class"] = "form-control";
+		$this->idproducto_sucursal->EditCustomAttributes = "";
+		if ($this->idproducto_sucursal->getSessionValue() <> "") {
+			$this->idproducto_sucursal->CurrentValue = $this->idproducto_sucursal->getSessionValue();
+		if (strval($this->idproducto_sucursal->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto_sucursal`" . ew_SearchString("=", $this->idproducto_sucursal->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
+		$sWhereWrk = "";
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idproducto_sucursal, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idproducto_sucursal->ViewValue = $rswrk->fields('DispFld');
+				$this->idproducto_sucursal->ViewValue .= ew_ValueSeparator(2,$this->idproducto_sucursal) . $rswrk->fields('Disp3Fld');
+				$rswrk->Close();
+			} else {
+				$this->idproducto_sucursal->ViewValue = $this->idproducto_sucursal->CurrentValue;
+			}
+		} else {
+			$this->idproducto_sucursal->ViewValue = NULL;
+		}
+		$this->idproducto_sucursal->ViewCustomAttributes = "";
+		} else {
+		}
+
+		// existencia
+		$this->existencia->EditAttrs["class"] = "form-control";
+		$this->existencia->EditCustomAttributes = "";
+		$this->existencia->EditValue = ew_HtmlEncode($this->existencia->CurrentValue);
+		$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
+
 		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
@@ -858,18 +949,18 @@ class csucursal extends cTable {
 			if ($Doc->Horizontal) { // Horizontal format, write header
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
-					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->idmunicipio->Exportable) $Doc->ExportCaption($this->idmunicipio);
-					if ($this->idempresa->Exportable) $Doc->ExportCaption($this->idempresa);
+					if ($this->idproducto_bodega->Exportable) $Doc->ExportCaption($this->idproducto_bodega);
+					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->idbodega->Exportable) $Doc->ExportCaption($this->idbodega);
+					if ($this->idproducto_sucursal->Exportable) $Doc->ExportCaption($this->idproducto_sucursal);
+					if ($this->existencia->Exportable) $Doc->ExportCaption($this->existencia);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
-					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->idmunicipio->Exportable) $Doc->ExportCaption($this->idmunicipio);
-					if ($this->idempresa->Exportable) $Doc->ExportCaption($this->idempresa);
+					if ($this->idproducto_bodega->Exportable) $Doc->ExportCaption($this->idproducto_bodega);
+					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->idbodega->Exportable) $Doc->ExportCaption($this->idbodega);
+					if ($this->idproducto_sucursal->Exportable) $Doc->ExportCaption($this->idproducto_sucursal);
+					if ($this->existencia->Exportable) $Doc->ExportCaption($this->existencia);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
@@ -902,18 +993,18 @@ class csucursal extends cTable {
 				if (!$Doc->ExportCustom) {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
-						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->idmunicipio->Exportable) $Doc->ExportField($this->idmunicipio);
-						if ($this->idempresa->Exportable) $Doc->ExportField($this->idempresa);
+						if ($this->idproducto_bodega->Exportable) $Doc->ExportField($this->idproducto_bodega);
+						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->idbodega->Exportable) $Doc->ExportField($this->idbodega);
+						if ($this->idproducto_sucursal->Exportable) $Doc->ExportField($this->idproducto_sucursal);
+						if ($this->existencia->Exportable) $Doc->ExportField($this->existencia);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
-						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->idmunicipio->Exportable) $Doc->ExportField($this->idmunicipio);
-						if ($this->idempresa->Exportable) $Doc->ExportField($this->idempresa);
+						if ($this->idproducto_bodega->Exportable) $Doc->ExportField($this->idproducto_bodega);
+						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->idbodega->Exportable) $Doc->ExportField($this->idbodega);
+						if ($this->idproducto_sucursal->Exportable) $Doc->ExportField($this->idproducto_sucursal);
+						if ($this->existencia->Exportable) $Doc->ExportField($this->existencia);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();

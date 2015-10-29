@@ -8,6 +8,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "sucursalinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "bodegagridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -245,6 +247,22 @@ class csucursal_add extends csucursal {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'bodega'
+			if (@$_POST["grid"] == "fbodegagrid") {
+				if (!isset($GLOBALS["bodega_grid"])) $GLOBALS["bodega_grid"] = new cbodega_grid;
+				$GLOBALS["bodega_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto_sucursal'
+			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
+				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+				$GLOBALS["producto_sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -346,6 +364,9 @@ class csucursal_add extends csucursal {
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
+		// Set up detail parameters
+		$this->SetUpDetailParms();
+
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -365,19 +386,28 @@ class csucursal_add extends csucursal {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("sucursallist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail add
+						$sReturnUrl = $this->GetDetailUrl();
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "sucursalview.php")
 						$sReturnUrl = $this->GetViewUrl(); // View paging, return to view page with keyurl directly
 					$this->Page_Terminate($sReturnUrl); // Clean up and return
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -775,6 +805,17 @@ class csucursal_add extends csucursal {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idempresa->FldCaption(), $this->idempresa->ReqErrMsg));
 		}
 
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("bodega", $DetailTblVar) && $GLOBALS["bodega"]->DetailAdd) {
+			if (!isset($GLOBALS["bodega_grid"])) $GLOBALS["bodega_grid"] = new cbodega_grid(); // get detail page object
+			$GLOBALS["bodega_grid"]->ValidateGridForm();
+		}
+		if (in_array("producto_sucursal", $DetailTblVar) && $GLOBALS["producto_sucursal"]->DetailAdd) {
+			if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid(); // get detail page object
+			$GLOBALS["producto_sucursal_grid"]->ValidateGridForm();
+		}
+
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
 
@@ -790,6 +831,10 @@ class csucursal_add extends csucursal {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
+
+		// Begin transaction
+		if ($this->getCurrentDetailTable() <> "")
+			$conn->BeginTrans();
 
 		// Load db values from rsold
 		if ($rsold) {
@@ -835,6 +880,34 @@ class csucursal_add extends csucursal {
 		if ($AddRow) {
 			$this->idsucursal->setDbValue($conn->Insert_ID());
 			$rsnew['idsucursal'] = $this->idsucursal->DbValue;
+		}
+
+		// Add detail records
+		if ($AddRow) {
+			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+			if (in_array("bodega", $DetailTblVar) && $GLOBALS["bodega"]->DetailAdd) {
+				$GLOBALS["bodega"]->idsucursal->setSessionValue($this->idsucursal->CurrentValue); // Set master key
+				if (!isset($GLOBALS["bodega_grid"])) $GLOBALS["bodega_grid"] = new cbodega_grid(); // Get detail page object
+				$AddRow = $GLOBALS["bodega_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["bodega"]->idsucursal->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("producto_sucursal", $DetailTblVar) && $GLOBALS["producto_sucursal"]->DetailAdd) {
+				$GLOBALS["producto_sucursal"]->idsucursal->setSessionValue($this->idsucursal->CurrentValue); // Set master key
+				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid(); // Get detail page object
+				$AddRow = $GLOBALS["producto_sucursal_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["producto_sucursal"]->idsucursal->setSessionValue(""); // Clear master key if insert failed
+			}
+		}
+
+		// Commit/Rollback transaction
+		if ($this->getCurrentDetailTable() <> "") {
+			if ($AddRow) {
+				$conn->CommitTrans(); // Commit transaction
+			} else {
+				$conn->RollbackTrans(); // Rollback transaction
+			}
 		}
 		if ($AddRow) {
 
@@ -885,6 +958,57 @@ class csucursal_add extends csucursal {
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("bodega", $DetailTblVar)) {
+				if (!isset($GLOBALS["bodega_grid"]))
+					$GLOBALS["bodega_grid"] = new cbodega_grid;
+				if ($GLOBALS["bodega_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["bodega_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["bodega_grid"]->CurrentMode = "add";
+					$GLOBALS["bodega_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["bodega_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["bodega_grid"]->setStartRecordNumber(1);
+					$GLOBALS["bodega_grid"]->idsucursal->FldIsDetailKey = TRUE;
+					$GLOBALS["bodega_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
+					$GLOBALS["bodega_grid"]->idsucursal->setSessionValue($GLOBALS["bodega_grid"]->idsucursal->CurrentValue);
+				}
+			}
+			if (in_array("producto_sucursal", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_sucursal_grid"]))
+					$GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+				if ($GLOBALS["producto_sucursal_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["producto_sucursal_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["producto_sucursal_grid"]->CurrentMode = "add";
+					$GLOBALS["producto_sucursal_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_sucursal_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_sucursal_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_sucursal_grid"]->idsucursal->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
+					$GLOBALS["producto_sucursal_grid"]->idsucursal->setSessionValue($GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -1187,6 +1311,22 @@ $sSqlWrk .= " ORDER BY `nombre`";
 	</div>
 <?php } ?>
 </div>
+<?php
+	if (in_array("bodega", explode(",", $sucursal->getCurrentDetailTable())) && $bodega->DetailAdd) {
+?>
+<?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("bodega", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "bodegagrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("producto_sucursal", explode(",", $sucursal->getCurrentDetailTable())) && $producto_sucursal->DetailAdd) {
+?>
+<?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_sucursal", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "producto_sucursalgrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("AddBtn") ?></button>

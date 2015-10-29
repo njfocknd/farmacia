@@ -55,6 +55,12 @@ fproductogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idpais");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->idpais->FldCaption(), $producto->idpais->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_existencia");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->existencia->FldCaption(), $producto->existencia->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_existencia");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($producto->existencia->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->estado->FldCaption(), $producto->estado->ReqErrMsg)) ?>");
@@ -76,6 +82,7 @@ fproductogrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "idmarca", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idpais", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "existencia", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
 	return true;
 }
@@ -189,6 +196,15 @@ $producto_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idpais"><div><div id="elh_producto_idpais" class="producto_idpais">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto->existencia->Visible) { // existencia ?>
+	<?php if ($producto->SortUrl($producto->existencia) == "") { ?>
+		<th data-name="existencia"><div id="elh_producto_existencia" class="producto_existencia"><div class="ewTableHeaderCaption"><?php echo $producto->existencia->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="existencia"><div><div id="elh_producto_existencia" class="producto_existencia">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->existencia->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->existencia->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->existencia->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -524,6 +540,27 @@ if (@$emptywrk) $producto->idpais->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($producto->existencia->Visible) { // existencia ?>
+		<td data-name="existencia"<?php echo $producto->existencia->CellAttributes() ?>>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_existencia" class="form-group producto_existencia">
+<input type="text" data-field="x_existencia" name="x<?php echo $producto_grid->RowIndex ?>_existencia" id="x<?php echo $producto_grid->RowIndex ?>_existencia" size="30" placeholder="<?php echo ew_HtmlEncode($producto->existencia->PlaceHolder) ?>" value="<?php echo $producto->existencia->EditValue ?>"<?php echo $producto->existencia->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_existencia" name="o<?php echo $producto_grid->RowIndex ?>_existencia" id="o<?php echo $producto_grid->RowIndex ?>_existencia" value="<?php echo ew_HtmlEncode($producto->existencia->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_existencia" class="form-group producto_existencia">
+<input type="text" data-field="x_existencia" name="x<?php echo $producto_grid->RowIndex ?>_existencia" id="x<?php echo $producto_grid->RowIndex ?>_existencia" size="30" placeholder="<?php echo ew_HtmlEncode($producto->existencia->PlaceHolder) ?>" value="<?php echo $producto->existencia->EditValue ?>"<?php echo $producto->existencia->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto->existencia->ViewAttributes() ?>>
+<?php echo $producto->existencia->ListViewValue() ?></span>
+<input type="hidden" data-field="x_existencia" name="x<?php echo $producto_grid->RowIndex ?>_existencia" id="x<?php echo $producto_grid->RowIndex ?>_existencia" value="<?php echo ew_HtmlEncode($producto->existencia->FormValue) ?>">
+<input type="hidden" data-field="x_existencia" name="o<?php echo $producto_grid->RowIndex ?>_existencia" id="o<?php echo $producto_grid->RowIndex ?>_existencia" value="<?php echo ew_HtmlEncode($producto->existencia->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 	<?php if ($producto->estado->Visible) { // estado ?>
 		<td data-name="estado"<?php echo $producto->estado->CellAttributes() ?>>
 <?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -741,6 +778,22 @@ if (@$emptywrk) $producto->idpais->OldValue = "";
 <input type="hidden" data-field="x_idpais" name="x<?php echo $producto_grid->RowIndex ?>_idpais" id="x<?php echo $producto_grid->RowIndex ?>_idpais" value="<?php echo ew_HtmlEncode($producto->idpais->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_idpais" name="o<?php echo $producto_grid->RowIndex ?>_idpais" id="o<?php echo $producto_grid->RowIndex ?>_idpais" value="<?php echo ew_HtmlEncode($producto->idpais->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($producto->existencia->Visible) { // existencia ?>
+		<td>
+<?php if ($producto->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_producto_existencia" class="form-group producto_existencia">
+<input type="text" data-field="x_existencia" name="x<?php echo $producto_grid->RowIndex ?>_existencia" id="x<?php echo $producto_grid->RowIndex ?>_existencia" size="30" placeholder="<?php echo ew_HtmlEncode($producto->existencia->PlaceHolder) ?>" value="<?php echo $producto->existencia->EditValue ?>"<?php echo $producto->existencia->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_producto_existencia" class="form-group producto_existencia">
+<span<?php echo $producto->existencia->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->existencia->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_existencia" name="x<?php echo $producto_grid->RowIndex ?>_existencia" id="x<?php echo $producto_grid->RowIndex ?>_existencia" value="<?php echo ew_HtmlEncode($producto->existencia->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_existencia" name="o<?php echo $producto_grid->RowIndex ?>_existencia" id="o<?php echo $producto_grid->RowIndex ?>_existencia" value="<?php echo ew_HtmlEncode($producto->existencia->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($producto->estado->Visible) { // estado ?>

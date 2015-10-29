@@ -11,6 +11,7 @@ class cproducto extends cTable {
 	var $idmarca;
 	var $nombre;
 	var $idpais;
+	var $existencia;
 	var $estado;
 
 	//
@@ -55,6 +56,11 @@ class cproducto extends cTable {
 		$this->idpais = new cField('producto', 'producto', 'x_idpais', 'idpais', '`idpais`', '`idpais`', 3, -1, FALSE, '`idpais`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idpais->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idpais'] = &$this->idpais;
+
+		// existencia
+		$this->existencia = new cField('producto', 'producto', 'x_existencia', 'existencia', '`existencia`', '`existencia`', 3, -1, FALSE, '`existencia`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->existencia->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['existencia'] = &$this->existencia;
 
 		// estado
 		$this->estado = new cField('producto', 'producto', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
@@ -141,6 +147,14 @@ class cproducto extends cTable {
 		$sDetailUrl = "";
 		if ($this->getCurrentDetailTable() == "registro_sanitario") {
 			$sDetailUrl = $GLOBALS["registro_sanitario"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idproducto=" . urlencode($this->idproducto->CurrentValue);
+		}
+		if ($this->getCurrentDetailTable() == "producto_bodega") {
+			$sDetailUrl = $GLOBALS["producto_bodega"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idproducto=" . urlencode($this->idproducto->CurrentValue);
+		}
+		if ($this->getCurrentDetailTable() == "producto_sucursal") {
+			$sDetailUrl = $GLOBALS["producto_sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idproducto=" . urlencode($this->idproducto->CurrentValue);
 		}
 		if ($sDetailUrl == "") {
@@ -614,6 +628,7 @@ class cproducto extends cTable {
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -629,6 +644,7 @@ class cproducto extends cTable {
 		// idmarca
 		// nombre
 		// idpais
+		// existencia
 		// estado
 		// idproducto
 
@@ -697,6 +713,10 @@ class cproducto extends cTable {
 		}
 		$this->idpais->ViewCustomAttributes = "";
 
+		// existencia
+		$this->existencia->ViewValue = $this->existencia->CurrentValue;
+		$this->existencia->ViewCustomAttributes = "";
+
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
 			switch ($this->estado->CurrentValue) {
@@ -733,6 +753,11 @@ class cproducto extends cTable {
 		$this->idpais->LinkCustomAttributes = "";
 		$this->idpais->HrefValue = "";
 		$this->idpais->TooltipValue = "";
+
+		// existencia
+		$this->existencia->LinkCustomAttributes = "";
+		$this->existencia->HrefValue = "";
+		$this->existencia->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
@@ -801,6 +826,12 @@ class cproducto extends cTable {
 		$this->idpais->EditAttrs["class"] = "form-control";
 		$this->idpais->EditCustomAttributes = "";
 
+		// existencia
+		$this->existencia->EditAttrs["class"] = "form-control";
+		$this->existencia->EditCustomAttributes = "";
+		$this->existencia->EditValue = ew_HtmlEncode($this->existencia->CurrentValue);
+		$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
+
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
@@ -838,12 +869,14 @@ class cproducto extends cTable {
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
+					if ($this->existencia->Exportable) $Doc->ExportCaption($this->existencia);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
+					if ($this->existencia->Exportable) $Doc->ExportCaption($this->existencia);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
@@ -880,12 +913,14 @@ class cproducto extends cTable {
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
+						if ($this->existencia->Exportable) $Doc->ExportField($this->existencia);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
+						if ($this->existencia->Exportable) $Doc->ExportField($this->existencia);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();
