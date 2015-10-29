@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "municipioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "departamentoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -245,6 +246,9 @@ class cmunicipio_view extends cmunicipio {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
+		// Table object (departamento)
+		if (!isset($GLOBALS['departamento'])) $GLOBALS['departamento'] = new cdepartamento();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
@@ -377,6 +381,9 @@ class cmunicipio_view extends cmunicipio {
 		$bLoadCurrentRecord = FALSE;
 		$sReturnUrl = "";
 		$bMatchRecord = FALSE;
+
+		// Set up master/detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		if ($this->Export == "")
@@ -552,24 +559,35 @@ class cmunicipio_view extends cmunicipio {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// iddepartamento
-			$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+			if (strval($this->iddepartamento->CurrentValue) <> "") {
+				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+				}
+			} else {
+				$this->iddepartamento->ViewValue = NULL;
+			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
 			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
-						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
-						break;
-					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
-				}
-			} else {
-				$this->state->ViewValue = NULL;
-			}
 			$this->state->ViewCustomAttributes = "";
 
 			// idmunicipio
@@ -596,6 +614,49 @@ class cmunicipio_view extends cmunicipio {
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "departamento") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_iddepartamento"] <> "") {
+					$GLOBALS["departamento"]->iddepartamento->setQueryStringValue($_GET["fk_iddepartamento"]);
+					$this->iddepartamento->setQueryStringValue($GLOBALS["departamento"]->iddepartamento->QueryStringValue);
+					$this->iddepartamento->setSessionValue($this->iddepartamento->QueryStringValue);
+					if (!is_numeric($GLOBALS["departamento"]->iddepartamento->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "departamento") {
+				if ($this->iddepartamento->QueryStringValue == "") $this->iddepartamento->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -739,8 +800,9 @@ fmunicipioview.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fmunicipioview.Lists["x_iddepartamento"] = {"LinkField":"x_iddepartamento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 

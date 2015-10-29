@@ -279,7 +279,6 @@ class cempresa_view extends cempresa {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idempresa->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -506,8 +505,8 @@ class cempresa_view extends cempresa {
 		$this->idempresa->setDbValue($rs->fields('idempresa'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -517,8 +516,8 @@ class cempresa_view extends cempresa {
 		$this->idempresa->DbValue = $row['idempresa'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->direccion->DbValue = $row['direccion'];
-		$this->estado->DbValue = $row['estado'];
 		$this->idpais->DbValue = $row['idpais'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -541,8 +540,8 @@ class cempresa_view extends cempresa {
 		// idempresa
 		// nombre
 		// direccion
-		// estado
 		// idpais
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -557,6 +556,31 @@ class cempresa_view extends cempresa {
 			// direccion
 			$this->direccion->ViewValue = $this->direccion->CurrentValue;
 			$this->direccion->ViewCustomAttributes = "";
+
+			// idpais
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -575,15 +599,6 @@ class cempresa_view extends cempresa {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
-
-			// idempresa
-			$this->idempresa->LinkCustomAttributes = "";
-			$this->idempresa->HrefValue = "";
-			$this->idempresa->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -593,11 +608,6 @@ class cempresa_view extends cempresa {
 			$this->direccion->LinkCustomAttributes = "";
 			$this->direccion->HrefValue = "";
 			$this->direccion->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 
 			// idpais
 			$this->idpais->LinkCustomAttributes = "";
@@ -751,8 +761,9 @@ fempresaview.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fempresaview.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_idpais","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -778,17 +789,6 @@ $empresa_view->ShowMessage();
 <?php } ?>
 <input type="hidden" name="t" value="empresa">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($empresa->idempresa->Visible) { // idempresa ?>
-	<tr id="r_idempresa">
-		<td><span id="elh_empresa_idempresa"><?php echo $empresa->idempresa->FldCaption() ?></span></td>
-		<td<?php echo $empresa->idempresa->CellAttributes() ?>>
-<span id="el_empresa_idempresa" class="form-group">
-<span<?php echo $empresa->idempresa->ViewAttributes() ?>>
-<?php echo $empresa->idempresa->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
 <?php if ($empresa->nombre->Visible) { // nombre ?>
 	<tr id="r_nombre">
 		<td><span id="elh_empresa_nombre"><?php echo $empresa->nombre->FldCaption() ?></span></td>
@@ -807,17 +807,6 @@ $empresa_view->ShowMessage();
 <span id="el_empresa_direccion" class="form-group">
 <span<?php echo $empresa->direccion->ViewAttributes() ?>>
 <?php echo $empresa->direccion->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($empresa->estado->Visible) { // estado ?>
-	<tr id="r_estado">
-		<td><span id="elh_empresa_estado"><?php echo $empresa->estado->FldCaption() ?></span></td>
-		<td<?php echo $empresa->estado->CellAttributes() ?>>
-<span id="el_empresa_estado" class="form-group">
-<span<?php echo $empresa->estado->ViewAttributes() ?>>
-<?php echo $empresa->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>

@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "departamentoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -201,6 +202,9 @@ class cdepartamento_search extends cdepartamento {
 			$GLOBALS["Table"] = &$GLOBALS["departamento"];
 		}
 
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'search', TRUE);
@@ -242,6 +246,14 @@ class cdepartamento_search extends cdepartamento {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'municipio'
+			if (@$_POST["grid"] == "fmunicipiogrid") {
+				if (!isset($GLOBALS["municipio_grid"])) $GLOBALS["municipio_grid"] = new cmunicipio_grid;
+				$GLOBALS["municipio_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 

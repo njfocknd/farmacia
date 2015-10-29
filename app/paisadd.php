@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "departamentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -241,6 +243,22 @@ class cpais_add extends cpais {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'departamento'
+			if (@$_POST["grid"] == "fdepartamentogrid") {
+				if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid;
+				$GLOBALS["departamento_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto'
+			if (@$_POST["grid"] == "fproductogrid") {
+				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+				$GLOBALS["producto_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -339,6 +357,9 @@ class cpais_add extends cpais {
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
+		// Set up detail parameters
+		$this->SetUpDetailParms();
+
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -358,19 +379,28 @@ class cpais_add extends cpais {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("paislist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail add
+						$sReturnUrl = $this->GetDetailUrl();
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "paisview.php")
 						$sReturnUrl = $this->GetViewUrl(); // View paging, return to view page with keyurl directly
 					$this->Page_Terminate($sReturnUrl); // Clean up and return
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -393,7 +423,6 @@ class cpais_add extends cpais {
 	function LoadDefaultValues() {
 		$this->nombre->CurrentValue = NULL;
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
-		$this->estado->CurrentValue = "Activo";
 	}
 
 	// Load form values
@@ -404,9 +433,6 @@ class cpais_add extends cpais {
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
-		if (!$this->estado->FldIsDetailKey) {
-			$this->estado->setFormValue($objForm->GetValue("x_estado"));
-		}
 	}
 
 	// Restore form values
@@ -414,7 +440,6 @@ class cpais_add extends cpais {
 		global $objForm;
 		$this->LoadOldRecord();
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
-		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
 	// Load row based on key values
@@ -528,11 +553,6 @@ class cpais_add extends cpais {
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// nombre
@@ -541,20 +561,10 @@ class cpais_add extends cpais {
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
-			// estado
-			$this->estado->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			$this->estado->EditValue = $arwrk;
-
 			// Edit refer script
 			// nombre
 
 			$this->nombre->HrefValue = "";
-
-			// estado
-			$this->estado->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -580,8 +590,16 @@ class cpais_add extends cpais {
 		if (!$this->nombre->FldIsDetailKey && !is_null($this->nombre->FormValue) && $this->nombre->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->nombre->FldCaption(), $this->nombre->ReqErrMsg));
 		}
-		if ($this->estado->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("departamento", $DetailTblVar) && $GLOBALS["departamento"]->DetailAdd) {
+			if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // get detail page object
+			$GLOBALS["departamento_grid"]->ValidateGridForm();
+		}
+		if (in_array("producto", $DetailTblVar) && $GLOBALS["producto"]->DetailAdd) {
+			if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid(); // get detail page object
+			$GLOBALS["producto_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -600,6 +618,10 @@ class cpais_add extends cpais {
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
 
+		// Begin transaction
+		if ($this->getCurrentDetailTable() <> "")
+			$conn->BeginTrans();
+
 		// Load db values from rsold
 		if ($rsold) {
 			$this->LoadDbValues($rsold);
@@ -608,9 +630,6 @@ class cpais_add extends cpais {
 
 		// nombre
 		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", FALSE);
-
-		// estado
-		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -639,6 +658,34 @@ class cpais_add extends cpais {
 			$this->idpais->setDbValue($conn->Insert_ID());
 			$rsnew['idpais'] = $this->idpais->DbValue;
 		}
+
+		// Add detail records
+		if ($AddRow) {
+			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+			if (in_array("departamento", $DetailTblVar) && $GLOBALS["departamento"]->DetailAdd) {
+				$GLOBALS["departamento"]->idpais->setSessionValue($this->idpais->CurrentValue); // Set master key
+				if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // Get detail page object
+				$AddRow = $GLOBALS["departamento_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["departamento"]->idpais->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("producto", $DetailTblVar) && $GLOBALS["producto"]->DetailAdd) {
+				$GLOBALS["producto"]->idpais->setSessionValue($this->idpais->CurrentValue); // Set master key
+				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid(); // Get detail page object
+				$AddRow = $GLOBALS["producto_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["producto"]->idpais->setSessionValue(""); // Clear master key if insert failed
+			}
+		}
+
+		// Commit/Rollback transaction
+		if ($this->getCurrentDetailTable() <> "") {
+			if ($AddRow) {
+				$conn->CommitTrans(); // Commit transaction
+			} else {
+				$conn->RollbackTrans(); // Rollback transaction
+			}
+		}
 		if ($AddRow) {
 
 			// Call Row Inserted event
@@ -646,6 +693,57 @@ class cpais_add extends cpais {
 			$this->Row_Inserted($rs, $rsnew);
 		}
 		return $AddRow;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("departamento", $DetailTblVar)) {
+				if (!isset($GLOBALS["departamento_grid"]))
+					$GLOBALS["departamento_grid"] = new cdepartamento_grid;
+				if ($GLOBALS["departamento_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["departamento_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["departamento_grid"]->CurrentMode = "add";
+					$GLOBALS["departamento_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["departamento_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["departamento_grid"]->setStartRecordNumber(1);
+					$GLOBALS["departamento_grid"]->idpais->FldIsDetailKey = TRUE;
+					$GLOBALS["departamento_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
+					$GLOBALS["departamento_grid"]->idpais->setSessionValue($GLOBALS["departamento_grid"]->idpais->CurrentValue);
+				}
+			}
+			if (in_array("producto", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_grid"]))
+					$GLOBALS["producto_grid"] = new cproducto_grid;
+				if ($GLOBALS["producto_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["producto_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["producto_grid"]->CurrentMode = "add";
+					$GLOBALS["producto_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_grid"]->idpais->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
+					$GLOBALS["producto_grid"]->idpais->setSessionValue($GLOBALS["producto_grid"]->idpais->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -773,9 +871,6 @@ fpaisadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_nombre");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $pais->nombre->FldCaption(), $pais->nombre->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_estado");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $pais->estado->FldCaption(), $pais->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -845,37 +940,23 @@ $pais_add->ShowMessage();
 <?php echo $pais->nombre->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($pais->estado->Visible) { // estado ?>
-	<div id="r_estado" class="form-group">
-		<label id="elh_pais_estado" class="col-sm-2 control-label ewLabel"><?php echo $pais->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $pais->estado->CellAttributes() ?>>
-<span id="el_pais_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $pais->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $pais->estado->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($pais->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $pais->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-?>
 </div>
-</span>
-<?php echo $pais->estado->CustomMsg ?></div></div>
-	</div>
+<?php
+	if (in_array("departamento", explode(",", $pais->getCurrentDetailTable())) && $departamento->DetailAdd) {
+?>
+<?php if ($pais->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("departamento", "TblCaption") ?></h4>
 <?php } ?>
-</div>
+<?php include_once "departamentogrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("producto", explode(",", $pais->getCurrentDetailTable())) && $producto->DetailAdd) {
+?>
+<?php if ($pais->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "productogrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("AddBtn") ?></button>

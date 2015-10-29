@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "departamentoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "municipiogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -249,12 +251,15 @@ class cdepartamento_list extends cdepartamento {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "departamentoadd.php";
+		$this->AddUrl = "departamentoadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
 		$this->MultiDeleteUrl = "departamentodelete.php";
 		$this->MultiUpdateUrl = "departamentoupdate.php";
+
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -321,6 +326,14 @@ class cdepartamento_list extends cdepartamento {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'municipio'
+			if (@$_POST["grid"] == "fmunicipiogrid") {
+				if (!isset($GLOBALS["municipio_grid"])) $GLOBALS["municipio_grid"] = new cmunicipio_grid;
+				$GLOBALS["municipio_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -446,6 +459,9 @@ class cdepartamento_list extends cdepartamento {
 			// Handle reset command
 			$this->ResetCmd();
 
+			// Set up master detail parameters
+			$this->SetUpMasterParms();
+
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -544,8 +560,28 @@ class cdepartamento_list extends cdepartamento {
 
 		// Build filter
 		$sFilter = "";
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "pais") {
+			global $pais;
+			$rsmaster = $pais->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("paislist.php"); // Return to master page
+			} else {
+				$pais->LoadListRowValues($rsmaster);
+				$pais->RowType = EW_ROWTYPE_MASTER; // Master row
+				$pais->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
@@ -856,7 +892,6 @@ class cdepartamento_list extends cdepartamento {
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idpais); // idpais
-			$this->UpdateSort($this->state); // state
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -885,13 +920,20 @@ class cdepartamento_list extends cdepartamento {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->idpais->setSessionValue("");
+			}
+
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->nombre->setSort("");
 				$this->idpais->setSort("");
-				$this->state->setSort("");
 			}
 
 			// Reset start position
@@ -921,6 +963,23 @@ class cdepartamento_list extends cdepartamento {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
+
+		// "detail_municipio"
+		$item = &$this->ListOptions->Add("detail_municipio");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["municipio_grid"])) $GLOBALS["municipio_grid"] = new cmunicipio_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssStyle = "white-space: nowrap;";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = FALSE;
+			$item->ShowInButtonGroup = FALSE;
+		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -965,6 +1024,57 @@ class cdepartamento_list extends cdepartamento {
 		} else {
 			$oListOpt->Body = "";
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_municipio"
+		$oListOpt = &$this->ListOptions->Items["detail_municipio"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("municipio", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("municipiolist.php?" . EW_TABLE_SHOW_MASTER . "=departamento&fk_iddepartamento=" . strval($this->iddepartamento->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["municipio_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=municipio")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "municipio";
+			}
+			if ($GLOBALS["municipio_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=municipio")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "municipio";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -985,6 +1095,30 @@ class cdepartamento_list extends cdepartamento {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_municipio");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=municipio") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["municipio"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["municipio"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "municipio";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
+			$item->Visible = ($DetailTableLink <> "");
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1361,11 +1495,6 @@ class cdepartamento_list extends cdepartamento {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
-
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1402,6 +1531,48 @@ class cdepartamento_list extends cdepartamento {
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
 		$this->state->AdvancedSearch->Load();
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "pais") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idpais"] <> "") {
+					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
+					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
+					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
+					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "pais") {
+				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -1590,7 +1761,7 @@ var fdepartamentolistsrch = new ew_Form("fdepartamentolistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($departamento_list->TotalRecs > 0 && $departamento_list->ExportOptions->Visible()) { ?>
+<?php if ($departamento_list->TotalRecs > 0 && $departamento->getCurrentMasterTable() == "" && $departamento_list->ExportOptions->Visible()) { ?>
 <?php $departamento_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($departamento_list->SearchOptions->Visible()) { ?>
@@ -1599,6 +1770,22 @@ var fdepartamentolistsrch = new ew_Form("fdepartamentolistsrch");
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
+<?php if (($departamento->Export == "") || (EW_EXPORT_MASTER_RECORD && $departamento->Export == "print")) { ?>
+<?php
+$gsMasterReturnUrl = "paislist.php";
+if ($departamento_list->DbMasterFilter <> "" && $departamento->getCurrentMasterTable() == "pais") {
+	if ($departamento_list->MasterRecordExists) {
+		if ($departamento->getCurrentMasterTable() == $departamento->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($departamento_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $departamento_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "paismaster.php" ?>
+<?php
+	}
+}
+?>
+<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
@@ -1694,15 +1881,6 @@ $departamento_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($departamento->state->Visible) { // state ?>
-	<?php if ($departamento->SortUrl($departamento->state) == "") { ?>
-		<th data-name="state"><div id="elh_departamento_state" class="departamento_state"><div class="ewTableHeaderCaption"><?php echo $departamento->state->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="state"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $departamento->SortUrl($departamento->state) ?>',1);"><div id="elh_departamento_state" class="departamento_state">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $departamento->state->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($departamento->state->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($departamento->state->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -1778,12 +1956,6 @@ $departamento_list->ListOptions->Render("body", "left", $departamento_list->RowC
 		<td data-name="idpais"<?php echo $departamento->idpais->CellAttributes() ?>>
 <span<?php echo $departamento->idpais->ViewAttributes() ?>>
 <?php echo $departamento->idpais->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($departamento->state->Visible) { // state ?>
-		<td data-name="state"<?php echo $departamento->state->CellAttributes() ?>>
-<span<?php echo $departamento->state->ViewAttributes() ?>>
-<?php echo $departamento->state->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

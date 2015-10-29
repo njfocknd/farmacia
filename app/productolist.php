@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -256,6 +258,12 @@ class cproducto_list extends cproducto {
 		$this->MultiDeleteUrl = "productodelete.php";
 		$this->MultiUpdateUrl = "productoupdate.php";
 
+		// Table object (marca)
+		if (!isset($GLOBALS['marca'])) $GLOBALS['marca'] = new cmarca();
+
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -305,7 +313,6 @@ class cproducto_list extends cproducto {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idproducto->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -447,6 +454,9 @@ class cproducto_list extends cproducto {
 			// Handle reset command
 			$this->ResetCmd();
 
+			// Set up master detail parameters
+			$this->SetUpMasterParms();
+
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -530,8 +540,44 @@ class cproducto_list extends cproducto {
 
 		// Build filter
 		$sFilter = "";
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "marca") {
+			global $marca;
+			$rsmaster = $marca->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("marcalist.php"); // Return to master page
+			} else {
+				$marca->LoadListRowValues($rsmaster);
+				$marca->RowType = EW_ROWTYPE_MASTER; // Master row
+				$marca->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "pais") {
+			global $pais;
+			$rsmaster = $pais->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("paislist.php"); // Return to master page
+			} else {
+				$pais->LoadListRowValues($rsmaster);
+				$pais->RowType = EW_ROWTYPE_MASTER; // Master row
+				$pais->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
@@ -744,7 +790,6 @@ class cproducto_list extends cproducto {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idproducto); // idproducto
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idpais); // idpais
 			$this->UpdateSort($this->idmarca); // idmarca
@@ -777,11 +822,19 @@ class cproducto_list extends cproducto {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->idmarca->setSessionValue("");
+				$this->idpais->setSessionValue("");
+			}
+
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idproducto->setSort("");
 				$this->nombre->setSort("");
 				$this->idpais->setSort("");
 				$this->idmarca->setSort("");
@@ -1194,11 +1247,6 @@ class cproducto_list extends cproducto {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto
-			$this->idproducto->LinkCustomAttributes = "";
-			$this->idproducto->HrefValue = "";
-			$this->idproducto->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1223,6 +1271,62 @@ class cproducto_list extends cproducto {
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "marca") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idmarca"] <> "") {
+					$GLOBALS["marca"]->idmarca->setQueryStringValue($_GET["fk_idmarca"]);
+					$this->idmarca->setQueryStringValue($GLOBALS["marca"]->idmarca->QueryStringValue);
+					$this->idmarca->setSessionValue($this->idmarca->QueryStringValue);
+					if (!is_numeric($GLOBALS["marca"]->idmarca->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+			if ($sMasterTblVar == "pais") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idpais"] <> "") {
+					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
+					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
+					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
+					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "marca") {
+				if ($this->idmarca->QueryStringValue == "") $this->idmarca->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "pais") {
+				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -1410,7 +1514,7 @@ var fproductolistsrch = new ew_Form("fproductolistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($producto_list->TotalRecs > 0 && $producto_list->ExportOptions->Visible()) { ?>
+<?php if ($producto_list->TotalRecs > 0 && $producto->getCurrentMasterTable() == "" && $producto_list->ExportOptions->Visible()) { ?>
 <?php $producto_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($producto_list->SearchOptions->Visible()) { ?>
@@ -1419,6 +1523,36 @@ var fproductolistsrch = new ew_Form("fproductolistsrch");
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
+<?php if (($producto->Export == "") || (EW_EXPORT_MASTER_RECORD && $producto->Export == "print")) { ?>
+<?php
+$gsMasterReturnUrl = "marcalist.php";
+if ($producto_list->DbMasterFilter <> "" && $producto->getCurrentMasterTable() == "marca") {
+	if ($producto_list->MasterRecordExists) {
+		if ($producto->getCurrentMasterTable() == $producto->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($producto_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "marcamaster.php" ?>
+<?php
+	}
+}
+?>
+<?php
+$gsMasterReturnUrl = "paislist.php";
+if ($producto_list->DbMasterFilter <> "" && $producto->getCurrentMasterTable() == "pais") {
+	if ($producto_list->MasterRecordExists) {
+		if ($producto->getCurrentMasterTable() == $producto->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($producto_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "paismaster.php" ?>
+<?php
+	}
+}
+?>
+<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
@@ -1496,15 +1630,6 @@ $producto_list->RenderListOptions();
 // Render list options (header, left)
 $producto_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($producto->idproducto->Visible) { // idproducto ?>
-	<?php if ($producto->SortUrl($producto->idproducto) == "") { ?>
-		<th data-name="idproducto"><div id="elh_producto_idproducto" class="producto_idproducto"><div class="ewTableHeaderCaption"><?php echo $producto->idproducto->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idproducto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->idproducto) ?>',1);"><div id="elh_producto_idproducto" class="producto_idproducto">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->idproducto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->idproducto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->idproducto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($producto->nombre->Visible) { // nombre ?>
 	<?php if ($producto->SortUrl($producto->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_producto_nombre" class="producto_nombre"><div class="ewTableHeaderCaption"><?php echo $producto->nombre->FldCaption() ?></div></div></th>
@@ -1606,17 +1731,11 @@ while ($producto_list->RecCnt < $producto_list->StopRec) {
 // Render list options (body, left)
 $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 ?>
-	<?php if ($producto->idproducto->Visible) { // idproducto ?>
-		<td data-name="idproducto"<?php echo $producto->idproducto->CellAttributes() ?>>
-<span<?php echo $producto->idproducto->ViewAttributes() ?>>
-<?php echo $producto->idproducto->ListViewValue() ?></span>
-<a id="<?php echo $producto_list->PageObjName . "_row_" . $producto_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($producto->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $producto->nombre->CellAttributes() ?>>
 <span<?php echo $producto->nombre->ViewAttributes() ?>>
 <?php echo $producto->nombre->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $producto_list->PageObjName . "_row_" . $producto_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($producto->idpais->Visible) { // idpais ?>
 		<td data-name="idpais"<?php echo $producto->idpais->CellAttributes() ?>>

@@ -305,7 +305,6 @@ class cfabricante_list extends cfabricante {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idfabricante->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -744,7 +743,6 @@ class cfabricante_list extends cfabricante {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idfabricante); // idfabricante
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idpais); // idpais
 			$this->UpdateSort($this->estado); // estado
@@ -780,7 +778,6 @@ class cfabricante_list extends cfabricante {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idfabricante->setSort("");
 				$this->nombre->setSort("");
 				$this->idpais->setSort("");
 				$this->estado->setSort("");
@@ -1165,7 +1162,32 @@ class cfabricante_list extends cfabricante {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
 			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
@@ -1184,11 +1206,6 @@ class cfabricante_list extends cfabricante {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
-
-			// idfabricante
-			$this->idfabricante->LinkCustomAttributes = "";
-			$this->idfabricante->HrefValue = "";
-			$this->idfabricante->TooltipValue = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -1386,8 +1403,9 @@ ffabricantelist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+ffabricantelist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var ffabricantelistsrch = new ew_Form("ffabricantelistsrch");
 </script>
 <script type="text/javascript">
@@ -1482,15 +1500,6 @@ $fabricante_list->RenderListOptions();
 // Render list options (header, left)
 $fabricante_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($fabricante->idfabricante->Visible) { // idfabricante ?>
-	<?php if ($fabricante->SortUrl($fabricante->idfabricante) == "") { ?>
-		<th data-name="idfabricante"><div id="elh_fabricante_idfabricante" class="fabricante_idfabricante"><div class="ewTableHeaderCaption"><?php echo $fabricante->idfabricante->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idfabricante"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $fabricante->SortUrl($fabricante->idfabricante) ?>',1);"><div id="elh_fabricante_idfabricante" class="fabricante_idfabricante">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $fabricante->idfabricante->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($fabricante->idfabricante->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($fabricante->idfabricante->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($fabricante->nombre->Visible) { // nombre ?>
 	<?php if ($fabricante->SortUrl($fabricante->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_fabricante_nombre" class="fabricante_nombre"><div class="ewTableHeaderCaption"><?php echo $fabricante->nombre->FldCaption() ?></div></div></th>
@@ -1583,17 +1592,11 @@ while ($fabricante_list->RecCnt < $fabricante_list->StopRec) {
 // Render list options (body, left)
 $fabricante_list->ListOptions->Render("body", "left", $fabricante_list->RowCnt);
 ?>
-	<?php if ($fabricante->idfabricante->Visible) { // idfabricante ?>
-		<td data-name="idfabricante"<?php echo $fabricante->idfabricante->CellAttributes() ?>>
-<span<?php echo $fabricante->idfabricante->ViewAttributes() ?>>
-<?php echo $fabricante->idfabricante->ListViewValue() ?></span>
-<a id="<?php echo $fabricante_list->PageObjName . "_row_" . $fabricante_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($fabricante->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $fabricante->nombre->CellAttributes() ?>>
 <span<?php echo $fabricante->nombre->ViewAttributes() ?>>
 <?php echo $fabricante->nombre->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $fabricante_list->PageObjName . "_row_" . $fabricante_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($fabricante->idpais->Visible) { // idpais ?>
 		<td data-name="idpais"<?php echo $fabricante->idpais->CellAttributes() ?>>

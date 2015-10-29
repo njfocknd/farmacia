@@ -305,7 +305,6 @@ class csucursal_list extends csucursal {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idsucursal->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -745,12 +744,9 @@ class csucursal_list extends csucursal {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idsucursal); // idsucursal
 			$this->UpdateSort($this->nombre); // nombre
-			$this->UpdateSort($this->direccion); // direccion
 			$this->UpdateSort($this->idmunicipio); // idmunicipio
 			$this->UpdateSort($this->idempresa); // idempresa
-			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -783,12 +779,9 @@ class csucursal_list extends csucursal {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idsucursal->setSort("");
 				$this->nombre->setSort("");
-				$this->direccion->setSort("");
 				$this->idmunicipio->setSort("");
 				$this->idempresa->setSort("");
-				$this->estado->setSort("");
 			}
 
 			// Reset start position
@@ -1180,11 +1173,61 @@ class csucursal_list extends csucursal {
 			$this->direccion->ViewCustomAttributes = "";
 
 			// idmunicipio
-			$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
+			if (strval($this->idmunicipio->CurrentValue) <> "") {
+				$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmunicipio->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
+				}
+			} else {
+				$this->idmunicipio->ViewValue = NULL;
+			}
 			$this->idmunicipio->ViewCustomAttributes = "";
 
 			// idempresa
-			$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+			if (strval($this->idempresa->CurrentValue) <> "") {
+				$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idempresa->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+				}
+			} else {
+				$this->idempresa->ViewValue = NULL;
+			}
 			$this->idempresa->ViewCustomAttributes = "";
 
 			// estado
@@ -1204,20 +1247,10 @@ class csucursal_list extends csucursal {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idsucursal
-			$this->idsucursal->LinkCustomAttributes = "";
-			$this->idsucursal->HrefValue = "";
-			$this->idsucursal->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
-
-			// direccion
-			$this->direccion->LinkCustomAttributes = "";
-			$this->direccion->HrefValue = "";
-			$this->direccion->TooltipValue = "";
 
 			// idmunicipio
 			$this->idmunicipio->LinkCustomAttributes = "";
@@ -1228,11 +1261,6 @@ class csucursal_list extends csucursal {
 			$this->idempresa->LinkCustomAttributes = "";
 			$this->idempresa->HrefValue = "";
 			$this->idempresa->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1415,8 +1443,10 @@ fsucursallist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fsucursallist.Lists["x_idmunicipio"] = {"LinkField":"x_idmunicipio","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fsucursallist.Lists["x_idempresa"] = {"LinkField":"x_idempresa","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var fsucursallistsrch = new ew_Form("fsucursallistsrch");
 </script>
 <script type="text/javascript">
@@ -1511,30 +1541,12 @@ $sucursal_list->RenderListOptions();
 // Render list options (header, left)
 $sucursal_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($sucursal->idsucursal->Visible) { // idsucursal ?>
-	<?php if ($sucursal->SortUrl($sucursal->idsucursal) == "") { ?>
-		<th data-name="idsucursal"><div id="elh_sucursal_idsucursal" class="sucursal_idsucursal"><div class="ewTableHeaderCaption"><?php echo $sucursal->idsucursal->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idsucursal"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->idsucursal) ?>',1);"><div id="elh_sucursal_idsucursal" class="sucursal_idsucursal">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->idsucursal->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->idsucursal->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->idsucursal->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($sucursal->nombre->Visible) { // nombre ?>
 	<?php if ($sucursal->SortUrl($sucursal->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_sucursal_nombre" class="sucursal_nombre"><div class="ewTableHeaderCaption"><?php echo $sucursal->nombre->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="nombre"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->nombre) ?>',1);"><div id="elh_sucursal_nombre" class="sucursal_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($sucursal->direccion->Visible) { // direccion ?>
-	<?php if ($sucursal->SortUrl($sucursal->direccion) == "") { ?>
-		<th data-name="direccion"><div id="elh_sucursal_direccion" class="sucursal_direccion"><div class="ewTableHeaderCaption"><?php echo $sucursal->direccion->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="direccion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->direccion) ?>',1);"><div id="elh_sucursal_direccion" class="sucursal_direccion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->direccion->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->direccion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->direccion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1553,15 +1565,6 @@ $sucursal_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idempresa"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->idempresa) ?>',1);"><div id="elh_sucursal_idempresa" class="sucursal_idempresa">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->idempresa->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->idempresa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->idempresa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($sucursal->estado->Visible) { // estado ?>
-	<?php if ($sucursal->SortUrl($sucursal->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_sucursal_estado" class="sucursal_estado"><div class="ewTableHeaderCaption"><?php echo $sucursal->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->estado) ?>',1);"><div id="elh_sucursal_estado" class="sucursal_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1630,23 +1633,11 @@ while ($sucursal_list->RecCnt < $sucursal_list->StopRec) {
 // Render list options (body, left)
 $sucursal_list->ListOptions->Render("body", "left", $sucursal_list->RowCnt);
 ?>
-	<?php if ($sucursal->idsucursal->Visible) { // idsucursal ?>
-		<td data-name="idsucursal"<?php echo $sucursal->idsucursal->CellAttributes() ?>>
-<span<?php echo $sucursal->idsucursal->ViewAttributes() ?>>
-<?php echo $sucursal->idsucursal->ListViewValue() ?></span>
-<a id="<?php echo $sucursal_list->PageObjName . "_row_" . $sucursal_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($sucursal->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $sucursal->nombre->CellAttributes() ?>>
 <span<?php echo $sucursal->nombre->ViewAttributes() ?>>
 <?php echo $sucursal->nombre->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($sucursal->direccion->Visible) { // direccion ?>
-		<td data-name="direccion"<?php echo $sucursal->direccion->CellAttributes() ?>>
-<span<?php echo $sucursal->direccion->ViewAttributes() ?>>
-<?php echo $sucursal->direccion->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $sucursal_list->PageObjName . "_row_" . $sucursal_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($sucursal->idmunicipio->Visible) { // idmunicipio ?>
 		<td data-name="idmunicipio"<?php echo $sucursal->idmunicipio->CellAttributes() ?>>
@@ -1658,12 +1649,6 @@ $sucursal_list->ListOptions->Render("body", "left", $sucursal_list->RowCnt);
 		<td data-name="idempresa"<?php echo $sucursal->idempresa->CellAttributes() ?>>
 <span<?php echo $sucursal->idempresa->ViewAttributes() ?>>
 <?php echo $sucursal->idempresa->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($sucursal->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $sucursal->estado->CellAttributes() ?>>
-<span<?php echo $sucursal->estado->ViewAttributes() ?>>
-<?php echo $sucursal->estado->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

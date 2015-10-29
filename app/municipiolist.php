@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "municipioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "departamentoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -256,6 +257,9 @@ class cmunicipio_list extends cmunicipio {
 		$this->MultiDeleteUrl = "municipiodelete.php";
 		$this->MultiUpdateUrl = "municipioupdate.php";
 
+		// Table object (departamento)
+		if (!isset($GLOBALS['departamento'])) $GLOBALS['departamento'] = new cdepartamento();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -447,6 +451,9 @@ class cmunicipio_list extends cmunicipio {
 			// Handle reset command
 			$this->ResetCmd();
 
+			// Set up master detail parameters
+			$this->SetUpMasterParms();
+
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -530,8 +537,28 @@ class cmunicipio_list extends cmunicipio {
 
 		// Build filter
 		$sFilter = "";
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "departamento") {
+			global $departamento;
+			$rsmaster = $departamento->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("departamentolist.php"); // Return to master page
+			} else {
+				$departamento->LoadListRowValues($rsmaster);
+				$departamento->RowType = EW_ROWTYPE_MASTER; // Master row
+				$departamento->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
@@ -747,7 +774,6 @@ class cmunicipio_list extends cmunicipio {
 			$this->UpdateSort($this->idmunicipio); // idmunicipio
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->iddepartamento); // iddepartamento
-			$this->UpdateSort($this->state); // state
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -776,6 +802,14 @@ class cmunicipio_list extends cmunicipio {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->iddepartamento->setSessionValue("");
+			}
+
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
@@ -783,7 +817,6 @@ class cmunicipio_list extends cmunicipio {
 				$this->idmunicipio->setSort("");
 				$this->nombre->setSort("");
 				$this->iddepartamento->setSort("");
-				$this->state->setSort("");
 			}
 
 			// Reset start position
@@ -1165,24 +1198,35 @@ class cmunicipio_list extends cmunicipio {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// iddepartamento
-			$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+			if (strval($this->iddepartamento->CurrentValue) <> "") {
+				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+				}
+			} else {
+				$this->iddepartamento->ViewValue = NULL;
+			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
 			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
-						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
-						break;
-					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
-				}
-			} else {
-				$this->state->ViewValue = NULL;
-			}
 			$this->state->ViewCustomAttributes = "";
 
 			// idmunicipio
@@ -1199,16 +1243,53 @@ class cmunicipio_list extends cmunicipio {
 			$this->iddepartamento->LinkCustomAttributes = "";
 			$this->iddepartamento->HrefValue = "";
 			$this->iddepartamento->TooltipValue = "";
-
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "departamento") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_iddepartamento"] <> "") {
+					$GLOBALS["departamento"]->iddepartamento->setQueryStringValue($_GET["fk_iddepartamento"]);
+					$this->iddepartamento->setQueryStringValue($GLOBALS["departamento"]->iddepartamento->QueryStringValue);
+					$this->iddepartamento->setSessionValue($this->iddepartamento->QueryStringValue);
+					if (!is_numeric($GLOBALS["departamento"]->iddepartamento->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "departamento") {
+				if ($this->iddepartamento->QueryStringValue == "") $this->iddepartamento->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -1386,8 +1467,9 @@ fmunicipiolist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fmunicipiolist.Lists["x_iddepartamento"] = {"LinkField":"x_iddepartamento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var fmunicipiolistsrch = new ew_Form("fmunicipiolistsrch");
 </script>
 <script type="text/javascript">
@@ -1396,7 +1478,7 @@ var fmunicipiolistsrch = new ew_Form("fmunicipiolistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($municipio_list->TotalRecs > 0 && $municipio_list->ExportOptions->Visible()) { ?>
+<?php if ($municipio_list->TotalRecs > 0 && $municipio->getCurrentMasterTable() == "" && $municipio_list->ExportOptions->Visible()) { ?>
 <?php $municipio_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($municipio_list->SearchOptions->Visible()) { ?>
@@ -1405,6 +1487,22 @@ var fmunicipiolistsrch = new ew_Form("fmunicipiolistsrch");
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
+<?php if (($municipio->Export == "") || (EW_EXPORT_MASTER_RECORD && $municipio->Export == "print")) { ?>
+<?php
+$gsMasterReturnUrl = "departamentolist.php";
+if ($municipio_list->DbMasterFilter <> "" && $municipio->getCurrentMasterTable() == "departamento") {
+	if ($municipio_list->MasterRecordExists) {
+		if ($municipio->getCurrentMasterTable() == $municipio->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($municipio_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $municipio_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "departamentomaster.php" ?>
+<?php
+	}
+}
+?>
+<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
@@ -1509,15 +1607,6 @@ $municipio_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($municipio->state->Visible) { // state ?>
-	<?php if ($municipio->SortUrl($municipio->state) == "") { ?>
-		<th data-name="state"><div id="elh_municipio_state" class="municipio_state"><div class="ewTableHeaderCaption"><?php echo $municipio->state->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="state"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $municipio->SortUrl($municipio->state) ?>',1);"><div id="elh_municipio_state" class="municipio_state">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $municipio->state->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($municipio->state->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($municipio->state->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -1599,12 +1688,6 @@ $municipio_list->ListOptions->Render("body", "left", $municipio_list->RowCnt);
 		<td data-name="iddepartamento"<?php echo $municipio->iddepartamento->CellAttributes() ?>>
 <span<?php echo $municipio->iddepartamento->ViewAttributes() ?>>
 <?php echo $municipio->iddepartamento->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($municipio->state->Visible) { // state ?>
-		<td data-name="state"<?php echo $municipio->state->CellAttributes() ?>>
-<span<?php echo $municipio->state->ViewAttributes() ?>>
-<?php echo $municipio->state->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

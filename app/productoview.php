@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -245,6 +247,12 @@ class cproducto_view extends cproducto {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
+		// Table object (marca)
+		if (!isset($GLOBALS['marca'])) $GLOBALS['marca'] = new cmarca();
+
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
@@ -377,6 +385,9 @@ class cproducto_view extends cproducto {
 		$bLoadCurrentRecord = FALSE;
 		$sReturnUrl = "";
 		$bMatchRecord = FALSE;
+
+		// Set up master/detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		if ($this->Export == "")
@@ -608,6 +619,63 @@ class cproducto_view extends cproducto {
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "marca") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idmarca"] <> "") {
+					$GLOBALS["marca"]->idmarca->setQueryStringValue($_GET["fk_idmarca"]);
+					$this->idmarca->setQueryStringValue($GLOBALS["marca"]->idmarca->QueryStringValue);
+					$this->idmarca->setSessionValue($this->idmarca->QueryStringValue);
+					if (!is_numeric($GLOBALS["marca"]->idmarca->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+			if ($sMasterTblVar == "pais") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idpais"] <> "") {
+					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
+					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
+					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
+					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "marca") {
+				if ($this->idmarca->QueryStringValue == "") $this->idmarca->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "pais") {
+				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb

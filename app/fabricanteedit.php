@@ -225,7 +225,6 @@ class cfabricante_edit extends cfabricante {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idfabricante->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -412,8 +411,6 @@ class cfabricante_edit extends cfabricante {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idfabricante->FldIsDetailKey)
-			$this->idfabricante->setFormValue($objForm->GetValue("x_idfabricante"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
@@ -423,6 +420,8 @@ class cfabricante_edit extends cfabricante {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
+		if (!$this->idfabricante->FldIsDetailKey)
+			$this->idfabricante->setFormValue($objForm->GetValue("x_idfabricante"));
 	}
 
 	// Restore form values
@@ -507,7 +506,32 @@ class cfabricante_edit extends cfabricante {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
 			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
@@ -527,11 +551,6 @@ class cfabricante_edit extends cfabricante {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idfabricante
-			$this->idfabricante->LinkCustomAttributes = "";
-			$this->idfabricante->HrefValue = "";
-			$this->idfabricante->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -548,12 +567,6 @@ class cfabricante_edit extends cfabricante {
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idfabricante
-			$this->idfabricante->EditAttrs["class"] = "form-control";
-			$this->idfabricante->EditCustomAttributes = "";
-			$this->idfabricante->EditValue = $this->idfabricante->CurrentValue;
-			$this->idfabricante->ViewCustomAttributes = "";
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -563,22 +576,43 @@ class cfabricante_edit extends cfabricante {
 			// idpais
 			$this->idpais->EditAttrs["class"] = "form-control";
 			$this->idpais->EditCustomAttributes = "";
-			$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-			$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
 
 			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
 			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// idfabricante
-
-			$this->idfabricante->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
 
 			// idpais
@@ -614,10 +648,7 @@ class cfabricante_edit extends cfabricante {
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idpais->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idpais->FldErrMsg());
-		}
-		if ($this->estado->FormValue == "") {
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
@@ -822,9 +853,6 @@ ffabricanteedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idpais");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $fabricante->idpais->FldCaption(), $fabricante->idpais->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idpais");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($fabricante->idpais->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $fabricante->estado->FldCaption(), $fabricante->estado->ReqErrMsg)) ?>");
@@ -864,8 +892,9 @@ ffabricanteedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+ffabricanteedit.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -887,18 +916,6 @@ $fabricante_edit->ShowMessage();
 <input type="hidden" name="t" value="fabricante">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($fabricante->idfabricante->Visible) { // idfabricante ?>
-	<div id="r_idfabricante" class="form-group">
-		<label id="elh_fabricante_idfabricante" class="col-sm-2 control-label ewLabel"><?php echo $fabricante->idfabricante->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $fabricante->idfabricante->CellAttributes() ?>>
-<span id="el_fabricante_idfabricante">
-<span<?php echo $fabricante->idfabricante->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $fabricante->idfabricante->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idfabricante" name="x_idfabricante" id="x_idfabricante" value="<?php echo ew_HtmlEncode($fabricante->idfabricante->CurrentValue) ?>">
-<?php echo $fabricante->idfabricante->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($fabricante->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_fabricante_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $fabricante->nombre->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -914,42 +931,71 @@ $fabricante_edit->ShowMessage();
 		<label id="elh_fabricante_idpais" for="x_idpais" class="col-sm-2 control-label ewLabel"><?php echo $fabricante->idpais->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $fabricante->idpais->CellAttributes() ?>>
 <span id="el_fabricante_idpais">
-<input type="text" data-field="x_idpais" name="x_idpais" id="x_idpais" size="30" placeholder="<?php echo ew_HtmlEncode($fabricante->idpais->PlaceHolder) ?>" value="<?php echo $fabricante->idpais->EditValue ?>"<?php echo $fabricante->idpais->EditAttributes() ?>>
+<select data-field="x_idpais" id="x_idpais" name="x_idpais"<?php echo $fabricante->idpais->EditAttributes() ?>>
+<?php
+if (is_array($fabricante->idpais->EditValue)) {
+	$arwrk = $fabricante->idpais->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($fabricante->idpais->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$fabricante->Lookup_Selecting($fabricante->idpais, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idpais" id="s_x_idpais" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idpais` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $fabricante->idpais->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($fabricante->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_fabricante_estado" class="col-sm-2 control-label ewLabel"><?php echo $fabricante->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_fabricante_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $fabricante->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $fabricante->estado->CellAttributes() ?>>
 <span id="el_fabricante_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $fabricante->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $fabricante->estado->EditAttributes() ?>>
 <?php
-$arwrk = $fabricante->estado->EditValue;
-if (is_array($arwrk)) {
+if (is_array($fabricante->estado->EditValue)) {
+	$arwrk = $fabricante->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($fabricante->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($fabricante->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $fabricante->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
 <?php echo $fabricante->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
+<input type="hidden" data-field="x_idfabricante" name="x_idfabricante" id="x_idfabricante" value="<?php echo ew_HtmlEncode($fabricante->idfabricante->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

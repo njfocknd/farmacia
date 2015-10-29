@@ -555,7 +555,32 @@ class cfabricante extends cTable {
 		$this->nombre->ViewCustomAttributes = "";
 
 		// idpais
-		$this->idpais->ViewValue = $this->idpais->CurrentValue;
+		if (strval($this->idpais->CurrentValue) <> "") {
+			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idpais->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			}
+		} else {
+			$this->idpais->ViewValue = NULL;
+		}
 		$this->idpais->ViewCustomAttributes = "";
 
 		// estado
@@ -621,14 +646,14 @@ class cfabricante extends cTable {
 		// idpais
 		$this->idpais->EditAttrs["class"] = "form-control";
 		$this->idpais->EditCustomAttributes = "";
-		$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-		$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
 
 		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event

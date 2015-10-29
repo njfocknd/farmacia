@@ -225,7 +225,6 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idregistro_sanitario->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -412,20 +411,20 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idregistro_sanitario->FldIsDetailKey)
-			$this->idregistro_sanitario->setFormValue($objForm->GetValue("x_idregistro_sanitario"));
 		if (!$this->descripcion->FldIsDetailKey) {
 			$this->descripcion->setFormValue($objForm->GetValue("x_descripcion"));
 		}
 		if (!$this->idpais->FldIsDetailKey) {
 			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		}
-		if (!$this->estado->FldIsDetailKey) {
-			$this->estado->setFormValue($objForm->GetValue("x_estado"));
-		}
 		if (!$this->idproducto->FldIsDetailKey) {
 			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
 		}
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
+		}
+		if (!$this->idregistro_sanitario->FldIsDetailKey)
+			$this->idregistro_sanitario->setFormValue($objForm->GetValue("x_idregistro_sanitario"));
 	}
 
 	// Restore form values
@@ -435,8 +434,8 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 		$this->idregistro_sanitario->CurrentValue = $this->idregistro_sanitario->FormValue;
 		$this->descripcion->CurrentValue = $this->descripcion->FormValue;
 		$this->idpais->CurrentValue = $this->idpais->FormValue;
-		$this->estado->CurrentValue = $this->estado->FormValue;
 		$this->idproducto->CurrentValue = $this->idproducto->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
 	// Load row based on key values
@@ -471,8 +470,8 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
 		$this->descripcion->setDbValue($rs->fields('descripcion'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -482,8 +481,8 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 		$this->idregistro_sanitario->DbValue = $row['idregistro_sanitario'];
 		$this->descripcion->DbValue = $row['descripcion'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->estado->DbValue = $row['estado'];
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -500,8 +499,8 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 		// idregistro_sanitario
 		// descripcion
 		// idpais
-		// estado
 		// idproducto
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -514,8 +513,62 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 			$this->descripcion->ViewCustomAttributes = "";
 
 			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
 			$this->idpais->ViewCustomAttributes = "";
+
+			// idproducto
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+				}
+			} else {
+				$this->idproducto->ViewValue = NULL;
+			}
+			$this->idproducto->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -534,15 +587,6 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto
-			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
-			$this->idproducto->ViewCustomAttributes = "";
-
-			// idregistro_sanitario
-			$this->idregistro_sanitario->LinkCustomAttributes = "";
-			$this->idregistro_sanitario->HrefValue = "";
-			$this->idregistro_sanitario->TooltipValue = "";
-
 			// descripcion
 			$this->descripcion->LinkCustomAttributes = "";
 			$this->descripcion->HrefValue = "";
@@ -553,22 +597,16 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
 
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
 			$this->idproducto->TooltipValue = "";
-		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idregistro_sanitario
-			$this->idregistro_sanitario->EditAttrs["class"] = "form-control";
-			$this->idregistro_sanitario->EditCustomAttributes = "";
-			$this->idregistro_sanitario->EditValue = $this->idregistro_sanitario->CurrentValue;
-			$this->idregistro_sanitario->ViewCustomAttributes = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
+		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// descripcion
 			$this->descripcion->EditAttrs["class"] = "form-control";
@@ -579,38 +617,81 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 			// idpais
 			$this->idpais->EditAttrs["class"] = "form-control";
 			$this->idpais->EditCustomAttributes = "";
-			$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-			$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
 
-			// estado
-			$this->estado->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			$this->estado->EditValue = $arwrk;
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
 
 			// idproducto
 			$this->idproducto->EditAttrs["class"] = "form-control";
 			$this->idproducto->EditCustomAttributes = "";
-			$this->idproducto->EditValue = ew_HtmlEncode($this->idproducto->CurrentValue);
-			$this->idproducto->PlaceHolder = ew_RemoveHtml($this->idproducto->FldCaption());
+			if (trim(strval($this->idproducto->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idproducto->EditValue = $arwrk;
+
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// idregistro_sanitario
-
-			$this->idregistro_sanitario->HrefValue = "";
-
 			// descripcion
+
 			$this->descripcion->HrefValue = "";
 
 			// idpais
 			$this->idpais->HrefValue = "";
 
-			// estado
-			$this->estado->HrefValue = "";
-
 			// idproducto
 			$this->idproducto->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -639,17 +720,11 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idpais->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idpais->FldErrMsg());
-		}
-		if ($this->estado->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
 		if (!$this->idproducto->FldIsDetailKey && !is_null($this->idproducto->FormValue) && $this->idproducto->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idproducto->FldCaption(), $this->idproducto->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idproducto->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idproducto->FldErrMsg());
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -690,11 +765,11 @@ class cregistro_sanitario_edit extends cregistro_sanitario {
 			// idpais
 			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
 
-			// estado
-			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
-
 			// idproducto
 			$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, $this->idproducto->ReadOnly);
+
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -856,18 +931,12 @@ fregistro_sanitarioedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idpais");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $registro_sanitario->idpais->FldCaption(), $registro_sanitario->idpais->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idpais");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($registro_sanitario->idpais->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_estado");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $registro_sanitario->estado->FldCaption(), $registro_sanitario->estado->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_idproducto");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $registro_sanitario->idproducto->FldCaption(), $registro_sanitario->idproducto->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idproducto");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($registro_sanitario->idproducto->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_estado");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $registro_sanitario->estado->FldCaption(), $registro_sanitario->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -904,8 +973,10 @@ fregistro_sanitarioedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fregistro_sanitarioedit.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fregistro_sanitarioedit.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -927,18 +998,6 @@ $registro_sanitario_edit->ShowMessage();
 <input type="hidden" name="t" value="registro_sanitario">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
-	<div id="r_idregistro_sanitario" class="form-group">
-		<label id="elh_registro_sanitario_idregistro_sanitario" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->idregistro_sanitario->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $registro_sanitario->idregistro_sanitario->CellAttributes() ?>>
-<span id="el_registro_sanitario_idregistro_sanitario">
-<span<?php echo $registro_sanitario->idregistro_sanitario->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $registro_sanitario->idregistro_sanitario->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idregistro_sanitario" name="x_idregistro_sanitario" id="x_idregistro_sanitario" value="<?php echo ew_HtmlEncode($registro_sanitario->idregistro_sanitario->CurrentValue) ?>">
-<?php echo $registro_sanitario->idregistro_sanitario->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
 	<div id="r_descripcion" class="form-group">
 		<label id="elh_registro_sanitario_descripcion" for="x_descripcion" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->descripcion->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -954,39 +1013,40 @@ $registro_sanitario_edit->ShowMessage();
 		<label id="elh_registro_sanitario_idpais" for="x_idpais" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->idpais->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $registro_sanitario->idpais->CellAttributes() ?>>
 <span id="el_registro_sanitario_idpais">
-<input type="text" data-field="x_idpais" name="x_idpais" id="x_idpais" size="30" placeholder="<?php echo ew_HtmlEncode($registro_sanitario->idpais->PlaceHolder) ?>" value="<?php echo $registro_sanitario->idpais->EditValue ?>"<?php echo $registro_sanitario->idpais->EditAttributes() ?>>
-</span>
-<?php echo $registro_sanitario->idpais->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($registro_sanitario->estado->Visible) { // estado ?>
-	<div id="r_estado" class="form-group">
-		<label id="elh_registro_sanitario_estado" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $registro_sanitario->estado->CellAttributes() ?>>
-<span id="el_registro_sanitario_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $registro_sanitario->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
+<select data-field="x_idpais" id="x_idpais" name="x_idpais"<?php echo $registro_sanitario->idpais->EditAttributes() ?>>
 <?php
-$arwrk = $registro_sanitario->estado->EditValue;
-if (is_array($arwrk)) {
+if (is_array($registro_sanitario->idpais->EditValue)) {
+	$arwrk = $registro_sanitario->idpais->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($registro_sanitario->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($registro_sanitario->idpais->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $registro_sanitario->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
+<?php
+$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$registro_sanitario->Lookup_Selecting($registro_sanitario->idpais, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idpais" id="s_x_idpais" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idpais` = {filter_value}"); ?>&amp;t0=3">
 </span>
-<?php echo $registro_sanitario->estado->CustomMsg ?></div></div>
+<?php echo $registro_sanitario->idpais->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
@@ -994,12 +1054,71 @@ if (is_array($arwrk)) {
 		<label id="elh_registro_sanitario_idproducto" for="x_idproducto" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->idproducto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $registro_sanitario->idproducto->CellAttributes() ?>>
 <span id="el_registro_sanitario_idproducto">
-<input type="text" data-field="x_idproducto" name="x_idproducto" id="x_idproducto" size="30" placeholder="<?php echo ew_HtmlEncode($registro_sanitario->idproducto->PlaceHolder) ?>" value="<?php echo $registro_sanitario->idproducto->EditValue ?>"<?php echo $registro_sanitario->idproducto->EditAttributes() ?>>
+<select data-field="x_idproducto" id="x_idproducto" name="x_idproducto"<?php echo $registro_sanitario->idproducto->EditAttributes() ?>>
+<?php
+if (is_array($registro_sanitario->idproducto->EditValue)) {
+	$arwrk = $registro_sanitario->idproducto->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($registro_sanitario->idproducto->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$registro_sanitario->Lookup_Selecting($registro_sanitario->idproducto, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idproducto" id="s_x_idproducto" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $registro_sanitario->idproducto->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($registro_sanitario->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_registro_sanitario_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $registro_sanitario->estado->CellAttributes() ?>>
+<span id="el_registro_sanitario_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $registro_sanitario->estado->EditAttributes() ?>>
+<?php
+if (is_array($registro_sanitario->estado->EditValue)) {
+	$arwrk = $registro_sanitario->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($registro_sanitario->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+</span>
+<?php echo $registro_sanitario->estado->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 </div>
+<input type="hidden" data-field="x_idregistro_sanitario" name="x_idregistro_sanitario" id="x_idregistro_sanitario" value="<?php echo ew_HtmlEncode($registro_sanitario->idregistro_sanitario->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

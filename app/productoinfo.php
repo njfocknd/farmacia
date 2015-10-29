@@ -78,6 +78,75 @@ class cproducto extends cTable {
 		}
 	}
 
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
+	}
+
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
+	}
+
+	// Session master WHERE clause
+	function GetMasterFilter() {
+
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "marca") {
+			if ($this->idmarca->getSessionValue() <> "")
+				$sMasterFilter .= "`idmarca`=" . ew_QuotedValue($this->idmarca->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "pais") {
+			if ($this->idpais->getSessionValue() <> "")
+				$sMasterFilter .= "`idpais`=" . ew_QuotedValue($this->idpais->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "marca") {
+			if ($this->idmarca->getSessionValue() <> "")
+				$sDetailFilter .= "`idmarca`=" . ew_QuotedValue($this->idmarca->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "pais") {
+			if ($this->idpais->getSessionValue() <> "")
+				$sDetailFilter .= "`idpais`=" . ew_QuotedValue($this->idpais->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_marca() {
+		return "`idmarca`=@idmarca@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_marca() {
+		return "`idmarca`=@idmarca@";
+	}
+
+	// Master filter
+	function SqlMasterFilter_pais() {
+		return "`idpais`=@idpais@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_pais() {
+		return "`idpais`=@idpais@";
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -638,20 +707,34 @@ class cproducto extends cTable {
 		// idpais
 		$this->idpais->EditAttrs["class"] = "form-control";
 		$this->idpais->EditCustomAttributes = "";
+		if ($this->idpais->getSessionValue() <> "") {
+			$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+		$this->idpais->ViewValue = $this->idpais->CurrentValue;
+		$this->idpais->ViewCustomAttributes = "";
+		} else {
 		$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
 		$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
+		}
 
 		// idmarca
 		$this->idmarca->EditAttrs["class"] = "form-control";
 		$this->idmarca->EditCustomAttributes = "";
+		if ($this->idmarca->getSessionValue() <> "") {
+			$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
+		$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
+		$this->idmarca->ViewCustomAttributes = "";
+		} else {
 		$this->idmarca->EditValue = ew_HtmlEncode($this->idmarca->CurrentValue);
 		$this->idmarca->PlaceHolder = ew_RemoveHtml($this->idmarca->FldCaption());
+		}
 
 		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event

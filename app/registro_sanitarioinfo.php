@@ -10,8 +10,8 @@ class cregistro_sanitario extends cTable {
 	var $idregistro_sanitario;
 	var $descripcion;
 	var $idpais;
-	var $estado;
 	var $idproducto;
+	var $estado;
 
 	//
 	// Table class constructor
@@ -51,14 +51,14 @@ class cregistro_sanitario extends cTable {
 		$this->idpais->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idpais'] = &$this->idpais;
 
-		// estado
-		$this->estado = new cField('registro_sanitario', 'registro_sanitario', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['estado'] = &$this->estado;
-
 		// idproducto
 		$this->idproducto = new cField('registro_sanitario', 'registro_sanitario', 'x_idproducto', 'idproducto', '`idproducto`', '`idproducto`', 3, -1, FALSE, '`idproducto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idproducto->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idproducto'] = &$this->idproducto;
+
+		// estado
+		$this->estado = new cField('registro_sanitario', 'registro_sanitario', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['estado'] = &$this->estado;
 	}
 
 	// Single column sort
@@ -536,8 +536,8 @@ class cregistro_sanitario extends cTable {
 		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
 		$this->descripcion->setDbValue($rs->fields('descripcion'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Render list row values
@@ -551,8 +551,8 @@ class cregistro_sanitario extends cTable {
 		// idregistro_sanitario
 		// descripcion
 		// idpais
-		// estado
 		// idproducto
+		// estado
 		// idregistro_sanitario
 
 		$this->idregistro_sanitario->ViewValue = $this->idregistro_sanitario->CurrentValue;
@@ -563,8 +563,62 @@ class cregistro_sanitario extends cTable {
 		$this->descripcion->ViewCustomAttributes = "";
 
 		// idpais
-		$this->idpais->ViewValue = $this->idpais->CurrentValue;
+		if (strval($this->idpais->CurrentValue) <> "") {
+			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idpais->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			}
+		} else {
+			$this->idpais->ViewValue = NULL;
+		}
 		$this->idpais->ViewCustomAttributes = "";
+
+		// idproducto
+		if (strval($this->idproducto->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+			}
+		} else {
+			$this->idproducto->ViewValue = NULL;
+		}
+		$this->idproducto->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -583,10 +637,6 @@ class cregistro_sanitario extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
-		// idproducto
-		$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
-		$this->idproducto->ViewCustomAttributes = "";
-
 		// idregistro_sanitario
 		$this->idregistro_sanitario->LinkCustomAttributes = "";
 		$this->idregistro_sanitario->HrefValue = "";
@@ -602,15 +652,15 @@ class cregistro_sanitario extends cTable {
 		$this->idpais->HrefValue = "";
 		$this->idpais->TooltipValue = "";
 
-		// estado
-		$this->estado->LinkCustomAttributes = "";
-		$this->estado->HrefValue = "";
-		$this->estado->TooltipValue = "";
-
 		// idproducto
 		$this->idproducto->LinkCustomAttributes = "";
 		$this->idproducto->HrefValue = "";
 		$this->idproducto->TooltipValue = "";
+
+		// estado
+		$this->estado->LinkCustomAttributes = "";
+		$this->estado->HrefValue = "";
+		$this->estado->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -638,21 +688,19 @@ class cregistro_sanitario extends cTable {
 		// idpais
 		$this->idpais->EditAttrs["class"] = "form-control";
 		$this->idpais->EditCustomAttributes = "";
-		$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-		$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
-
-		// estado
-		$this->estado->EditCustomAttributes = "";
-		$arwrk = array();
-		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-		$this->estado->EditValue = $arwrk;
 
 		// idproducto
 		$this->idproducto->EditAttrs["class"] = "form-control";
 		$this->idproducto->EditCustomAttributes = "";
-		$this->idproducto->EditValue = ew_HtmlEncode($this->idproducto->CurrentValue);
-		$this->idproducto->PlaceHolder = ew_RemoveHtml($this->idproducto->FldCaption());
+
+		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
+		$this->estado->EditCustomAttributes = "";
+		$arwrk = array();
+		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -681,14 +729,14 @@ class cregistro_sanitario extends cTable {
 					if ($this->idregistro_sanitario->Exportable) $Doc->ExportCaption($this->idregistro_sanitario);
 					if ($this->descripcion->Exportable) $Doc->ExportCaption($this->descripcion);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
-					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->idregistro_sanitario->Exportable) $Doc->ExportCaption($this->idregistro_sanitario);
 					if ($this->descripcion->Exportable) $Doc->ExportCaption($this->descripcion);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
-					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
 			}
@@ -723,14 +771,14 @@ class cregistro_sanitario extends cTable {
 						if ($this->idregistro_sanitario->Exportable) $Doc->ExportField($this->idregistro_sanitario);
 						if ($this->descripcion->Exportable) $Doc->ExportField($this->descripcion);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
-						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->idregistro_sanitario->Exportable) $Doc->ExportField($this->idregistro_sanitario);
 						if ($this->descripcion->Exportable) $Doc->ExportField($this->descripcion);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
-						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();
 				}

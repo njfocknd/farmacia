@@ -225,7 +225,6 @@ class cempresa_edit extends cempresa {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idempresa->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -412,20 +411,20 @@ class cempresa_edit extends cempresa {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idempresa->FldIsDetailKey)
-			$this->idempresa->setFormValue($objForm->GetValue("x_idempresa"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
 		if (!$this->direccion->FldIsDetailKey) {
 			$this->direccion->setFormValue($objForm->GetValue("x_direccion"));
 		}
-		if (!$this->estado->FldIsDetailKey) {
-			$this->estado->setFormValue($objForm->GetValue("x_estado"));
-		}
 		if (!$this->idpais->FldIsDetailKey) {
 			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		}
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
+		}
+		if (!$this->idempresa->FldIsDetailKey)
+			$this->idempresa->setFormValue($objForm->GetValue("x_idempresa"));
 	}
 
 	// Restore form values
@@ -435,8 +434,8 @@ class cempresa_edit extends cempresa {
 		$this->idempresa->CurrentValue = $this->idempresa->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->direccion->CurrentValue = $this->direccion->FormValue;
-		$this->estado->CurrentValue = $this->estado->FormValue;
 		$this->idpais->CurrentValue = $this->idpais->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
 	// Load row based on key values
@@ -471,8 +470,8 @@ class cempresa_edit extends cempresa {
 		$this->idempresa->setDbValue($rs->fields('idempresa'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -482,8 +481,8 @@ class cempresa_edit extends cempresa {
 		$this->idempresa->DbValue = $row['idempresa'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->direccion->DbValue = $row['direccion'];
-		$this->estado->DbValue = $row['estado'];
 		$this->idpais->DbValue = $row['idpais'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -500,8 +499,8 @@ class cempresa_edit extends cempresa {
 		// idempresa
 		// nombre
 		// direccion
-		// estado
 		// idpais
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -516,6 +515,31 @@ class cempresa_edit extends cempresa {
 			// direccion
 			$this->direccion->ViewValue = $this->direccion->CurrentValue;
 			$this->direccion->ViewCustomAttributes = "";
+
+			// idpais
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -534,15 +558,6 @@ class cempresa_edit extends cempresa {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
-
-			// idempresa
-			$this->idempresa->LinkCustomAttributes = "";
-			$this->idempresa->HrefValue = "";
-			$this->idempresa->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -553,22 +568,16 @@ class cempresa_edit extends cempresa {
 			$this->direccion->HrefValue = "";
 			$this->direccion->TooltipValue = "";
 
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
 			// idpais
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
-		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idempresa
-			$this->idempresa->EditAttrs["class"] = "form-control";
-			$this->idempresa->EditCustomAttributes = "";
-			$this->idempresa->EditValue = $this->idempresa->CurrentValue;
-			$this->idempresa->ViewCustomAttributes = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
+		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
@@ -582,35 +591,52 @@ class cempresa_edit extends cempresa {
 			$this->direccion->EditValue = ew_HtmlEncode($this->direccion->CurrentValue);
 			$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
 
+			// idpais
+			$this->idpais->EditAttrs["class"] = "form-control";
+			$this->idpais->EditCustomAttributes = "";
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
+
 			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
 			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
-			// idpais
-			$this->idpais->EditAttrs["class"] = "form-control";
-			$this->idpais->EditCustomAttributes = "";
-			$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-			$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
-
 			// Edit refer script
-			// idempresa
-
-			$this->idempresa->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
 
 			// direccion
 			$this->direccion->HrefValue = "";
 
-			// estado
-			$this->estado->HrefValue = "";
-
 			// idpais
 			$this->idpais->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -633,14 +659,11 @@ class cempresa_edit extends cempresa {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if ($this->estado->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idpais->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idpais->FldErrMsg());
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -681,11 +704,11 @@ class cempresa_edit extends cempresa {
 			// direccion
 			$this->direccion->SetDbValueDef($rsnew, $this->direccion->CurrentValue, NULL, $this->direccion->ReadOnly);
 
-			// estado
-			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
-
 			// idpais
 			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
+
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -841,15 +864,12 @@ fempresaedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_estado");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $empresa->estado->FldCaption(), $empresa->estado->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_idpais");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $empresa->idpais->FldCaption(), $empresa->idpais->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idpais");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($empresa->idpais->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_estado");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $empresa->estado->FldCaption(), $empresa->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -886,8 +906,9 @@ fempresaedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fempresaedit.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_idpais","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -909,18 +930,6 @@ $empresa_edit->ShowMessage();
 <input type="hidden" name="t" value="empresa">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($empresa->idempresa->Visible) { // idempresa ?>
-	<div id="r_idempresa" class="form-group">
-		<label id="elh_empresa_idempresa" class="col-sm-2 control-label ewLabel"><?php echo $empresa->idempresa->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $empresa->idempresa->CellAttributes() ?>>
-<span id="el_empresa_idempresa">
-<span<?php echo $empresa->idempresa->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $empresa->idempresa->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idempresa" name="x_idempresa" id="x_idempresa" value="<?php echo ew_HtmlEncode($empresa->idempresa->CurrentValue) ?>">
-<?php echo $empresa->idempresa->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($empresa->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_empresa_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $empresa->nombre->FldCaption() ?></label>
@@ -941,47 +950,72 @@ $empresa_edit->ShowMessage();
 <?php echo $empresa->direccion->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($empresa->estado->Visible) { // estado ?>
-	<div id="r_estado" class="form-group">
-		<label id="elh_empresa_estado" class="col-sm-2 control-label ewLabel"><?php echo $empresa->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $empresa->estado->CellAttributes() ?>>
-<span id="el_empresa_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $empresa->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $empresa->estado->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($empresa->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $empresa->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-?>
-</div>
-</span>
-<?php echo $empresa->estado->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($empresa->idpais->Visible) { // idpais ?>
 	<div id="r_idpais" class="form-group">
 		<label id="elh_empresa_idpais" for="x_idpais" class="col-sm-2 control-label ewLabel"><?php echo $empresa->idpais->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $empresa->idpais->CellAttributes() ?>>
 <span id="el_empresa_idpais">
-<input type="text" data-field="x_idpais" name="x_idpais" id="x_idpais" size="30" placeholder="<?php echo ew_HtmlEncode($empresa->idpais->PlaceHolder) ?>" value="<?php echo $empresa->idpais->EditValue ?>"<?php echo $empresa->idpais->EditAttributes() ?>>
+<select data-field="x_idpais" id="x_idpais" name="x_idpais"<?php echo $empresa->idpais->EditAttributes() ?>>
+<?php
+if (is_array($empresa->idpais->EditValue)) {
+	$arwrk = $empresa->idpais->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($empresa->idpais->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+$sWhereWrk = "";
+
+// Call Lookup selecting
+$empresa->Lookup_Selecting($empresa->idpais, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idpais" id="s_x_idpais" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idpais` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $empresa->idpais->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($empresa->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_empresa_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $empresa->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $empresa->estado->CellAttributes() ?>>
+<span id="el_empresa_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $empresa->estado->EditAttributes() ?>>
+<?php
+if (is_array($empresa->estado->EditValue)) {
+	$arwrk = $empresa->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($empresa->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+</span>
+<?php echo $empresa->estado->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 </div>
+<input type="hidden" data-field="x_idempresa" name="x_idempresa" id="x_idempresa" value="<?php echo ew_HtmlEncode($empresa->idempresa->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

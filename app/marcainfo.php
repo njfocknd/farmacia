@@ -72,6 +72,30 @@ class cmarca extends cTable {
 		}
 	}
 
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "producto") {
+			$sDetailUrl = $GLOBALS["producto"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idmarca=" . urlencode($this->idmarca->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "marcalist.php";
+		}
+		return $sDetailUrl;
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -425,7 +449,10 @@ class cmarca extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		return $this->KeyUrl("marcaedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("marcaedit.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("marcaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -435,7 +462,10 @@ class cmarca extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		return $this->KeyUrl("marcaadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("marcaadd.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("marcaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL
@@ -555,7 +585,32 @@ class cmarca extends cTable {
 		$this->nombre->ViewCustomAttributes = "";
 
 		// idfabricante
-		$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+		if (strval($this->idfabricante->CurrentValue) <> "") {
+			$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+			}
+		} else {
+			$this->idfabricante->ViewValue = NULL;
+		}
 		$this->idfabricante->ViewCustomAttributes = "";
 
 		// estado
@@ -621,14 +676,14 @@ class cmarca extends cTable {
 		// idfabricante
 		$this->idfabricante->EditAttrs["class"] = "form-control";
 		$this->idfabricante->EditCustomAttributes = "";
-		$this->idfabricante->EditValue = ew_HtmlEncode($this->idfabricante->CurrentValue);
-		$this->idfabricante->PlaceHolder = ew_RemoveHtml($this->idfabricante->FldCaption());
 
 		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event

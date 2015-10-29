@@ -72,6 +72,53 @@ class cmunicipio extends cTable {
 		}
 	}
 
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
+	}
+
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
+	}
+
+	// Session master WHERE clause
+	function GetMasterFilter() {
+
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "departamento") {
+			if ($this->iddepartamento->getSessionValue() <> "")
+				$sMasterFilter .= "`iddepartamento`=" . ew_QuotedValue($this->iddepartamento->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "departamento") {
+			if ($this->iddepartamento->getSessionValue() <> "")
+				$sDetailFilter .= "`iddepartamento`=" . ew_QuotedValue($this->iddepartamento->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_departamento() {
+		return "`iddepartamento`=@iddepartamento@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_departamento() {
+		return "`iddepartamento`=@iddepartamento@";
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -555,24 +602,35 @@ class cmunicipio extends cTable {
 		$this->nombre->ViewCustomAttributes = "";
 
 		// iddepartamento
-		$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+		if (strval($this->iddepartamento->CurrentValue) <> "") {
+			$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+			}
+		} else {
+			$this->iddepartamento->ViewValue = NULL;
+		}
 		$this->iddepartamento->ViewCustomAttributes = "";
 
 		// state
-		if (strval($this->state->CurrentValue) <> "") {
-			switch ($this->state->CurrentValue) {
-				case $this->state->FldTagValue(1):
-					$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
-					break;
-				case $this->state->FldTagValue(2):
-					$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
-					break;
-				default:
-					$this->state->ViewValue = $this->state->CurrentValue;
-			}
-		} else {
-			$this->state->ViewValue = NULL;
-		}
 		$this->state->ViewCustomAttributes = "";
 
 		// idmunicipio
@@ -621,15 +679,41 @@ class cmunicipio extends cTable {
 		// iddepartamento
 		$this->iddepartamento->EditAttrs["class"] = "form-control";
 		$this->iddepartamento->EditCustomAttributes = "";
-		$this->iddepartamento->EditValue = ew_HtmlEncode($this->iddepartamento->CurrentValue);
-		$this->iddepartamento->PlaceHolder = ew_RemoveHtml($this->iddepartamento->FldCaption());
+		if ($this->iddepartamento->getSessionValue() <> "") {
+			$this->iddepartamento->CurrentValue = $this->iddepartamento->getSessionValue();
+		if (strval($this->iddepartamento->CurrentValue) <> "") {
+			$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+			}
+		} else {
+			$this->iddepartamento->ViewValue = NULL;
+		}
+		$this->iddepartamento->ViewCustomAttributes = "";
+		} else {
+		}
 
 		// state
+		$this->state->EditAttrs["class"] = "form-control";
 		$this->state->EditCustomAttributes = "";
-		$arwrk = array();
-		$arwrk[] = array($this->state->FldTagValue(1), $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->FldTagValue(1));
-		$arwrk[] = array($this->state->FldTagValue(2), $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->FldTagValue(2));
-		$this->state->EditValue = $arwrk;
 
 		// Call Row Rendered event
 		$this->Row_Rendered();

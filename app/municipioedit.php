@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "municipioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "departamentoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -201,6 +202,9 @@ class cmunicipio_edit extends cmunicipio {
 			$GLOBALS["Table"] = &$GLOBALS["municipio"];
 		}
 
+		// Table object (departamento)
+		if (!isset($GLOBALS['departamento'])) $GLOBALS['departamento'] = new cdepartamento();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'edit', TRUE);
@@ -225,7 +229,6 @@ class cmunicipio_edit extends cmunicipio {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idmunicipio->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -313,6 +316,9 @@ class cmunicipio_edit extends cmunicipio {
 		if (@$_GET["idmunicipio"] <> "") {
 			$this->idmunicipio->setQueryStringValue($_GET["idmunicipio"]);
 		}
+
+		// Set up master detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -412,8 +418,6 @@ class cmunicipio_edit extends cmunicipio {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idmunicipio->FldIsDetailKey)
-			$this->idmunicipio->setFormValue($objForm->GetValue("x_idmunicipio"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
@@ -423,6 +427,8 @@ class cmunicipio_edit extends cmunicipio {
 		if (!$this->state->FldIsDetailKey) {
 			$this->state->setFormValue($objForm->GetValue("x_state"));
 		}
+		if (!$this->idmunicipio->FldIsDetailKey)
+			$this->idmunicipio->setFormValue($objForm->GetValue("x_idmunicipio"));
 	}
 
 	// Restore form values
@@ -507,30 +513,36 @@ class cmunicipio_edit extends cmunicipio {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// iddepartamento
-			$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+			if (strval($this->iddepartamento->CurrentValue) <> "") {
+				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+				}
+			} else {
+				$this->iddepartamento->ViewValue = NULL;
+			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
 			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
-						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
-						break;
-					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
-				}
-			} else {
-				$this->state->ViewValue = NULL;
-			}
 			$this->state->ViewCustomAttributes = "";
-
-			// idmunicipio
-			$this->idmunicipio->LinkCustomAttributes = "";
-			$this->idmunicipio->HrefValue = "";
-			$this->idmunicipio->TooltipValue = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -548,12 +560,6 @@ class cmunicipio_edit extends cmunicipio {
 			$this->state->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idmunicipio
-			$this->idmunicipio->EditAttrs["class"] = "form-control";
-			$this->idmunicipio->EditCustomAttributes = "";
-			$this->idmunicipio->EditValue = $this->idmunicipio->CurrentValue;
-			$this->idmunicipio->ViewCustomAttributes = "";
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -563,22 +569,69 @@ class cmunicipio_edit extends cmunicipio {
 			// iddepartamento
 			$this->iddepartamento->EditAttrs["class"] = "form-control";
 			$this->iddepartamento->EditCustomAttributes = "";
-			$this->iddepartamento->EditValue = ew_HtmlEncode($this->iddepartamento->CurrentValue);
-			$this->iddepartamento->PlaceHolder = ew_RemoveHtml($this->iddepartamento->FldCaption());
+			if ($this->iddepartamento->getSessionValue() <> "") {
+				$this->iddepartamento->CurrentValue = $this->iddepartamento->getSessionValue();
+			if (strval($this->iddepartamento->CurrentValue) <> "") {
+				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+				}
+			} else {
+				$this->iddepartamento->ViewValue = NULL;
+			}
+			$this->iddepartamento->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->iddepartamento->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `departamento`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->iddepartamento->EditValue = $arwrk;
+			}
 
 			// state
+			$this->state->EditAttrs["class"] = "form-control";
 			$this->state->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->state->FldTagValue(1), $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->FldTagValue(1));
-			$arwrk[] = array($this->state->FldTagValue(2), $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->FldTagValue(2));
-			$this->state->EditValue = $arwrk;
 
 			// Edit refer script
-			// idmunicipio
-
-			$this->idmunicipio->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
 
 			// iddepartamento
@@ -611,10 +664,7 @@ class cmunicipio_edit extends cmunicipio {
 		if (!$this->iddepartamento->FldIsDetailKey && !is_null($this->iddepartamento->FormValue) && $this->iddepartamento->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->iddepartamento->FldCaption(), $this->iddepartamento->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->iddepartamento->FormValue)) {
-			ew_AddMessage($gsFormError, $this->iddepartamento->FldErrMsg());
-		}
-		if ($this->state->FormValue == "") {
+		if (!$this->state->FldIsDetailKey && !is_null($this->state->FormValue) && $this->state->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->state->FldCaption(), $this->state->ReqErrMsg));
 		}
 
@@ -689,6 +739,49 @@ class cmunicipio_edit extends cmunicipio {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "departamento") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_iddepartamento"] <> "") {
+					$GLOBALS["departamento"]->iddepartamento->setQueryStringValue($_GET["fk_iddepartamento"]);
+					$this->iddepartamento->setQueryStringValue($GLOBALS["departamento"]->iddepartamento->QueryStringValue);
+					$this->iddepartamento->setSessionValue($this->iddepartamento->QueryStringValue);
+					if (!is_numeric($GLOBALS["departamento"]->iddepartamento->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "departamento") {
+				if ($this->iddepartamento->QueryStringValue == "") $this->iddepartamento->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -816,9 +909,6 @@ fmunicipioedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_iddepartamento");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $municipio->iddepartamento->FldCaption(), $municipio->iddepartamento->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_iddepartamento");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($municipio->iddepartamento->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_state");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $municipio->state->FldCaption(), $municipio->state->ReqErrMsg)) ?>");
@@ -858,8 +948,9 @@ fmunicipioedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fmunicipioedit.Lists["x_iddepartamento"] = {"LinkField":"x_iddepartamento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -881,18 +972,6 @@ $municipio_edit->ShowMessage();
 <input type="hidden" name="t" value="municipio">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($municipio->idmunicipio->Visible) { // idmunicipio ?>
-	<div id="r_idmunicipio" class="form-group">
-		<label id="elh_municipio_idmunicipio" class="col-sm-2 control-label ewLabel"><?php echo $municipio->idmunicipio->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $municipio->idmunicipio->CellAttributes() ?>>
-<span id="el_municipio_idmunicipio">
-<span<?php echo $municipio->idmunicipio->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $municipio->idmunicipio->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idmunicipio" name="x_idmunicipio" id="x_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->CurrentValue) ?>">
-<?php echo $municipio->idmunicipio->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($municipio->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_municipio_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $municipio->nombre->FldCaption() ?></label>
@@ -907,43 +986,80 @@ $municipio_edit->ShowMessage();
 	<div id="r_iddepartamento" class="form-group">
 		<label id="elh_municipio_iddepartamento" for="x_iddepartamento" class="col-sm-2 control-label ewLabel"><?php echo $municipio->iddepartamento->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $municipio->iddepartamento->CellAttributes() ?>>
+<?php if ($municipio->iddepartamento->getSessionValue() <> "") { ?>
 <span id="el_municipio_iddepartamento">
-<input type="text" data-field="x_iddepartamento" name="x_iddepartamento" id="x_iddepartamento" size="30" placeholder="<?php echo ew_HtmlEncode($municipio->iddepartamento->PlaceHolder) ?>" value="<?php echo $municipio->iddepartamento->EditValue ?>"<?php echo $municipio->iddepartamento->EditAttributes() ?>>
+<span<?php echo $municipio->iddepartamento->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $municipio->iddepartamento->ViewValue ?></p></span>
 </span>
+<input type="hidden" id="x_iddepartamento" name="x_iddepartamento" value="<?php echo ew_HtmlEncode($municipio->iddepartamento->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el_municipio_iddepartamento">
+<select data-field="x_iddepartamento" id="x_iddepartamento" name="x_iddepartamento"<?php echo $municipio->iddepartamento->EditAttributes() ?>>
+<?php
+if (is_array($municipio->iddepartamento->EditValue)) {
+	$arwrk = $municipio->iddepartamento->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($municipio->iddepartamento->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$municipio->Lookup_Selecting($municipio->iddepartamento, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_iddepartamento" id="s_x_iddepartamento" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`iddepartamento` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
 <?php echo $municipio->iddepartamento->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($municipio->state->Visible) { // state ?>
 	<div id="r_state" class="form-group">
-		<label id="elh_municipio_state" class="col-sm-2 control-label ewLabel"><?php echo $municipio->state->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_municipio_state" for="x_state" class="col-sm-2 control-label ewLabel"><?php echo $municipio->state->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $municipio->state->CellAttributes() ?>>
 <span id="el_municipio_state">
-<div id="tp_x_state" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_state" id="x_state" value="{value}"<?php echo $municipio->state->EditAttributes() ?>></div>
-<div id="dsl_x_state" data-repeatcolumn="5" class="ewItemList">
+<select data-field="x_state" id="x_state" name="x_state"<?php echo $municipio->state->EditAttributes() ?>>
 <?php
-$arwrk = $municipio->state->EditValue;
-if (is_array($arwrk)) {
+if (is_array($municipio->state->EditValue)) {
+	$arwrk = $municipio->state->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($municipio->state->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($municipio->state->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_state" name="x_state" id="x_state_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $municipio->state->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
 <?php echo $municipio->state->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
+<input type="hidden" data-field="x_idmunicipio" name="x_idmunicipio" id="x_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

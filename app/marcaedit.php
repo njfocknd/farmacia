@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -225,7 +226,6 @@ class cmarca_edit extends cmarca {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idmarca->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -242,6 +242,14 @@ class cmarca_edit extends cmarca {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'producto'
+			if (@$_POST["grid"] == "fproductogrid") {
+				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+				$GLOBALS["producto_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -321,6 +329,9 @@ class cmarca_edit extends cmarca {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
+
+			// Set up detail parameters
+			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
@@ -344,17 +355,26 @@ class cmarca_edit extends cmarca {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("marcalist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
+						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -412,8 +432,6 @@ class cmarca_edit extends cmarca {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idmarca->FldIsDetailKey)
-			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
@@ -423,6 +441,8 @@ class cmarca_edit extends cmarca {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
+		if (!$this->idmarca->FldIsDetailKey)
+			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
 	}
 
 	// Restore form values
@@ -507,7 +527,32 @@ class cmarca_edit extends cmarca {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// idfabricante
-			$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+			if (strval($this->idfabricante->CurrentValue) <> "") {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+				}
+			} else {
+				$this->idfabricante->ViewValue = NULL;
+			}
 			$this->idfabricante->ViewCustomAttributes = "";
 
 			// estado
@@ -527,11 +572,6 @@ class cmarca_edit extends cmarca {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idmarca
-			$this->idmarca->LinkCustomAttributes = "";
-			$this->idmarca->HrefValue = "";
-			$this->idmarca->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -548,12 +588,6 @@ class cmarca_edit extends cmarca {
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idmarca
-			$this->idmarca->EditAttrs["class"] = "form-control";
-			$this->idmarca->EditCustomAttributes = "";
-			$this->idmarca->EditValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewCustomAttributes = "";
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -563,22 +597,43 @@ class cmarca_edit extends cmarca {
 			// idfabricante
 			$this->idfabricante->EditAttrs["class"] = "form-control";
 			$this->idfabricante->EditCustomAttributes = "";
-			$this->idfabricante->EditValue = ew_HtmlEncode($this->idfabricante->CurrentValue);
-			$this->idfabricante->PlaceHolder = ew_RemoveHtml($this->idfabricante->FldCaption());
+			if (trim(strval($this->idfabricante->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fabricante`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idfabricante->EditValue = $arwrk;
 
 			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
 			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// idmarca
-
-			$this->idmarca->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
 
 			// idfabricante
@@ -614,11 +669,15 @@ class cmarca_edit extends cmarca {
 		if (!$this->idfabricante->FldIsDetailKey && !is_null($this->idfabricante->FormValue) && $this->idfabricante->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idfabricante->FldCaption(), $this->idfabricante->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idfabricante->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idfabricante->FldErrMsg());
-		}
-		if ($this->estado->FormValue == "") {
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		}
+
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("producto", $DetailTblVar) && $GLOBALS["producto"]->DetailEdit) {
+			if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid(); // get detail page object
+			$GLOBALS["producto_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -648,6 +707,10 @@ class cmarca_edit extends cmarca {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
+			// Begin transaction
+			if ($this->getCurrentDetailTable() <> "")
+				$conn->BeginTrans();
+
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
@@ -673,6 +736,24 @@ class cmarca_edit extends cmarca {
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
 				}
+
+				// Update detail records
+				if ($EditRow) {
+					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+					if (in_array("producto", $DetailTblVar) && $GLOBALS["producto"]->DetailEdit) {
+						if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid(); // Get detail page object
+						$EditRow = $GLOBALS["producto_grid"]->GridUpdate();
+					}
+				}
+
+				// Commit/Rollback transaction
+				if ($this->getCurrentDetailTable() <> "") {
+					if ($EditRow) {
+						$conn->CommitTrans(); // Commit transaction
+					} else {
+						$conn->RollbackTrans(); // Rollback transaction
+					}
+				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
 
@@ -692,6 +773,36 @@ class cmarca_edit extends cmarca {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("producto", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_grid"]))
+					$GLOBALS["producto_grid"] = new cproducto_grid;
+				if ($GLOBALS["producto_grid"]->DetailEdit) {
+					$GLOBALS["producto_grid"]->CurrentMode = "edit";
+					$GLOBALS["producto_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_grid"]->idmarca->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_grid"]->idmarca->CurrentValue = $this->idmarca->CurrentValue;
+					$GLOBALS["producto_grid"]->idmarca->setSessionValue($GLOBALS["producto_grid"]->idmarca->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -822,9 +933,6 @@ fmarcaedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idfabricante");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $marca->idfabricante->FldCaption(), $marca->idfabricante->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idfabricante");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($marca->idfabricante->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $marca->estado->FldCaption(), $marca->estado->ReqErrMsg)) ?>");
@@ -864,8 +972,9 @@ fmarcaedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fmarcaedit.Lists["x_idfabricante"] = {"LinkField":"x_idfabricante","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -887,18 +996,6 @@ $marca_edit->ShowMessage();
 <input type="hidden" name="t" value="marca">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($marca->idmarca->Visible) { // idmarca ?>
-	<div id="r_idmarca" class="form-group">
-		<label id="elh_marca_idmarca" class="col-sm-2 control-label ewLabel"><?php echo $marca->idmarca->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $marca->idmarca->CellAttributes() ?>>
-<span id="el_marca_idmarca">
-<span<?php echo $marca->idmarca->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $marca->idmarca->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idmarca" name="x_idmarca" id="x_idmarca" value="<?php echo ew_HtmlEncode($marca->idmarca->CurrentValue) ?>">
-<?php echo $marca->idmarca->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($marca->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_marca_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $marca->nombre->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -914,42 +1011,79 @@ $marca_edit->ShowMessage();
 		<label id="elh_marca_idfabricante" for="x_idfabricante" class="col-sm-2 control-label ewLabel"><?php echo $marca->idfabricante->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $marca->idfabricante->CellAttributes() ?>>
 <span id="el_marca_idfabricante">
-<input type="text" data-field="x_idfabricante" name="x_idfabricante" id="x_idfabricante" size="30" placeholder="<?php echo ew_HtmlEncode($marca->idfabricante->PlaceHolder) ?>" value="<?php echo $marca->idfabricante->EditValue ?>"<?php echo $marca->idfabricante->EditAttributes() ?>>
+<select data-field="x_idfabricante" id="x_idfabricante" name="x_idfabricante"<?php echo $marca->idfabricante->EditAttributes() ?>>
+<?php
+if (is_array($marca->idfabricante->EditValue)) {
+	$arwrk = $marca->idfabricante->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($marca->idfabricante->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$marca->Lookup_Selecting($marca->idfabricante, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idfabricante" id="s_x_idfabricante" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idfabricante` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $marca->idfabricante->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($marca->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_marca_estado" class="col-sm-2 control-label ewLabel"><?php echo $marca->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_marca_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $marca->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $marca->estado->CellAttributes() ?>>
 <span id="el_marca_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $marca->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $marca->estado->EditAttributes() ?>>
 <?php
-$arwrk = $marca->estado->EditValue;
-if (is_array($arwrk)) {
+if (is_array($marca->estado->EditValue)) {
+	$arwrk = $marca->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($marca->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($marca->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $marca->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
 <?php echo $marca->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
+<input type="hidden" data-field="x_idmarca" name="x_idmarca" id="x_idmarca" value="<?php echo ew_HtmlEncode($marca->idmarca->CurrentValue) ?>">
+<?php
+	if (in_array("producto", explode(",", $marca->getCurrentDetailTable())) && $producto->DetailEdit) {
+?>
+<?php if ($marca->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "productogrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

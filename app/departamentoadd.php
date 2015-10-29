@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "departamentoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "municipiogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -201,6 +203,9 @@ class cdepartamento_add extends cdepartamento {
 			$GLOBALS["Table"] = &$GLOBALS["departamento"];
 		}
 
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'add', TRUE);
@@ -241,6 +246,14 @@ class cdepartamento_add extends cdepartamento {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'municipio'
+			if (@$_POST["grid"] == "fmunicipiogrid") {
+				if (!isset($GLOBALS["municipio_grid"])) $GLOBALS["municipio_grid"] = new cmunicipio_grid;
+				$GLOBALS["municipio_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -312,6 +325,9 @@ class cdepartamento_add extends cdepartamento {
 	function Page_Main() {
 		global $objForm, $Language, $gsFormError;
 
+		// Set up master/detail parameters
+		$this->SetUpMasterParms();
+
 		// Process form if post back
 		if (@$_POST["a_add"] <> "") {
 			$this->CurrentAction = $_POST["a_add"]; // Get form action
@@ -339,6 +355,9 @@ class cdepartamento_add extends cdepartamento {
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
+		// Set up detail parameters
+		$this->SetUpDetailParms();
+
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -358,19 +377,28 @@ class cdepartamento_add extends cdepartamento {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("departamentolist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail add
+						$sReturnUrl = $this->GetDetailUrl();
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "departamentoview.php")
 						$sReturnUrl = $this->GetViewUrl(); // View paging, return to view page with keyurl directly
 					$this->Page_Terminate($sReturnUrl); // Clean up and return
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -575,6 +603,35 @@ class cdepartamento_add extends cdepartamento {
 			// idpais
 			$this->idpais->EditAttrs["class"] = "form-control";
 			$this->idpais->EditCustomAttributes = "";
+			if ($this->idpais->getSessionValue() <> "") {
+				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
+			} else {
 			if (trim(strval($this->idpais->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
@@ -598,6 +655,7 @@ class cdepartamento_add extends cdepartamento {
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idpais->EditValue = $arwrk;
+			}
 
 			// Edit refer script
 			// nombre
@@ -632,6 +690,13 @@ class cdepartamento_add extends cdepartamento {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
 		}
 
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("municipio", $DetailTblVar) && $GLOBALS["municipio"]->DetailAdd) {
+			if (!isset($GLOBALS["municipio_grid"])) $GLOBALS["municipio_grid"] = new cmunicipio_grid(); // get detail page object
+			$GLOBALS["municipio_grid"]->ValidateGridForm();
+		}
+
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
 
@@ -647,6 +712,10 @@ class cdepartamento_add extends cdepartamento {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
+
+		// Begin transaction
+		if ($this->getCurrentDetailTable() <> "")
+			$conn->BeginTrans();
 
 		// Load db values from rsold
 		if ($rsold) {
@@ -687,6 +756,27 @@ class cdepartamento_add extends cdepartamento {
 			$this->iddepartamento->setDbValue($conn->Insert_ID());
 			$rsnew['iddepartamento'] = $this->iddepartamento->DbValue;
 		}
+
+		// Add detail records
+		if ($AddRow) {
+			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+			if (in_array("municipio", $DetailTblVar) && $GLOBALS["municipio"]->DetailAdd) {
+				$GLOBALS["municipio"]->iddepartamento->setSessionValue($this->iddepartamento->CurrentValue); // Set master key
+				if (!isset($GLOBALS["municipio_grid"])) $GLOBALS["municipio_grid"] = new cmunicipio_grid(); // Get detail page object
+				$AddRow = $GLOBALS["municipio_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["municipio"]->iddepartamento->setSessionValue(""); // Clear master key if insert failed
+			}
+		}
+
+		// Commit/Rollback transaction
+		if ($this->getCurrentDetailTable() <> "") {
+			if ($AddRow) {
+				$conn->CommitTrans(); // Commit transaction
+			} else {
+				$conn->RollbackTrans(); // Rollback transaction
+			}
+		}
 		if ($AddRow) {
 
 			// Call Row Inserted event
@@ -694,6 +784,81 @@ class cdepartamento_add extends cdepartamento {
 			$this->Row_Inserted($rs, $rsnew);
 		}
 		return $AddRow;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "pais") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idpais"] <> "") {
+					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
+					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
+					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
+					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "pais") {
+				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("municipio", $DetailTblVar)) {
+				if (!isset($GLOBALS["municipio_grid"]))
+					$GLOBALS["municipio_grid"] = new cmunicipio_grid;
+				if ($GLOBALS["municipio_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["municipio_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["municipio_grid"]->CurrentMode = "add";
+					$GLOBALS["municipio_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["municipio_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["municipio_grid"]->setStartRecordNumber(1);
+					$GLOBALS["municipio_grid"]->iddepartamento->FldIsDetailKey = TRUE;
+					$GLOBALS["municipio_grid"]->iddepartamento->CurrentValue = $this->iddepartamento->CurrentValue;
+					$GLOBALS["municipio_grid"]->iddepartamento->setSessionValue($GLOBALS["municipio_grid"]->iddepartamento->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -895,6 +1060,13 @@ $departamento_add->ShowMessage();
 	<div id="r_idpais" class="form-group">
 		<label id="elh_departamento_idpais" for="x_idpais" class="col-sm-2 control-label ewLabel"><?php echo $departamento->idpais->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $departamento->idpais->CellAttributes() ?>>
+<?php if ($departamento->idpais->getSessionValue() <> "") { ?>
+<span id="el_departamento_idpais">
+<span<?php echo $departamento->idpais->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $departamento->idpais->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idpais" name="x_idpais" value="<?php echo ew_HtmlEncode($departamento->idpais->CurrentValue) ?>">
+<?php } else { ?>
 <span id="el_departamento_idpais">
 <select data-field="x_idpais" id="x_idpais" name="x_idpais"<?php echo $departamento->idpais->EditAttributes() ?>>
 <?php
@@ -928,10 +1100,19 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 ?>
 <input type="hidden" name="s_x_idpais" id="s_x_idpais" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idpais` = {filter_value}"); ?>&amp;t0=3">
 </span>
+<?php } ?>
 <?php echo $departamento->idpais->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
+<?php
+	if (in_array("municipio", explode(",", $departamento->getCurrentDetailTable())) && $municipio->DetailAdd) {
+?>
+<?php if ($departamento->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("municipio", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "municipiogrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("AddBtn") ?></button>

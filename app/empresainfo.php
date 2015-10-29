@@ -10,8 +10,8 @@ class cempresa extends cTable {
 	var $idempresa;
 	var $nombre;
 	var $direccion;
-	var $estado;
 	var $idpais;
+	var $estado;
 
 	//
 	// Table class constructor
@@ -50,14 +50,14 @@ class cempresa extends cTable {
 		$this->direccion = new cField('empresa', 'empresa', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['direccion'] = &$this->direccion;
 
-		// estado
-		$this->estado = new cField('empresa', 'empresa', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['estado'] = &$this->estado;
-
 		// idpais
 		$this->idpais = new cField('empresa', 'empresa', 'x_idpais', 'idpais', '`idpais`', '`idpais`', 3, -1, FALSE, '`idpais`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idpais->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idpais'] = &$this->idpais;
+
+		// estado
+		$this->estado = new cField('empresa', 'empresa', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['estado'] = &$this->estado;
 	}
 
 	// Single column sort
@@ -535,8 +535,8 @@ class cempresa extends cTable {
 		$this->idempresa->setDbValue($rs->fields('idempresa'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Render list row values
@@ -550,8 +550,8 @@ class cempresa extends cTable {
 		// idempresa
 		// nombre
 		// direccion
-		// estado
 		// idpais
+		// estado
 		// idempresa
 
 		$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
@@ -564,6 +564,31 @@ class cempresa extends cTable {
 		// direccion
 		$this->direccion->ViewValue = $this->direccion->CurrentValue;
 		$this->direccion->ViewCustomAttributes = "";
+
+		// idpais
+		if (strval($this->idpais->CurrentValue) <> "") {
+			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+		$sWhereWrk = "";
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idpais->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			}
+		} else {
+			$this->idpais->ViewValue = NULL;
+		}
+		$this->idpais->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -582,10 +607,6 @@ class cempresa extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
-		// idpais
-		$this->idpais->ViewValue = $this->idpais->CurrentValue;
-		$this->idpais->ViewCustomAttributes = "";
-
 		// idempresa
 		$this->idempresa->LinkCustomAttributes = "";
 		$this->idempresa->HrefValue = "";
@@ -601,15 +622,15 @@ class cempresa extends cTable {
 		$this->direccion->HrefValue = "";
 		$this->direccion->TooltipValue = "";
 
-		// estado
-		$this->estado->LinkCustomAttributes = "";
-		$this->estado->HrefValue = "";
-		$this->estado->TooltipValue = "";
-
 		// idpais
 		$this->idpais->LinkCustomAttributes = "";
 		$this->idpais->HrefValue = "";
 		$this->idpais->TooltipValue = "";
+
+		// estado
+		$this->estado->LinkCustomAttributes = "";
+		$this->estado->HrefValue = "";
+		$this->estado->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -640,18 +661,18 @@ class cempresa extends cTable {
 		$this->direccion->EditValue = ew_HtmlEncode($this->direccion->CurrentValue);
 		$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
 
+		// idpais
+		$this->idpais->EditAttrs["class"] = "form-control";
+		$this->idpais->EditCustomAttributes = "";
+
 		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
-
-		// idpais
-		$this->idpais->EditAttrs["class"] = "form-control";
-		$this->idpais->EditCustomAttributes = "";
-		$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-		$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -677,17 +698,15 @@ class cempresa extends cTable {
 			if ($Doc->Horizontal) { // Horizontal format, write header
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
-					if ($this->idempresa->Exportable) $Doc->ExportCaption($this->idempresa);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
 				} else {
 					if ($this->idempresa->Exportable) $Doc->ExportCaption($this->idempresa);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
 			}
@@ -719,17 +738,15 @@ class cempresa extends cTable {
 				if (!$Doc->ExportCustom) {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
-						if ($this->idempresa->Exportable) $Doc->ExportField($this->idempresa);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
 					} else {
 						if ($this->idempresa->Exportable) $Doc->ExportField($this->idempresa);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();
 				}

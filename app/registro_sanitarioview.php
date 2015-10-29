@@ -506,8 +506,8 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
 		$this->descripcion->setDbValue($rs->fields('descripcion'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -517,8 +517,8 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 		$this->idregistro_sanitario->DbValue = $row['idregistro_sanitario'];
 		$this->descripcion->DbValue = $row['descripcion'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->estado->DbValue = $row['estado'];
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -541,8 +541,8 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 		// idregistro_sanitario
 		// descripcion
 		// idpais
-		// estado
 		// idproducto
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -555,8 +555,62 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 			$this->descripcion->ViewCustomAttributes = "";
 
 			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
 			$this->idpais->ViewCustomAttributes = "";
+
+			// idproducto
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+				}
+			} else {
+				$this->idproducto->ViewValue = NULL;
+			}
+			$this->idproducto->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -575,10 +629,6 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto
-			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
-			$this->idproducto->ViewCustomAttributes = "";
-
 			// idregistro_sanitario
 			$this->idregistro_sanitario->LinkCustomAttributes = "";
 			$this->idregistro_sanitario->HrefValue = "";
@@ -594,15 +644,15 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
 
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
 			$this->idproducto->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -751,8 +801,10 @@ fregistro_sanitarioview.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fregistro_sanitarioview.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fregistro_sanitarioview.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -811,17 +863,6 @@ $registro_sanitario_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
-<?php if ($registro_sanitario->estado->Visible) { // estado ?>
-	<tr id="r_estado">
-		<td><span id="elh_registro_sanitario_estado"><?php echo $registro_sanitario->estado->FldCaption() ?></span></td>
-		<td<?php echo $registro_sanitario->estado->CellAttributes() ?>>
-<span id="el_registro_sanitario_estado" class="form-group">
-<span<?php echo $registro_sanitario->estado->ViewAttributes() ?>>
-<?php echo $registro_sanitario->estado->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
 <?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
 	<tr id="r_idproducto">
 		<td><span id="elh_registro_sanitario_idproducto"><?php echo $registro_sanitario->idproducto->FldCaption() ?></span></td>
@@ -829,6 +870,17 @@ $registro_sanitario_view->ShowMessage();
 <span id="el_registro_sanitario_idproducto" class="form-group">
 <span<?php echo $registro_sanitario->idproducto->ViewAttributes() ?>>
 <?php echo $registro_sanitario->idproducto->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($registro_sanitario->estado->Visible) { // estado ?>
+	<tr id="r_estado">
+		<td><span id="elh_registro_sanitario_estado"><?php echo $registro_sanitario->estado->FldCaption() ?></span></td>
+		<td<?php echo $registro_sanitario->estado->CellAttributes() ?>>
+<span id="el_registro_sanitario_estado" class="form-group">
+<span<?php echo $registro_sanitario->estado->ViewAttributes() ?>>
+<?php echo $registro_sanitario->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>

@@ -305,7 +305,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idregistro_sanitario->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -744,10 +743,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idregistro_sanitario); // idregistro_sanitario
 			$this->UpdateSort($this->descripcion); // descripcion
 			$this->UpdateSort($this->idpais); // idpais
-			$this->UpdateSort($this->estado); // estado
 			$this->UpdateSort($this->idproducto); // idproducto
 			$this->setStartRecordNumber(1); // Reset start position
 		}
@@ -781,10 +778,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idregistro_sanitario->setSort("");
 				$this->descripcion->setSort("");
 				$this->idpais->setSort("");
-				$this->estado->setSort("");
 				$this->idproducto->setSort("");
 			}
 
@@ -1099,8 +1094,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
 		$this->descripcion->setDbValue($rs->fields('descripcion'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -1110,8 +1105,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->idregistro_sanitario->DbValue = $row['idregistro_sanitario'];
 		$this->descripcion->DbValue = $row['descripcion'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->estado->DbValue = $row['estado'];
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Load old record
@@ -1156,8 +1151,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		// idregistro_sanitario
 		// descripcion
 		// idpais
-		// estado
 		// idproducto
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1170,8 +1165,62 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			$this->descripcion->ViewCustomAttributes = "";
 
 			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
 			$this->idpais->ViewCustomAttributes = "";
+
+			// idproducto
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+				}
+			} else {
+				$this->idproducto->ViewValue = NULL;
+			}
+			$this->idproducto->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1190,15 +1239,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto
-			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
-			$this->idproducto->ViewCustomAttributes = "";
-
-			// idregistro_sanitario
-			$this->idregistro_sanitario->LinkCustomAttributes = "";
-			$this->idregistro_sanitario->HrefValue = "";
-			$this->idregistro_sanitario->TooltipValue = "";
-
 			// descripcion
 			$this->descripcion->LinkCustomAttributes = "";
 			$this->descripcion->HrefValue = "";
@@ -1208,11 +1248,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
@@ -1400,8 +1435,10 @@ fregistro_sanitariolist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fregistro_sanitariolist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fregistro_sanitariolist.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var fregistro_sanitariolistsrch = new ew_Form("fregistro_sanitariolistsrch");
 </script>
 <script type="text/javascript">
@@ -1496,15 +1533,6 @@ $registro_sanitario_list->RenderListOptions();
 // Render list options (header, left)
 $registro_sanitario_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
-	<?php if ($registro_sanitario->SortUrl($registro_sanitario->idregistro_sanitario) == "") { ?>
-		<th data-name="idregistro_sanitario"><div id="elh_registro_sanitario_idregistro_sanitario" class="registro_sanitario_idregistro_sanitario"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->idregistro_sanitario->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idregistro_sanitario"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idregistro_sanitario) ?>',1);"><div id="elh_registro_sanitario_idregistro_sanitario" class="registro_sanitario_idregistro_sanitario">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idregistro_sanitario->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idregistro_sanitario->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idregistro_sanitario->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
 	<?php if ($registro_sanitario->SortUrl($registro_sanitario->descripcion) == "") { ?>
 		<th data-name="descripcion"><div id="elh_registro_sanitario_descripcion" class="registro_sanitario_descripcion"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->descripcion->FldCaption() ?></div></div></th>
@@ -1520,15 +1548,6 @@ $registro_sanitario_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idpais"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idpais) ?>',1);"><div id="elh_registro_sanitario_idpais" class="registro_sanitario_idpais">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($registro_sanitario->estado->Visible) { // estado ?>
-	<?php if ($registro_sanitario->SortUrl($registro_sanitario->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_registro_sanitario_estado" class="registro_sanitario_estado"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->estado) ?>',1);"><div id="elh_registro_sanitario_estado" class="registro_sanitario_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1606,28 +1625,16 @@ while ($registro_sanitario_list->RecCnt < $registro_sanitario_list->StopRec) {
 // Render list options (body, left)
 $registro_sanitario_list->ListOptions->Render("body", "left", $registro_sanitario_list->RowCnt);
 ?>
-	<?php if ($registro_sanitario->idregistro_sanitario->Visible) { // idregistro_sanitario ?>
-		<td data-name="idregistro_sanitario"<?php echo $registro_sanitario->idregistro_sanitario->CellAttributes() ?>>
-<span<?php echo $registro_sanitario->idregistro_sanitario->ViewAttributes() ?>>
-<?php echo $registro_sanitario->idregistro_sanitario->ListViewValue() ?></span>
-<a id="<?php echo $registro_sanitario_list->PageObjName . "_row_" . $registro_sanitario_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
 		<td data-name="descripcion"<?php echo $registro_sanitario->descripcion->CellAttributes() ?>>
 <span<?php echo $registro_sanitario->descripcion->ViewAttributes() ?>>
 <?php echo $registro_sanitario->descripcion->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $registro_sanitario_list->PageObjName . "_row_" . $registro_sanitario_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($registro_sanitario->idpais->Visible) { // idpais ?>
 		<td data-name="idpais"<?php echo $registro_sanitario->idpais->CellAttributes() ?>>
 <span<?php echo $registro_sanitario->idpais->ViewAttributes() ?>>
 <?php echo $registro_sanitario->idpais->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($registro_sanitario->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $registro_sanitario->estado->CellAttributes() ?>>
-<span<?php echo $registro_sanitario->estado->ViewAttributes() ?>>
-<?php echo $registro_sanitario->estado->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 	<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>

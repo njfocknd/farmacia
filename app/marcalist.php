@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -249,7 +250,7 @@ class cmarca_list extends cmarca {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "marcaadd.php";
+		$this->AddUrl = "marcaadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -305,7 +306,6 @@ class cmarca_list extends cmarca {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idmarca->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -322,6 +322,14 @@ class cmarca_list extends cmarca {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'producto'
+			if (@$_POST["grid"] == "fproductogrid") {
+				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+				$GLOBALS["producto_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -744,10 +752,8 @@ class cmarca_list extends cmarca {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idmarca); // idmarca
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idfabricante); // idfabricante
-			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -780,10 +786,8 @@ class cmarca_list extends cmarca {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idmarca->setSort("");
 				$this->nombre->setSort("");
 				$this->idfabricante->setSort("");
-				$this->estado->setSort("");
 			}
 
 			// Reset start position
@@ -813,6 +817,23 @@ class cmarca_list extends cmarca {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
+
+		// "detail_producto"
+		$item = &$this->ListOptions->Add("detail_producto");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssStyle = "white-space: nowrap;";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = FALSE;
+			$item->ShowInButtonGroup = FALSE;
+		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -857,6 +878,57 @@ class cmarca_list extends cmarca {
 		} else {
 			$oListOpt->Body = "";
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_producto"
+		$oListOpt = &$this->ListOptions->Items["detail_producto"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("productolist.php?" . EW_TABLE_SHOW_MASTER . "=marca&fk_idmarca=" . strval($this->idmarca->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["producto_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "producto";
+			}
+			if ($GLOBALS["producto_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "producto";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -877,6 +949,30 @@ class cmarca_list extends cmarca {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_producto");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=producto") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["producto"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["producto"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
+			$item->Visible = ($DetailTableLink <> "");
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1165,7 +1261,32 @@ class cmarca_list extends cmarca {
 			$this->nombre->ViewCustomAttributes = "";
 
 			// idfabricante
-			$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+			if (strval($this->idfabricante->CurrentValue) <> "") {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+				}
+			} else {
+				$this->idfabricante->ViewValue = NULL;
+			}
 			$this->idfabricante->ViewCustomAttributes = "";
 
 			// estado
@@ -1185,11 +1306,6 @@ class cmarca_list extends cmarca {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idmarca
-			$this->idmarca->LinkCustomAttributes = "";
-			$this->idmarca->HrefValue = "";
-			$this->idmarca->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1199,11 +1315,6 @@ class cmarca_list extends cmarca {
 			$this->idfabricante->LinkCustomAttributes = "";
 			$this->idfabricante->HrefValue = "";
 			$this->idfabricante->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1386,8 +1497,9 @@ fmarcalist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fmarcalist.Lists["x_idfabricante"] = {"LinkField":"x_idfabricante","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var fmarcalistsrch = new ew_Form("fmarcalistsrch");
 </script>
 <script type="text/javascript">
@@ -1482,15 +1594,6 @@ $marca_list->RenderListOptions();
 // Render list options (header, left)
 $marca_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($marca->idmarca->Visible) { // idmarca ?>
-	<?php if ($marca->SortUrl($marca->idmarca) == "") { ?>
-		<th data-name="idmarca"><div id="elh_marca_idmarca" class="marca_idmarca"><div class="ewTableHeaderCaption"><?php echo $marca->idmarca->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idmarca"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $marca->SortUrl($marca->idmarca) ?>',1);"><div id="elh_marca_idmarca" class="marca_idmarca">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $marca->idmarca->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($marca->idmarca->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($marca->idmarca->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($marca->nombre->Visible) { // nombre ?>
 	<?php if ($marca->SortUrl($marca->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_marca_nombre" class="marca_nombre"><div class="ewTableHeaderCaption"><?php echo $marca->nombre->FldCaption() ?></div></div></th>
@@ -1506,15 +1609,6 @@ $marca_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idfabricante"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $marca->SortUrl($marca->idfabricante) ?>',1);"><div id="elh_marca_idfabricante" class="marca_idfabricante">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $marca->idfabricante->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($marca->idfabricante->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($marca->idfabricante->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($marca->estado->Visible) { // estado ?>
-	<?php if ($marca->SortUrl($marca->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_marca_estado" class="marca_estado"><div class="ewTableHeaderCaption"><?php echo $marca->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $marca->SortUrl($marca->estado) ?>',1);"><div id="elh_marca_estado" class="marca_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $marca->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($marca->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($marca->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1583,28 +1677,16 @@ while ($marca_list->RecCnt < $marca_list->StopRec) {
 // Render list options (body, left)
 $marca_list->ListOptions->Render("body", "left", $marca_list->RowCnt);
 ?>
-	<?php if ($marca->idmarca->Visible) { // idmarca ?>
-		<td data-name="idmarca"<?php echo $marca->idmarca->CellAttributes() ?>>
-<span<?php echo $marca->idmarca->ViewAttributes() ?>>
-<?php echo $marca->idmarca->ListViewValue() ?></span>
-<a id="<?php echo $marca_list->PageObjName . "_row_" . $marca_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($marca->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $marca->nombre->CellAttributes() ?>>
 <span<?php echo $marca->nombre->ViewAttributes() ?>>
 <?php echo $marca->nombre->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $marca_list->PageObjName . "_row_" . $marca_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($marca->idfabricante->Visible) { // idfabricante ?>
 		<td data-name="idfabricante"<?php echo $marca->idfabricante->CellAttributes() ?>>
 <span<?php echo $marca->idfabricante->ViewAttributes() ?>>
 <?php echo $marca->idfabricante->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($marca->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $marca->estado->CellAttributes() ?>>
-<span<?php echo $marca->estado->ViewAttributes() ?>>
-<?php echo $marca->estado->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -748,8 +748,8 @@ class cempresa_list extends cempresa {
 			$this->UpdateSort($this->idempresa); // idempresa
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->direccion); // direccion
-			$this->UpdateSort($this->estado); // estado
 			$this->UpdateSort($this->idpais); // idpais
+			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -785,8 +785,8 @@ class cempresa_list extends cempresa {
 				$this->idempresa->setSort("");
 				$this->nombre->setSort("");
 				$this->direccion->setSort("");
-				$this->estado->setSort("");
 				$this->idpais->setSort("");
+				$this->estado->setSort("");
 			}
 
 			// Reset start position
@@ -1100,8 +1100,8 @@ class cempresa_list extends cempresa {
 		$this->idempresa->setDbValue($rs->fields('idempresa'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->estado->setDbValue($rs->fields('estado'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -1111,8 +1111,8 @@ class cempresa_list extends cempresa {
 		$this->idempresa->DbValue = $row['idempresa'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->direccion->DbValue = $row['direccion'];
-		$this->estado->DbValue = $row['estado'];
 		$this->idpais->DbValue = $row['idpais'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Load old record
@@ -1157,8 +1157,8 @@ class cempresa_list extends cempresa {
 		// idempresa
 		// nombre
 		// direccion
-		// estado
 		// idpais
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1173,6 +1173,31 @@ class cempresa_list extends cempresa {
 			// direccion
 			$this->direccion->ViewValue = $this->direccion->CurrentValue;
 			$this->direccion->ViewCustomAttributes = "";
+
+			// idpais
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1191,10 +1216,6 @@ class cempresa_list extends cempresa {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
-
 			// idempresa
 			$this->idempresa->LinkCustomAttributes = "";
 			$this->idempresa->HrefValue = "";
@@ -1210,15 +1231,15 @@ class cempresa_list extends cempresa {
 			$this->direccion->HrefValue = "";
 			$this->direccion->TooltipValue = "";
 
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
 			// idpais
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1401,8 +1422,9 @@ fempresalist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fempresalist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_idpais","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var fempresalistsrch = new ew_Form("fempresalistsrch");
 </script>
 <script type="text/javascript">
@@ -1524,21 +1546,21 @@ $empresa_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($empresa->estado->Visible) { // estado ?>
-	<?php if ($empresa->SortUrl($empresa->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_empresa_estado" class="empresa_estado"><div class="ewTableHeaderCaption"><?php echo $empresa->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $empresa->SortUrl($empresa->estado) ?>',1);"><div id="elh_empresa_estado" class="empresa_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $empresa->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($empresa->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($empresa->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($empresa->idpais->Visible) { // idpais ?>
 	<?php if ($empresa->SortUrl($empresa->idpais) == "") { ?>
 		<th data-name="idpais"><div id="elh_empresa_idpais" class="empresa_idpais"><div class="ewTableHeaderCaption"><?php echo $empresa->idpais->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="idpais"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $empresa->SortUrl($empresa->idpais) ?>',1);"><div id="elh_empresa_idpais" class="empresa_idpais">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $empresa->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($empresa->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($empresa->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($empresa->estado->Visible) { // estado ?>
+	<?php if ($empresa->SortUrl($empresa->estado) == "") { ?>
+		<th data-name="estado"><div id="elh_empresa_estado" class="empresa_estado"><div class="ewTableHeaderCaption"><?php echo $empresa->estado->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $empresa->SortUrl($empresa->estado) ?>',1);"><div id="elh_empresa_estado" class="empresa_estado">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $empresa->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($empresa->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($empresa->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1625,16 +1647,16 @@ $empresa_list->ListOptions->Render("body", "left", $empresa_list->RowCnt);
 <?php echo $empresa->direccion->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($empresa->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $empresa->estado->CellAttributes() ?>>
-<span<?php echo $empresa->estado->ViewAttributes() ?>>
-<?php echo $empresa->estado->ListViewValue() ?></span>
-</td>
-	<?php } ?>
 	<?php if ($empresa->idpais->Visible) { // idpais ?>
 		<td data-name="idpais"<?php echo $empresa->idpais->CellAttributes() ?>>
 <span<?php echo $empresa->idpais->ViewAttributes() ?>>
 <?php echo $empresa->idpais->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($empresa->estado->Visible) { // estado ?>
+		<td data-name="estado"<?php echo $empresa->estado->CellAttributes() ?>>
+<span<?php echo $empresa->estado->ViewAttributes() ?>>
+<?php echo $empresa->estado->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

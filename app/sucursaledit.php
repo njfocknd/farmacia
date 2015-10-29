@@ -225,7 +225,6 @@ class csucursal_edit extends csucursal {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idsucursal->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -412,8 +411,6 @@ class csucursal_edit extends csucursal {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idsucursal->FldIsDetailKey)
-			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
@@ -429,6 +426,8 @@ class csucursal_edit extends csucursal {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
+		if (!$this->idsucursal->FldIsDetailKey)
+			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
 	}
 
 	// Restore form values
@@ -525,11 +524,61 @@ class csucursal_edit extends csucursal {
 			$this->direccion->ViewCustomAttributes = "";
 
 			// idmunicipio
-			$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
+			if (strval($this->idmunicipio->CurrentValue) <> "") {
+				$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmunicipio->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
+				}
+			} else {
+				$this->idmunicipio->ViewValue = NULL;
+			}
 			$this->idmunicipio->ViewCustomAttributes = "";
 
 			// idempresa
-			$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+			if (strval($this->idempresa->CurrentValue) <> "") {
+				$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idempresa->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+				}
+			} else {
+				$this->idempresa->ViewValue = NULL;
+			}
 			$this->idempresa->ViewCustomAttributes = "";
 
 			// estado
@@ -548,11 +597,6 @@ class csucursal_edit extends csucursal {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
-
-			// idsucursal
-			$this->idsucursal->LinkCustomAttributes = "";
-			$this->idsucursal->HrefValue = "";
-			$this->idsucursal->TooltipValue = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -580,12 +624,6 @@ class csucursal_edit extends csucursal {
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idsucursal
-			$this->idsucursal->EditAttrs["class"] = "form-control";
-			$this->idsucursal->EditCustomAttributes = "";
-			$this->idsucursal->EditValue = $this->idsucursal->CurrentValue;
-			$this->idsucursal->ViewCustomAttributes = "";
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -601,14 +639,58 @@ class csucursal_edit extends csucursal {
 			// idmunicipio
 			$this->idmunicipio->EditAttrs["class"] = "form-control";
 			$this->idmunicipio->EditCustomAttributes = "";
-			$this->idmunicipio->EditValue = ew_HtmlEncode($this->idmunicipio->CurrentValue);
-			$this->idmunicipio->PlaceHolder = ew_RemoveHtml($this->idmunicipio->FldCaption());
+			if (trim(strval($this->idmunicipio->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `municipio`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idmunicipio->EditValue = $arwrk;
 
 			// idempresa
 			$this->idempresa->EditAttrs["class"] = "form-control";
 			$this->idempresa->EditCustomAttributes = "";
-			$this->idempresa->EditValue = ew_HtmlEncode($this->idempresa->CurrentValue);
-			$this->idempresa->PlaceHolder = ew_RemoveHtml($this->idempresa->FldCaption());
+			if (trim(strval($this->idempresa->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `empresa`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idempresa->EditValue = $arwrk;
 
 			// estado
 			$this->estado->EditCustomAttributes = "";
@@ -618,11 +700,8 @@ class csucursal_edit extends csucursal {
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// idsucursal
-
-			$this->idsucursal->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
 
 			// direccion
@@ -661,14 +740,8 @@ class csucursal_edit extends csucursal {
 		if (!$this->idmunicipio->FldIsDetailKey && !is_null($this->idmunicipio->FormValue) && $this->idmunicipio->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idmunicipio->FldCaption(), $this->idmunicipio->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idmunicipio->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idmunicipio->FldErrMsg());
-		}
 		if (!$this->idempresa->FldIsDetailKey && !is_null($this->idempresa->FormValue) && $this->idempresa->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idempresa->FldCaption(), $this->idempresa->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idempresa->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idempresa->FldErrMsg());
 		}
 		if ($this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
@@ -878,15 +951,9 @@ fsucursaledit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idmunicipio");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $sucursal->idmunicipio->FldCaption(), $sucursal->idmunicipio->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idmunicipio");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($sucursal->idmunicipio->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idempresa");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $sucursal->idempresa->FldCaption(), $sucursal->idempresa->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idempresa");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($sucursal->idempresa->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $sucursal->estado->FldCaption(), $sucursal->estado->ReqErrMsg)) ?>");
@@ -926,8 +993,10 @@ fsucursaledit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fsucursaledit.Lists["x_idmunicipio"] = {"LinkField":"x_idmunicipio","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fsucursaledit.Lists["x_idempresa"] = {"LinkField":"x_idempresa","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -949,18 +1018,6 @@ $sucursal_edit->ShowMessage();
 <input type="hidden" name="t" value="sucursal">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($sucursal->idsucursal->Visible) { // idsucursal ?>
-	<div id="r_idsucursal" class="form-group">
-		<label id="elh_sucursal_idsucursal" class="col-sm-2 control-label ewLabel"><?php echo $sucursal->idsucursal->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $sucursal->idsucursal->CellAttributes() ?>>
-<span id="el_sucursal_idsucursal">
-<span<?php echo $sucursal->idsucursal->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $sucursal->idsucursal->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idsucursal" name="x_idsucursal" id="x_idsucursal" value="<?php echo ew_HtmlEncode($sucursal->idsucursal->CurrentValue) ?>">
-<?php echo $sucursal->idsucursal->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($sucursal->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_sucursal_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $sucursal->nombre->FldCaption() ?></label>
@@ -986,7 +1043,38 @@ $sucursal_edit->ShowMessage();
 		<label id="elh_sucursal_idmunicipio" for="x_idmunicipio" class="col-sm-2 control-label ewLabel"><?php echo $sucursal->idmunicipio->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $sucursal->idmunicipio->CellAttributes() ?>>
 <span id="el_sucursal_idmunicipio">
-<input type="text" data-field="x_idmunicipio" name="x_idmunicipio" id="x_idmunicipio" size="30" placeholder="<?php echo ew_HtmlEncode($sucursal->idmunicipio->PlaceHolder) ?>" value="<?php echo $sucursal->idmunicipio->EditValue ?>"<?php echo $sucursal->idmunicipio->EditAttributes() ?>>
+<select data-field="x_idmunicipio" id="x_idmunicipio" name="x_idmunicipio"<?php echo $sucursal->idmunicipio->EditAttributes() ?>>
+<?php
+if (is_array($sucursal->idmunicipio->EditValue)) {
+	$arwrk = $sucursal->idmunicipio->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($sucursal->idmunicipio->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$sucursal->Lookup_Selecting($sucursal->idmunicipio, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idmunicipio" id="s_x_idmunicipio" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idmunicipio` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $sucursal->idmunicipio->CustomMsg ?></div></div>
 	</div>
@@ -996,7 +1084,38 @@ $sucursal_edit->ShowMessage();
 		<label id="elh_sucursal_idempresa" for="x_idempresa" class="col-sm-2 control-label ewLabel"><?php echo $sucursal->idempresa->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $sucursal->idempresa->CellAttributes() ?>>
 <span id="el_sucursal_idempresa">
-<input type="text" data-field="x_idempresa" name="x_idempresa" id="x_idempresa" size="30" placeholder="<?php echo ew_HtmlEncode($sucursal->idempresa->PlaceHolder) ?>" value="<?php echo $sucursal->idempresa->EditValue ?>"<?php echo $sucursal->idempresa->EditAttributes() ?>>
+<select data-field="x_idempresa" id="x_idempresa" name="x_idempresa"<?php echo $sucursal->idempresa->EditAttributes() ?>>
+<?php
+if (is_array($sucursal->idempresa->EditValue)) {
+	$arwrk = $sucursal->idempresa->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($sucursal->idempresa->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$sucursal->Lookup_Selecting($sucursal->idempresa, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x_idempresa" id="s_x_idempresa" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idempresa` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $sucursal->idempresa->CustomMsg ?></div></div>
 	</div>
@@ -1032,6 +1151,7 @@ if (is_array($arwrk)) {
 	</div>
 <?php } ?>
 </div>
+<input type="hidden" data-field="x_idsucursal" name="x_idsucursal" id="x_idsucursal" value="<?php echo ew_HtmlEncode($sucursal->idsucursal->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

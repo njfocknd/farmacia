@@ -452,27 +452,27 @@
 <table id="empresa"><phrase id="tblcaption" value="Empresa"/>
 <field id="idempresa"><phrase id="fldcaption" value="idempresa"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="direccion"><phrase id="fldcaption" value="direccion"/>
+<field id="direccion"><phrase id="fldcaption" value="Dirección"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activa"/>
 <phrase id="fldtagcaption1" value="Activa"/>
 <phrase id="fldtagvalue2" value="Inactiva"/>
 <phrase id="fldtagcaption2" value="Inactiva"/>
 </field>
-<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+<field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
 </table>
 <table id="fabricante"><phrase id="tblcaption" value="Fabricante"/>
 <field id="idfabricante"><phrase id="fldcaption" value="idfabricante"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+<field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -482,11 +482,11 @@
 <table id="marca"><phrase id="tblcaption" value="Marca"/>
 <field id="idmarca"><phrase id="fldcaption" value="idmarca"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="idfabricante"><phrase id="fldcaption" value="idfabricante"/>
+<field id="idfabricante"><phrase id="fldcaption" value="Fabricante"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -496,11 +496,11 @@
 <table id="municipio"><phrase id="tblcaption" value="Municipio"/>
 <field id="idmunicipio"><phrase id="fldcaption" value="idmunicipio"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="iddepartamento"><phrase id="fldcaption" value="iddepartamento"/>
+<field id="iddepartamento"><phrase id="fldcaption" value="Departamento"/>
 </field>
-<field id="state"><phrase id="fldcaption" value="state"/>
+<field id="state"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -510,9 +510,9 @@
 <table id="pais"><phrase id="tblcaption" value="País"/>
 <field id="idpais"><phrase id="fldcaption" value="idpais"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -522,13 +522,13 @@
 <table id="producto"><phrase id="tblcaption" value="País"/>
 <field id="idproducto"><phrase id="fldcaption" value="idproducto"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+<field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
-<field id="idmarca"><phrase id="fldcaption" value="idmarca"/>
+<field id="idmarca"><phrase id="fldcaption" value="Marca"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -538,31 +538,31 @@
 <table id="registro_sanitario"><phrase id="tblcaption" value="registro sanitario"/>
 <field id="idregistro_sanitario"><phrase id="fldcaption" value="idregistro sanitario"/>
 </field>
-<field id="descripcion"><phrase id="fldcaption" value="descripcion"/>
+<field id="descripcion"><phrase id="fldcaption" value="Descripción"/>
 </field>
-<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+<field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="idproducto"><phrase id="fldcaption" value="idproducto"/>
+<field id="idproducto"><phrase id="fldcaption" value="Producto"/>
 </field>
 </table>
 <table id="sucursal"><phrase id="tblcaption" value="Sucursal"/>
 <field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
 </field>
-<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
 </field>
-<field id="direccion"><phrase id="fldcaption" value="direccion"/>
+<field id="direccion"><phrase id="fldcaption" value="Dirección"/>
 </field>
-<field id="idmunicipio"><phrase id="fldcaption" value="idmunicipio"/>
+<field id="idmunicipio"><phrase id="fldcaption" value="Municipio"/>
 </field>
-<field id="idempresa"><phrase id="fldcaption" value="idempresa"/>
+<field id="idempresa"><phrase id="fldcaption" value="Empresa"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>

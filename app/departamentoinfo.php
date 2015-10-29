@@ -72,6 +72,77 @@ class cdepartamento extends cTable {
 		}
 	}
 
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
+	}
+
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
+	}
+
+	// Session master WHERE clause
+	function GetMasterFilter() {
+
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "pais") {
+			if ($this->idpais->getSessionValue() <> "")
+				$sMasterFilter .= "`idpais`=" . ew_QuotedValue($this->idpais->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "pais") {
+			if ($this->idpais->getSessionValue() <> "")
+				$sDetailFilter .= "`idpais`=" . ew_QuotedValue($this->idpais->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_pais() {
+		return "`idpais`=@idpais@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_pais() {
+		return "`idpais`=@idpais@";
+	}
+
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "municipio") {
+			$sDetailUrl = $GLOBALS["municipio"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_iddepartamento=" . urlencode($this->iddepartamento->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "departamentolist.php";
+		}
+		return $sDetailUrl;
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -425,7 +496,10 @@ class cdepartamento extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		return $this->KeyUrl("departamentoedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("departamentoedit.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("departamentoedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -435,7 +509,10 @@ class cdepartamento extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		return $this->KeyUrl("departamentoadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("departamentoadd.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("departamentoadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL
@@ -645,6 +722,36 @@ class cdepartamento extends cTable {
 		// idpais
 		$this->idpais->EditAttrs["class"] = "form-control";
 		$this->idpais->EditCustomAttributes = "";
+		if ($this->idpais->getSessionValue() <> "") {
+			$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+		if (strval($this->idpais->CurrentValue) <> "") {
+			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idpais->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			}
+		} else {
+			$this->idpais->ViewValue = NULL;
+		}
+		$this->idpais->ViewCustomAttributes = "";
+		} else {
+		}
 
 		// state
 		$this->state->EditCustomAttributes = "";

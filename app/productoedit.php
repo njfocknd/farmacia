@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -201,6 +203,12 @@ class cproducto_edit extends cproducto {
 			$GLOBALS["Table"] = &$GLOBALS["producto"];
 		}
 
+		// Table object (marca)
+		if (!isset($GLOBALS['marca'])) $GLOBALS['marca'] = new cmarca();
+
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'edit', TRUE);
@@ -225,7 +233,6 @@ class cproducto_edit extends cproducto {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idproducto->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -313,6 +320,9 @@ class cproducto_edit extends cproducto {
 		if (@$_GET["idproducto"] <> "") {
 			$this->idproducto->setQueryStringValue($_GET["idproducto"]);
 		}
+
+		// Set up master detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -412,8 +422,6 @@ class cproducto_edit extends cproducto {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idproducto->FldIsDetailKey)
-			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
@@ -426,6 +434,8 @@ class cproducto_edit extends cproducto {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
+		if (!$this->idproducto->FldIsDetailKey)
+			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
 	}
 
 	// Restore form values
@@ -538,11 +548,6 @@ class cproducto_edit extends cproducto {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto
-			$this->idproducto->LinkCustomAttributes = "";
-			$this->idproducto->HrefValue = "";
-			$this->idproducto->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -564,12 +569,6 @@ class cproducto_edit extends cproducto {
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idproducto
-			$this->idproducto->EditAttrs["class"] = "form-control";
-			$this->idproducto->EditCustomAttributes = "";
-			$this->idproducto->EditValue = $this->idproducto->CurrentValue;
-			$this->idproducto->ViewCustomAttributes = "";
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -579,28 +578,39 @@ class cproducto_edit extends cproducto {
 			// idpais
 			$this->idpais->EditAttrs["class"] = "form-control";
 			$this->idpais->EditCustomAttributes = "";
+			if ($this->idpais->getSessionValue() <> "") {
+				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+			$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			$this->idpais->ViewCustomAttributes = "";
+			} else {
 			$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
 			$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
+			}
 
 			// idmarca
 			$this->idmarca->EditAttrs["class"] = "form-control";
 			$this->idmarca->EditCustomAttributes = "";
+			if ($this->idmarca->getSessionValue() <> "") {
+				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
+			$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
+			$this->idmarca->ViewCustomAttributes = "";
+			} else {
 			$this->idmarca->EditValue = ew_HtmlEncode($this->idmarca->CurrentValue);
 			$this->idmarca->PlaceHolder = ew_RemoveHtml($this->idmarca->FldCaption());
+			}
 
 			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
 			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// idproducto
-
-			$this->idproducto->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
 
 			// idpais
@@ -648,7 +658,7 @@ class cproducto_edit extends cproducto {
 		if (!ew_CheckInteger($this->idmarca->FormValue)) {
 			ew_AddMessage($gsFormError, $this->idmarca->FldErrMsg());
 		}
-		if ($this->estado->FormValue == "") {
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
@@ -726,6 +736,63 @@ class cproducto_edit extends cproducto {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "marca") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idmarca"] <> "") {
+					$GLOBALS["marca"]->idmarca->setQueryStringValue($_GET["fk_idmarca"]);
+					$this->idmarca->setQueryStringValue($GLOBALS["marca"]->idmarca->QueryStringValue);
+					$this->idmarca->setSessionValue($this->idmarca->QueryStringValue);
+					if (!is_numeric($GLOBALS["marca"]->idmarca->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+			if ($sMasterTblVar == "pais") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idpais"] <> "") {
+					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
+					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
+					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
+					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "marca") {
+				if ($this->idmarca->QueryStringValue == "") $this->idmarca->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "pais") {
+				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -927,18 +994,6 @@ $producto_edit->ShowMessage();
 <input type="hidden" name="t" value="producto">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($producto->idproducto->Visible) { // idproducto ?>
-	<div id="r_idproducto" class="form-group">
-		<label id="elh_producto_idproducto" class="col-sm-2 control-label ewLabel"><?php echo $producto->idproducto->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $producto->idproducto->CellAttributes() ?>>
-<span id="el_producto_idproducto">
-<span<?php echo $producto->idproducto->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto->idproducto->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idproducto" name="x_idproducto" id="x_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
-<?php echo $producto->idproducto->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($producto->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
 		<label id="elh_producto_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $producto->nombre->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -953,9 +1008,17 @@ $producto_edit->ShowMessage();
 	<div id="r_idpais" class="form-group">
 		<label id="elh_producto_idpais" for="x_idpais" class="col-sm-2 control-label ewLabel"><?php echo $producto->idpais->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $producto->idpais->CellAttributes() ?>>
+<?php if ($producto->idpais->getSessionValue() <> "") { ?>
+<span id="el_producto_idpais">
+<span<?php echo $producto->idpais->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->idpais->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idpais" name="x_idpais" value="<?php echo ew_HtmlEncode($producto->idpais->CurrentValue) ?>">
+<?php } else { ?>
 <span id="el_producto_idpais">
 <input type="text" data-field="x_idpais" name="x_idpais" id="x_idpais" size="30" placeholder="<?php echo ew_HtmlEncode($producto->idpais->PlaceHolder) ?>" value="<?php echo $producto->idpais->EditValue ?>"<?php echo $producto->idpais->EditAttributes() ?>>
 </span>
+<?php } ?>
 <?php echo $producto->idpais->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
@@ -963,43 +1026,49 @@ $producto_edit->ShowMessage();
 	<div id="r_idmarca" class="form-group">
 		<label id="elh_producto_idmarca" for="x_idmarca" class="col-sm-2 control-label ewLabel"><?php echo $producto->idmarca->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $producto->idmarca->CellAttributes() ?>>
+<?php if ($producto->idmarca->getSessionValue() <> "") { ?>
+<span id="el_producto_idmarca">
+<span<?php echo $producto->idmarca->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->idmarca->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idmarca" name="x_idmarca" value="<?php echo ew_HtmlEncode($producto->idmarca->CurrentValue) ?>">
+<?php } else { ?>
 <span id="el_producto_idmarca">
 <input type="text" data-field="x_idmarca" name="x_idmarca" id="x_idmarca" size="30" placeholder="<?php echo ew_HtmlEncode($producto->idmarca->PlaceHolder) ?>" value="<?php echo $producto->idmarca->EditValue ?>"<?php echo $producto->idmarca->EditAttributes() ?>>
 </span>
+<?php } ?>
 <?php echo $producto->idmarca->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($producto->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_producto_estado" class="col-sm-2 control-label ewLabel"><?php echo $producto->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_producto_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $producto->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $producto->estado->CellAttributes() ?>>
 <span id="el_producto_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $producto->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $producto->estado->EditAttributes() ?>>
 <?php
-$arwrk = $producto->estado->EditValue;
-if (is_array($arwrk)) {
+if (is_array($producto->estado->EditValue)) {
+	$arwrk = $producto->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($producto->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $producto->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
 <?php echo $producto->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
+<input type="hidden" data-field="x_idproducto" name="x_idproducto" id="x_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

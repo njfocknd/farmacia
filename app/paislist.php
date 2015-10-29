@@ -7,6 +7,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "departamentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -249,7 +251,7 @@ class cpais_list extends cpais {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "paisadd.php";
+		$this->AddUrl = "paisadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -305,7 +307,6 @@ class cpais_list extends cpais {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idpais->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -322,6 +323,22 @@ class cpais_list extends cpais {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'departamento'
+			if (@$_POST["grid"] == "fdepartamentogrid") {
+				if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid;
+				$GLOBALS["departamento_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto'
+			if (@$_POST["grid"] == "fproductogrid") {
+				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+				$GLOBALS["producto_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -744,9 +761,7 @@ class cpais_list extends cpais {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idpais); // idpais
 			$this->UpdateSort($this->nombre); // nombre
-			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -779,9 +794,7 @@ class cpais_list extends cpais {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idpais->setSort("");
 				$this->nombre->setSort("");
-				$this->estado->setSort("");
 			}
 
 			// Reset start position
@@ -811,6 +824,31 @@ class cpais_list extends cpais {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
+
+		// "detail_departamento"
+		$item = &$this->ListOptions->Add("detail_departamento");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid;
+
+		// "detail_producto"
+		$item = &$this->ListOptions->Add("detail_producto");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssStyle = "white-space: nowrap;";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = FALSE;
+			$item->ShowInButtonGroup = FALSE;
+		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -855,6 +893,82 @@ class cpais_list extends cpais {
 		} else {
 			$oListOpt->Body = "";
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_departamento"
+		$oListOpt = &$this->ListOptions->Items["detail_departamento"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("departamento", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("departamentolist.php?" . EW_TABLE_SHOW_MASTER . "=pais&fk_idpais=" . strval($this->idpais->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["departamento_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=departamento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "departamento";
+			}
+			if ($GLOBALS["departamento_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=departamento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "departamento";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+
+		// "detail_producto"
+		$oListOpt = &$this->ListOptions->Items["detail_producto"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("productolist.php?" . EW_TABLE_SHOW_MASTER . "=pais&fk_idpais=" . strval($this->idpais->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["producto_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "producto";
+			}
+			if ($GLOBALS["producto_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "producto";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -875,6 +989,37 @@ class cpais_list extends cpais {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_departamento");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=departamento") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["departamento"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["departamento"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "departamento";
+		}
+		$item = &$option->Add("detailadd_producto");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=producto") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["producto"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["producto"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
+			$item->Visible = ($DetailTableLink <> "");
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1176,20 +1321,10 @@ class cpais_list extends cpais {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpais
-			$this->idpais->LinkCustomAttributes = "";
-			$this->idpais->HrefValue = "";
-			$this->idpais->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1468,30 +1603,12 @@ $pais_list->RenderListOptions();
 // Render list options (header, left)
 $pais_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($pais->idpais->Visible) { // idpais ?>
-	<?php if ($pais->SortUrl($pais->idpais) == "") { ?>
-		<th data-name="idpais"><div id="elh_pais_idpais" class="pais_idpais"><div class="ewTableHeaderCaption"><?php echo $pais->idpais->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idpais"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $pais->SortUrl($pais->idpais) ?>',1);"><div id="elh_pais_idpais" class="pais_idpais">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pais->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($pais->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pais->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($pais->nombre->Visible) { // nombre ?>
 	<?php if ($pais->SortUrl($pais->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_pais_nombre" class="pais_nombre"><div class="ewTableHeaderCaption"><?php echo $pais->nombre->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="nombre"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $pais->SortUrl($pais->nombre) ?>',1);"><div id="elh_pais_nombre" class="pais_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pais->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($pais->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pais->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($pais->estado->Visible) { // estado ?>
-	<?php if ($pais->SortUrl($pais->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_pais_estado" class="pais_estado"><div class="ewTableHeaderCaption"><?php echo $pais->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $pais->SortUrl($pais->estado) ?>',1);"><div id="elh_pais_estado" class="pais_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pais->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($pais->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pais->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1560,23 +1677,11 @@ while ($pais_list->RecCnt < $pais_list->StopRec) {
 // Render list options (body, left)
 $pais_list->ListOptions->Render("body", "left", $pais_list->RowCnt);
 ?>
-	<?php if ($pais->idpais->Visible) { // idpais ?>
-		<td data-name="idpais"<?php echo $pais->idpais->CellAttributes() ?>>
-<span<?php echo $pais->idpais->ViewAttributes() ?>>
-<?php echo $pais->idpais->ListViewValue() ?></span>
-<a id="<?php echo $pais_list->PageObjName . "_row_" . $pais_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($pais->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $pais->nombre->CellAttributes() ?>>
 <span<?php echo $pais->nombre->ViewAttributes() ?>>
 <?php echo $pais->nombre->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($pais->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $pais->estado->CellAttributes() ?>>
-<span<?php echo $pais->estado->ViewAttributes() ?>>
-<?php echo $pais->estado->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $pais_list->PageObjName . "_row_" . $pais_list->RowCnt ?>"></a></td>
 	<?php } ?>
 <?php
 
