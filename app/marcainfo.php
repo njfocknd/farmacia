@@ -72,6 +72,53 @@ class cmarca extends cTable {
 		}
 	}
 
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
+	}
+
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
+	}
+
+	// Session master WHERE clause
+	function GetMasterFilter() {
+
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "fabricante") {
+			if ($this->idfabricante->getSessionValue() <> "")
+				$sMasterFilter .= "`idfabricante`=" . ew_QuotedValue($this->idfabricante->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "fabricante") {
+			if ($this->idfabricante->getSessionValue() <> "")
+				$sDetailFilter .= "`idfabricante`=" . ew_QuotedValue($this->idfabricante->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_fabricante() {
+		return "`idfabricante`=@idfabricante@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_fabricante() {
+		return "`idfabricante`=@idfabricante@";
+	}
+
 	// Current detail table name
 	function getCurrentDetailTable() {
 		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
@@ -676,6 +723,37 @@ class cmarca extends cTable {
 		// idfabricante
 		$this->idfabricante->EditAttrs["class"] = "form-control";
 		$this->idfabricante->EditCustomAttributes = "";
+		if ($this->idfabricante->getSessionValue() <> "") {
+			$this->idfabricante->CurrentValue = $this->idfabricante->getSessionValue();
+		if (strval($this->idfabricante->CurrentValue) <> "") {
+			$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+			}
+		} else {
+			$this->idfabricante->ViewValue = NULL;
+		}
+		$this->idfabricante->ViewCustomAttributes = "";
+		} else {
+		}
 
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";

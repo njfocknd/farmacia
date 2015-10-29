@@ -604,7 +604,7 @@ class cdepartamento_view extends cdepartamento {
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -614,7 +614,7 @@ class cdepartamento_view extends cdepartamento {
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -637,7 +637,7 @@ class cdepartamento_view extends cdepartamento {
 		// iddepartamento
 		// nombre
 		// idpais
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -677,22 +677,22 @@ class cdepartamento_view extends cdepartamento {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
-			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
 						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
 						break;
 					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
+						$this->estado->ViewValue = $this->estado->CurrentValue;
 				}
 			} else {
-				$this->state->ViewValue = NULL;
+				$this->estado->ViewValue = NULL;
 			}
-			$this->state->ViewCustomAttributes = "";
+			$this->estado->ViewCustomAttributes = "";
 
 			// iddepartamento
 			$this->iddepartamento->LinkCustomAttributes = "";
@@ -709,10 +709,10 @@ class cdepartamento_view extends cdepartamento {
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
 
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -994,13 +994,13 @@ $departamento_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
-<?php if ($departamento->state->Visible) { // state ?>
-	<tr id="r_state">
-		<td><span id="elh_departamento_state"><?php echo $departamento->state->FldCaption() ?></span></td>
-		<td<?php echo $departamento->state->CellAttributes() ?>>
-<span id="el_departamento_state" class="form-group">
-<span<?php echo $departamento->state->ViewAttributes() ?>>
-<?php echo $departamento->state->ViewValue ?></span>
+<?php if ($departamento->estado->Visible) { // estado ?>
+	<tr id="r_estado">
+		<td><span id="elh_departamento_estado"><?php echo $departamento->estado->FldCaption() ?></span></td>
+		<td<?php echo $departamento->estado->CellAttributes() ?>>
+<span id="el_departamento_estado" class="form-group">
+<span<?php echo $departamento->estado->ViewAttributes() ?>>
+<?php echo $departamento->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>

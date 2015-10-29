@@ -78,6 +78,53 @@ class cregistro_sanitario extends cTable {
 		}
 	}
 
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
+	}
+
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
+	}
+
+	// Session master WHERE clause
+	function GetMasterFilter() {
+
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "producto") {
+			if ($this->idproducto->getSessionValue() <> "")
+				$sMasterFilter .= "`idproducto`=" . ew_QuotedValue($this->idproducto->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "producto") {
+			if ($this->idproducto->getSessionValue() <> "")
+				$sDetailFilter .= "`idproducto`=" . ew_QuotedValue($this->idproducto->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_producto() {
+		return "`idproducto`=@idproducto@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_producto() {
+		return "`idproducto`=@idproducto@";
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -692,6 +739,37 @@ class cregistro_sanitario extends cTable {
 		// idproducto
 		$this->idproducto->EditAttrs["class"] = "form-control";
 		$this->idproducto->EditCustomAttributes = "";
+		if ($this->idproducto->getSessionValue() <> "") {
+			$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
+		if (strval($this->idproducto->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+			}
+		} else {
+			$this->idproducto->ViewValue = NULL;
+		}
+		$this->idproducto->ViewCustomAttributes = "";
+		} else {
+		}
 
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";

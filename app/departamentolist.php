@@ -645,7 +645,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->BuildSearchSql($sWhere, $this->iddepartamento, $Default, FALSE); // iddepartamento
 		$this->BuildSearchSql($sWhere, $this->nombre, $Default, FALSE); // nombre
 		$this->BuildSearchSql($sWhere, $this->idpais, $Default, FALSE); // idpais
-		$this->BuildSearchSql($sWhere, $this->state, $Default, FALSE); // state
+		$this->BuildSearchSql($sWhere, $this->estado, $Default, FALSE); // estado
 
 		// Set up search parm
 		if (!$Default && $sWhere <> "") {
@@ -655,7 +655,7 @@ class cdepartamento_list extends cdepartamento {
 			$this->iddepartamento->AdvancedSearch->Save(); // iddepartamento
 			$this->nombre->AdvancedSearch->Save(); // nombre
 			$this->idpais->AdvancedSearch->Save(); // idpais
-			$this->state->AdvancedSearch->Save(); // state
+			$this->estado->AdvancedSearch->Save(); // estado
 		}
 		return $sWhere;
 	}
@@ -832,7 +832,7 @@ class cdepartamento_list extends cdepartamento {
 			return TRUE;
 		if ($this->idpais->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->state->AdvancedSearch->IssetSession())
+		if ($this->estado->AdvancedSearch->IssetSession())
 			return TRUE;
 		return FALSE;
 	}
@@ -866,7 +866,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->iddepartamento->AdvancedSearch->UnsetSession();
 		$this->nombre->AdvancedSearch->UnsetSession();
 		$this->idpais->AdvancedSearch->UnsetSession();
-		$this->state->AdvancedSearch->UnsetSession();
+		$this->estado->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
@@ -880,7 +880,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->iddepartamento->AdvancedSearch->Load();
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
-		$this->state->AdvancedSearch->Load();
+		$this->estado->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -1319,10 +1319,10 @@ class cdepartamento_list extends cdepartamento {
 		if ($this->idpais->AdvancedSearch->SearchValue <> "") $this->Command = "search";
 		$this->idpais->AdvancedSearch->SearchOperator = @$_GET["z_idpais"];
 
-		// state
-		$this->state->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_state"]);
-		if ($this->state->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->state->AdvancedSearch->SearchOperator = @$_GET["z_state"];
+		// estado
+		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_estado"]);
+		if ($this->estado->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->estado->AdvancedSearch->SearchOperator = @$_GET["z_estado"];
 	}
 
 	// Load recordset
@@ -1374,7 +1374,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -1384,7 +1384,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Load old record
@@ -1429,7 +1429,7 @@ class cdepartamento_list extends cdepartamento {
 		// iddepartamento
 		// nombre
 		// idpais
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1469,22 +1469,22 @@ class cdepartamento_list extends cdepartamento {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
-			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
 						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
 						break;
 					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
+						$this->estado->ViewValue = $this->estado->CurrentValue;
 				}
 			} else {
-				$this->state->ViewValue = NULL;
+				$this->estado->ViewValue = NULL;
 			}
-			$this->state->ViewCustomAttributes = "";
+			$this->estado->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -1530,7 +1530,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->iddepartamento->AdvancedSearch->Load();
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
-		$this->state->AdvancedSearch->Load();
+		$this->estado->AdvancedSearch->Load();
 	}
 
 	// Set up master/detail based on QueryString

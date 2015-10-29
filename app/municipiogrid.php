@@ -153,15 +153,6 @@ $municipio_grid->RenderListOptions();
 // Render list options (header, left)
 $municipio_grid->ListOptions->Render("header", "left");
 ?>
-<?php if ($municipio->idmunicipio->Visible) { // idmunicipio ?>
-	<?php if ($municipio->SortUrl($municipio->idmunicipio) == "") { ?>
-		<th data-name="idmunicipio"><div id="elh_municipio_idmunicipio" class="municipio_idmunicipio"><div class="ewTableHeaderCaption"><?php echo $municipio->idmunicipio->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idmunicipio"><div><div id="elh_municipio_idmunicipio" class="municipio_idmunicipio">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $municipio->idmunicipio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($municipio->idmunicipio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($municipio->idmunicipio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($municipio->nombre->Visible) { // nombre ?>
 	<?php if ($municipio->SortUrl($municipio->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_municipio_nombre" class="municipio_nombre"><div class="ewTableHeaderCaption"><?php echo $municipio->nombre->FldCaption() ?></div></div></th>
@@ -289,26 +280,6 @@ while ($municipio_grid->RecCnt < $municipio_grid->StopRec) {
 // Render list options (body, left)
 $municipio_grid->ListOptions->Render("body", "left", $municipio_grid->RowCnt);
 ?>
-	<?php if ($municipio->idmunicipio->Visible) { // idmunicipio ?>
-		<td data-name="idmunicipio"<?php echo $municipio->idmunicipio->CellAttributes() ?>>
-<?php if ($municipio->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<input type="hidden" data-field="x_idmunicipio" name="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->OldValue) ?>">
-<?php } ?>
-<?php if ($municipio->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $municipio_grid->RowCnt ?>_municipio_idmunicipio" class="form-group municipio_idmunicipio">
-<span<?php echo $municipio->idmunicipio->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $municipio->idmunicipio->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idmunicipio" name="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->CurrentValue) ?>">
-<?php } ?>
-<?php if ($municipio->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $municipio->idmunicipio->ViewAttributes() ?>>
-<?php echo $municipio->idmunicipio->ListViewValue() ?></span>
-<input type="hidden" data-field="x_idmunicipio" name="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->FormValue) ?>">
-<input type="hidden" data-field="x_idmunicipio" name="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->OldValue) ?>">
-<?php } ?>
-<a id="<?php echo $municipio_grid->PageObjName . "_row_" . $municipio_grid->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($municipio->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $municipio->nombre->CellAttributes() ?>>
 <?php if ($municipio->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -328,8 +299,15 @@ $municipio_grid->ListOptions->Render("body", "left", $municipio_grid->RowCnt);
 <input type="hidden" data-field="x_nombre" name="x<?php echo $municipio_grid->RowIndex ?>_nombre" id="x<?php echo $municipio_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($municipio->nombre->FormValue) ?>">
 <input type="hidden" data-field="x_nombre" name="o<?php echo $municipio_grid->RowIndex ?>_nombre" id="o<?php echo $municipio_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($municipio->nombre->OldValue) ?>">
 <?php } ?>
-</td>
+<a id="<?php echo $municipio_grid->PageObjName . "_row_" . $municipio_grid->RowCnt ?>"></a></td>
 	<?php } ?>
+<?php if ($municipio->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<input type="hidden" data-field="x_idmunicipio" name="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->CurrentValue) ?>">
+<input type="hidden" data-field="x_idmunicipio" name="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->OldValue) ?>">
+<?php } ?>
+<?php if ($municipio->RowType == EW_ROWTYPE_EDIT || $municipio->CurrentMode == "edit") { ?>
+<input type="hidden" data-field="x_idmunicipio" name="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->CurrentValue) ?>">
+<?php } ?>
 	<?php if ($municipio->iddepartamento->Visible) { // iddepartamento ?>
 		<td data-name="iddepartamento"<?php echo $municipio->iddepartamento->CellAttributes() ?>>
 <?php if ($municipio->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -473,19 +451,6 @@ fmunicipiogrid.UpdateOpts(<?php echo $municipio_grid->RowIndex ?>);
 // Render list options (body, left)
 $municipio_grid->ListOptions->Render("body", "left", $municipio_grid->RowIndex);
 ?>
-	<?php if ($municipio->idmunicipio->Visible) { // idmunicipio ?>
-		<td>
-<?php if ($municipio->CurrentAction <> "F") { ?>
-<?php } else { ?>
-<span id="el$rowindex$_municipio_idmunicipio" class="form-group municipio_idmunicipio">
-<span<?php echo $municipio->idmunicipio->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $municipio->idmunicipio->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idmunicipio" name="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="x<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_idmunicipio" name="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" id="o<?php echo $municipio_grid->RowIndex ?>_idmunicipio" value="<?php echo ew_HtmlEncode($municipio->idmunicipio->OldValue) ?>">
-</td>
-	<?php } ?>
 	<?php if ($municipio->nombre->Visible) { // nombre ?>
 		<td>
 <?php if ($municipio->CurrentAction <> "F") { ?>

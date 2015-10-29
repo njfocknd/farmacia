@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "sucursalgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -241,6 +242,14 @@ class cempresa_edit extends cempresa {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'sucursal'
+			if (@$_POST["grid"] == "fsucursalgrid") {
+				if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid;
+				$GLOBALS["sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -320,6 +329,9 @@ class cempresa_edit extends cempresa {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
+
+			// Set up detail parameters
+			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
@@ -343,17 +355,26 @@ class cempresa_edit extends cempresa {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("empresalist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
+						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -519,7 +540,7 @@ class cempresa_edit extends cempresa {
 			// idpais
 			if (strval($this->idpais->CurrentValue) <> "") {
 				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
 			$sWhereWrk = "";
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
@@ -599,7 +620,7 @@ class cempresa_edit extends cempresa {
 			} else {
 				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
 			}
-			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
 			$sWhereWrk = "";
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
@@ -666,6 +687,13 @@ class cempresa_edit extends cempresa {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("sucursal", $DetailTblVar) && $GLOBALS["sucursal"]->DetailEdit) {
+			if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid(); // get detail page object
+			$GLOBALS["sucursal_grid"]->ValidateGridForm();
+		}
+
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
 
@@ -692,6 +720,10 @@ class cempresa_edit extends cempresa {
 		if ($rs->EOF) {
 			$EditRow = FALSE; // Update Failed
 		} else {
+
+			// Begin transaction
+			if ($this->getCurrentDetailTable() <> "")
+				$conn->BeginTrans();
 
 			// Save old values
 			$rsold = &$rs->fields;
@@ -721,6 +753,24 @@ class cempresa_edit extends cempresa {
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
 				}
+
+				// Update detail records
+				if ($EditRow) {
+					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+					if (in_array("sucursal", $DetailTblVar) && $GLOBALS["sucursal"]->DetailEdit) {
+						if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid(); // Get detail page object
+						$EditRow = $GLOBALS["sucursal_grid"]->GridUpdate();
+					}
+				}
+
+				// Commit/Rollback transaction
+				if ($this->getCurrentDetailTable() <> "") {
+					if ($EditRow) {
+						$conn->CommitTrans(); // Commit transaction
+					} else {
+						$conn->RollbackTrans(); // Rollback transaction
+					}
+				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
 
@@ -740,6 +790,36 @@ class cempresa_edit extends cempresa {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("sucursal", $DetailTblVar)) {
+				if (!isset($GLOBALS["sucursal_grid"]))
+					$GLOBALS["sucursal_grid"] = new csucursal_grid;
+				if ($GLOBALS["sucursal_grid"]->DetailEdit) {
+					$GLOBALS["sucursal_grid"]->CurrentMode = "edit";
+					$GLOBALS["sucursal_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["sucursal_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["sucursal_grid"]->setStartRecordNumber(1);
+					$GLOBALS["sucursal_grid"]->idempresa->FldIsDetailKey = TRUE;
+					$GLOBALS["sucursal_grid"]->idempresa->CurrentValue = $this->idempresa->CurrentValue;
+					$GLOBALS["sucursal_grid"]->idempresa->setSessionValue($GLOBALS["sucursal_grid"]->idempresa->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -906,7 +986,7 @@ fempresaedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-fempresaedit.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_idpais","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fempresaedit.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -974,7 +1054,7 @@ if (is_array($empresa->idpais->EditValue)) {
 ?>
 </select>
 <?php
-$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
 $sWhereWrk = "";
 
 // Call Lookup selecting
@@ -1016,6 +1096,14 @@ if (is_array($empresa->estado->EditValue)) {
 <?php } ?>
 </div>
 <input type="hidden" data-field="x_idempresa" name="x_idempresa" id="x_idempresa" value="<?php echo ew_HtmlEncode($empresa->idempresa->CurrentValue) ?>">
+<?php
+	if (in_array("sucursal", explode(",", $empresa->getCurrentDetailTable())) && $sucursal->DetailEdit) {
+?>
+<?php if ($empresa->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("sucursal", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "sucursalgrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

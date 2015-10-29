@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "sucursalinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -201,6 +202,9 @@ class csucursal_edit extends csucursal {
 			$GLOBALS["Table"] = &$GLOBALS["sucursal"];
 		}
 
+		// Table object (empresa)
+		if (!isset($GLOBALS['empresa'])) $GLOBALS['empresa'] = new cempresa();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'edit', TRUE);
@@ -312,6 +316,9 @@ class csucursal_edit extends csucursal {
 		if (@$_GET["idsucursal"] <> "") {
 			$this->idsucursal->setQueryStringValue($_GET["idsucursal"]);
 		}
+
+		// Set up master detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -667,6 +674,36 @@ class csucursal_edit extends csucursal {
 			// idempresa
 			$this->idempresa->EditAttrs["class"] = "form-control";
 			$this->idempresa->EditCustomAttributes = "";
+			if ($this->idempresa->getSessionValue() <> "") {
+				$this->idempresa->CurrentValue = $this->idempresa->getSessionValue();
+			if (strval($this->idempresa->CurrentValue) <> "") {
+				$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idempresa->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
+				}
+			} else {
+				$this->idempresa->ViewValue = NULL;
+			}
+			$this->idempresa->ViewCustomAttributes = "";
+			} else {
 			if (trim(strval($this->idempresa->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
@@ -691,6 +728,7 @@ class csucursal_edit extends csucursal {
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idempresa->EditValue = $arwrk;
+			}
 
 			// estado
 			$this->estado->EditCustomAttributes = "";
@@ -824,6 +862,49 @@ class csucursal_edit extends csucursal {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "empresa") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idempresa"] <> "") {
+					$GLOBALS["empresa"]->idempresa->setQueryStringValue($_GET["fk_idempresa"]);
+					$this->idempresa->setQueryStringValue($GLOBALS["empresa"]->idempresa->QueryStringValue);
+					$this->idempresa->setSessionValue($this->idempresa->QueryStringValue);
+					if (!is_numeric($GLOBALS["empresa"]->idempresa->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "empresa") {
+				if ($this->idempresa->QueryStringValue == "") $this->idempresa->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -1083,6 +1164,13 @@ $sSqlWrk .= " ORDER BY `nombre`";
 	<div id="r_idempresa" class="form-group">
 		<label id="elh_sucursal_idempresa" for="x_idempresa" class="col-sm-2 control-label ewLabel"><?php echo $sucursal->idempresa->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $sucursal->idempresa->CellAttributes() ?>>
+<?php if ($sucursal->idempresa->getSessionValue() <> "") { ?>
+<span id="el_sucursal_idempresa">
+<span<?php echo $sucursal->idempresa->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $sucursal->idempresa->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idempresa" name="x_idempresa" value="<?php echo ew_HtmlEncode($sucursal->idempresa->CurrentValue) ?>">
+<?php } else { ?>
 <span id="el_sucursal_idempresa">
 <select data-field="x_idempresa" id="x_idempresa" name="x_idempresa"<?php echo $sucursal->idempresa->EditAttributes() ?>>
 <?php
@@ -1117,6 +1205,7 @@ $sSqlWrk .= " ORDER BY `nombre`";
 ?>
 <input type="hidden" name="s_x_idempresa" id="s_x_idempresa" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idempresa` = {filter_value}"); ?>&amp;t0=3">
 </span>
+<?php } ?>
 <?php echo $sucursal->idempresa->CustomMsg ?></div></div>
 	</div>
 <?php } ?>

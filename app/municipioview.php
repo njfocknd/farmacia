@@ -513,7 +513,7 @@ class cmunicipio_view extends cmunicipio {
 		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -523,7 +523,7 @@ class cmunicipio_view extends cmunicipio {
 		$this->idmunicipio->DbValue = $row['idmunicipio'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -546,7 +546,7 @@ class cmunicipio_view extends cmunicipio {
 		// idmunicipio
 		// nombre
 		// iddepartamento
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -587,8 +587,22 @@ class cmunicipio_view extends cmunicipio {
 			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
-			// state
-			$this->state->ViewCustomAttributes = "";
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
+						break;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
+						break;
+					default:
+						$this->estado->ViewValue = $this->estado->CurrentValue;
+				}
+			} else {
+				$this->estado->ViewValue = NULL;
+			}
+			$this->estado->ViewCustomAttributes = "";
 
 			// idmunicipio
 			$this->idmunicipio->LinkCustomAttributes = "";
@@ -605,10 +619,10 @@ class cmunicipio_view extends cmunicipio {
 			$this->iddepartamento->HrefValue = "";
 			$this->iddepartamento->TooltipValue = "";
 
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -861,13 +875,13 @@ $municipio_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
-<?php if ($municipio->state->Visible) { // state ?>
-	<tr id="r_state">
-		<td><span id="elh_municipio_state"><?php echo $municipio->state->FldCaption() ?></span></td>
-		<td<?php echo $municipio->state->CellAttributes() ?>>
-<span id="el_municipio_state" class="form-group">
-<span<?php echo $municipio->state->ViewAttributes() ?>>
-<?php echo $municipio->state->ViewValue ?></span>
+<?php if ($municipio->estado->Visible) { // estado ?>
+	<tr id="r_estado">
+		<td><span id="elh_municipio_estado"><?php echo $municipio->estado->FldCaption() ?></span></td>
+		<td<?php echo $municipio->estado->CellAttributes() ?>>
+<span id="el_municipio_estado" class="form-group">
+<span<?php echo $municipio->estado->ViewAttributes() ?>>
+<?php echo $municipio->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>

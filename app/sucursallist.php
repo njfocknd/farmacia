@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "sucursalinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -256,6 +257,9 @@ class csucursal_list extends csucursal {
 		$this->MultiDeleteUrl = "sucursaldelete.php";
 		$this->MultiUpdateUrl = "sucursalupdate.php";
 
+		// Table object (empresa)
+		if (!isset($GLOBALS['empresa'])) $GLOBALS['empresa'] = new cempresa();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -446,6 +450,9 @@ class csucursal_list extends csucursal {
 			// Handle reset command
 			$this->ResetCmd();
 
+			// Set up master detail parameters
+			$this->SetUpMasterParms();
+
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -529,8 +536,28 @@ class csucursal_list extends csucursal {
 
 		// Build filter
 		$sFilter = "";
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "empresa") {
+			global $empresa;
+			$rsmaster = $empresa->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("empresalist.php"); // Return to master page
+			} else {
+				$empresa->LoadListRowValues($rsmaster);
+				$empresa->RowType = EW_ROWTYPE_MASTER; // Master row
+				$empresa->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
@@ -774,6 +801,14 @@ class csucursal_list extends csucursal {
 			// Reset search criteria
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
+
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->idempresa->setSessionValue("");
+			}
 
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
@@ -1268,6 +1303,48 @@ class csucursal_list extends csucursal {
 			$this->Row_Rendered();
 	}
 
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "empresa") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idempresa"] <> "") {
+					$GLOBALS["empresa"]->idempresa->setQueryStringValue($_GET["fk_idempresa"]);
+					$this->idempresa->setQueryStringValue($GLOBALS["empresa"]->idempresa->QueryStringValue);
+					$this->idempresa->setSessionValue($this->idempresa->QueryStringValue);
+					if (!is_numeric($GLOBALS["empresa"]->idempresa->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "empresa") {
+				if ($this->idempresa->QueryStringValue == "") $this->idempresa->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -1455,7 +1532,7 @@ var fsucursallistsrch = new ew_Form("fsucursallistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($sucursal_list->TotalRecs > 0 && $sucursal_list->ExportOptions->Visible()) { ?>
+<?php if ($sucursal_list->TotalRecs > 0 && $sucursal->getCurrentMasterTable() == "" && $sucursal_list->ExportOptions->Visible()) { ?>
 <?php $sucursal_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($sucursal_list->SearchOptions->Visible()) { ?>
@@ -1464,6 +1541,22 @@ var fsucursallistsrch = new ew_Form("fsucursallistsrch");
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
+<?php if (($sucursal->Export == "") || (EW_EXPORT_MASTER_RECORD && $sucursal->Export == "print")) { ?>
+<?php
+$gsMasterReturnUrl = "empresalist.php";
+if ($sucursal_list->DbMasterFilter <> "" && $sucursal->getCurrentMasterTable() == "empresa") {
+	if ($sucursal_list->MasterRecordExists) {
+		if ($sucursal->getCurrentMasterTable() == $sucursal->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($sucursal_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $sucursal_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "empresamaster.php" ?>
+<?php
+	}
+}
+?>
+<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {

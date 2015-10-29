@@ -10,7 +10,7 @@ class cmunicipio extends cTable {
 	var $idmunicipio;
 	var $nombre;
 	var $iddepartamento;
-	var $state;
+	var $estado;
 
 	//
 	// Table class constructor
@@ -50,9 +50,9 @@ class cmunicipio extends cTable {
 		$this->iddepartamento->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['iddepartamento'] = &$this->iddepartamento;
 
-		// state
-		$this->state = new cField('municipio', 'municipio', 'x_state', 'state', '`state`', '`state`', 202, -1, FALSE, '`state`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['state'] = &$this->state;
+		// estado
+		$this->estado = new cField('municipio', 'municipio', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['estado'] = &$this->estado;
 	}
 
 	// Single column sort
@@ -577,7 +577,7 @@ class cmunicipio extends cTable {
 		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Render list row values
@@ -591,7 +591,7 @@ class cmunicipio extends cTable {
 		// idmunicipio
 		// nombre
 		// iddepartamento
-		// state
+		// estado
 		// idmunicipio
 
 		$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
@@ -630,8 +630,22 @@ class cmunicipio extends cTable {
 		}
 		$this->iddepartamento->ViewCustomAttributes = "";
 
-		// state
-		$this->state->ViewCustomAttributes = "";
+		// estado
+		if (strval($this->estado->CurrentValue) <> "") {
+			switch ($this->estado->CurrentValue) {
+				case $this->estado->FldTagValue(1):
+					$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
+					break;
+				case $this->estado->FldTagValue(2):
+					$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
+					break;
+				default:
+					$this->estado->ViewValue = $this->estado->CurrentValue;
+			}
+		} else {
+			$this->estado->ViewValue = NULL;
+		}
+		$this->estado->ViewCustomAttributes = "";
 
 		// idmunicipio
 		$this->idmunicipio->LinkCustomAttributes = "";
@@ -648,10 +662,10 @@ class cmunicipio extends cTable {
 		$this->iddepartamento->HrefValue = "";
 		$this->iddepartamento->TooltipValue = "";
 
-		// state
-		$this->state->LinkCustomAttributes = "";
-		$this->state->HrefValue = "";
-		$this->state->TooltipValue = "";
+		// estado
+		$this->estado->LinkCustomAttributes = "";
+		$this->estado->HrefValue = "";
+		$this->estado->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -711,9 +725,14 @@ class cmunicipio extends cTable {
 		} else {
 		}
 
-		// state
-		$this->state->EditAttrs["class"] = "form-control";
-		$this->state->EditCustomAttributes = "";
+		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
+		$this->estado->EditCustomAttributes = "";
+		$arwrk = array();
+		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -742,12 +761,12 @@ class cmunicipio extends cTable {
 					if ($this->idmunicipio->Exportable) $Doc->ExportCaption($this->idmunicipio);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->iddepartamento->Exportable) $Doc->ExportCaption($this->iddepartamento);
-					if ($this->state->Exportable) $Doc->ExportCaption($this->state);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->idmunicipio->Exportable) $Doc->ExportCaption($this->idmunicipio);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->iddepartamento->Exportable) $Doc->ExportCaption($this->iddepartamento);
-					if ($this->state->Exportable) $Doc->ExportCaption($this->state);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
 			}
@@ -782,12 +801,12 @@ class cmunicipio extends cTable {
 						if ($this->idmunicipio->Exportable) $Doc->ExportField($this->idmunicipio);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->iddepartamento->Exportable) $Doc->ExportField($this->iddepartamento);
-						if ($this->state->Exportable) $Doc->ExportField($this->state);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->idmunicipio->Exportable) $Doc->ExportField($this->idmunicipio);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->iddepartamento->Exportable) $Doc->ExportField($this->iddepartamento);
-						if ($this->state->Exportable) $Doc->ExportField($this->state);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();
 				}

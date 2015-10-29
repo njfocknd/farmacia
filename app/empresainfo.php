@@ -77,6 +77,30 @@ class cempresa extends cTable {
 		}
 	}
 
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "sucursal") {
+			$sDetailUrl = $GLOBALS["sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idempresa=" . urlencode($this->idempresa->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "empresalist.php";
+		}
+		return $sDetailUrl;
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -430,7 +454,10 @@ class cempresa extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		return $this->KeyUrl("empresaedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("empresaedit.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("empresaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -440,7 +467,10 @@ class cempresa extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		return $this->KeyUrl("empresaadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("empresaadd.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("empresaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL
@@ -568,7 +598,7 @@ class cempresa extends cTable {
 		// idpais
 		if (strval($this->idpais->CurrentValue) <> "") {
 			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+		$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
 		$sWhereWrk = "";
 		if ($sFilterWrk <> "") {
 			ew_AddFilter($sWhereWrk, $sFilterWrk);

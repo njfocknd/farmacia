@@ -1,13 +1,13 @@
-<?php include_once $EW_RELATIVE_PATH . "municipioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
 <?php
 
 //
 // Page class
 //
 
-$municipio_grid = NULL; // Initialize page object first
+$marca_grid = NULL; // Initialize page object first
 
-class cmunicipio_grid extends cmunicipio {
+class cmarca_grid extends cmarca {
 
 	// Page ID
 	var $PageID = 'grid';
@@ -16,13 +16,13 @@ class cmunicipio_grid extends cmunicipio {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'municipio';
+	var $TableName = 'marca';
 
 	// Page object name
-	var $PageObjName = 'municipio_grid';
+	var $PageObjName = 'marca_grid';
 
 	// Grid form hidden field names
-	var $FormName = 'fmunicipiogrid';
+	var $FormName = 'fmarcagrid';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -199,12 +199,12 @@ class cmunicipio_grid extends cmunicipio {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (municipio)
-		if (!isset($GLOBALS["municipio"]) || get_class($GLOBALS["municipio"]) == "cmunicipio") {
-			$GLOBALS["municipio"] = &$this;
+		// Table object (marca)
+		if (!isset($GLOBALS["marca"]) || get_class($GLOBALS["marca"]) == "cmarca") {
+			$GLOBALS["marca"] = &$this;
 
 //			$GLOBALS["MasterTable"] = &$GLOBALS["Table"];
-//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["municipio"];
+//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["marca"];
 
 		}
 
@@ -214,7 +214,7 @@ class cmunicipio_grid extends cmunicipio {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'municipio', TRUE);
+			define("EW_TABLE_NAME", 'marca', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -261,6 +261,14 @@ class cmunicipio_grid extends cmunicipio {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'producto'
+			if (@$_POST["grid"] == "fproductogrid") {
+				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
+				$GLOBALS["producto_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -287,13 +295,13 @@ class cmunicipio_grid extends cmunicipio {
 		global $conn, $gsExportFile, $gTmpImages;
 
 		// Export
-		global $EW_EXPORT, $municipio;
+		global $EW_EXPORT, $marca;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($municipio);
+				$doc = new $class($marca);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -422,17 +430,17 @@ class cmunicipio_grid extends cmunicipio {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "departamento") {
-			global $departamento;
-			$rsmaster = $departamento->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "fabricante") {
+			global $fabricante;
+			$rsmaster = $fabricante->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("departamentolist.php"); // Return to master page
+				$this->Page_Terminate("fabricantelist.php"); // Return to master page
 			} else {
-				$departamento->LoadListRowValues($rsmaster);
-				$departamento->RowType = EW_ROWTYPE_MASTER; // Master row
-				$departamento->RenderListRow();
+				$fabricante->LoadListRowValues($rsmaster);
+				$fabricante->RowType = EW_ROWTYPE_MASTER; // Master row
+				$fabricante->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -593,8 +601,8 @@ class cmunicipio_grid extends cmunicipio {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idmunicipio->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idmunicipio->FormValue))
+			$this->idmarca->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idmarca->FormValue))
 				return FALSE;
 		}
 		return TRUE;
@@ -651,7 +659,7 @@ class cmunicipio_grid extends cmunicipio {
 				}
 				if ($bGridInsert) {
 					if ($sKey <> "") $sKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-					$sKey .= $this->idmunicipio->CurrentValue;
+					$sKey .= $this->idmarca->CurrentValue;
 
 					// Add filter for this record
 					$sFilter = $this->KeyFilter();
@@ -692,7 +700,7 @@ class cmunicipio_grid extends cmunicipio {
 		global $objForm;
 		if ($objForm->HasValue("x_nombre") && $objForm->HasValue("o_nombre") && $this->nombre->CurrentValue <> $this->nombre->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_iddepartamento") && $objForm->HasValue("o_iddepartamento") && $this->iddepartamento->CurrentValue <> $this->iddepartamento->OldValue)
+		if ($objForm->HasValue("x_idfabricante") && $objForm->HasValue("o_idfabricante") && $this->idfabricante->CurrentValue <> $this->idfabricante->OldValue)
 			return FALSE;
 		return TRUE;
 	}
@@ -801,7 +809,7 @@ class cmunicipio_grid extends cmunicipio {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->iddepartamento->setSessionValue("");
+				$this->idfabricante->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -887,7 +895,7 @@ class cmunicipio_grid extends cmunicipio {
 			}
 		}
 		if ($this->CurrentMode == "edit" && is_numeric($this->RowIndex)) {
-			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idmunicipio->CurrentValue . "\">";
+			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idmarca->CurrentValue . "\">";
 		}
 		$this->RenderListOptionsExt();
 	}
@@ -896,7 +904,7 @@ class cmunicipio_grid extends cmunicipio {
 	function SetRecordKey(&$key, $rs) {
 		$key = "";
 		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs->fields('idmunicipio');
+		$key .= $rs->fields('idmarca');
 	}
 
 	// Set up other options
@@ -980,8 +988,8 @@ class cmunicipio_grid extends cmunicipio {
 	function LoadDefaultValues() {
 		$this->nombre->CurrentValue = NULL;
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
-		$this->iddepartamento->CurrentValue = 1;
-		$this->iddepartamento->OldValue = $this->iddepartamento->CurrentValue;
+		$this->idfabricante->CurrentValue = 1;
+		$this->idfabricante->OldValue = $this->idfabricante->CurrentValue;
 	}
 
 	// Load form values
@@ -994,21 +1002,21 @@ class cmunicipio_grid extends cmunicipio {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
 		$this->nombre->setOldValue($objForm->GetValue("o_nombre"));
-		if (!$this->iddepartamento->FldIsDetailKey) {
-			$this->iddepartamento->setFormValue($objForm->GetValue("x_iddepartamento"));
+		if (!$this->idfabricante->FldIsDetailKey) {
+			$this->idfabricante->setFormValue($objForm->GetValue("x_idfabricante"));
 		}
-		$this->iddepartamento->setOldValue($objForm->GetValue("o_iddepartamento"));
-		if (!$this->idmunicipio->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idmunicipio->setFormValue($objForm->GetValue("x_idmunicipio"));
+		$this->idfabricante->setOldValue($objForm->GetValue("o_idfabricante"));
+		if (!$this->idmarca->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idmunicipio->CurrentValue = $this->idmunicipio->FormValue;
+			$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
-		$this->iddepartamento->CurrentValue = $this->iddepartamento->FormValue;
+		$this->idfabricante->CurrentValue = $this->idfabricante->FormValue;
 	}
 
 	// Load recordset
@@ -1057,9 +1065,9 @@ class cmunicipio_grid extends cmunicipio {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
+		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
+		$this->idfabricante->setDbValue($rs->fields('idfabricante'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -1067,9 +1075,9 @@ class cmunicipio_grid extends cmunicipio {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idmunicipio->DbValue = $row['idmunicipio'];
+		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
-		$this->iddepartamento->DbValue = $row['iddepartamento'];
+		$this->idfabricante->DbValue = $row['idfabricante'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1082,7 +1090,7 @@ class cmunicipio_grid extends cmunicipio {
 		$cnt = count($arKeys);
 		if ($cnt >= 1) {
 			if (strval($arKeys[0]) <> "")
-				$this->idmunicipio->CurrentValue = strval($arKeys[0]); // idmunicipio
+				$this->idmarca->CurrentValue = strval($arKeys[0]); // idmarca
 			else
 				$bValidKey = FALSE;
 		} else {
@@ -1112,25 +1120,25 @@ class cmunicipio_grid extends cmunicipio {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idmunicipio
+		// idmarca
 		// nombre
-		// iddepartamento
+		// idfabricante
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idmunicipio
-			$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
-			$this->idmunicipio->ViewCustomAttributes = "";
+			// idmarca
+			$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
+			$this->idmarca->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->ViewValue = $this->nombre->CurrentValue;
 			$this->nombre->ViewCustomAttributes = "";
 
-			// iddepartamento
-			if (strval($this->iddepartamento->CurrentValue) <> "") {
-				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			// idfabricante
+			if (strval($this->idfabricante->CurrentValue) <> "") {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1141,20 +1149,20 @@ class cmunicipio_grid extends cmunicipio {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
 				}
 			} else {
-				$this->iddepartamento->ViewValue = NULL;
+				$this->idfabricante->ViewValue = NULL;
 			}
-			$this->iddepartamento->ViewCustomAttributes = "";
+			$this->idfabricante->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1178,10 +1186,10 @@ class cmunicipio_grid extends cmunicipio {
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
 
-			// iddepartamento
-			$this->iddepartamento->LinkCustomAttributes = "";
-			$this->iddepartamento->HrefValue = "";
-			$this->iddepartamento->TooltipValue = "";
+			// idfabricante
+			$this->idfabricante->LinkCustomAttributes = "";
+			$this->idfabricante->HrefValue = "";
+			$this->idfabricante->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// nombre
@@ -1190,15 +1198,15 @@ class cmunicipio_grid extends cmunicipio {
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
-			// iddepartamento
-			$this->iddepartamento->EditAttrs["class"] = "form-control";
-			$this->iddepartamento->EditCustomAttributes = "";
-			if ($this->iddepartamento->getSessionValue() <> "") {
-				$this->iddepartamento->CurrentValue = $this->iddepartamento->getSessionValue();
-				$this->iddepartamento->OldValue = $this->iddepartamento->CurrentValue;
-			if (strval($this->iddepartamento->CurrentValue) <> "") {
-				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			// idfabricante
+			$this->idfabricante->EditAttrs["class"] = "form-control";
+			$this->idfabricante->EditCustomAttributes = "";
+			if ($this->idfabricante->getSessionValue() <> "") {
+				$this->idfabricante->CurrentValue = $this->idfabricante->getSessionValue();
+				$this->idfabricante->OldValue = $this->idfabricante->CurrentValue;
+			if (strval($this->idfabricante->CurrentValue) <> "") {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1209,27 +1217,27 @@ class cmunicipio_grid extends cmunicipio {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
 				}
 			} else {
-				$this->iddepartamento->ViewValue = NULL;
+				$this->idfabricante->ViewValue = NULL;
 			}
-			$this->iddepartamento->ViewCustomAttributes = "";
+			$this->idfabricante->ViewCustomAttributes = "";
 			} else {
-			if (trim(strval($this->iddepartamento->CurrentValue)) == "") {
+			if (trim(strval($this->idfabricante->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
 			}
-			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `departamento`";
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fabricante`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1240,14 +1248,14 @@ class cmunicipio_grid extends cmunicipio {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = $conn->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->iddepartamento->EditValue = $arwrk;
+			$this->idfabricante->EditValue = $arwrk;
 			}
 
 			// Edit refer script
@@ -1255,8 +1263,8 @@ class cmunicipio_grid extends cmunicipio {
 
 			$this->nombre->HrefValue = "";
 
-			// iddepartamento
-			$this->iddepartamento->HrefValue = "";
+			// idfabricante
+			$this->idfabricante->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
@@ -1265,15 +1273,15 @@ class cmunicipio_grid extends cmunicipio {
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
-			// iddepartamento
-			$this->iddepartamento->EditAttrs["class"] = "form-control";
-			$this->iddepartamento->EditCustomAttributes = "";
-			if ($this->iddepartamento->getSessionValue() <> "") {
-				$this->iddepartamento->CurrentValue = $this->iddepartamento->getSessionValue();
-				$this->iddepartamento->OldValue = $this->iddepartamento->CurrentValue;
-			if (strval($this->iddepartamento->CurrentValue) <> "") {
-				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `departamento`";
+			// idfabricante
+			$this->idfabricante->EditAttrs["class"] = "form-control";
+			$this->idfabricante->EditCustomAttributes = "";
+			if ($this->idfabricante->getSessionValue() <> "") {
+				$this->idfabricante->CurrentValue = $this->idfabricante->getSessionValue();
+				$this->idfabricante->OldValue = $this->idfabricante->CurrentValue;
+			if (strval($this->idfabricante->CurrentValue) <> "") {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1284,27 +1292,27 @@ class cmunicipio_grid extends cmunicipio {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->iddepartamento->ViewValue = $rswrk->fields('DispFld');
+					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
+					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
 				}
 			} else {
-				$this->iddepartamento->ViewValue = NULL;
+				$this->idfabricante->ViewValue = NULL;
 			}
-			$this->iddepartamento->ViewCustomAttributes = "";
+			$this->idfabricante->ViewCustomAttributes = "";
 			} else {
-			if (trim(strval($this->iddepartamento->CurrentValue)) == "") {
+			if (trim(strval($this->idfabricante->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`iddepartamento`" . ew_SearchString("=", $this->iddepartamento->CurrentValue, EW_DATATYPE_NUMBER);
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
 			}
-			$sSqlWrk = "SELECT `iddepartamento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `departamento`";
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fabricante`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1315,14 +1323,14 @@ class cmunicipio_grid extends cmunicipio {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddepartamento, $sWhereWrk);
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = $conn->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->iddepartamento->EditValue = $arwrk;
+			$this->idfabricante->EditValue = $arwrk;
 			}
 
 			// Edit refer script
@@ -1330,8 +1338,8 @@ class cmunicipio_grid extends cmunicipio {
 
 			$this->nombre->HrefValue = "";
 
-			// iddepartamento
-			$this->iddepartamento->HrefValue = "";
+			// idfabricante
+			$this->idfabricante->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1351,8 +1359,11 @@ class cmunicipio_grid extends cmunicipio {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->iddepartamento->FldIsDetailKey && !is_null($this->iddepartamento->FormValue) && $this->iddepartamento->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->iddepartamento->FldCaption(), $this->iddepartamento->ReqErrMsg));
+		if (!$this->nombre->FldIsDetailKey && !is_null($this->nombre->FormValue) && $this->nombre->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->nombre->FldCaption(), $this->nombre->ReqErrMsg));
+		}
+		if (!$this->idfabricante->FldIsDetailKey && !is_null($this->idfabricante->FormValue) && $this->idfabricante->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idfabricante->FldCaption(), $this->idfabricante->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -1407,7 +1418,7 @@ class cmunicipio_grid extends cmunicipio {
 			foreach ($rsold as $row) {
 				$sThisKey = "";
 				if ($sThisKey <> "") $sThisKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-				$sThisKey .= $row['idmunicipio'];
+				$sThisKey .= $row['idmarca'];
 				$conn->raiseErrorFn = 'ew_ErrorFn';
 				$DeleteRows = $this->Delete($row); // Delete
 				$conn->raiseErrorFn = '';
@@ -1463,10 +1474,10 @@ class cmunicipio_grid extends cmunicipio {
 			$rsnew = array();
 
 			// nombre
-			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, $this->nombre->ReadOnly);
+			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", $this->nombre->ReadOnly);
 
-			// iddepartamento
-			$this->iddepartamento->SetDbValueDef($rsnew, $this->iddepartamento->CurrentValue, 0, $this->iddepartamento->ReadOnly);
+			// idfabricante
+			$this->idfabricante->SetDbValueDef($rsnew, $this->idfabricante->CurrentValue, 0, $this->idfabricante->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1505,8 +1516,8 @@ class cmunicipio_grid extends cmunicipio {
 		global $conn, $Language, $Security;
 
 		// Set up foreign key field value from Session
-			if ($this->getCurrentMasterTable() == "departamento") {
-				$this->iddepartamento->CurrentValue = $this->iddepartamento->getSessionValue();
+			if ($this->getCurrentMasterTable() == "fabricante") {
+				$this->idfabricante->CurrentValue = $this->idfabricante->getSessionValue();
 			}
 
 		// Load db values from rsold
@@ -1516,10 +1527,10 @@ class cmunicipio_grid extends cmunicipio {
 		$rsnew = array();
 
 		// nombre
-		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, FALSE);
+		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", FALSE);
 
-		// iddepartamento
-		$this->iddepartamento->SetDbValueDef($rsnew, $this->iddepartamento->CurrentValue, 0, strval($this->iddepartamento->CurrentValue) == "");
+		// idfabricante
+		$this->idfabricante->SetDbValueDef($rsnew, $this->idfabricante->CurrentValue, 0, strval($this->idfabricante->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1545,8 +1556,8 @@ class cmunicipio_grid extends cmunicipio {
 
 		// Get insert id if necessary
 		if ($AddRow) {
-			$this->idmunicipio->setDbValue($conn->Insert_ID());
-			$rsnew['idmunicipio'] = $this->idmunicipio->DbValue;
+			$this->idmarca->setDbValue($conn->Insert_ID());
+			$rsnew['idmarca'] = $this->idmarca->DbValue;
 		}
 		if ($AddRow) {
 
@@ -1562,9 +1573,9 @@ class cmunicipio_grid extends cmunicipio {
 
 		// Hide foreign keys
 		$sMasterTblVar = $this->getCurrentMasterTable();
-		if ($sMasterTblVar == "departamento") {
-			$this->iddepartamento->Visible = FALSE;
-			if ($GLOBALS["departamento"]->EventCancelled) $this->EventCancelled = TRUE;
+		if ($sMasterTblVar == "fabricante") {
+			$this->idfabricante->Visible = FALSE;
+			if ($GLOBALS["fabricante"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter

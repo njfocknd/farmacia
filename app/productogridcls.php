@@ -261,6 +261,14 @@ class cproducto_grid extends cproducto {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'registro_sanitario'
+			if (@$_POST["grid"] == "fregistro_sanitariogrid") {
+				if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
+				$GLOBALS["registro_sanitario_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -433,22 +441,6 @@ class cproducto_grid extends cproducto {
 				$marca->LoadListRowValues($rsmaster);
 				$marca->RowType = EW_ROWTYPE_MASTER; // Master row
 				$marca->RenderListRow();
-				$rsmaster->Close();
-			}
-		}
-
-		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "pais") {
-			global $pais;
-			$rsmaster = $pais->LoadRs($this->DbMasterFilter);
-			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
-			if (!$this->MasterRecordExists) {
-				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("paislist.php"); // Return to master page
-			} else {
-				$pais->LoadListRowValues($rsmaster);
-				$pais->RowType = EW_ROWTYPE_MASTER; // Master row
-				$pais->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -706,11 +698,11 @@ class cproducto_grid extends cproducto {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
+		if ($objForm->HasValue("x_idmarca") && $objForm->HasValue("o_idmarca") && $this->idmarca->CurrentValue <> $this->idmarca->OldValue)
+			return FALSE;
 		if ($objForm->HasValue("x_nombre") && $objForm->HasValue("o_nombre") && $this->nombre->CurrentValue <> $this->nombre->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_idpais") && $objForm->HasValue("o_idpais") && $this->idpais->CurrentValue <> $this->idpais->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_idmarca") && $objForm->HasValue("o_idmarca") && $this->idmarca->CurrentValue <> $this->idmarca->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
 			return FALSE;
@@ -822,7 +814,6 @@ class cproducto_grid extends cproducto {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 				$this->idmarca->setSessionValue("");
-				$this->idpais->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -999,12 +990,12 @@ class cproducto_grid extends cproducto {
 
 	// Load default values
 	function LoadDefaultValues() {
+		$this->idmarca->CurrentValue = 1;
+		$this->idmarca->OldValue = $this->idmarca->CurrentValue;
 		$this->nombre->CurrentValue = NULL;
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
 		$this->idpais->CurrentValue = NULL;
 		$this->idpais->OldValue = $this->idpais->CurrentValue;
-		$this->idmarca->CurrentValue = 1;
-		$this->idmarca->OldValue = $this->idmarca->CurrentValue;
 		$this->estado->CurrentValue = "Activo";
 		$this->estado->OldValue = $this->estado->CurrentValue;
 	}
@@ -1015,6 +1006,10 @@ class cproducto_grid extends cproducto {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
+		if (!$this->idmarca->FldIsDetailKey) {
+			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
+		}
+		$this->idmarca->setOldValue($objForm->GetValue("o_idmarca"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
@@ -1023,10 +1018,6 @@ class cproducto_grid extends cproducto {
 			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		}
 		$this->idpais->setOldValue($objForm->GetValue("o_idpais"));
-		if (!$this->idmarca->FldIsDetailKey) {
-			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
-		}
-		$this->idmarca->setOldValue($objForm->GetValue("o_idmarca"));
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
@@ -1040,9 +1031,9 @@ class cproducto_grid extends cproducto {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idproducto->CurrentValue = $this->idproducto->FormValue;
+		$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->idpais->CurrentValue = $this->idpais->FormValue;
-		$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
@@ -1093,9 +1084,9 @@ class cproducto_grid extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -1104,9 +1095,9 @@ class cproducto_grid extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->idmarca->DbValue = $row['idmarca'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1150,9 +1141,9 @@ class cproducto_grid extends cproducto {
 
 		// Common render codes for all row types
 		// idproducto
+		// idmarca
 		// nombre
 		// idpais
-		// idmarca
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -1161,17 +1152,67 @@ class cproducto_grid extends cproducto {
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
 
+			// idmarca
+			if (strval($this->idmarca->CurrentValue) <> "") {
+				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `marca`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmarca->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
+				}
+			} else {
+				$this->idmarca->ViewValue = NULL;
+			}
+			$this->idmarca->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->ViewValue = $this->nombre->CurrentValue;
 			$this->nombre->ViewCustomAttributes = "";
 
 			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
 
-			// idmarca
-			$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewCustomAttributes = "";
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1190,6 +1231,11 @@ class cproducto_grid extends cproducto {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// idmarca
+			$this->idmarca->LinkCustomAttributes = "";
+			$this->idmarca->HrefValue = "";
+			$this->idmarca->TooltipValue = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1200,17 +1246,72 @@ class cproducto_grid extends cproducto {
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
 
-			// idmarca
-			$this->idmarca->LinkCustomAttributes = "";
-			$this->idmarca->HrefValue = "";
-			$this->idmarca->TooltipValue = "";
-
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
+			// idmarca
+			$this->idmarca->EditAttrs["class"] = "form-control";
+			$this->idmarca->EditCustomAttributes = "";
+			if ($this->idmarca->getSessionValue() <> "") {
+				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
+				$this->idmarca->OldValue = $this->idmarca->CurrentValue;
+			if (strval($this->idmarca->CurrentValue) <> "") {
+				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `marca`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmarca->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
+				}
+			} else {
+				$this->idmarca->ViewValue = NULL;
+			}
+			$this->idmarca->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idmarca->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `marca`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idmarca->EditValue = $arwrk;
+			}
+
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -1220,28 +1321,30 @@ class cproducto_grid extends cproducto {
 			// idpais
 			$this->idpais->EditAttrs["class"] = "form-control";
 			$this->idpais->EditCustomAttributes = "";
-			if ($this->idpais->getSessionValue() <> "") {
-				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
-				$this->idpais->OldValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
 			} else {
-			$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-			$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
-			// idmarca
-			$this->idmarca->EditAttrs["class"] = "form-control";
-			$this->idmarca->EditCustomAttributes = "";
-			if ($this->idmarca->getSessionValue() <> "") {
-				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
-				$this->idmarca->OldValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewCustomAttributes = "";
-			} else {
-			$this->idmarca->EditValue = ew_HtmlEncode($this->idmarca->CurrentValue);
-			$this->idmarca->PlaceHolder = ew_RemoveHtml($this->idmarca->FldCaption());
-			}
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -1253,20 +1356,80 @@ class cproducto_grid extends cproducto {
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// nombre
+			// idmarca
 
+			$this->idmarca->HrefValue = "";
+
+			// nombre
 			$this->nombre->HrefValue = "";
 
 			// idpais
 			$this->idpais->HrefValue = "";
-
-			// idmarca
-			$this->idmarca->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
+			// idmarca
+			$this->idmarca->EditAttrs["class"] = "form-control";
+			$this->idmarca->EditCustomAttributes = "";
+			if ($this->idmarca->getSessionValue() <> "") {
+				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
+				$this->idmarca->OldValue = $this->idmarca->CurrentValue;
+			if (strval($this->idmarca->CurrentValue) <> "") {
+				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `marca`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmarca->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
+				}
+			} else {
+				$this->idmarca->ViewValue = NULL;
+			}
+			$this->idmarca->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idmarca->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `marca`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idmarca->EditValue = $arwrk;
+			}
+
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
@@ -1276,28 +1439,30 @@ class cproducto_grid extends cproducto {
 			// idpais
 			$this->idpais->EditAttrs["class"] = "form-control";
 			$this->idpais->EditCustomAttributes = "";
-			if ($this->idpais->getSessionValue() <> "") {
-				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
-				$this->idpais->OldValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
 			} else {
-			$this->idpais->EditValue = ew_HtmlEncode($this->idpais->CurrentValue);
-			$this->idpais->PlaceHolder = ew_RemoveHtml($this->idpais->FldCaption());
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
-			// idmarca
-			$this->idmarca->EditAttrs["class"] = "form-control";
-			$this->idmarca->EditCustomAttributes = "";
-			if ($this->idmarca->getSessionValue() <> "") {
-				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
-				$this->idmarca->OldValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewCustomAttributes = "";
-			} else {
-			$this->idmarca->EditValue = ew_HtmlEncode($this->idmarca->CurrentValue);
-			$this->idmarca->PlaceHolder = ew_RemoveHtml($this->idmarca->FldCaption());
-			}
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -1309,15 +1474,15 @@ class cproducto_grid extends cproducto {
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// nombre
+			// idmarca
 
+			$this->idmarca->HrefValue = "";
+
+			// nombre
 			$this->nombre->HrefValue = "";
 
 			// idpais
 			$this->idpais->HrefValue = "";
-
-			// idmarca
-			$this->idmarca->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -1340,20 +1505,14 @@ class cproducto_grid extends cproducto {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
+		if (!$this->idmarca->FldIsDetailKey && !is_null($this->idmarca->FormValue) && $this->idmarca->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idmarca->FldCaption(), $this->idmarca->ReqErrMsg));
+		}
 		if (!$this->nombre->FldIsDetailKey && !is_null($this->nombre->FormValue) && $this->nombre->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->nombre->FldCaption(), $this->nombre->ReqErrMsg));
 		}
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idpais->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idpais->FldErrMsg());
-		}
-		if (!$this->idmarca->FldIsDetailKey && !is_null($this->idmarca->FormValue) && $this->idmarca->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idmarca->FldCaption(), $this->idmarca->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idmarca->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idmarca->FldErrMsg());
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
@@ -1466,14 +1625,14 @@ class cproducto_grid extends cproducto {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
+			// idmarca
+			$this->idmarca->SetDbValueDef($rsnew, $this->idmarca->CurrentValue, 0, $this->idmarca->ReadOnly);
+
 			// nombre
 			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", $this->nombre->ReadOnly);
 
 			// idpais
 			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
-
-			// idmarca
-			$this->idmarca->SetDbValueDef($rsnew, $this->idmarca->CurrentValue, 0, $this->idmarca->ReadOnly);
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
@@ -1518,9 +1677,6 @@ class cproducto_grid extends cproducto {
 			if ($this->getCurrentMasterTable() == "marca") {
 				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
 			}
-			if ($this->getCurrentMasterTable() == "pais") {
-				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
-			}
 
 		// Load db values from rsold
 		if ($rsold) {
@@ -1528,14 +1684,14 @@ class cproducto_grid extends cproducto {
 		}
 		$rsnew = array();
 
+		// idmarca
+		$this->idmarca->SetDbValueDef($rsnew, $this->idmarca->CurrentValue, 0, strval($this->idmarca->CurrentValue) == "");
+
 		// nombre
 		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", FALSE);
 
 		// idpais
 		$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, FALSE);
-
-		// idmarca
-		$this->idmarca->SetDbValueDef($rsnew, $this->idmarca->CurrentValue, 0, strval($this->idmarca->CurrentValue) == "");
 
 		// estado
 		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
@@ -1584,10 +1740,6 @@ class cproducto_grid extends cproducto {
 		if ($sMasterTblVar == "marca") {
 			$this->idmarca->Visible = FALSE;
 			if ($GLOBALS["marca"]->EventCancelled) $this->EventCancelled = TRUE;
-		}
-		if ($sMasterTblVar == "pais") {
-			$this->idpais->Visible = FALSE;
-			if ($GLOBALS["pais"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter

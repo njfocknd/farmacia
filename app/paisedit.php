@@ -8,7 +8,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "departamentogridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -248,14 +247,6 @@ class cpais_edit extends cpais {
 			if (@$_POST["grid"] == "fdepartamentogrid") {
 				if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid;
 				$GLOBALS["departamento_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'producto'
-			if (@$_POST["grid"] == "fproductogrid") {
-				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
-				$GLOBALS["producto_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -613,10 +604,6 @@ class cpais_edit extends cpais {
 			if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // get detail page object
 			$GLOBALS["departamento_grid"]->ValidateGridForm();
 		}
-		if (in_array("producto", $DetailTblVar) && $GLOBALS["producto"]->DetailEdit) {
-			if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid(); // get detail page object
-			$GLOBALS["producto_grid"]->ValidateGridForm();
-		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -679,10 +666,6 @@ class cpais_edit extends cpais {
 						if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // Get detail page object
 						$EditRow = $GLOBALS["departamento_grid"]->GridUpdate();
 					}
-					if (in_array("producto", $DetailTblVar) && $GLOBALS["producto"]->DetailEdit) {
-						if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid(); // Get detail page object
-						$EditRow = $GLOBALS["producto_grid"]->GridUpdate();
-					}
 				}
 
 				// Commit/Rollback transaction
@@ -739,21 +722,6 @@ class cpais_edit extends cpais {
 					$GLOBALS["departamento_grid"]->idpais->FldIsDetailKey = TRUE;
 					$GLOBALS["departamento_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
 					$GLOBALS["departamento_grid"]->idpais->setSessionValue($GLOBALS["departamento_grid"]->idpais->CurrentValue);
-				}
-			}
-			if (in_array("producto", $DetailTblVar)) {
-				if (!isset($GLOBALS["producto_grid"]))
-					$GLOBALS["producto_grid"] = new cproducto_grid;
-				if ($GLOBALS["producto_grid"]->DetailEdit) {
-					$GLOBALS["producto_grid"]->CurrentMode = "edit";
-					$GLOBALS["producto_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["producto_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["producto_grid"]->setStartRecordNumber(1);
-					$GLOBALS["producto_grid"]->idpais->FldIsDetailKey = TRUE;
-					$GLOBALS["producto_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
-					$GLOBALS["producto_grid"]->idpais->setSessionValue($GLOBALS["producto_grid"]->idpais->CurrentValue);
 				}
 			}
 		}
@@ -992,14 +960,6 @@ if (is_array($pais->estado->EditValue)) {
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("departamento", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "departamentogrid.php" ?>
-<?php } ?>
-<?php
-	if (in_array("producto", explode(",", $pais->getCurrentDetailTable())) && $producto->DetailEdit) {
-?>
-<?php if ($pais->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "productogrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

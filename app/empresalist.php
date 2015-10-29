@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "sucursalgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -249,7 +250,7 @@ class cempresa_list extends cempresa {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "empresaadd.php";
+		$this->AddUrl = "empresaadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -305,7 +306,6 @@ class cempresa_list extends cempresa {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idempresa->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -322,6 +322,14 @@ class cempresa_list extends cempresa {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'sucursal'
+			if (@$_POST["grid"] == "fsucursalgrid") {
+				if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid;
+				$GLOBALS["sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -593,6 +601,7 @@ class cempresa_list extends cempresa {
 		$sWhere = "";
 		$this->BuildBasicSearchSQL($sWhere, $this->nombre, $arKeywords, $type);
 		$this->BuildBasicSearchSQL($sWhere, $this->direccion, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->estado, $arKeywords, $type);
 		return $sWhere;
 	}
 
@@ -745,11 +754,9 @@ class cempresa_list extends cempresa {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idempresa); // idempresa
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->direccion); // direccion
 			$this->UpdateSort($this->idpais); // idpais
-			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -782,11 +789,9 @@ class cempresa_list extends cempresa {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idempresa->setSort("");
 				$this->nombre->setSort("");
 				$this->direccion->setSort("");
 				$this->idpais->setSort("");
-				$this->estado->setSort("");
 			}
 
 			// Reset start position
@@ -816,6 +821,23 @@ class cempresa_list extends cempresa {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
+
+		// "detail_sucursal"
+		$item = &$this->ListOptions->Add("detail_sucursal");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssStyle = "white-space: nowrap;";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = FALSE;
+			$item->ShowInButtonGroup = FALSE;
+		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -860,6 +882,57 @@ class cempresa_list extends cempresa {
 		} else {
 			$oListOpt->Body = "";
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_sucursal"
+		$oListOpt = &$this->ListOptions->Items["detail_sucursal"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("sucursal", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("sucursallist.php?" . EW_TABLE_SHOW_MASTER . "=empresa&fk_idempresa=" . strval($this->idempresa->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["sucursal_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "sucursal";
+			}
+			if ($GLOBALS["sucursal_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "sucursal";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -880,6 +953,30 @@ class cempresa_list extends cempresa {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_sucursal");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=sucursal") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["sucursal"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["sucursal"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "sucursal";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
+			$item->Visible = ($DetailTableLink <> "");
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1177,7 +1274,7 @@ class cempresa_list extends cempresa {
 			// idpais
 			if (strval($this->idpais->CurrentValue) <> "") {
 				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpais`, `idpais` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
 			$sWhereWrk = "";
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
@@ -1216,11 +1313,6 @@ class cempresa_list extends cempresa {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idempresa
-			$this->idempresa->LinkCustomAttributes = "";
-			$this->idempresa->HrefValue = "";
-			$this->idempresa->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1235,11 +1327,6 @@ class cempresa_list extends cempresa {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1422,7 +1509,7 @@ fempresalist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-fempresalist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_idpais","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fempresalist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 var fempresalistsrch = new ew_Form("fempresalistsrch");
@@ -1519,15 +1606,6 @@ $empresa_list->RenderListOptions();
 // Render list options (header, left)
 $empresa_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($empresa->idempresa->Visible) { // idempresa ?>
-	<?php if ($empresa->SortUrl($empresa->idempresa) == "") { ?>
-		<th data-name="idempresa"><div id="elh_empresa_idempresa" class="empresa_idempresa"><div class="ewTableHeaderCaption"><?php echo $empresa->idempresa->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idempresa"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $empresa->SortUrl($empresa->idempresa) ?>',1);"><div id="elh_empresa_idempresa" class="empresa_idempresa">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $empresa->idempresa->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($empresa->idempresa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($empresa->idempresa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($empresa->nombre->Visible) { // nombre ?>
 	<?php if ($empresa->SortUrl($empresa->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_empresa_nombre" class="empresa_nombre"><div class="ewTableHeaderCaption"><?php echo $empresa->nombre->FldCaption() ?></div></div></th>
@@ -1552,15 +1630,6 @@ $empresa_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idpais"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $empresa->SortUrl($empresa->idpais) ?>',1);"><div id="elh_empresa_idpais" class="empresa_idpais">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $empresa->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($empresa->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($empresa->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($empresa->estado->Visible) { // estado ?>
-	<?php if ($empresa->SortUrl($empresa->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_empresa_estado" class="empresa_estado"><div class="ewTableHeaderCaption"><?php echo $empresa->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $empresa->SortUrl($empresa->estado) ?>',1);"><div id="elh_empresa_estado" class="empresa_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $empresa->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($empresa->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($empresa->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1629,17 +1698,11 @@ while ($empresa_list->RecCnt < $empresa_list->StopRec) {
 // Render list options (body, left)
 $empresa_list->ListOptions->Render("body", "left", $empresa_list->RowCnt);
 ?>
-	<?php if ($empresa->idempresa->Visible) { // idempresa ?>
-		<td data-name="idempresa"<?php echo $empresa->idempresa->CellAttributes() ?>>
-<span<?php echo $empresa->idempresa->ViewAttributes() ?>>
-<?php echo $empresa->idempresa->ListViewValue() ?></span>
-<a id="<?php echo $empresa_list->PageObjName . "_row_" . $empresa_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($empresa->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $empresa->nombre->CellAttributes() ?>>
 <span<?php echo $empresa->nombre->ViewAttributes() ?>>
 <?php echo $empresa->nombre->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $empresa_list->PageObjName . "_row_" . $empresa_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($empresa->direccion->Visible) { // direccion ?>
 		<td data-name="direccion"<?php echo $empresa->direccion->CellAttributes() ?>>
@@ -1651,12 +1714,6 @@ $empresa_list->ListOptions->Render("body", "left", $empresa_list->RowCnt);
 		<td data-name="idpais"<?php echo $empresa->idpais->CellAttributes() ?>>
 <span<?php echo $empresa->idpais->ViewAttributes() ?>>
 <?php echo $empresa->idpais->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($empresa->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $empresa->estado->CellAttributes() ?>>
-<span<?php echo $empresa->estado->ViewAttributes() ?>>
-<?php echo $empresa->estado->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "fabricanteinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
@@ -257,6 +258,9 @@ class cmarca_list extends cmarca {
 		$this->MultiDeleteUrl = "marcadelete.php";
 		$this->MultiUpdateUrl = "marcaupdate.php";
 
+		// Table object (fabricante)
+		if (!isset($GLOBALS['fabricante'])) $GLOBALS['fabricante'] = new cfabricante();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -455,6 +459,9 @@ class cmarca_list extends cmarca {
 			// Handle reset command
 			$this->ResetCmd();
 
+			// Set up master detail parameters
+			$this->SetUpMasterParms();
+
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -538,8 +545,28 @@ class cmarca_list extends cmarca {
 
 		// Build filter
 		$sFilter = "";
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "fabricante") {
+			global $fabricante;
+			$rsmaster = $fabricante->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("fabricantelist.php"); // Return to master page
+			} else {
+				$fabricante->LoadListRowValues($rsmaster);
+				$fabricante->RowType = EW_ROWTYPE_MASTER; // Master row
+				$fabricante->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
@@ -781,6 +808,14 @@ class cmarca_list extends cmarca {
 			// Reset search criteria
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
+
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->idfabricante->setSessionValue("");
+			}
 
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
@@ -1322,6 +1357,48 @@ class cmarca_list extends cmarca {
 			$this->Row_Rendered();
 	}
 
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fabricante") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idfabricante"] <> "") {
+					$GLOBALS["fabricante"]->idfabricante->setQueryStringValue($_GET["fk_idfabricante"]);
+					$this->idfabricante->setQueryStringValue($GLOBALS["fabricante"]->idfabricante->QueryStringValue);
+					$this->idfabricante->setSessionValue($this->idfabricante->QueryStringValue);
+					if (!is_numeric($GLOBALS["fabricante"]->idfabricante->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "fabricante") {
+				if ($this->idfabricante->QueryStringValue == "") $this->idfabricante->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -1508,7 +1585,7 @@ var fmarcalistsrch = new ew_Form("fmarcalistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($marca_list->TotalRecs > 0 && $marca_list->ExportOptions->Visible()) { ?>
+<?php if ($marca_list->TotalRecs > 0 && $marca->getCurrentMasterTable() == "" && $marca_list->ExportOptions->Visible()) { ?>
 <?php $marca_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($marca_list->SearchOptions->Visible()) { ?>
@@ -1517,6 +1594,22 @@ var fmarcalistsrch = new ew_Form("fmarcalistsrch");
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
+<?php if (($marca->Export == "") || (EW_EXPORT_MASTER_RECORD && $marca->Export == "print")) { ?>
+<?php
+$gsMasterReturnUrl = "fabricantelist.php";
+if ($marca_list->DbMasterFilter <> "" && $marca->getCurrentMasterTable() == "fabricante") {
+	if ($marca_list->MasterRecordExists) {
+		if ($marca->getCurrentMasterTable() == $marca->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($marca_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $marca_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "fabricantemaster.php" ?>
+<?php
+	}
+}
+?>
+<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {

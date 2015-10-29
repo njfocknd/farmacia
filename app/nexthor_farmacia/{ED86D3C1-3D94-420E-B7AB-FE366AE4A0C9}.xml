@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0"?>
 <configuration date="2015/10/28" author="e.World Technology Ltd.">
-<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/10/28 20:27:36" languagefolder="phplang" userlevel="">
+<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/10/28 21:52:49" languagefolder="phplang" userlevel="">
 <table id="departamento" name="departamento" caption="Departamento" userlevel="" priv="1"/>
 <table id="empresa" name="empresa" caption="Empresa" userlevel="" priv="1"/>
 <table id="fabricante" name="fabricante" caption="Fabricante" userlevel="" priv="1"/>
 <table id="marca" name="marca" caption="Marca" userlevel="" priv="1"/>
 <table id="municipio" name="municipio" caption="Municipio" userlevel="" priv="1"/>
 <table id="pais" name="pais" caption="País" userlevel="" priv="1"/>
-<table id="producto" name="producto" caption="País" userlevel="" priv="1"/>
+<table id="producto" name="producto" caption="Producto" userlevel="" priv="1"/>
 <table id="registro_sanitario" name="registro_sanitario" caption="registro sanitario" userlevel="" priv="1"/>
-<table id="sucursal" name="sucursal" caption="Sucursal" userlevel="" priv="1"/>
+<table id="sucursal" name="sucursal" caption="Producto" userlevel="" priv="1"/>
 </project></configuration>

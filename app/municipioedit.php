@@ -424,8 +424,8 @@ class cmunicipio_edit extends cmunicipio {
 		if (!$this->iddepartamento->FldIsDetailKey) {
 			$this->iddepartamento->setFormValue($objForm->GetValue("x_iddepartamento"));
 		}
-		if (!$this->state->FldIsDetailKey) {
-			$this->state->setFormValue($objForm->GetValue("x_state"));
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
 		if (!$this->idmunicipio->FldIsDetailKey)
 			$this->idmunicipio->setFormValue($objForm->GetValue("x_idmunicipio"));
@@ -438,7 +438,7 @@ class cmunicipio_edit extends cmunicipio {
 		$this->idmunicipio->CurrentValue = $this->idmunicipio->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->iddepartamento->CurrentValue = $this->iddepartamento->FormValue;
-		$this->state->CurrentValue = $this->state->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
 	// Load row based on key values
@@ -473,7 +473,7 @@ class cmunicipio_edit extends cmunicipio {
 		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -483,7 +483,7 @@ class cmunicipio_edit extends cmunicipio {
 		$this->idmunicipio->DbValue = $row['idmunicipio'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -500,7 +500,7 @@ class cmunicipio_edit extends cmunicipio {
 		// idmunicipio
 		// nombre
 		// iddepartamento
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -541,8 +541,22 @@ class cmunicipio_edit extends cmunicipio {
 			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
-			// state
-			$this->state->ViewCustomAttributes = "";
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
+						break;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
+						break;
+					default:
+						$this->estado->ViewValue = $this->estado->CurrentValue;
+				}
+			} else {
+				$this->estado->ViewValue = NULL;
+			}
+			$this->estado->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -554,10 +568,10 @@ class cmunicipio_edit extends cmunicipio {
 			$this->iddepartamento->HrefValue = "";
 			$this->iddepartamento->TooltipValue = "";
 
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
@@ -625,9 +639,14 @@ class cmunicipio_edit extends cmunicipio {
 			$this->iddepartamento->EditValue = $arwrk;
 			}
 
-			// state
-			$this->state->EditAttrs["class"] = "form-control";
-			$this->state->EditCustomAttributes = "";
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
 			// nombre
@@ -637,8 +656,8 @@ class cmunicipio_edit extends cmunicipio {
 			// iddepartamento
 			$this->iddepartamento->HrefValue = "";
 
-			// state
-			$this->state->HrefValue = "";
+			// estado
+			$this->estado->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -664,8 +683,8 @@ class cmunicipio_edit extends cmunicipio {
 		if (!$this->iddepartamento->FldIsDetailKey && !is_null($this->iddepartamento->FormValue) && $this->iddepartamento->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->iddepartamento->FldCaption(), $this->iddepartamento->ReqErrMsg));
 		}
-		if (!$this->state->FldIsDetailKey && !is_null($this->state->FormValue) && $this->state->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->state->FldCaption(), $this->state->ReqErrMsg));
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -706,8 +725,8 @@ class cmunicipio_edit extends cmunicipio {
 			// iddepartamento
 			$this->iddepartamento->SetDbValueDef($rsnew, $this->iddepartamento->CurrentValue, 0, $this->iddepartamento->ReadOnly);
 
-			// state
-			$this->state->SetDbValueDef($rsnew, $this->state->CurrentValue, "", $this->state->ReadOnly);
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -909,9 +928,9 @@ fmunicipioedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_iddepartamento");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $municipio->iddepartamento->FldCaption(), $municipio->iddepartamento->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_state");
+			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $municipio->state->FldCaption(), $municipio->state->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $municipio->estado->FldCaption(), $municipio->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1031,19 +1050,19 @@ $sSqlWrk .= " ORDER BY `nombre`";
 <?php echo $municipio->iddepartamento->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($municipio->state->Visible) { // state ?>
-	<div id="r_state" class="form-group">
-		<label id="elh_municipio_state" for="x_state" class="col-sm-2 control-label ewLabel"><?php echo $municipio->state->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $municipio->state->CellAttributes() ?>>
-<span id="el_municipio_state">
-<select data-field="x_state" id="x_state" name="x_state"<?php echo $municipio->state->EditAttributes() ?>>
+<?php if ($municipio->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_municipio_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $municipio->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $municipio->estado->CellAttributes() ?>>
+<span id="el_municipio_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $municipio->estado->EditAttributes() ?>>
 <?php
-if (is_array($municipio->state->EditValue)) {
-	$arwrk = $municipio->state->EditValue;
+if (is_array($municipio->estado->EditValue)) {
+	$arwrk = $municipio->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($municipio->state->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($municipio->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1055,7 +1074,7 @@ if (is_array($municipio->state->EditValue)) {
 ?>
 </select>
 </span>
-<?php echo $municipio->state->CustomMsg ?></div></div>
+<?php echo $municipio->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

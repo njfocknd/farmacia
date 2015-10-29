@@ -309,7 +309,6 @@ class cmunicipio_list extends cmunicipio {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idmunicipio->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -771,7 +770,6 @@ class cmunicipio_list extends cmunicipio {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idmunicipio); // idmunicipio
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->iddepartamento); // iddepartamento
 			$this->setStartRecordNumber(1); // Reset start position
@@ -814,7 +812,6 @@ class cmunicipio_list extends cmunicipio {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idmunicipio->setSort("");
 				$this->nombre->setSort("");
 				$this->iddepartamento->setSort("");
 			}
@@ -1130,7 +1127,7 @@ class cmunicipio_list extends cmunicipio {
 		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -1140,7 +1137,7 @@ class cmunicipio_list extends cmunicipio {
 		$this->idmunicipio->DbValue = $row['idmunicipio'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Load old record
@@ -1185,7 +1182,7 @@ class cmunicipio_list extends cmunicipio {
 		// idmunicipio
 		// nombre
 		// iddepartamento
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1226,13 +1223,22 @@ class cmunicipio_list extends cmunicipio {
 			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
-			// state
-			$this->state->ViewCustomAttributes = "";
-
-			// idmunicipio
-			$this->idmunicipio->LinkCustomAttributes = "";
-			$this->idmunicipio->HrefValue = "";
-			$this->idmunicipio->TooltipValue = "";
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
+						break;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
+						break;
+					default:
+						$this->estado->ViewValue = $this->estado->CurrentValue;
+				}
+			} else {
+				$this->estado->ViewValue = NULL;
+			}
+			$this->estado->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -1580,15 +1586,6 @@ $municipio_list->RenderListOptions();
 // Render list options (header, left)
 $municipio_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($municipio->idmunicipio->Visible) { // idmunicipio ?>
-	<?php if ($municipio->SortUrl($municipio->idmunicipio) == "") { ?>
-		<th data-name="idmunicipio"><div id="elh_municipio_idmunicipio" class="municipio_idmunicipio"><div class="ewTableHeaderCaption"><?php echo $municipio->idmunicipio->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idmunicipio"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $municipio->SortUrl($municipio->idmunicipio) ?>',1);"><div id="elh_municipio_idmunicipio" class="municipio_idmunicipio">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $municipio->idmunicipio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($municipio->idmunicipio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($municipio->idmunicipio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($municipio->nombre->Visible) { // nombre ?>
 	<?php if ($municipio->SortUrl($municipio->nombre) == "") { ?>
 		<th data-name="nombre"><div id="elh_municipio_nombre" class="municipio_nombre"><div class="ewTableHeaderCaption"><?php echo $municipio->nombre->FldCaption() ?></div></div></th>
@@ -1672,17 +1669,11 @@ while ($municipio_list->RecCnt < $municipio_list->StopRec) {
 // Render list options (body, left)
 $municipio_list->ListOptions->Render("body", "left", $municipio_list->RowCnt);
 ?>
-	<?php if ($municipio->idmunicipio->Visible) { // idmunicipio ?>
-		<td data-name="idmunicipio"<?php echo $municipio->idmunicipio->CellAttributes() ?>>
-<span<?php echo $municipio->idmunicipio->ViewAttributes() ?>>
-<?php echo $municipio->idmunicipio->ListViewValue() ?></span>
-<a id="<?php echo $municipio_list->PageObjName . "_row_" . $municipio_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($municipio->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $municipio->nombre->CellAttributes() ?>>
 <span<?php echo $municipio->nombre->ViewAttributes() ?>>
 <?php echo $municipio->nombre->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $municipio_list->PageObjName . "_row_" . $municipio_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($municipio->iddepartamento->Visible) { // iddepartamento ?>
 		<td data-name="iddepartamento"<?php echo $municipio->iddepartamento->CellAttributes() ?>>

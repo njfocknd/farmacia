@@ -417,23 +417,23 @@
 <phrase id="footertext" value="Nexthor 2015. Proyecto Seminario"/>
 <menu id="10"><phrase id="menutext" value="Catálogos"/>
 </menu>
-<menu id="6"><phrase id="menutext" value="pais"/>
+<menu id="6"><phrase id="menutext" value="País"/>
 </menu>
-<menu id="1"><phrase id="menutext" value="departamento"/>
+<menu id="1"><phrase id="menutext" value="Departamento"/>
 </menu>
-<menu id="5"><phrase id="menutext" value="municipio"/>
+<menu id="5"><phrase id="menutext" value="Municipio"/>
 </menu>
-<menu id="2"><phrase id="menutext" value="empresa"/>
+<menu id="2"><phrase id="menutext" value="Empresa"/>
 </menu>
-<menu id="9"><phrase id="menutext" value="sucursal"/>
+<menu id="9"><phrase id="menutext" value="Sucursal"/>
 </menu>
-<menu id="3"><phrase id="menutext" value="fabricante"/>
+<menu id="3"><phrase id="menutext" value="Fabricante"/>
 </menu>
-<menu id="4"><phrase id="menutext" value="marca"/>
+<menu id="4"><phrase id="menutext" value="Marca"/>
 </menu>
-<menu id="7"><phrase id="menutext" value="producto"/>
+<menu id="7"><phrase id="menutext" value="Producto"/>
 </menu>
-<menu id="8"><phrase id="menutext" value="registro sanitario"/>
+<menu id="8"><phrase id="menutext" value="Registro Sanitario"/>
 </menu>
 <table id="departamento"><phrase id="tblcaption" value="Departamento"/>
 <field id="iddepartamento"><phrase id="fldcaption" value="iddepartamento"/>
@@ -442,7 +442,7 @@
 </field>
 <field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
-<field id="state"><phrase id="fldcaption" value="Estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -457,10 +457,10 @@
 <field id="direccion"><phrase id="fldcaption" value="Dirección"/>
 </field>
 <field id="estado"><phrase id="fldcaption" value="Estado"/>
-<phrase id="fldtagvalue1" value="Activa"/>
-<phrase id="fldtagcaption1" value="Activa"/>
-<phrase id="fldtagvalue2" value="Inactiva"/>
-<phrase id="fldtagcaption2" value="Inactiva"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 <field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
@@ -500,7 +500,7 @@
 </field>
 <field id="iddepartamento"><phrase id="fldcaption" value="Departamento"/>
 </field>
-<field id="state"><phrase id="fldcaption" value="Estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
@@ -519,7 +519,7 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 </table>
-<table id="producto"><phrase id="tblcaption" value="País"/>
+<table id="producto"><phrase id="tblcaption" value="Producto"/>
 <field id="idproducto"><phrase id="fldcaption" value="idproducto"/>
 </field>
 <field id="nombre"><phrase id="fldcaption" value="Nombre"/>
@@ -551,7 +551,7 @@
 <field id="idproducto"><phrase id="fldcaption" value="Producto"/>
 </field>
 </table>
-<table id="sucursal"><phrase id="tblcaption" value="Sucursal"/>
+<table id="sucursal"><phrase id="tblcaption" value="Producto"/>
 <field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
 </field>
 <field id="nombre"><phrase id="fldcaption" value="Nombre"/>

@@ -445,8 +445,8 @@ class cdepartamento_edit extends cdepartamento {
 		if (!$this->idpais->FldIsDetailKey) {
 			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		}
-		if (!$this->state->FldIsDetailKey) {
-			$this->state->setFormValue($objForm->GetValue("x_state"));
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
 		if (!$this->iddepartamento->FldIsDetailKey)
 			$this->iddepartamento->setFormValue($objForm->GetValue("x_iddepartamento"));
@@ -459,7 +459,7 @@ class cdepartamento_edit extends cdepartamento {
 		$this->iddepartamento->CurrentValue = $this->iddepartamento->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->idpais->CurrentValue = $this->idpais->FormValue;
-		$this->state->CurrentValue = $this->state->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
 	// Load row based on key values
@@ -494,7 +494,7 @@ class cdepartamento_edit extends cdepartamento {
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -504,7 +504,7 @@ class cdepartamento_edit extends cdepartamento {
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -521,7 +521,7 @@ class cdepartamento_edit extends cdepartamento {
 		// iddepartamento
 		// nombre
 		// idpais
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -561,22 +561,22 @@ class cdepartamento_edit extends cdepartamento {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
-			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
 						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
 						break;
 					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
+						$this->estado->ViewValue = $this->estado->CurrentValue;
 				}
 			} else {
-				$this->state->ViewValue = NULL;
+				$this->estado->ViewValue = NULL;
 			}
-			$this->state->ViewCustomAttributes = "";
+			$this->estado->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
@@ -588,10 +588,10 @@ class cdepartamento_edit extends cdepartamento {
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
 
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
@@ -657,12 +657,14 @@ class cdepartamento_edit extends cdepartamento {
 			$this->idpais->EditValue = $arwrk;
 			}
 
-			// state
-			$this->state->EditCustomAttributes = "";
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
-			$arwrk[] = array($this->state->FldTagValue(1), $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->FldTagValue(1));
-			$arwrk[] = array($this->state->FldTagValue(2), $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->FldTagValue(2));
-			$this->state->EditValue = $arwrk;
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
 			// nombre
@@ -672,8 +674,8 @@ class cdepartamento_edit extends cdepartamento {
 			// idpais
 			$this->idpais->HrefValue = "";
 
-			// state
-			$this->state->HrefValue = "";
+			// estado
+			$this->estado->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -699,8 +701,8 @@ class cdepartamento_edit extends cdepartamento {
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
 		}
-		if ($this->state->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->state->FldCaption(), $this->state->ReqErrMsg));
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
 		// Validate detail grid
@@ -752,8 +754,8 @@ class cdepartamento_edit extends cdepartamento {
 			// idpais
 			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
 
-			// state
-			$this->state->SetDbValueDef($rsnew, $this->state->CurrentValue, "", $this->state->ReadOnly);
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1003,9 +1005,9 @@ fdepartamentoedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idpais");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $departamento->idpais->FldCaption(), $departamento->idpais->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_state");
+			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $departamento->state->FldCaption(), $departamento->state->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $departamento->estado->FldCaption(), $departamento->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1124,34 +1126,31 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 <?php echo $departamento->idpais->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($departamento->state->Visible) { // state ?>
-	<div id="r_state" class="form-group">
-		<label id="elh_departamento_state" class="col-sm-2 control-label ewLabel"><?php echo $departamento->state->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $departamento->state->CellAttributes() ?>>
-<span id="el_departamento_state">
-<div id="tp_x_state" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_state" id="x_state" value="{value}"<?php echo $departamento->state->EditAttributes() ?>></div>
-<div id="dsl_x_state" data-repeatcolumn="5" class="ewItemList">
+<?php if ($departamento->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_departamento_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $departamento->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $departamento->estado->CellAttributes() ?>>
+<span id="el_departamento_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $departamento->estado->EditAttributes() ?>>
 <?php
-$arwrk = $departamento->state->EditValue;
-if (is_array($arwrk)) {
+if (is_array($departamento->estado->EditValue)) {
+	$arwrk = $departamento->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($departamento->state->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($departamento->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_state" name="x_state" id="x_state_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $departamento->state->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
-<?php echo $departamento->state->CustomMsg ?></div></div>
+<?php echo $departamento->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

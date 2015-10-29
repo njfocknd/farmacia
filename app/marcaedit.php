@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "fabricanteinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
@@ -202,6 +203,9 @@ class cmarca_edit extends cmarca {
 			$GLOBALS["Table"] = &$GLOBALS["marca"];
 		}
 
+		// Table object (fabricante)
+		if (!isset($GLOBALS['fabricante'])) $GLOBALS['fabricante'] = new cfabricante();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'edit', TRUE);
@@ -321,6 +325,9 @@ class cmarca_edit extends cmarca {
 		if (@$_GET["idmarca"] <> "") {
 			$this->idmarca->setQueryStringValue($_GET["idmarca"]);
 		}
+
+		// Set up master detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -597,6 +604,36 @@ class cmarca_edit extends cmarca {
 			// idfabricante
 			$this->idfabricante->EditAttrs["class"] = "form-control";
 			$this->idfabricante->EditCustomAttributes = "";
+			if ($this->idfabricante->getSessionValue() <> "") {
+				$this->idfabricante->CurrentValue = $this->idfabricante->getSessionValue();
+			if (strval($this->idfabricante->CurrentValue) <> "") {
+				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+				}
+			} else {
+				$this->idfabricante->ViewValue = NULL;
+			}
+			$this->idfabricante->ViewCustomAttributes = "";
+			} else {
 			if (trim(strval($this->idfabricante->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
@@ -621,6 +658,7 @@ class cmarca_edit extends cmarca {
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idfabricante->EditValue = $arwrk;
+			}
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -773,6 +811,49 @@ class cmarca_edit extends cmarca {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fabricante") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idfabricante"] <> "") {
+					$GLOBALS["fabricante"]->idfabricante->setQueryStringValue($_GET["fk_idfabricante"]);
+					$this->idfabricante->setQueryStringValue($GLOBALS["fabricante"]->idfabricante->QueryStringValue);
+					$this->idfabricante->setSessionValue($this->idfabricante->QueryStringValue);
+					if (!is_numeric($GLOBALS["fabricante"]->idfabricante->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "fabricante") {
+				if ($this->idfabricante->QueryStringValue == "") $this->idfabricante->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up detail parms based on QueryString
@@ -1010,6 +1091,13 @@ $marca_edit->ShowMessage();
 	<div id="r_idfabricante" class="form-group">
 		<label id="elh_marca_idfabricante" for="x_idfabricante" class="col-sm-2 control-label ewLabel"><?php echo $marca->idfabricante->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $marca->idfabricante->CellAttributes() ?>>
+<?php if ($marca->idfabricante->getSessionValue() <> "") { ?>
+<span id="el_marca_idfabricante">
+<span<?php echo $marca->idfabricante->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $marca->idfabricante->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idfabricante" name="x_idfabricante" value="<?php echo ew_HtmlEncode($marca->idfabricante->CurrentValue) ?>">
+<?php } else { ?>
 <span id="el_marca_idfabricante">
 <select data-field="x_idfabricante" id="x_idfabricante" name="x_idfabricante"<?php echo $marca->idfabricante->EditAttributes() ?>>
 <?php
@@ -1044,6 +1132,7 @@ $sSqlWrk .= " ORDER BY `nombre`";
 ?>
 <input type="hidden" name="s_x_idfabricante" id="s_x_idfabricante" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idfabricante` = {filter_value}"); ?>&amp;t0=3">
 </span>
+<?php } ?>
 <?php echo $marca->idfabricante->CustomMsg ?></div></div>
 	</div>
 <?php } ?>

@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "fabricanteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "marcagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -241,6 +242,14 @@ class cfabricante_add extends cfabricante {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'marca'
+			if (@$_POST["grid"] == "fmarcagrid") {
+				if (!isset($GLOBALS["marca_grid"])) $GLOBALS["marca_grid"] = new cmarca_grid;
+				$GLOBALS["marca_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -339,6 +348,9 @@ class cfabricante_add extends cfabricante {
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
+		// Set up detail parameters
+		$this->SetUpDetailParms();
+
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -358,19 +370,28 @@ class cfabricante_add extends cfabricante {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("fabricantelist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail add
+						$sReturnUrl = $this->GetDetailUrl();
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "fabricanteview.php")
 						$sReturnUrl = $this->GetViewUrl(); // View paging, return to view page with keyurl directly
 					$this->Page_Terminate($sReturnUrl); // Clean up and return
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -637,6 +658,13 @@ class cfabricante_add extends cfabricante {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
 		}
 
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("marca", $DetailTblVar) && $GLOBALS["marca"]->DetailAdd) {
+			if (!isset($GLOBALS["marca_grid"])) $GLOBALS["marca_grid"] = new cmarca_grid(); // get detail page object
+			$GLOBALS["marca_grid"]->ValidateGridForm();
+		}
+
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
 
@@ -652,6 +680,10 @@ class cfabricante_add extends cfabricante {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
+
+		// Begin transaction
+		if ($this->getCurrentDetailTable() <> "")
+			$conn->BeginTrans();
 
 		// Load db values from rsold
 		if ($rsold) {
@@ -692,6 +724,27 @@ class cfabricante_add extends cfabricante {
 			$this->idfabricante->setDbValue($conn->Insert_ID());
 			$rsnew['idfabricante'] = $this->idfabricante->DbValue;
 		}
+
+		// Add detail records
+		if ($AddRow) {
+			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+			if (in_array("marca", $DetailTblVar) && $GLOBALS["marca"]->DetailAdd) {
+				$GLOBALS["marca"]->idfabricante->setSessionValue($this->idfabricante->CurrentValue); // Set master key
+				if (!isset($GLOBALS["marca_grid"])) $GLOBALS["marca_grid"] = new cmarca_grid(); // Get detail page object
+				$AddRow = $GLOBALS["marca_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["marca"]->idfabricante->setSessionValue(""); // Clear master key if insert failed
+			}
+		}
+
+		// Commit/Rollback transaction
+		if ($this->getCurrentDetailTable() <> "") {
+			if ($AddRow) {
+				$conn->CommitTrans(); // Commit transaction
+			} else {
+				$conn->RollbackTrans(); // Rollback transaction
+			}
+		}
 		if ($AddRow) {
 
 			// Call Row Inserted event
@@ -699,6 +752,39 @@ class cfabricante_add extends cfabricante {
 			$this->Row_Inserted($rs, $rsnew);
 		}
 		return $AddRow;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("marca", $DetailTblVar)) {
+				if (!isset($GLOBALS["marca_grid"]))
+					$GLOBALS["marca_grid"] = new cmarca_grid;
+				if ($GLOBALS["marca_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["marca_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["marca_grid"]->CurrentMode = "add";
+					$GLOBALS["marca_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["marca_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["marca_grid"]->setStartRecordNumber(1);
+					$GLOBALS["marca_grid"]->idfabricante->FldIsDetailKey = TRUE;
+					$GLOBALS["marca_grid"]->idfabricante->CurrentValue = $this->idfabricante->CurrentValue;
+					$GLOBALS["marca_grid"]->idfabricante->setSessionValue($GLOBALS["marca_grid"]->idfabricante->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -941,6 +1027,14 @@ $sSqlWrk .= " ORDER BY `nombre`";
 	</div>
 <?php } ?>
 </div>
+<?php
+	if (in_array("marca", explode(",", $fabricante->getCurrentDetailTable())) && $marca->DetailAdd) {
+?>
+<?php if ($fabricante->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("marca", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "marcagrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("AddBtn") ?></button>

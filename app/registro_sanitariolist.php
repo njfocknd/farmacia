@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitarioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -256,6 +257,9 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->MultiDeleteUrl = "registro_sanitariodelete.php";
 		$this->MultiUpdateUrl = "registro_sanitarioupdate.php";
 
+		// Table object (producto)
+		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -446,6 +450,9 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			// Handle reset command
 			$this->ResetCmd();
 
+			// Set up master detail parameters
+			$this->SetUpMasterParms();
+
 			// Set up Breadcrumb
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
@@ -529,8 +536,28 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Build filter
 		$sFilter = "";
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "producto") {
+			global $producto;
+			$rsmaster = $producto->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("productolist.php"); // Return to master page
+			} else {
+				$producto->LoadListRowValues($rsmaster);
+				$producto->RowType = EW_ROWTYPE_MASTER; // Master row
+				$producto->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
@@ -773,6 +800,14 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			// Reset search criteria
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
+
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->idproducto->setSessionValue("");
+			}
 
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
@@ -1260,6 +1295,48 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			$this->Row_Rendered();
 	}
 
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "producto") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idproducto"] <> "") {
+					$GLOBALS["producto"]->idproducto->setQueryStringValue($_GET["fk_idproducto"]);
+					$this->idproducto->setQueryStringValue($GLOBALS["producto"]->idproducto->QueryStringValue);
+					$this->idproducto->setSessionValue($this->idproducto->QueryStringValue);
+					if (!is_numeric($GLOBALS["producto"]->idproducto->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "producto") {
+				if ($this->idproducto->QueryStringValue == "") $this->idproducto->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -1447,7 +1524,7 @@ var fregistro_sanitariolistsrch = new ew_Form("fregistro_sanitariolistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($registro_sanitario_list->TotalRecs > 0 && $registro_sanitario_list->ExportOptions->Visible()) { ?>
+<?php if ($registro_sanitario_list->TotalRecs > 0 && $registro_sanitario->getCurrentMasterTable() == "" && $registro_sanitario_list->ExportOptions->Visible()) { ?>
 <?php $registro_sanitario_list->ExportOptions->Render("body") ?>
 <?php } ?>
 <?php if ($registro_sanitario_list->SearchOptions->Visible()) { ?>
@@ -1456,6 +1533,22 @@ var fregistro_sanitariolistsrch = new ew_Form("fregistro_sanitariolistsrch");
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
+<?php if (($registro_sanitario->Export == "") || (EW_EXPORT_MASTER_RECORD && $registro_sanitario->Export == "print")) { ?>
+<?php
+$gsMasterReturnUrl = "productolist.php";
+if ($registro_sanitario_list->DbMasterFilter <> "" && $registro_sanitario->getCurrentMasterTable() == "producto") {
+	if ($registro_sanitario_list->MasterRecordExists) {
+		if ($registro_sanitario->getCurrentMasterTable() == $registro_sanitario->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($registro_sanitario_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $registro_sanitario_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "productomaster.php" ?>
+<?php
+	}
+}
+?>
+<?php } ?>
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {

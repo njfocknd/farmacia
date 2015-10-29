@@ -10,7 +10,7 @@ class cdepartamento extends cTable {
 	var $iddepartamento;
 	var $nombre;
 	var $idpais;
-	var $state;
+	var $estado;
 
 	//
 	// Table class constructor
@@ -50,9 +50,9 @@ class cdepartamento extends cTable {
 		$this->idpais->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idpais'] = &$this->idpais;
 
-		// state
-		$this->state = new cField('departamento', 'departamento', 'x_state', 'state', '`state`', '`state`', 202, -1, FALSE, '`state`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['state'] = &$this->state;
+		// estado
+		$this->estado = new cField('departamento', 'departamento', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['estado'] = &$this->estado;
 	}
 
 	// Single column sort
@@ -174,7 +174,7 @@ class cdepartamento extends cTable {
 
 	function getSqlWhere() { // Where
 		$sWhere = ($this->_SqlWhere <> "") ? $this->_SqlWhere : "";
-		$this->TableFilter = "`state` = 'Activo'";
+		$this->TableFilter = "`estado` = 'Activo'";
 		ew_AddFilter($sWhere, $this->TableFilter);
 		return $sWhere;
 	}
@@ -607,7 +607,7 @@ class cdepartamento extends cTable {
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Render list row values
@@ -621,7 +621,7 @@ class cdepartamento extends cTable {
 		// iddepartamento
 		// nombre
 		// idpais
-		// state
+		// estado
 		// iddepartamento
 
 		$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
@@ -659,22 +659,22 @@ class cdepartamento extends cTable {
 		}
 		$this->idpais->ViewCustomAttributes = "";
 
-		// state
-		if (strval($this->state->CurrentValue) <> "") {
-			switch ($this->state->CurrentValue) {
-				case $this->state->FldTagValue(1):
-					$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
+		// estado
+		if (strval($this->estado->CurrentValue) <> "") {
+			switch ($this->estado->CurrentValue) {
+				case $this->estado->FldTagValue(1):
+					$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
 					break;
-				case $this->state->FldTagValue(2):
-					$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
+				case $this->estado->FldTagValue(2):
+					$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
 					break;
 				default:
-					$this->state->ViewValue = $this->state->CurrentValue;
+					$this->estado->ViewValue = $this->estado->CurrentValue;
 			}
 		} else {
-			$this->state->ViewValue = NULL;
+			$this->estado->ViewValue = NULL;
 		}
-		$this->state->ViewCustomAttributes = "";
+		$this->estado->ViewCustomAttributes = "";
 
 		// iddepartamento
 		$this->iddepartamento->LinkCustomAttributes = "";
@@ -691,10 +691,10 @@ class cdepartamento extends cTable {
 		$this->idpais->HrefValue = "";
 		$this->idpais->TooltipValue = "";
 
-		// state
-		$this->state->LinkCustomAttributes = "";
-		$this->state->HrefValue = "";
-		$this->state->TooltipValue = "";
+		// estado
+		$this->estado->LinkCustomAttributes = "";
+		$this->estado->HrefValue = "";
+		$this->estado->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -753,12 +753,14 @@ class cdepartamento extends cTable {
 		} else {
 		}
 
-		// state
-		$this->state->EditCustomAttributes = "";
+		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
+		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
-		$arwrk[] = array($this->state->FldTagValue(1), $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->FldTagValue(1));
-		$arwrk[] = array($this->state->FldTagValue(2), $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->FldTagValue(2));
-		$this->state->EditValue = $arwrk;
+		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -787,12 +789,12 @@ class cdepartamento extends cTable {
 					if ($this->iddepartamento->Exportable) $Doc->ExportCaption($this->iddepartamento);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
-					if ($this->state->Exportable) $Doc->ExportCaption($this->state);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->iddepartamento->Exportable) $Doc->ExportCaption($this->iddepartamento);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
-					if ($this->state->Exportable) $Doc->ExportCaption($this->state);
+					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
 			}
@@ -827,12 +829,12 @@ class cdepartamento extends cTable {
 						if ($this->iddepartamento->Exportable) $Doc->ExportField($this->iddepartamento);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
-						if ($this->state->Exportable) $Doc->ExportField($this->state);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->iddepartamento->Exportable) $Doc->ExportField($this->iddepartamento);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
-						if ($this->state->Exportable) $Doc->ExportField($this->state);
+						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();
 				}

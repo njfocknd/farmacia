@@ -377,7 +377,7 @@ class cdepartamento_search extends cdepartamento {
 		$this->BuildSearchUrl($sSrchUrl, $this->iddepartamento); // iddepartamento
 		$this->BuildSearchUrl($sSrchUrl, $this->nombre); // nombre
 		$this->BuildSearchUrl($sSrchUrl, $this->idpais); // idpais
-		$this->BuildSearchUrl($sSrchUrl, $this->state); // state
+		$this->BuildSearchUrl($sSrchUrl, $this->estado); // estado
 		if ($sSrchUrl <> "") $sSrchUrl .= "&";
 		$sSrchUrl .= "cmd=search";
 		return $sSrchUrl;
@@ -456,9 +456,9 @@ class cdepartamento_search extends cdepartamento {
 		$this->idpais->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idpais"));
 		$this->idpais->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idpais");
 
-		// state
-		$this->state->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_state"));
-		$this->state->AdvancedSearch->SearchOperator = $objForm->GetValue("z_state");
+		// estado
+		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_estado"));
+		$this->estado->AdvancedSearch->SearchOperator = $objForm->GetValue("z_estado");
 	}
 
 	// Render row values based on field settings
@@ -475,7 +475,7 @@ class cdepartamento_search extends cdepartamento {
 		// iddepartamento
 		// nombre
 		// idpais
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -515,22 +515,22 @@ class cdepartamento_search extends cdepartamento {
 			}
 			$this->idpais->ViewCustomAttributes = "";
 
-			// state
-			if (strval($this->state->CurrentValue) <> "") {
-				switch ($this->state->CurrentValue) {
-					case $this->state->FldTagValue(1):
-						$this->state->ViewValue = $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->CurrentValue;
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
 						break;
-					case $this->state->FldTagValue(2):
-						$this->state->ViewValue = $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->CurrentValue;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
 						break;
 					default:
-						$this->state->ViewValue = $this->state->CurrentValue;
+						$this->estado->ViewValue = $this->estado->CurrentValue;
 				}
 			} else {
-				$this->state->ViewValue = NULL;
+				$this->estado->ViewValue = NULL;
 			}
-			$this->state->ViewCustomAttributes = "";
+			$this->estado->ViewCustomAttributes = "";
 
 			// iddepartamento
 			$this->iddepartamento->LinkCustomAttributes = "";
@@ -547,10 +547,10 @@ class cdepartamento_search extends cdepartamento {
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
 
-			// state
-			$this->state->LinkCustomAttributes = "";
-			$this->state->HrefValue = "";
-			$this->state->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
 			// iddepartamento
@@ -592,12 +592,14 @@ class cdepartamento_search extends cdepartamento {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idpais->EditValue = $arwrk;
 
-			// state
-			$this->state->EditCustomAttributes = "";
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
-			$arwrk[] = array($this->state->FldTagValue(1), $this->state->FldTagCaption(1) <> "" ? $this->state->FldTagCaption(1) : $this->state->FldTagValue(1));
-			$arwrk[] = array($this->state->FldTagValue(2), $this->state->FldTagCaption(2) <> "" ? $this->state->FldTagCaption(2) : $this->state->FldTagValue(2));
-			$this->state->EditValue = $arwrk;
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -641,7 +643,7 @@ class cdepartamento_search extends cdepartamento {
 		$this->iddepartamento->AdvancedSearch->Load();
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
-		$this->state->AdvancedSearch->Load();
+		$this->estado->AdvancedSearch->Load();
 	}
 
 	// Set up Breadcrumb
@@ -881,34 +883,31 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 		</div></div>
 	</div>
 <?php } ?>
-<?php if ($departamento->state->Visible) { // state ?>
-	<div id="r_state" class="form-group">
-		<label class="<?php echo $departamento_search->SearchLabelClass ?>"><span id="elh_departamento_state"><?php echo $departamento->state->FldCaption() ?></span>	
-		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_state" id="z_state" value="="></p>
+<?php if ($departamento->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label for="x_estado" class="<?php echo $departamento_search->SearchLabelClass ?>"><span id="elh_departamento_estado"><?php echo $departamento->estado->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_estado" id="z_estado" value="="></p>
 		</label>
-		<div class="<?php echo $departamento_search->SearchRightColumnClass ?>"><div<?php echo $departamento->state->CellAttributes() ?>>
-			<span id="el_departamento_state">
-<div id="tp_x_state" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_state" id="x_state" value="{value}"<?php echo $departamento->state->EditAttributes() ?>></div>
-<div id="dsl_x_state" data-repeatcolumn="5" class="ewItemList">
+		<div class="<?php echo $departamento_search->SearchRightColumnClass ?>"><div<?php echo $departamento->estado->CellAttributes() ?>>
+			<span id="el_departamento_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $departamento->estado->EditAttributes() ?>>
 <?php
-$arwrk = $departamento->state->EditValue;
-if (is_array($arwrk)) {
+if (is_array($departamento->estado->EditValue)) {
+	$arwrk = $departamento->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($departamento->state->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($departamento->estado->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_state" name="x_state" id="x_state_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $departamento->state->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
 		</div></div>
 	</div>

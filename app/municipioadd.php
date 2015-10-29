@@ -456,7 +456,7 @@ class cmunicipio_add extends cmunicipio {
 		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
-		$this->state->setDbValue($rs->fields('state'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
@@ -466,7 +466,7 @@ class cmunicipio_add extends cmunicipio {
 		$this->idmunicipio->DbValue = $row['idmunicipio'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
-		$this->state->DbValue = $row['state'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Load old record
@@ -505,7 +505,7 @@ class cmunicipio_add extends cmunicipio {
 		// idmunicipio
 		// nombre
 		// iddepartamento
-		// state
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -546,8 +546,22 @@ class cmunicipio_add extends cmunicipio {
 			}
 			$this->iddepartamento->ViewCustomAttributes = "";
 
-			// state
-			$this->state->ViewCustomAttributes = "";
+			// estado
+			if (strval($this->estado->CurrentValue) <> "") {
+				switch ($this->estado->CurrentValue) {
+					case $this->estado->FldTagValue(1):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->CurrentValue;
+						break;
+					case $this->estado->FldTagValue(2):
+						$this->estado->ViewValue = $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->CurrentValue;
+						break;
+					default:
+						$this->estado->ViewValue = $this->estado->CurrentValue;
+				}
+			} else {
+				$this->estado->ViewValue = NULL;
+			}
+			$this->estado->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";

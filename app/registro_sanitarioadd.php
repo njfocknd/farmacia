@@ -7,6 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitarioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -201,6 +202,9 @@ class cregistro_sanitario_add extends cregistro_sanitario {
 			$GLOBALS["Table"] = &$GLOBALS["registro_sanitario"];
 		}
 
+		// Table object (producto)
+		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'add', TRUE);
@@ -311,6 +315,9 @@ class cregistro_sanitario_add extends cregistro_sanitario {
 	//
 	function Page_Main() {
 		global $objForm, $Language, $gsFormError;
+
+		// Set up master/detail parameters
+		$this->SetUpMasterParms();
 
 		// Process form if post back
 		if (@$_POST["a_add"] <> "") {
@@ -646,6 +653,36 @@ class cregistro_sanitario_add extends cregistro_sanitario {
 			// idproducto
 			$this->idproducto->EditAttrs["class"] = "form-control";
 			$this->idproducto->EditCustomAttributes = "";
+			if ($this->idproducto->getSessionValue() <> "") {
+				$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+				}
+			} else {
+				$this->idproducto->ViewValue = NULL;
+			}
+			$this->idproducto->ViewCustomAttributes = "";
+			} else {
 			if (trim(strval($this->idproducto->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
@@ -670,6 +707,7 @@ class cregistro_sanitario_add extends cregistro_sanitario {
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idproducto->EditValue = $arwrk;
+			}
 
 			// Edit refer script
 			// descripcion
@@ -778,6 +816,48 @@ class cregistro_sanitario_add extends cregistro_sanitario {
 			$this->Row_Inserted($rs, $rsnew);
 		}
 		return $AddRow;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "producto") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idproducto"] <> "") {
+					$GLOBALS["producto"]->idproducto->setQueryStringValue($_GET["fk_idproducto"]);
+					$this->idproducto->setQueryStringValue($GLOBALS["producto"]->idproducto->QueryStringValue);
+					$this->idproducto->setSessionValue($this->idproducto->QueryStringValue);
+					if (!is_numeric($GLOBALS["producto"]->idproducto->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "producto") {
+				if ($this->idproducto->QueryStringValue == "") $this->idproducto->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -1027,6 +1107,13 @@ $sSqlWrk .= " ORDER BY `nombre`";
 	<div id="r_idproducto" class="form-group">
 		<label id="elh_registro_sanitario_idproducto" for="x_idproducto" class="col-sm-2 control-label ewLabel"><?php echo $registro_sanitario->idproducto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $registro_sanitario->idproducto->CellAttributes() ?>>
+<?php if ($registro_sanitario->idproducto->getSessionValue() <> "") { ?>
+<span id="el_registro_sanitario_idproducto">
+<span<?php echo $registro_sanitario->idproducto->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $registro_sanitario->idproducto->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idproducto" name="x_idproducto" value="<?php echo ew_HtmlEncode($registro_sanitario->idproducto->CurrentValue) ?>">
+<?php } else { ?>
 <span id="el_registro_sanitario_idproducto">
 <select data-field="x_idproducto" id="x_idproducto" name="x_idproducto"<?php echo $registro_sanitario->idproducto->EditAttributes() ?>>
 <?php
@@ -1061,6 +1148,7 @@ $sSqlWrk .= " ORDER BY `nombre`";
 ?>
 <input type="hidden" name="s_x_idproducto" id="s_x_idproducto" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto` = {filter_value}"); ?>&amp;t0=3">
 </span>
+<?php } ?>
 <?php echo $registro_sanitario->idproducto->CustomMsg ?></div></div>
 	</div>
 <?php } ?>

@@ -8,7 +8,6 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "departamentogridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -306,14 +305,6 @@ class cpais_view extends cpais {
 				$this->Page_Terminate();
 				exit();
 			}
-
-			// Process auto fill for detail table 'producto'
-			if (@$_POST["grid"] == "fproductogrid") {
-				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
-				$GLOBALS["producto_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -487,34 +478,6 @@ class cpais_view extends cpais {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "departamento";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// "detail_producto"
-		$item = &$option->Add("detail_producto");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("productolist.php?" . EW_TABLE_SHOW_MASTER . "=pais&fk_idpais=" . strval($this->idpais->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["producto_grid"] && $GLOBALS["producto_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "producto";
-		}
-		if ($GLOBALS["producto_grid"] && $GLOBALS["producto_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "producto";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "producto";
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
@@ -740,20 +703,6 @@ class cpais_view extends cpais {
 					$GLOBALS["departamento_grid"]->idpais->setSessionValue($GLOBALS["departamento_grid"]->idpais->CurrentValue);
 				}
 			}
-			if (in_array("producto", $DetailTblVar)) {
-				if (!isset($GLOBALS["producto_grid"]))
-					$GLOBALS["producto_grid"] = new cproducto_grid;
-				if ($GLOBALS["producto_grid"]->DetailView) {
-					$GLOBALS["producto_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["producto_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["producto_grid"]->setStartRecordNumber(1);
-					$GLOBALS["producto_grid"]->idpais->FldIsDetailKey = TRUE;
-					$GLOBALS["producto_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
-					$GLOBALS["producto_grid"]->idpais->setSessionValue($GLOBALS["producto_grid"]->idpais->CurrentValue);
-				}
-			}
 		}
 	}
 
@@ -966,14 +915,6 @@ $pais_view->ShowMessage();
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("departamento", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "departamentogrid.php" ?>
-<?php } ?>
-<?php
-	if (in_array("producto", explode(",", $pais->getCurrentDetailTable())) && $producto->DetailView) {
-?>
-<?php if ($pais->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "productogrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">
