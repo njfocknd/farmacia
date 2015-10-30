@@ -6,10 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_historialinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "bodegainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "producto_sucursalinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -17,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$producto_bodega_search = NULL; // Initialize page object first
+$producto_historial_search = NULL; // Initialize page object first
 
-class cproducto_bodega_search extends cproducto_bodega {
+class cproducto_historial_search extends cproducto_historial {
 
 	// Page ID
 	var $PageID = 'search';
@@ -28,10 +26,10 @@ class cproducto_bodega_search extends cproducto_bodega {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'producto_bodega';
+	var $TableName = 'producto_historial';
 
 	// Page object name
-	var $PageObjName = 'producto_bodega_search';
+	var $PageObjName = 'producto_historial_search';
 
 	// Page name
 	function PageName() {
@@ -198,20 +196,14 @@ class cproducto_bodega_search extends cproducto_bodega {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (producto_bodega)
-		if (!isset($GLOBALS["producto_bodega"]) || get_class($GLOBALS["producto_bodega"]) == "cproducto_bodega") {
-			$GLOBALS["producto_bodega"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["producto_bodega"];
+		// Table object (producto_historial)
+		if (!isset($GLOBALS["producto_historial"]) || get_class($GLOBALS["producto_historial"]) == "cproducto_historial") {
+			$GLOBALS["producto_historial"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["producto_historial"];
 		}
 
-		// Table object (producto)
-		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
-
-		// Table object (bodega)
-		if (!isset($GLOBALS['bodega'])) $GLOBALS['bodega'] = new cbodega();
-
-		// Table object (producto_sucursal)
-		if (!isset($GLOBALS['producto_sucursal'])) $GLOBALS['producto_sucursal'] = new cproducto_sucursal();
+		// Table object (producto_bodega)
+		if (!isset($GLOBALS['producto_bodega'])) $GLOBALS['producto_bodega'] = new cproducto_bodega();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -219,7 +211,7 @@ class cproducto_bodega_search extends cproducto_bodega {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'producto_bodega', TRUE);
+			define("EW_TABLE_NAME", 'producto_historial', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -237,7 +229,7 @@ class cproducto_bodega_search extends cproducto_bodega {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idproducto_bodega->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idproducto_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -254,14 +246,6 @@ class cproducto_bodega_search extends cproducto_bodega {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'producto_historial'
-			if (@$_POST["grid"] == "fproducto_historialgrid") {
-				if (!isset($GLOBALS["producto_historial_grid"])) $GLOBALS["producto_historial_grid"] = new cproducto_historial_grid;
-				$GLOBALS["producto_historial_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -291,13 +275,13 @@ class cproducto_bodega_search extends cproducto_bodega {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $producto_bodega;
+		global $EW_EXPORT, $producto_historial;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($producto_bodega);
+				$doc = new $class($producto_historial);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -355,7 +339,7 @@ class cproducto_bodega_search extends cproducto_bodega {
 					}
 					if ($sSrchStr <> "") {
 						$sSrchStr = $this->UrlParm($sSrchStr);
-						$sSrchStr = "producto_bodegalist.php" . "?" . $sSrchStr;
+						$sSrchStr = "producto_historiallist.php" . "?" . $sSrchStr;
 						if ($this->IsModal) {
 							$row = array();
 							$row["url"] = $sSrchStr;
@@ -382,12 +366,15 @@ class cproducto_bodega_search extends cproducto_bodega {
 	// Build advanced search
 	function BuildAdvancedSearch() {
 		$sSrchUrl = "";
-		$this->BuildSearchUrl($sSrchUrl, $this->idproducto_bodega); // idproducto_bodega
+		$this->BuildSearchUrl($sSrchUrl, $this->idproducto_historial); // idproducto_historial
 		$this->BuildSearchUrl($sSrchUrl, $this->idproducto); // idproducto
 		$this->BuildSearchUrl($sSrchUrl, $this->idbodega); // idbodega
-		$this->BuildSearchUrl($sSrchUrl, $this->idproducto_sucursal); // idproducto_sucursal
-		$this->BuildSearchUrl($sSrchUrl, $this->existencia); // existencia
+		$this->BuildSearchUrl($sSrchUrl, $this->idproducto_bodega); // idproducto_bodega
+		$this->BuildSearchUrl($sSrchUrl, $this->fecha); // fecha
+		$this->BuildSearchUrl($sSrchUrl, $this->unidades_ingreso); // unidades_ingreso
+		$this->BuildSearchUrl($sSrchUrl, $this->unidades_salida); // unidades_salida
 		$this->BuildSearchUrl($sSrchUrl, $this->estado); // estado
+		$this->BuildSearchUrl($sSrchUrl, $this->fecha_insercion); // fecha_insercion
 		if ($sSrchUrl <> "") $sSrchUrl .= "&";
 		$sSrchUrl .= "cmd=search";
 		return $sSrchUrl;
@@ -453,10 +440,10 @@ class cproducto_bodega_search extends cproducto_bodega {
 		global $objForm;
 
 		// Load search values
-		// idproducto_bodega
+		// idproducto_historial
 
-		$this->idproducto_bodega->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idproducto_bodega"));
-		$this->idproducto_bodega->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idproducto_bodega");
+		$this->idproducto_historial->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idproducto_historial"));
+		$this->idproducto_historial->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idproducto_historial");
 
 		// idproducto
 		$this->idproducto->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idproducto"));
@@ -466,17 +453,29 @@ class cproducto_bodega_search extends cproducto_bodega {
 		$this->idbodega->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idbodega"));
 		$this->idbodega->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idbodega");
 
-		// idproducto_sucursal
-		$this->idproducto_sucursal->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idproducto_sucursal"));
-		$this->idproducto_sucursal->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idproducto_sucursal");
+		// idproducto_bodega
+		$this->idproducto_bodega->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idproducto_bodega"));
+		$this->idproducto_bodega->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idproducto_bodega");
 
-		// existencia
-		$this->existencia->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_existencia"));
-		$this->existencia->AdvancedSearch->SearchOperator = $objForm->GetValue("z_existencia");
+		// fecha
+		$this->fecha->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_fecha"));
+		$this->fecha->AdvancedSearch->SearchOperator = $objForm->GetValue("z_fecha");
+
+		// unidades_ingreso
+		$this->unidades_ingreso->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_unidades_ingreso"));
+		$this->unidades_ingreso->AdvancedSearch->SearchOperator = $objForm->GetValue("z_unidades_ingreso");
+
+		// unidades_salida
+		$this->unidades_salida->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_unidades_salida"));
+		$this->unidades_salida->AdvancedSearch->SearchOperator = $objForm->GetValue("z_unidades_salida");
 
 		// estado
 		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_estado"));
 		$this->estado->AdvancedSearch->SearchOperator = $objForm->GetValue("z_estado");
+
+		// fecha_insercion
+		$this->fecha_insercion->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_fecha_insercion"));
+		$this->fecha_insercion->AdvancedSearch->SearchOperator = $objForm->GetValue("z_fecha_insercion");
 	}
 
 	// Render row values based on field settings
@@ -490,18 +489,21 @@ class cproducto_bodega_search extends cproducto_bodega {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idproducto_bodega
+		// idproducto_historial
 		// idproducto
 		// idbodega
-		// idproducto_sucursal
-		// existencia
+		// idproducto_bodega
+		// fecha
+		// unidades_ingreso
+		// unidades_salida
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idproducto_bodega
-			$this->idproducto_bodega->ViewValue = $this->idproducto_bodega->CurrentValue;
-			$this->idproducto_bodega->ViewCustomAttributes = "";
+			// idproducto_historial
+			$this->idproducto_historial->ViewValue = $this->idproducto_historial->CurrentValue;
+			$this->idproducto_historial->ViewCustomAttributes = "";
 
 			// idproducto
 			if (strval($this->idproducto->CurrentValue) <> "") {
@@ -561,34 +563,42 @@ class cproducto_bodega_search extends cproducto_bodega {
 			}
 			$this->idbodega->ViewCustomAttributes = "";
 
-			// idproducto_sucursal
-			if (strval($this->idproducto_sucursal->CurrentValue) <> "") {
-				$sFilterWrk = "`idproducto_sucursal`" . ew_SearchString("=", $this->idproducto_sucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
+			// idproducto_bodega
+			if (strval($this->idproducto_bodega->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto_bodega`" . ew_SearchString("=", $this->idproducto_bodega->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto_bodega`, `idproducto_bodega` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_bodega`";
 			$sWhereWrk = "";
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idproducto_sucursal, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto_bodega, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idproducto_sucursal->ViewValue = $rswrk->fields('DispFld');
-					$this->idproducto_sucursal->ViewValue .= ew_ValueSeparator(2,$this->idproducto_sucursal) . $rswrk->fields('Disp3Fld');
+					$this->idproducto_bodega->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idproducto_sucursal->ViewValue = $this->idproducto_sucursal->CurrentValue;
+					$this->idproducto_bodega->ViewValue = $this->idproducto_bodega->CurrentValue;
 				}
 			} else {
-				$this->idproducto_sucursal->ViewValue = NULL;
+				$this->idproducto_bodega->ViewValue = NULL;
 			}
-			$this->idproducto_sucursal->ViewCustomAttributes = "";
+			$this->idproducto_bodega->ViewCustomAttributes = "";
 
-			// existencia
-			$this->existencia->ViewValue = $this->existencia->CurrentValue;
-			$this->existencia->ViewCustomAttributes = "";
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
+
+			// unidades_ingreso
+			$this->unidades_ingreso->ViewValue = $this->unidades_ingreso->CurrentValue;
+			$this->unidades_ingreso->ViewCustomAttributes = "";
+
+			// unidades_salida
+			$this->unidades_salida->ViewValue = $this->unidades_salida->CurrentValue;
+			$this->unidades_salida->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -607,10 +617,15 @@ class cproducto_bodega_search extends cproducto_bodega {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto_bodega
-			$this->idproducto_bodega->LinkCustomAttributes = "";
-			$this->idproducto_bodega->HrefValue = "";
-			$this->idproducto_bodega->TooltipValue = "";
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// idproducto_historial
+			$this->idproducto_historial->LinkCustomAttributes = "";
+			$this->idproducto_historial->HrefValue = "";
+			$this->idproducto_historial->TooltipValue = "";
 
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
@@ -622,27 +637,42 @@ class cproducto_bodega_search extends cproducto_bodega {
 			$this->idbodega->HrefValue = "";
 			$this->idbodega->TooltipValue = "";
 
-			// idproducto_sucursal
-			$this->idproducto_sucursal->LinkCustomAttributes = "";
-			$this->idproducto_sucursal->HrefValue = "";
-			$this->idproducto_sucursal->TooltipValue = "";
+			// idproducto_bodega
+			$this->idproducto_bodega->LinkCustomAttributes = "";
+			$this->idproducto_bodega->HrefValue = "";
+			$this->idproducto_bodega->TooltipValue = "";
 
-			// existencia
-			$this->existencia->LinkCustomAttributes = "";
-			$this->existencia->HrefValue = "";
-			$this->existencia->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
+
+			// unidades_ingreso
+			$this->unidades_ingreso->LinkCustomAttributes = "";
+			$this->unidades_ingreso->HrefValue = "";
+			$this->unidades_ingreso->TooltipValue = "";
+
+			// unidades_salida
+			$this->unidades_salida->LinkCustomAttributes = "";
+			$this->unidades_salida->HrefValue = "";
+			$this->unidades_salida->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
-			// idproducto_bodega
-			$this->idproducto_bodega->EditAttrs["class"] = "form-control";
-			$this->idproducto_bodega->EditCustomAttributes = "";
-			$this->idproducto_bodega->EditValue = ew_HtmlEncode($this->idproducto_bodega->AdvancedSearch->SearchValue);
-			$this->idproducto_bodega->PlaceHolder = ew_RemoveHtml($this->idproducto_bodega->FldCaption());
+			// idproducto_historial
+			$this->idproducto_historial->EditAttrs["class"] = "form-control";
+			$this->idproducto_historial->EditCustomAttributes = "";
+			$this->idproducto_historial->EditValue = ew_HtmlEncode($this->idproducto_historial->AdvancedSearch->SearchValue);
+			$this->idproducto_historial->PlaceHolder = ew_RemoveHtml($this->idproducto_historial->FldCaption());
 
 			// idproducto
 			$this->idproducto->EditAttrs["class"] = "form-control";
@@ -700,34 +730,46 @@ class cproducto_bodega_search extends cproducto_bodega {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idbodega->EditValue = $arwrk;
 
-			// idproducto_sucursal
-			$this->idproducto_sucursal->EditAttrs["class"] = "form-control";
-			$this->idproducto_sucursal->EditCustomAttributes = "";
-			if (trim(strval($this->idproducto_sucursal->AdvancedSearch->SearchValue)) == "") {
+			// idproducto_bodega
+			$this->idproducto_bodega->EditAttrs["class"] = "form-control";
+			$this->idproducto_bodega->EditCustomAttributes = "";
+			if (trim(strval($this->idproducto_bodega->AdvancedSearch->SearchValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`idproducto_sucursal`" . ew_SearchString("=", $this->idproducto_sucursal->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER);
+				$sFilterWrk = "`idproducto_bodega`" . ew_SearchString("=", $this->idproducto_bodega->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER);
 			}
-			$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto_sucursal`";
+			$sSqlWrk = "SELECT `idproducto_bodega`, `idproducto_bodega` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto_bodega`";
 			$sWhereWrk = "";
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idproducto_sucursal, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto_bodega, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$rswrk = $conn->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idproducto_sucursal->EditValue = $arwrk;
+			$this->idproducto_bodega->EditValue = $arwrk;
 
-			// existencia
-			$this->existencia->EditAttrs["class"] = "form-control";
-			$this->existencia->EditCustomAttributes = "";
-			$this->existencia->EditValue = ew_HtmlEncode($this->existencia->AdvancedSearch->SearchValue);
-			$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
+			// fecha
+			$this->fecha->EditAttrs["class"] = "form-control";
+			$this->fecha->EditCustomAttributes = "";
+			$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha->AdvancedSearch->SearchValue, 7), 7));
+			$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
+
+			// unidades_ingreso
+			$this->unidades_ingreso->EditAttrs["class"] = "form-control";
+			$this->unidades_ingreso->EditCustomAttributes = "";
+			$this->unidades_ingreso->EditValue = ew_HtmlEncode($this->unidades_ingreso->AdvancedSearch->SearchValue);
+			$this->unidades_ingreso->PlaceHolder = ew_RemoveHtml($this->unidades_ingreso->FldCaption());
+
+			// unidades_salida
+			$this->unidades_salida->EditAttrs["class"] = "form-control";
+			$this->unidades_salida->EditCustomAttributes = "";
+			$this->unidades_salida->EditValue = ew_HtmlEncode($this->unidades_salida->AdvancedSearch->SearchValue);
+			$this->unidades_salida->PlaceHolder = ew_RemoveHtml($this->unidades_salida->FldCaption());
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -737,6 +779,12 @@ class cproducto_bodega_search extends cproducto_bodega {
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
+
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha_insercion->AdvancedSearch->SearchValue, 7), 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -759,11 +807,20 @@ class cproducto_bodega_search extends cproducto_bodega {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return TRUE;
-		if (!ew_CheckInteger($this->idproducto_bodega->AdvancedSearch->SearchValue)) {
-			ew_AddMessage($gsSearchError, $this->idproducto_bodega->FldErrMsg());
+		if (!ew_CheckInteger($this->idproducto_historial->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->idproducto_historial->FldErrMsg());
 		}
-		if (!ew_CheckInteger($this->existencia->AdvancedSearch->SearchValue)) {
-			ew_AddMessage($gsSearchError, $this->existencia->FldErrMsg());
+		if (!ew_CheckEuroDate($this->fecha->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->fecha->FldErrMsg());
+		}
+		if (!ew_CheckInteger($this->unidades_ingreso->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->unidades_ingreso->FldErrMsg());
+		}
+		if (!ew_CheckInteger($this->unidades_salida->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->unidades_salida->FldErrMsg());
+		}
+		if (!ew_CheckEuroDate($this->fecha_insercion->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->fecha_insercion->FldErrMsg());
 		}
 
 		// Return validate result
@@ -780,19 +837,22 @@ class cproducto_bodega_search extends cproducto_bodega {
 
 	// Load advanced search
 	function LoadAdvancedSearch() {
-		$this->idproducto_bodega->AdvancedSearch->Load();
+		$this->idproducto_historial->AdvancedSearch->Load();
 		$this->idproducto->AdvancedSearch->Load();
 		$this->idbodega->AdvancedSearch->Load();
-		$this->idproducto_sucursal->AdvancedSearch->Load();
-		$this->existencia->AdvancedSearch->Load();
+		$this->idproducto_bodega->AdvancedSearch->Load();
+		$this->fecha->AdvancedSearch->Load();
+		$this->unidades_ingreso->AdvancedSearch->Load();
+		$this->unidades_salida->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
+		$this->fecha_insercion->AdvancedSearch->Load();
 	}
 
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "producto_bodegalist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "producto_historiallist.php", "", $this->TableVar, TRUE);
 		$PageId = "search";
 		$Breadcrumb->Add("search", $PageId, ew_CurrentUrl());
 	}
@@ -869,33 +929,33 @@ class cproducto_bodega_search extends cproducto_bodega {
 <?php
 
 // Create page object
-if (!isset($producto_bodega_search)) $producto_bodega_search = new cproducto_bodega_search();
+if (!isset($producto_historial_search)) $producto_historial_search = new cproducto_historial_search();
 
 // Page init
-$producto_bodega_search->Page_Init();
+$producto_historial_search->Page_Init();
 
 // Page main
-$producto_bodega_search->Page_Main();
+$producto_historial_search->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$producto_bodega_search->Page_Render();
+$producto_historial_search->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var producto_bodega_search = new ew_Page("producto_bodega_search");
-producto_bodega_search.PageID = "search"; // Page ID
-var EW_PAGE_ID = producto_bodega_search.PageID; // For backward compatibility
+var producto_historial_search = new ew_Page("producto_historial_search");
+producto_historial_search.PageID = "search"; // Page ID
+var EW_PAGE_ID = producto_historial_search.PageID; // For backward compatibility
 
 // Form object
-var fproducto_bodegasearch = new ew_Form("fproducto_bodegasearch");
+var fproducto_historialsearch = new ew_Form("fproducto_historialsearch");
 
 // Form_CustomValidate event
-fproducto_bodegasearch.Form_CustomValidate = 
+fproducto_historialsearch.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -904,31 +964,40 @@ fproducto_bodegasearch.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fproducto_bodegasearch.ValidateRequired = true;
+fproducto_historialsearch.ValidateRequired = true;
 <?php } else { ?>
-fproducto_bodegasearch.ValidateRequired = false; 
+fproducto_historialsearch.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fproducto_bodegasearch.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fproducto_bodegasearch.Lists["x_idbodega"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fproducto_bodegasearch.Lists["x_idproducto_sucursal"] = {"LinkField":"x_idproducto_sucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_idproducto","","x_idsucursal",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_historialsearch.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_historialsearch.Lists["x_idbodega"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_historialsearch.Lists["x_idproducto_bodega"] = {"LinkField":"x_idproducto_bodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_idproducto_bodega","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 // Validate function for search
 
-fproducto_bodegasearch.Validate = function(fobj) {
+fproducto_historialsearch.Validate = function(fobj) {
 	if (!this.ValidateRequired)
 		return true; // Ignore validation
 	fobj = fobj || this.Form;
 	this.PostAutoSuggest();
 	var infix = "";
-	elm = this.GetElements("x" + infix + "_idproducto_bodega");
+	elm = this.GetElements("x" + infix + "_idproducto_historial");
 	if (elm && !ew_CheckInteger(elm.value))
-		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_bodega->idproducto_bodega->FldErrMsg()) ?>");
-	elm = this.GetElements("x" + infix + "_existencia");
+		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->idproducto_historial->FldErrMsg()) ?>");
+	elm = this.GetElements("x" + infix + "_fecha");
+	if (elm && !ew_CheckEuroDate(elm.value))
+		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->fecha->FldErrMsg()) ?>");
+	elm = this.GetElements("x" + infix + "_unidades_ingreso");
 	if (elm && !ew_CheckInteger(elm.value))
-		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_bodega->existencia->FldErrMsg()) ?>");
+		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->unidades_ingreso->FldErrMsg()) ?>");
+	elm = this.GetElements("x" + infix + "_unidades_salida");
+	if (elm && !ew_CheckInteger(elm.value))
+		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->unidades_salida->FldErrMsg()) ?>");
+	elm = this.GetElements("x" + infix + "_fecha_insercion");
+	if (elm && !ew_CheckEuroDate(elm.value))
+		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->fecha_insercion->FldErrMsg()) ?>");
 
 	// Set up row object
 	ew_ElementsToRow(fobj);
@@ -943,54 +1012,54 @@ fproducto_bodegasearch.Validate = function(fobj) {
 
 // Write your client script here, no need to add script tags.
 </script>
-<?php if (!$producto_bodega_search->IsModal) { ?>
+<?php if (!$producto_historial_search->IsModal) { ?>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
 <?php } ?>
-<?php $producto_bodega_search->ShowPageHeader(); ?>
+<?php $producto_historial_search->ShowPageHeader(); ?>
 <?php
-$producto_bodega_search->ShowMessage();
+$producto_historial_search->ShowMessage();
 ?>
-<form name="fproducto_bodegasearch" id="fproducto_bodegasearch" class="form-horizontal ewForm ewSearchForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($producto_bodega_search->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_bodega_search->Token ?>">
+<form name="fproducto_historialsearch" id="fproducto_historialsearch" class="form-horizontal ewForm ewSearchForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($producto_historial_search->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_historial_search->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="producto_bodega">
+<input type="hidden" name="t" value="producto_historial">
 <input type="hidden" name="a_search" id="a_search" value="S">
-<?php if ($producto_bodega_search->IsModal) { ?>
+<?php if ($producto_historial_search->IsModal) { ?>
 <input type="hidden" name="modal" value="1">
 <?php } ?>
 <div>
-<?php if ($producto_bodega->idproducto_bodega->Visible) { // idproducto_bodega ?>
-	<div id="r_idproducto_bodega" class="form-group">
-		<label for="x_idproducto_bodega" class="<?php echo $producto_bodega_search->SearchLabelClass ?>"><span id="elh_producto_bodega_idproducto_bodega"><?php echo $producto_bodega->idproducto_bodega->FldCaption() ?></span>	
-		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idproducto_bodega" id="z_idproducto_bodega" value="="></p>
+<?php if ($producto_historial->idproducto_historial->Visible) { // idproducto_historial ?>
+	<div id="r_idproducto_historial" class="form-group">
+		<label for="x_idproducto_historial" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_idproducto_historial"><?php echo $producto_historial->idproducto_historial->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idproducto_historial" id="z_idproducto_historial" value="="></p>
 		</label>
-		<div class="<?php echo $producto_bodega_search->SearchRightColumnClass ?>"><div<?php echo $producto_bodega->idproducto_bodega->CellAttributes() ?>>
-			<span id="el_producto_bodega_idproducto_bodega">
-<input type="text" data-field="x_idproducto_bodega" name="x_idproducto_bodega" id="x_idproducto_bodega" placeholder="<?php echo ew_HtmlEncode($producto_bodega->idproducto_bodega->PlaceHolder) ?>" value="<?php echo $producto_bodega->idproducto_bodega->EditValue ?>"<?php echo $producto_bodega->idproducto_bodega->EditAttributes() ?>>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->idproducto_historial->CellAttributes() ?>>
+			<span id="el_producto_historial_idproducto_historial">
+<input type="text" data-field="x_idproducto_historial" name="x_idproducto_historial" id="x_idproducto_historial" placeholder="<?php echo ew_HtmlEncode($producto_historial->idproducto_historial->PlaceHolder) ?>" value="<?php echo $producto_historial->idproducto_historial->EditValue ?>"<?php echo $producto_historial->idproducto_historial->EditAttributes() ?>>
 </span>
 		</div></div>
 	</div>
 <?php } ?>
-<?php if ($producto_bodega->idproducto->Visible) { // idproducto ?>
+<?php if ($producto_historial->idproducto->Visible) { // idproducto ?>
 	<div id="r_idproducto" class="form-group">
-		<label for="x_idproducto" class="<?php echo $producto_bodega_search->SearchLabelClass ?>"><span id="elh_producto_bodega_idproducto"><?php echo $producto_bodega->idproducto->FldCaption() ?></span>	
+		<label for="x_idproducto" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_idproducto"><?php echo $producto_historial->idproducto->FldCaption() ?></span>	
 		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idproducto" id="z_idproducto" value="="></p>
 		</label>
-		<div class="<?php echo $producto_bodega_search->SearchRightColumnClass ?>"><div<?php echo $producto_bodega->idproducto->CellAttributes() ?>>
-			<span id="el_producto_bodega_idproducto">
-<select data-field="x_idproducto" id="x_idproducto" name="x_idproducto"<?php echo $producto_bodega->idproducto->EditAttributes() ?>>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->idproducto->CellAttributes() ?>>
+			<span id="el_producto_historial_idproducto">
+<select data-field="x_idproducto" id="x_idproducto" name="x_idproducto"<?php echo $producto_historial->idproducto->EditAttributes() ?>>
 <?php
-if (is_array($producto_bodega->idproducto->EditValue)) {
-	$arwrk = $producto_bodega->idproducto->EditValue;
+if (is_array($producto_historial->idproducto->EditValue)) {
+	$arwrk = $producto_historial->idproducto->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->idproducto->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($producto_historial->idproducto->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1010,7 +1079,7 @@ if (strval($lookuptblfilter) <> "") {
 }
 
 // Call Lookup selecting
-$producto_bodega->Lookup_Selecting($producto_bodega->idproducto, $sWhereWrk);
+$producto_historial->Lookup_Selecting($producto_historial->idproducto, $sWhereWrk);
 if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 $sSqlWrk .= " ORDER BY `nombre`";
 ?>
@@ -1019,21 +1088,21 @@ $sSqlWrk .= " ORDER BY `nombre`";
 		</div></div>
 	</div>
 <?php } ?>
-<?php if ($producto_bodega->idbodega->Visible) { // idbodega ?>
+<?php if ($producto_historial->idbodega->Visible) { // idbodega ?>
 	<div id="r_idbodega" class="form-group">
-		<label for="x_idbodega" class="<?php echo $producto_bodega_search->SearchLabelClass ?>"><span id="elh_producto_bodega_idbodega"><?php echo $producto_bodega->idbodega->FldCaption() ?></span>	
+		<label for="x_idbodega" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_idbodega"><?php echo $producto_historial->idbodega->FldCaption() ?></span>	
 		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idbodega" id="z_idbodega" value="="></p>
 		</label>
-		<div class="<?php echo $producto_bodega_search->SearchRightColumnClass ?>"><div<?php echo $producto_bodega->idbodega->CellAttributes() ?>>
-			<span id="el_producto_bodega_idbodega">
-<select data-field="x_idbodega" id="x_idbodega" name="x_idbodega"<?php echo $producto_bodega->idbodega->EditAttributes() ?>>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->idbodega->CellAttributes() ?>>
+			<span id="el_producto_historial_idbodega">
+<select data-field="x_idbodega" id="x_idbodega" name="x_idbodega"<?php echo $producto_historial->idbodega->EditAttributes() ?>>
 <?php
-if (is_array($producto_bodega->idbodega->EditValue)) {
-	$arwrk = $producto_bodega->idbodega->EditValue;
+if (is_array($producto_historial->idbodega->EditValue)) {
+	$arwrk = $producto_historial->idbodega->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->idbodega->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($producto_historial->idbodega->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1053,7 +1122,7 @@ if (strval($lookuptblfilter) <> "") {
 }
 
 // Call Lookup selecting
-$producto_bodega->Lookup_Selecting($producto_bodega->idbodega, $sWhereWrk);
+$producto_historial->Lookup_Selecting($producto_historial->idbodega, $sWhereWrk);
 if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 $sSqlWrk .= " ORDER BY `descripcion`";
 ?>
@@ -1062,21 +1131,21 @@ $sSqlWrk .= " ORDER BY `descripcion`";
 		</div></div>
 	</div>
 <?php } ?>
-<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
-	<div id="r_idproducto_sucursal" class="form-group">
-		<label for="x_idproducto_sucursal" class="<?php echo $producto_bodega_search->SearchLabelClass ?>"><span id="elh_producto_bodega_idproducto_sucursal"><?php echo $producto_bodega->idproducto_sucursal->FldCaption() ?></span>	
-		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idproducto_sucursal" id="z_idproducto_sucursal" value="="></p>
+<?php if ($producto_historial->idproducto_bodega->Visible) { // idproducto_bodega ?>
+	<div id="r_idproducto_bodega" class="form-group">
+		<label for="x_idproducto_bodega" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_idproducto_bodega"><?php echo $producto_historial->idproducto_bodega->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idproducto_bodega" id="z_idproducto_bodega" value="="></p>
 		</label>
-		<div class="<?php echo $producto_bodega_search->SearchRightColumnClass ?>"><div<?php echo $producto_bodega->idproducto_sucursal->CellAttributes() ?>>
-			<span id="el_producto_bodega_idproducto_sucursal">
-<select data-field="x_idproducto_sucursal" id="x_idproducto_sucursal" name="x_idproducto_sucursal"<?php echo $producto_bodega->idproducto_sucursal->EditAttributes() ?>>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->idproducto_bodega->CellAttributes() ?>>
+			<span id="el_producto_historial_idproducto_bodega">
+<select data-field="x_idproducto_bodega" id="x_idproducto_bodega" name="x_idproducto_bodega"<?php echo $producto_historial->idproducto_bodega->EditAttributes() ?>>
 <?php
-if (is_array($producto_bodega->idproducto_sucursal->EditValue)) {
-	$arwrk = $producto_bodega->idproducto_sucursal->EditValue;
+if (is_array($producto_historial->idproducto_bodega->EditValue)) {
+	$arwrk = $producto_historial->idproducto_bodega->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->idproducto_sucursal->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($producto_historial->idproducto_bodega->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1088,45 +1157,74 @@ if (is_array($producto_bodega->idproducto_sucursal->EditValue)) {
 ?>
 </select>
 <?php
-$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
+$sSqlWrk = "SELECT `idproducto_bodega`, `idproducto_bodega` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_bodega`";
 $sWhereWrk = "";
 
 // Call Lookup selecting
-$producto_bodega->Lookup_Selecting($producto_bodega->idproducto_sucursal, $sWhereWrk);
+$producto_historial->Lookup_Selecting($producto_historial->idproducto_bodega, $sWhereWrk);
 if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 ?>
-<input type="hidden" name="s_x_idproducto_sucursal" id="s_x_idproducto_sucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto_sucursal` = {filter_value}"); ?>&amp;t0=3">
+<input type="hidden" name="s_x_idproducto_bodega" id="s_x_idproducto_bodega" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto_bodega` = {filter_value}"); ?>&amp;t0=3">
 </span>
 		</div></div>
 	</div>
 <?php } ?>
-<?php if ($producto_bodega->existencia->Visible) { // existencia ?>
-	<div id="r_existencia" class="form-group">
-		<label for="x_existencia" class="<?php echo $producto_bodega_search->SearchLabelClass ?>"><span id="elh_producto_bodega_existencia"><?php echo $producto_bodega->existencia->FldCaption() ?></span>	
-		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_existencia" id="z_existencia" value="="></p>
+<?php if ($producto_historial->fecha->Visible) { // fecha ?>
+	<div id="r_fecha" class="form-group">
+		<label for="x_fecha" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_fecha"><?php echo $producto_historial->fecha->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_fecha" id="z_fecha" value="="></p>
 		</label>
-		<div class="<?php echo $producto_bodega_search->SearchRightColumnClass ?>"><div<?php echo $producto_bodega->existencia->CellAttributes() ?>>
-			<span id="el_producto_bodega_existencia">
-<input type="text" data-field="x_existencia" name="x_existencia" id="x_existencia" size="30" placeholder="<?php echo ew_HtmlEncode($producto_bodega->existencia->PlaceHolder) ?>" value="<?php echo $producto_bodega->existencia->EditValue ?>"<?php echo $producto_bodega->existencia->EditAttributes() ?>>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->fecha->CellAttributes() ?>>
+			<span id="el_producto_historial_fecha">
+<input type="text" data-field="x_fecha" name="x_fecha" id="x_fecha" placeholder="<?php echo ew_HtmlEncode($producto_historial->fecha->PlaceHolder) ?>" value="<?php echo $producto_historial->fecha->EditValue ?>"<?php echo $producto_historial->fecha->EditAttributes() ?>>
+<?php if (!$producto_historial->fecha->ReadOnly && !$producto_historial->fecha->Disabled && @$producto_historial->fecha->EditAttrs["readonly"] == "" && @$producto_historial->fecha->EditAttrs["disabled"] == "") { ?>
+<script type="text/javascript">
+ew_CreateCalendar("fproducto_historialsearch", "x_fecha", "%d/%m/%Y");
+</script>
+<?php } ?>
 </span>
 		</div></div>
 	</div>
 <?php } ?>
-<?php if ($producto_bodega->estado->Visible) { // estado ?>
+<?php if ($producto_historial->unidades_ingreso->Visible) { // unidades_ingreso ?>
+	<div id="r_unidades_ingreso" class="form-group">
+		<label for="x_unidades_ingreso" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_unidades_ingreso"><?php echo $producto_historial->unidades_ingreso->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_unidades_ingreso" id="z_unidades_ingreso" value="="></p>
+		</label>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->unidades_ingreso->CellAttributes() ?>>
+			<span id="el_producto_historial_unidades_ingreso">
+<input type="text" data-field="x_unidades_ingreso" name="x_unidades_ingreso" id="x_unidades_ingreso" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->unidades_ingreso->PlaceHolder) ?>" value="<?php echo $producto_historial->unidades_ingreso->EditValue ?>"<?php echo $producto_historial->unidades_ingreso->EditAttributes() ?>>
+</span>
+		</div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->unidades_salida->Visible) { // unidades_salida ?>
+	<div id="r_unidades_salida" class="form-group">
+		<label for="x_unidades_salida" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_unidades_salida"><?php echo $producto_historial->unidades_salida->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_unidades_salida" id="z_unidades_salida" value="="></p>
+		</label>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->unidades_salida->CellAttributes() ?>>
+			<span id="el_producto_historial_unidades_salida">
+<input type="text" data-field="x_unidades_salida" name="x_unidades_salida" id="x_unidades_salida" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->unidades_salida->PlaceHolder) ?>" value="<?php echo $producto_historial->unidades_salida->EditValue ?>"<?php echo $producto_historial->unidades_salida->EditAttributes() ?>>
+</span>
+		</div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label for="x_estado" class="<?php echo $producto_bodega_search->SearchLabelClass ?>"><span id="elh_producto_bodega_estado"><?php echo $producto_bodega->estado->FldCaption() ?></span>	
+		<label for="x_estado" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_estado"><?php echo $producto_historial->estado->FldCaption() ?></span>	
 		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_estado" id="z_estado" value="="></p>
 		</label>
-		<div class="<?php echo $producto_bodega_search->SearchRightColumnClass ?>"><div<?php echo $producto_bodega->estado->CellAttributes() ?>>
-			<span id="el_producto_bodega_estado">
-<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $producto_bodega->estado->EditAttributes() ?>>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->estado->CellAttributes() ?>>
+			<span id="el_producto_historial_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $producto_historial->estado->EditAttributes() ?>>
 <?php
-if (is_array($producto_bodega->estado->EditValue)) {
-	$arwrk = $producto_bodega->estado->EditValue;
+if (is_array($producto_historial->estado->EditValue)) {
+	$arwrk = $producto_historial->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->estado->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($producto_historial->estado->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1137,12 +1235,24 @@ if (is_array($producto_bodega->estado->EditValue)) {
 }
 ?>
 </select>
+</span>
+		</div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->fecha_insercion->Visible) { // fecha_insercion ?>
+	<div id="r_fecha_insercion" class="form-group">
+		<label for="x_fecha_insercion" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_fecha_insercion"><?php echo $producto_historial->fecha_insercion->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_fecha_insercion" id="z_fecha_insercion" value="="></p>
+		</label>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->fecha_insercion->CellAttributes() ?>>
+			<span id="el_producto_historial_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x_fecha_insercion" id="x_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto_historial->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto_historial->fecha_insercion->EditValue ?>"<?php echo $producto_historial->fecha_insercion->EditAttributes() ?>>
 </span>
 		</div></div>
 	</div>
 <?php } ?>
 </div>
-<?php if (!$producto_bodega_search->IsModal) { ?>
+<?php if (!$producto_historial_search->IsModal) { ?>
 <div class="form-group">
 	<div class="col-sm-offset-3 col-sm-9">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("Search") ?></button>
@@ -1152,10 +1262,10 @@ if (is_array($producto_bodega->estado->EditValue)) {
 <?php } ?>
 </form>
 <script type="text/javascript">
-fproducto_bodegasearch.Init();
+fproducto_historialsearch.Init();
 </script>
 <?php
-$producto_bodega_search->ShowPageFooter();
+$producto_historial_search->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1167,5 +1277,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$producto_bodega_search->Page_Terminate();
+$producto_historial_search->Page_Terminate();
 ?>

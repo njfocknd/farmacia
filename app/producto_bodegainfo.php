@@ -176,6 +176,30 @@ class cproducto_bodega extends cTable {
 		return "`idproducto_sucursal`=@idproducto_sucursal@";
 	}
 
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "producto_historial") {
+			$sDetailUrl = $GLOBALS["producto_historial"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idproducto_bodega=" . urlencode($this->idproducto_bodega->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "producto_bodegalist.php";
+		}
+		return $sDetailUrl;
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -529,7 +553,10 @@ class cproducto_bodega extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		return $this->KeyUrl("producto_bodegaedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("producto_bodegaedit.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("producto_bodegaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -539,7 +566,10 @@ class cproducto_bodega extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		return $this->KeyUrl("producto_bodegaadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("producto_bodegaadd.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("producto_bodegaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL

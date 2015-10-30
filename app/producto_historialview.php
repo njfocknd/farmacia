@@ -6,11 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_historialinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "bodegainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "producto_sucursalinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "producto_historialgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -18,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$producto_bodega_view = NULL; // Initialize page object first
+$producto_historial_view = NULL; // Initialize page object first
 
-class cproducto_bodega_view extends cproducto_bodega {
+class cproducto_historial_view extends cproducto_historial {
 
 	// Page ID
 	var $PageID = 'view';
@@ -29,10 +26,10 @@ class cproducto_bodega_view extends cproducto_bodega {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'producto_bodega';
+	var $TableName = 'producto_historial';
 
 	// Page object name
-	var $PageObjName = 'producto_bodega_view';
+	var $PageObjName = 'producto_historial_view';
 
 	// Page name
 	function PageName() {
@@ -231,15 +228,15 @@ class cproducto_bodega_view extends cproducto_bodega {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (producto_bodega)
-		if (!isset($GLOBALS["producto_bodega"]) || get_class($GLOBALS["producto_bodega"]) == "cproducto_bodega") {
-			$GLOBALS["producto_bodega"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["producto_bodega"];
+		// Table object (producto_historial)
+		if (!isset($GLOBALS["producto_historial"]) || get_class($GLOBALS["producto_historial"]) == "cproducto_historial") {
+			$GLOBALS["producto_historial"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["producto_historial"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["idproducto_bodega"] <> "") {
-			$this->RecKey["idproducto_bodega"] = $_GET["idproducto_bodega"];
-			$KeyUrl .= "&amp;idproducto_bodega=" . urlencode($this->RecKey["idproducto_bodega"]);
+		if (@$_GET["idproducto_historial"] <> "") {
+			$this->RecKey["idproducto_historial"] = $_GET["idproducto_historial"];
+			$KeyUrl .= "&amp;idproducto_historial=" . urlencode($this->RecKey["idproducto_historial"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -249,14 +246,8 @@ class cproducto_bodega_view extends cproducto_bodega {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (producto)
-		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
-
-		// Table object (bodega)
-		if (!isset($GLOBALS['bodega'])) $GLOBALS['bodega'] = new cbodega();
-
-		// Table object (producto_sucursal)
-		if (!isset($GLOBALS['producto_sucursal'])) $GLOBALS['producto_sucursal'] = new cproducto_sucursal();
+		// Table object (producto_bodega)
+		if (!isset($GLOBALS['producto_bodega'])) $GLOBALS['producto_bodega'] = new cproducto_bodega();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -264,7 +255,7 @@ class cproducto_bodega_view extends cproducto_bodega {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'producto_bodega', TRUE);
+			define("EW_TABLE_NAME", 'producto_historial', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -292,7 +283,7 @@ class cproducto_bodega_view extends cproducto_bodega {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idproducto_bodega->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idproducto_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -309,14 +300,6 @@ class cproducto_bodega_view extends cproducto_bodega {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'producto_historial'
-			if (@$_POST["grid"] == "fproducto_historialgrid") {
-				if (!isset($GLOBALS["producto_historial_grid"])) $GLOBALS["producto_historial_grid"] = new cproducto_historial_grid;
-				$GLOBALS["producto_historial_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -346,13 +329,13 @@ class cproducto_bodega_view extends cproducto_bodega {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $producto_bodega;
+		global $EW_EXPORT, $producto_historial;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($producto_bodega);
+				$doc = new $class($producto_historial);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -406,11 +389,11 @@ class cproducto_bodega_view extends cproducto_bodega {
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["idproducto_bodega"] <> "") {
-				$this->idproducto_bodega->setQueryStringValue($_GET["idproducto_bodega"]);
-				$this->RecKey["idproducto_bodega"] = $this->idproducto_bodega->QueryStringValue;
+			if (@$_GET["idproducto_historial"] <> "") {
+				$this->idproducto_historial->setQueryStringValue($_GET["idproducto_historial"]);
+				$this->RecKey["idproducto_historial"] = $this->idproducto_historial->QueryStringValue;
 			} else {
-				$sReturnUrl = "producto_bodegalist.php"; // Return to list
+				$sReturnUrl = "producto_historiallist.php"; // Return to list
 			}
 
 			// Get action
@@ -420,11 +403,11 @@ class cproducto_bodega_view extends cproducto_bodega {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "producto_bodegalist.php"; // No matching record, return to list
+						$sReturnUrl = "producto_historiallist.php"; // No matching record, return to list
 					}
 			}
 		} else {
-			$sReturnUrl = "producto_bodegalist.php"; // Not page request, return to list
+			$sReturnUrl = "producto_historiallist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -433,9 +416,6 @@ class cproducto_bodega_view extends cproducto_bodega {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
-
-		// Set up detail parameters
-		$this->SetUpDetailParms();
 	}
 
 	// Set up other options
@@ -444,74 +424,15 @@ class cproducto_bodega_view extends cproducto_bodega {
 		$options = &$this->OtherOptions;
 		$option = &$options["action"];
 
-		// Show detail edit/copy
-		if ($this->getCurrentDetailTable() <> "") {
-		}
-		$option = &$options["detail"];
-		$DetailTableLink = "";
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
+		// Add
+		$item = &$option->Add("add");
+		$item->Body = "<a class=\"ewAction ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageAddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageAddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("ViewPageAddLink") . "</a>";
+		$item->Visible = ($this->AddUrl <> "");
 
-		// "detail_producto_historial"
-		$item = &$option->Add("detail_producto_historial");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_historial", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_historiallist.php?" . EW_TABLE_SHOW_MASTER . "=producto_bodega&fk_idproducto_bodega=" . strval($this->idproducto_bodega->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["producto_historial_grid"] && $GLOBALS["producto_historial_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_historial")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "producto_historial";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "producto_historial";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$option->Add("details");
-			$oListOpt->Body = $body;
-		}
-
-		// Set up detail default
-		$option = &$options["detail"];
-		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
-		$option->UseImageAndText = TRUE;
-		$ar = explode(",", $DetailTableLink);
-		$cnt = count($ar);
-		$option->UseDropDownButton = ($cnt > 1);
-		$option->UseButtonGroup = TRUE;
-		$item = &$option->Add($option->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
+		// Edit
+		$item = &$option->Add("edit");
+		$item->Body = "<a class=\"ewAction ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("ViewPageEditLink") . "</a>";
+		$item->Visible = ($this->EditUrl <> "");
 
 		// Set up action default
 		$option = &$options["action"];
@@ -589,24 +510,30 @@ class cproducto_bodega_view extends cproducto_bodega {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idproducto_bodega->setDbValue($rs->fields('idproducto_bodega'));
+		$this->idproducto_historial->setDbValue($rs->fields('idproducto_historial'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
 		$this->idbodega->setDbValue($rs->fields('idbodega'));
-		$this->idproducto_sucursal->setDbValue($rs->fields('idproducto_sucursal'));
-		$this->existencia->setDbValue($rs->fields('existencia'));
+		$this->idproducto_bodega->setDbValue($rs->fields('idproducto_bodega'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->unidades_ingreso->setDbValue($rs->fields('unidades_ingreso'));
+		$this->unidades_salida->setDbValue($rs->fields('unidades_salida'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idproducto_bodega->DbValue = $row['idproducto_bodega'];
+		$this->idproducto_historial->DbValue = $row['idproducto_historial'];
 		$this->idproducto->DbValue = $row['idproducto'];
 		$this->idbodega->DbValue = $row['idbodega'];
-		$this->idproducto_sucursal->DbValue = $row['idproducto_sucursal'];
-		$this->existencia->DbValue = $row['existencia'];
+		$this->idproducto_bodega->DbValue = $row['idproducto_bodega'];
+		$this->fecha->DbValue = $row['fecha'];
+		$this->unidades_ingreso->DbValue = $row['unidades_ingreso'];
+		$this->unidades_salida->DbValue = $row['unidades_salida'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -626,18 +553,21 @@ class cproducto_bodega_view extends cproducto_bodega {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idproducto_bodega
+		// idproducto_historial
 		// idproducto
 		// idbodega
-		// idproducto_sucursal
-		// existencia
+		// idproducto_bodega
+		// fecha
+		// unidades_ingreso
+		// unidades_salida
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idproducto_bodega
-			$this->idproducto_bodega->ViewValue = $this->idproducto_bodega->CurrentValue;
-			$this->idproducto_bodega->ViewCustomAttributes = "";
+			// idproducto_historial
+			$this->idproducto_historial->ViewValue = $this->idproducto_historial->CurrentValue;
+			$this->idproducto_historial->ViewCustomAttributes = "";
 
 			// idproducto
 			if (strval($this->idproducto->CurrentValue) <> "") {
@@ -697,34 +627,42 @@ class cproducto_bodega_view extends cproducto_bodega {
 			}
 			$this->idbodega->ViewCustomAttributes = "";
 
-			// idproducto_sucursal
-			if (strval($this->idproducto_sucursal->CurrentValue) <> "") {
-				$sFilterWrk = "`idproducto_sucursal`" . ew_SearchString("=", $this->idproducto_sucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
+			// idproducto_bodega
+			if (strval($this->idproducto_bodega->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto_bodega`" . ew_SearchString("=", $this->idproducto_bodega->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto_bodega`, `idproducto_bodega` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_bodega`";
 			$sWhereWrk = "";
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idproducto_sucursal, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto_bodega, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idproducto_sucursal->ViewValue = $rswrk->fields('DispFld');
-					$this->idproducto_sucursal->ViewValue .= ew_ValueSeparator(2,$this->idproducto_sucursal) . $rswrk->fields('Disp3Fld');
+					$this->idproducto_bodega->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idproducto_sucursal->ViewValue = $this->idproducto_sucursal->CurrentValue;
+					$this->idproducto_bodega->ViewValue = $this->idproducto_bodega->CurrentValue;
 				}
 			} else {
-				$this->idproducto_sucursal->ViewValue = NULL;
+				$this->idproducto_bodega->ViewValue = NULL;
 			}
-			$this->idproducto_sucursal->ViewCustomAttributes = "";
+			$this->idproducto_bodega->ViewCustomAttributes = "";
 
-			// existencia
-			$this->existencia->ViewValue = $this->existencia->CurrentValue;
-			$this->existencia->ViewCustomAttributes = "";
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
+
+			// unidades_ingreso
+			$this->unidades_ingreso->ViewValue = $this->unidades_ingreso->CurrentValue;
+			$this->unidades_ingreso->ViewCustomAttributes = "";
+
+			// unidades_salida
+			$this->unidades_salida->ViewValue = $this->unidades_salida->CurrentValue;
+			$this->unidades_salida->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -743,10 +681,15 @@ class cproducto_bodega_view extends cproducto_bodega {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idproducto_bodega
-			$this->idproducto_bodega->LinkCustomAttributes = "";
-			$this->idproducto_bodega->HrefValue = "";
-			$this->idproducto_bodega->TooltipValue = "";
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// idproducto_historial
+			$this->idproducto_historial->LinkCustomAttributes = "";
+			$this->idproducto_historial->HrefValue = "";
+			$this->idproducto_historial->TooltipValue = "";
 
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
@@ -758,20 +701,30 @@ class cproducto_bodega_view extends cproducto_bodega {
 			$this->idbodega->HrefValue = "";
 			$this->idbodega->TooltipValue = "";
 
-			// idproducto_sucursal
-			$this->idproducto_sucursal->LinkCustomAttributes = "";
-			$this->idproducto_sucursal->HrefValue = "";
-			$this->idproducto_sucursal->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
 
-			// existencia
-			$this->existencia->LinkCustomAttributes = "";
-			$this->existencia->HrefValue = "";
-			$this->existencia->TooltipValue = "";
+			// unidades_ingreso
+			$this->unidades_ingreso->LinkCustomAttributes = "";
+			$this->unidades_ingreso->HrefValue = "";
+			$this->unidades_ingreso->TooltipValue = "";
+
+			// unidades_salida
+			$this->unidades_salida->LinkCustomAttributes = "";
+			$this->unidades_salida->HrefValue = "";
+			$this->unidades_salida->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -791,35 +744,13 @@ class cproducto_bodega_view extends cproducto_bodega {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "producto") {
+			if ($sMasterTblVar == "producto_bodega") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_idproducto"] <> "") {
-					$GLOBALS["producto"]->idproducto->setQueryStringValue($_GET["fk_idproducto"]);
-					$this->idproducto->setQueryStringValue($GLOBALS["producto"]->idproducto->QueryStringValue);
-					$this->idproducto->setSessionValue($this->idproducto->QueryStringValue);
-					if (!is_numeric($GLOBALS["producto"]->idproducto->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "bodega") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idbodega"] <> "") {
-					$GLOBALS["bodega"]->idbodega->setQueryStringValue($_GET["fk_idbodega"]);
-					$this->idbodega->setQueryStringValue($GLOBALS["bodega"]->idbodega->QueryStringValue);
-					$this->idbodega->setSessionValue($this->idbodega->QueryStringValue);
-					if (!is_numeric($GLOBALS["bodega"]->idbodega->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "producto_sucursal") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idproducto_sucursal"] <> "") {
-					$GLOBALS["producto_sucursal"]->idproducto_sucursal->setQueryStringValue($_GET["fk_idproducto_sucursal"]);
-					$this->idproducto_sucursal->setQueryStringValue($GLOBALS["producto_sucursal"]->idproducto_sucursal->QueryStringValue);
-					$this->idproducto_sucursal->setSessionValue($this->idproducto_sucursal->QueryStringValue);
-					if (!is_numeric($GLOBALS["producto_sucursal"]->idproducto_sucursal->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idproducto_bodega"] <> "") {
+					$GLOBALS["producto_bodega"]->idproducto_bodega->setQueryStringValue($_GET["fk_idproducto_bodega"]);
+					$this->idproducto_bodega->setQueryStringValue($GLOBALS["producto_bodega"]->idproducto_bodega->QueryStringValue);
+					$this->idproducto_bodega->setSessionValue($this->idproducto_bodega->QueryStringValue);
+					if (!is_numeric($GLOBALS["producto_bodega"]->idproducto_bodega->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -836,54 +767,19 @@ class cproducto_bodega_view extends cproducto_bodega {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "producto") {
-				if ($this->idproducto->QueryStringValue == "") $this->idproducto->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "bodega") {
-				if ($this->idbodega->QueryStringValue == "") $this->idbodega->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "producto_sucursal") {
-				if ($this->idproducto_sucursal->QueryStringValue == "") $this->idproducto_sucursal->setSessionValue("");
+			if ($sMasterTblVar <> "producto_bodega") {
+				if ($this->idproducto_bodega->QueryStringValue == "") $this->idproducto_bodega->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("producto_historial", $DetailTblVar)) {
-				if (!isset($GLOBALS["producto_historial_grid"]))
-					$GLOBALS["producto_historial_grid"] = new cproducto_historial_grid;
-				if ($GLOBALS["producto_historial_grid"]->DetailView) {
-					$GLOBALS["producto_historial_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["producto_historial_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["producto_historial_grid"]->setStartRecordNumber(1);
-					$GLOBALS["producto_historial_grid"]->idproducto_bodega->FldIsDetailKey = TRUE;
-					$GLOBALS["producto_historial_grid"]->idproducto_bodega->CurrentValue = $this->idproducto_bodega->CurrentValue;
-					$GLOBALS["producto_historial_grid"]->idproducto_bodega->setSessionValue($GLOBALS["producto_historial_grid"]->idproducto_bodega->CurrentValue);
-				}
-			}
-		}
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "producto_bodegalist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "producto_historiallist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -979,33 +875,33 @@ class cproducto_bodega_view extends cproducto_bodega {
 <?php
 
 // Create page object
-if (!isset($producto_bodega_view)) $producto_bodega_view = new cproducto_bodega_view();
+if (!isset($producto_historial_view)) $producto_historial_view = new cproducto_historial_view();
 
 // Page init
-$producto_bodega_view->Page_Init();
+$producto_historial_view->Page_Init();
 
 // Page main
-$producto_bodega_view->Page_Main();
+$producto_historial_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$producto_bodega_view->Page_Render();
+$producto_historial_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var producto_bodega_view = new ew_Page("producto_bodega_view");
-producto_bodega_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = producto_bodega_view.PageID; // For backward compatibility
+var producto_historial_view = new ew_Page("producto_historial_view");
+producto_historial_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = producto_historial_view.PageID; // For backward compatibility
 
 // Form object
-var fproducto_bodegaview = new ew_Form("fproducto_bodegaview");
+var fproducto_historialview = new ew_Form("fproducto_historialview");
 
 // Form_CustomValidate event
-fproducto_bodegaview.Form_CustomValidate = 
+fproducto_historialview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1014,15 +910,14 @@ fproducto_bodegaview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fproducto_bodegaview.ValidateRequired = true;
+fproducto_historialview.ValidateRequired = true;
 <?php } else { ?>
-fproducto_bodegaview.ValidateRequired = false; 
+fproducto_historialview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fproducto_bodegaview.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fproducto_bodegaview.Lists["x_idbodega"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fproducto_bodegaview.Lists["x_idproducto_sucursal"] = {"LinkField":"x_idproducto_sucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_idproducto","","x_idsucursal",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_historialview.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_historialview.Lists["x_idbodega"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1032,105 +927,119 @@ fproducto_bodegaview.Lists["x_idproducto_sucursal"] = {"LinkField":"x_idproducto
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php $producto_bodega_view->ExportOptions->Render("body") ?>
+<?php $producto_historial_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($producto_bodega_view->OtherOptions as &$option)
+	foreach ($producto_historial_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $producto_bodega_view->ShowPageHeader(); ?>
+<?php $producto_historial_view->ShowPageHeader(); ?>
 <?php
-$producto_bodega_view->ShowMessage();
+$producto_historial_view->ShowMessage();
 ?>
-<form name="fproducto_bodegaview" id="fproducto_bodegaview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($producto_bodega_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_bodega_view->Token ?>">
+<form name="fproducto_historialview" id="fproducto_historialview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($producto_historial_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_historial_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="producto_bodega">
+<input type="hidden" name="t" value="producto_historial">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($producto_bodega->idproducto_bodega->Visible) { // idproducto_bodega ?>
-	<tr id="r_idproducto_bodega">
-		<td><span id="elh_producto_bodega_idproducto_bodega"><?php echo $producto_bodega->idproducto_bodega->FldCaption() ?></span></td>
-		<td<?php echo $producto_bodega->idproducto_bodega->CellAttributes() ?>>
-<span id="el_producto_bodega_idproducto_bodega" class="form-group">
-<span<?php echo $producto_bodega->idproducto_bodega->ViewAttributes() ?>>
-<?php echo $producto_bodega->idproducto_bodega->ViewValue ?></span>
+<?php if ($producto_historial->idproducto_historial->Visible) { // idproducto_historial ?>
+	<tr id="r_idproducto_historial">
+		<td><span id="elh_producto_historial_idproducto_historial"><?php echo $producto_historial->idproducto_historial->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->idproducto_historial->CellAttributes() ?>>
+<span id="el_producto_historial_idproducto_historial" class="form-group">
+<span<?php echo $producto_historial->idproducto_historial->ViewAttributes() ?>>
+<?php echo $producto_historial->idproducto_historial->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($producto_bodega->idproducto->Visible) { // idproducto ?>
+<?php if ($producto_historial->idproducto->Visible) { // idproducto ?>
 	<tr id="r_idproducto">
-		<td><span id="elh_producto_bodega_idproducto"><?php echo $producto_bodega->idproducto->FldCaption() ?></span></td>
-		<td<?php echo $producto_bodega->idproducto->CellAttributes() ?>>
-<span id="el_producto_bodega_idproducto" class="form-group">
-<span<?php echo $producto_bodega->idproducto->ViewAttributes() ?>>
-<?php echo $producto_bodega->idproducto->ViewValue ?></span>
+		<td><span id="elh_producto_historial_idproducto"><?php echo $producto_historial->idproducto->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->idproducto->CellAttributes() ?>>
+<span id="el_producto_historial_idproducto" class="form-group">
+<span<?php echo $producto_historial->idproducto->ViewAttributes() ?>>
+<?php echo $producto_historial->idproducto->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($producto_bodega->idbodega->Visible) { // idbodega ?>
+<?php if ($producto_historial->idbodega->Visible) { // idbodega ?>
 	<tr id="r_idbodega">
-		<td><span id="elh_producto_bodega_idbodega"><?php echo $producto_bodega->idbodega->FldCaption() ?></span></td>
-		<td<?php echo $producto_bodega->idbodega->CellAttributes() ?>>
-<span id="el_producto_bodega_idbodega" class="form-group">
-<span<?php echo $producto_bodega->idbodega->ViewAttributes() ?>>
-<?php echo $producto_bodega->idbodega->ViewValue ?></span>
+		<td><span id="elh_producto_historial_idbodega"><?php echo $producto_historial->idbodega->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->idbodega->CellAttributes() ?>>
+<span id="el_producto_historial_idbodega" class="form-group">
+<span<?php echo $producto_historial->idbodega->ViewAttributes() ?>>
+<?php echo $producto_historial->idbodega->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
-	<tr id="r_idproducto_sucursal">
-		<td><span id="elh_producto_bodega_idproducto_sucursal"><?php echo $producto_bodega->idproducto_sucursal->FldCaption() ?></span></td>
-		<td<?php echo $producto_bodega->idproducto_sucursal->CellAttributes() ?>>
-<span id="el_producto_bodega_idproducto_sucursal" class="form-group">
-<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
-<?php echo $producto_bodega->idproducto_sucursal->ViewValue ?></span>
+<?php if ($producto_historial->fecha->Visible) { // fecha ?>
+	<tr id="r_fecha">
+		<td><span id="elh_producto_historial_fecha"><?php echo $producto_historial->fecha->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->fecha->CellAttributes() ?>>
+<span id="el_producto_historial_fecha" class="form-group">
+<span<?php echo $producto_historial->fecha->ViewAttributes() ?>>
+<?php echo $producto_historial->fecha->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($producto_bodega->existencia->Visible) { // existencia ?>
-	<tr id="r_existencia">
-		<td><span id="elh_producto_bodega_existencia"><?php echo $producto_bodega->existencia->FldCaption() ?></span></td>
-		<td<?php echo $producto_bodega->existencia->CellAttributes() ?>>
-<span id="el_producto_bodega_existencia" class="form-group">
-<span<?php echo $producto_bodega->existencia->ViewAttributes() ?>>
-<?php echo $producto_bodega->existencia->ViewValue ?></span>
+<?php if ($producto_historial->unidades_ingreso->Visible) { // unidades_ingreso ?>
+	<tr id="r_unidades_ingreso">
+		<td><span id="elh_producto_historial_unidades_ingreso"><?php echo $producto_historial->unidades_ingreso->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->unidades_ingreso->CellAttributes() ?>>
+<span id="el_producto_historial_unidades_ingreso" class="form-group">
+<span<?php echo $producto_historial->unidades_ingreso->ViewAttributes() ?>>
+<?php echo $producto_historial->unidades_ingreso->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($producto_bodega->estado->Visible) { // estado ?>
+<?php if ($producto_historial->unidades_salida->Visible) { // unidades_salida ?>
+	<tr id="r_unidades_salida">
+		<td><span id="elh_producto_historial_unidades_salida"><?php echo $producto_historial->unidades_salida->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->unidades_salida->CellAttributes() ?>>
+<span id="el_producto_historial_unidades_salida" class="form-group">
+<span<?php echo $producto_historial->unidades_salida->ViewAttributes() ?>>
+<?php echo $producto_historial->unidades_salida->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto_historial->estado->Visible) { // estado ?>
 	<tr id="r_estado">
-		<td><span id="elh_producto_bodega_estado"><?php echo $producto_bodega->estado->FldCaption() ?></span></td>
-		<td<?php echo $producto_bodega->estado->CellAttributes() ?>>
-<span id="el_producto_bodega_estado" class="form-group">
-<span<?php echo $producto_bodega->estado->ViewAttributes() ?>>
-<?php echo $producto_bodega->estado->ViewValue ?></span>
+		<td><span id="elh_producto_historial_estado"><?php echo $producto_historial->estado->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->estado->CellAttributes() ?>>
+<span id="el_producto_historial_estado" class="form-group">
+<span<?php echo $producto_historial->estado->ViewAttributes() ?>>
+<?php echo $producto_historial->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto_historial->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_producto_historial_fecha_insercion"><?php echo $producto_historial->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->fecha_insercion->CellAttributes() ?>>
+<span id="el_producto_historial_fecha_insercion" class="form-group">
+<span<?php echo $producto_historial->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto_historial->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
-<?php
-	if (in_array("producto_historial", explode(",", $producto_bodega->getCurrentDetailTable())) && $producto_historial->DetailView) {
-?>
-<?php if ($producto_bodega->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_historial", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "producto_historialgrid.php" ?>
-<?php } ?>
 </form>
 <script type="text/javascript">
-fproducto_bodegaview.Init();
+fproducto_historialview.Init();
 </script>
 <?php
-$producto_bodega_view->ShowPageFooter();
+$producto_historial_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1142,5 +1051,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$producto_bodega_view->Page_Terminate();
+$producto_historial_view->Page_Terminate();
 ?>

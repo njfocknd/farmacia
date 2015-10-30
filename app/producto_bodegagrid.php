@@ -52,9 +52,6 @@ fproducto_bodegagrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idbodega");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto_bodega->idbodega->FldCaption(), $producto_bodega->idbodega->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idproducto_sucursal");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto_bodega->idproducto_sucursal->FldCaption(), $producto_bodega->idproducto_sucursal->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_existencia");
 			if (elm && !ew_CheckInteger(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($producto_bodega->existencia->FldErrMsg()) ?>");
@@ -75,7 +72,6 @@ fproducto_bodegagrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
 	if (ew_ValueChanged(fobj, infix, "idproducto", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idbodega", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "idproducto_sucursal", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "existencia", false)) return false;
 	return true;
 }
@@ -98,7 +94,6 @@ fproducto_bodegagrid.ValidateRequired = false;
 // Dynamic selection lists
 fproducto_bodegagrid.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproducto_bodegagrid.Lists["x_idbodega"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fproducto_bodegagrid.Lists["x_idproducto_sucursal"] = {"LinkField":"x_idproducto_sucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_idproducto","","x_idsucursal",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -181,15 +176,6 @@ $producto_bodega_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idbodega"><div><div id="elh_producto_bodega_idbodega" class="producto_bodega_idbodega">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_bodega->idbodega->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_bodega->idbodega->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_bodega->idbodega->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
-	<?php if ($producto_bodega->SortUrl($producto_bodega->idproducto_sucursal) == "") { ?>
-		<th data-name="idproducto_sucursal"><div id="elh_producto_bodega_idproducto_sucursal" class="producto_bodega_idproducto_sucursal"><div class="ewTableHeaderCaption"><?php echo $producto_bodega->idproducto_sucursal->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idproducto_sucursal"><div><div id="elh_producto_bodega_idproducto_sucursal" class="producto_bodega_idproducto_sucursal">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_bodega->idproducto_sucursal->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_bodega->idproducto_sucursal->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_bodega->idproducto_sucursal->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -520,97 +506,6 @@ if (@$emptywrk) $producto_bodega->idbodega->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
-		<td data-name="idproducto_sucursal"<?php echo $producto_bodega->idproducto_sucursal->CellAttributes() ?>>
-<?php if ($producto_bodega->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<?php if ($producto_bodega->idproducto_sucursal->getSessionValue() <> "") { ?>
-<span id="el<?php echo $producto_bodega_grid->RowCnt ?>_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_bodega->idproducto_sucursal->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el<?php echo $producto_bodega_grid->RowCnt ?>_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<select data-field="x_idproducto_sucursal" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal"<?php echo $producto_bodega->idproducto_sucursal->EditAttributes() ?>>
-<?php
-if (is_array($producto_bodega->idproducto_sucursal->EditValue)) {
-	$arwrk = $producto_bodega->idproducto_sucursal->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->idproducto_sucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-if (@$emptywrk) $producto_bodega->idproducto_sucursal->OldValue = "";
-?>
-</select>
-<?php
- $sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
- $sWhereWrk = "";
-
- // Call Lookup selecting
- $producto_bodega->Lookup_Selecting($producto_bodega->idproducto_sucursal, $sWhereWrk);
- if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-?>
-<input type="hidden" name="s_x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="s_x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto_sucursal` = {filter_value}"); ?>&amp;t0=3">
-</span>
-<?php } ?>
-<input type="hidden" data-field="x_idproducto_sucursal" name="o<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="o<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->OldValue) ?>">
-<?php } ?>
-<?php if ($producto_bodega->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<?php if ($producto_bodega->idproducto_sucursal->getSessionValue() <> "") { ?>
-<span id="el<?php echo $producto_bodega_grid->RowCnt ?>_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_bodega->idproducto_sucursal->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el<?php echo $producto_bodega_grid->RowCnt ?>_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<select data-field="x_idproducto_sucursal" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal"<?php echo $producto_bodega->idproducto_sucursal->EditAttributes() ?>>
-<?php
-if (is_array($producto_bodega->idproducto_sucursal->EditValue)) {
-	$arwrk = $producto_bodega->idproducto_sucursal->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->idproducto_sucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-if (@$emptywrk) $producto_bodega->idproducto_sucursal->OldValue = "";
-?>
-</select>
-<?php
- $sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
- $sWhereWrk = "";
-
- // Call Lookup selecting
- $producto_bodega->Lookup_Selecting($producto_bodega->idproducto_sucursal, $sWhereWrk);
- if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-?>
-<input type="hidden" name="s_x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="s_x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto_sucursal` = {filter_value}"); ?>&amp;t0=3">
-</span>
-<?php } ?>
-<?php } ?>
-<?php if ($producto_bodega->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
-<?php echo $producto_bodega->idproducto_sucursal->ListViewValue() ?></span>
-<input type="hidden" data-field="x_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->FormValue) ?>">
-<input type="hidden" data-field="x_idproducto_sucursal" name="o<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="o<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
 	<?php if ($producto_bodega->existencia->Visible) { // existencia ?>
 		<td data-name="existencia"<?php echo $producto_bodega->existencia->CellAttributes() ?>>
 <?php if ($producto_bodega->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -784,57 +679,6 @@ if (@$emptywrk) $producto_bodega->idbodega->OldValue = "";
 <input type="hidden" data-field="x_idbodega" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idbodega" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idbodega" value="<?php echo ew_HtmlEncode($producto_bodega->idbodega->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_idbodega" name="o<?php echo $producto_bodega_grid->RowIndex ?>_idbodega" id="o<?php echo $producto_bodega_grid->RowIndex ?>_idbodega" value="<?php echo ew_HtmlEncode($producto_bodega->idbodega->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($producto_bodega->idproducto_sucursal->Visible) { // idproducto_sucursal ?>
-		<td>
-<?php if ($producto_bodega->CurrentAction <> "F") { ?>
-<?php if ($producto_bodega->idproducto_sucursal->getSessionValue() <> "") { ?>
-<span id="el$rowindex$_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_bodega->idproducto_sucursal->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el$rowindex$_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<select data-field="x_idproducto_sucursal" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal"<?php echo $producto_bodega->idproducto_sucursal->EditAttributes() ?>>
-<?php
-if (is_array($producto_bodega->idproducto_sucursal->EditValue)) {
-	$arwrk = $producto_bodega->idproducto_sucursal->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_bodega->idproducto_sucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-if (@$emptywrk) $producto_bodega->idproducto_sucursal->OldValue = "";
-?>
-</select>
-<?php
- $sSqlWrk = "SELECT `idproducto_sucursal`, `idproducto` AS `DispFld`, '' AS `Disp2Fld`, `idsucursal` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto_sucursal`";
- $sWhereWrk = "";
-
- // Call Lookup selecting
- $producto_bodega->Lookup_Selecting($producto_bodega->idproducto_sucursal, $sWhereWrk);
- if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-?>
-<input type="hidden" name="s_x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="s_x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto_sucursal` = {filter_value}"); ?>&amp;t0=3">
-</span>
-<?php } ?>
-<?php } else { ?>
-<span id="el$rowindex$_producto_bodega_idproducto_sucursal" class="form-group producto_bodega_idproducto_sucursal">
-<span<?php echo $producto_bodega->idproducto_sucursal->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_bodega->idproducto_sucursal->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idproducto_sucursal" name="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="x<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_idproducto_sucursal" name="o<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" id="o<?php echo $producto_bodega_grid->RowIndex ?>_idproducto_sucursal" value="<?php echo ew_HtmlEncode($producto_bodega->idproducto_sucursal->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($producto_bodega->existencia->Visible) { // existencia ?>
