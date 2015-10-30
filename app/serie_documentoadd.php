@@ -1236,6 +1236,11 @@ $sSqlWrk .= " ORDER BY `nombre`";
 		<div class="col-sm-10"><div<?php echo $serie_documento->fecha->CellAttributes() ?>>
 <span id="el_serie_documento_fecha">
 <input type="text" data-field="x_fecha" name="x_fecha" id="x_fecha" placeholder="<?php echo ew_HtmlEncode($serie_documento->fecha->PlaceHolder) ?>" value="<?php echo $serie_documento->fecha->EditValue ?>"<?php echo $serie_documento->fecha->EditAttributes() ?>>
+<?php if (!$serie_documento->fecha->ReadOnly && !$serie_documento->fecha->Disabled && @$serie_documento->fecha->EditAttrs["readonly"] == "" && @$serie_documento->fecha->EditAttrs["disabled"] == "") { ?>
+<script type="text/javascript">
+ew_CreateCalendar("fserie_documentoadd", "x_fecha", "%d/%m/%Y");
+</script>
+<?php } ?>
 </span>
 <?php echo $serie_documento->fecha->CustomMsg ?></div></div>
 	</div>

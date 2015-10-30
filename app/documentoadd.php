@@ -10,6 +10,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "sucursalinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "serie_documentoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "tipo_documentoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "detalle_documentogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -253,6 +254,14 @@ class cdocumento_add extends cdocumento {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'detalle_documento'
+			if (@$_POST["grid"] == "fdetalle_documentogrid") {
+				if (!isset($GLOBALS["detalle_documento_grid"])) $GLOBALS["detalle_documento_grid"] = new cdetalle_documento_grid;
+				$GLOBALS["detalle_documento_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -354,6 +363,9 @@ class cdocumento_add extends cdocumento {
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
+		// Set up detail parameters
+		$this->SetUpDetailParms();
+
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -373,19 +385,28 @@ class cdocumento_add extends cdocumento {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("documentolist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail add
+						$sReturnUrl = $this->GetDetailUrl();
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "documentoview.php")
 						$sReturnUrl = $this->GetViewUrl(); // View paging, return to view page with keyurl directly
 					$this->Page_Terminate($sReturnUrl); // Clean up and return
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -409,7 +430,6 @@ class cdocumento_add extends cdocumento {
 		$this->idtipo_documento->CurrentValue = 1;
 		$this->idsucursal->CurrentValue = 1;
 		$this->idserie_documento->CurrentValue = 1;
-		$this->correlativo->CurrentValue = 1;
 		$this->fecha->CurrentValue = NULL;
 		$this->fecha->OldValue = $this->fecha->CurrentValue;
 		$this->nombre->CurrentValue = NULL;
@@ -420,6 +440,8 @@ class cdocumento_add extends cdocumento {
 		$this->nit->OldValue = $this->nit->CurrentValue;
 		$this->observaciones->CurrentValue = NULL;
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
+		$this->fecha_insercion->CurrentValue = NULL;
+		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 	}
 
 	// Load form values
@@ -435,9 +457,6 @@ class cdocumento_add extends cdocumento {
 		}
 		if (!$this->idserie_documento->FldIsDetailKey) {
 			$this->idserie_documento->setFormValue($objForm->GetValue("x_idserie_documento"));
-		}
-		if (!$this->correlativo->FldIsDetailKey) {
-			$this->correlativo->setFormValue($objForm->GetValue("x_correlativo"));
 		}
 		if (!$this->fecha->FldIsDetailKey) {
 			$this->fecha->setFormValue($objForm->GetValue("x_fecha"));
@@ -455,6 +474,10 @@ class cdocumento_add extends cdocumento {
 		if (!$this->observaciones->FldIsDetailKey) {
 			$this->observaciones->setFormValue($objForm->GetValue("x_observaciones"));
 		}
+		if (!$this->fecha_insercion->FldIsDetailKey) {
+			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
+			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
+		}
 	}
 
 	// Restore form values
@@ -464,13 +487,14 @@ class cdocumento_add extends cdocumento {
 		$this->idtipo_documento->CurrentValue = $this->idtipo_documento->FormValue;
 		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
 		$this->idserie_documento->CurrentValue = $this->idserie_documento->FormValue;
-		$this->correlativo->CurrentValue = $this->correlativo->FormValue;
 		$this->fecha->CurrentValue = $this->fecha->FormValue;
 		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->direccion->CurrentValue = $this->direccion->FormValue;
 		$this->nit->CurrentValue = $this->nit->FormValue;
 		$this->observaciones->CurrentValue = $this->observaciones->FormValue;
+		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
+		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 	}
 
 	// Load row based on key values
@@ -518,6 +542,7 @@ class cdocumento_add extends cdocumento {
 		$this->fecha_anulacion->setDbValue($rs->fields('fecha_anulacion'));
 		$this->motivo_anulacion->setDbValue($rs->fields('motivo_anulacion'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -540,6 +565,7 @@ class cdocumento_add extends cdocumento {
 		$this->fecha_anulacion->DbValue = $row['fecha_anulacion'];
 		$this->motivo_anulacion->DbValue = $row['motivo_anulacion'];
 		$this->monto->DbValue = $row['monto'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -591,6 +617,7 @@ class cdocumento_add extends cdocumento {
 		// fecha_anulacion
 		// motivo_anulacion
 		// monto
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -760,6 +787,11 @@ class cdocumento_add extends cdocumento {
 			$this->monto->ViewValue = $this->monto->CurrentValue;
 			$this->monto->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -774,11 +806,6 @@ class cdocumento_add extends cdocumento {
 			$this->idserie_documento->LinkCustomAttributes = "";
 			$this->idserie_documento->HrefValue = "";
 			$this->idserie_documento->TooltipValue = "";
-
-			// correlativo
-			$this->correlativo->LinkCustomAttributes = "";
-			$this->correlativo->HrefValue = "";
-			$this->correlativo->TooltipValue = "";
 
 			// fecha
 			$this->fecha->LinkCustomAttributes = "";
@@ -804,6 +831,11 @@ class cdocumento_add extends cdocumento {
 			$this->observaciones->LinkCustomAttributes = "";
 			$this->observaciones->HrefValue = "";
 			$this->observaciones->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idtipo_documento
@@ -981,12 +1013,6 @@ class cdocumento_add extends cdocumento {
 			$this->idserie_documento->EditValue = $arwrk;
 			}
 
-			// correlativo
-			$this->correlativo->EditAttrs["class"] = "form-control";
-			$this->correlativo->EditCustomAttributes = "";
-			$this->correlativo->EditValue = ew_HtmlEncode($this->correlativo->CurrentValue);
-			$this->correlativo->PlaceHolder = ew_RemoveHtml($this->correlativo->FldCaption());
-
 			// fecha
 			$this->fecha->EditAttrs["class"] = "form-control";
 			$this->fecha->EditCustomAttributes = "";
@@ -1017,6 +1043,12 @@ class cdocumento_add extends cdocumento {
 			$this->observaciones->EditValue = ew_HtmlEncode($this->observaciones->CurrentValue);
 			$this->observaciones->PlaceHolder = ew_RemoveHtml($this->observaciones->FldCaption());
 
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 			// Edit refer script
 			// idtipo_documento
 
@@ -1027,9 +1059,6 @@ class cdocumento_add extends cdocumento {
 
 			// idserie_documento
 			$this->idserie_documento->HrefValue = "";
-
-			// correlativo
-			$this->correlativo->HrefValue = "";
 
 			// fecha
 			$this->fecha->HrefValue = "";
@@ -1045,6 +1074,9 @@ class cdocumento_add extends cdocumento {
 
 			// observaciones
 			$this->observaciones->HrefValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1076,14 +1108,18 @@ class cdocumento_add extends cdocumento {
 		if (!$this->idserie_documento->FldIsDetailKey && !is_null($this->idserie_documento->FormValue) && $this->idserie_documento->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idserie_documento->FldCaption(), $this->idserie_documento->ReqErrMsg));
 		}
-		if (!$this->correlativo->FldIsDetailKey && !is_null($this->correlativo->FormValue) && $this->correlativo->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->correlativo->FldCaption(), $this->correlativo->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->correlativo->FormValue)) {
-			ew_AddMessage($gsFormError, $this->correlativo->FldErrMsg());
-		}
 		if (!ew_CheckEuroDate($this->fecha->FormValue)) {
 			ew_AddMessage($gsFormError, $this->fecha->FldErrMsg());
+		}
+		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
+			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
+		}
+
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("detalle_documento", $DetailTblVar) && $GLOBALS["detalle_documento"]->DetailAdd) {
+			if (!isset($GLOBALS["detalle_documento_grid"])) $GLOBALS["detalle_documento_grid"] = new cdetalle_documento_grid(); // get detail page object
+			$GLOBALS["detalle_documento_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -1102,6 +1138,10 @@ class cdocumento_add extends cdocumento {
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
 
+		// Begin transaction
+		if ($this->getCurrentDetailTable() <> "")
+			$conn->BeginTrans();
+
 		// Load db values from rsold
 		if ($rsold) {
 			$this->LoadDbValues($rsold);
@@ -1117,9 +1157,6 @@ class cdocumento_add extends cdocumento {
 		// idserie_documento
 		$this->idserie_documento->SetDbValueDef($rsnew, $this->idserie_documento->CurrentValue, 0, strval($this->idserie_documento->CurrentValue) == "");
 
-		// correlativo
-		$this->correlativo->SetDbValueDef($rsnew, $this->correlativo->CurrentValue, 0, strval($this->correlativo->CurrentValue) == "");
-
 		// fecha
 		$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, FALSE);
 
@@ -1134,6 +1171,9 @@ class cdocumento_add extends cdocumento {
 
 		// observaciones
 		$this->observaciones->SetDbValueDef($rsnew, $this->observaciones->CurrentValue, NULL, FALSE);
+
+		// fecha_insercion
+		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1161,6 +1201,27 @@ class cdocumento_add extends cdocumento {
 		if ($AddRow) {
 			$this->iddocumento->setDbValue($conn->Insert_ID());
 			$rsnew['iddocumento'] = $this->iddocumento->DbValue;
+		}
+
+		// Add detail records
+		if ($AddRow) {
+			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+			if (in_array("detalle_documento", $DetailTblVar) && $GLOBALS["detalle_documento"]->DetailAdd) {
+				$GLOBALS["detalle_documento"]->iddocumento->setSessionValue($this->iddocumento->CurrentValue); // Set master key
+				if (!isset($GLOBALS["detalle_documento_grid"])) $GLOBALS["detalle_documento_grid"] = new cdetalle_documento_grid(); // Get detail page object
+				$AddRow = $GLOBALS["detalle_documento_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["detalle_documento"]->iddocumento->setSessionValue(""); // Clear master key if insert failed
+			}
+		}
+
+		// Commit/Rollback transaction
+		if ($this->getCurrentDetailTable() <> "") {
+			if ($AddRow) {
+				$conn->CommitTrans(); // Commit transaction
+			} else {
+				$conn->RollbackTrans(); // Rollback transaction
+			}
 		}
 		if ($AddRow) {
 
@@ -1239,6 +1300,39 @@ class cdocumento_add extends cdocumento {
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("detalle_documento", $DetailTblVar)) {
+				if (!isset($GLOBALS["detalle_documento_grid"]))
+					$GLOBALS["detalle_documento_grid"] = new cdetalle_documento_grid;
+				if ($GLOBALS["detalle_documento_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["detalle_documento_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["detalle_documento_grid"]->CurrentMode = "add";
+					$GLOBALS["detalle_documento_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["detalle_documento_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["detalle_documento_grid"]->setStartRecordNumber(1);
+					$GLOBALS["detalle_documento_grid"]->iddocumento->FldIsDetailKey = TRUE;
+					$GLOBALS["detalle_documento_grid"]->iddocumento->CurrentValue = $this->iddocumento->CurrentValue;
+					$GLOBALS["detalle_documento_grid"]->iddocumento->setSessionValue($GLOBALS["detalle_documento_grid"]->iddocumento->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -1372,15 +1466,12 @@ fdocumentoadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idserie_documento");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento->idserie_documento->FldCaption(), $documento->idserie_documento->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_correlativo");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento->correlativo->FldCaption(), $documento->correlativo->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_correlativo");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->correlativo->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_fecha");
 			if (elm && !ew_CheckEuroDate(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->fecha->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_fecha_insercion");
+			if (elm && !ew_CheckEuroDate(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->fecha_insercion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1591,16 +1682,6 @@ $sSqlWrk .= " ORDER BY `serie`";
 <?php echo $documento->idserie_documento->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($documento->correlativo->Visible) { // correlativo ?>
-	<div id="r_correlativo" class="form-group">
-		<label id="elh_documento_correlativo" for="x_correlativo" class="col-sm-2 control-label ewLabel"><?php echo $documento->correlativo->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $documento->correlativo->CellAttributes() ?>>
-<span id="el_documento_correlativo">
-<input type="text" data-field="x_correlativo" name="x_correlativo" id="x_correlativo" size="30" placeholder="<?php echo ew_HtmlEncode($documento->correlativo->PlaceHolder) ?>" value="<?php echo $documento->correlativo->EditValue ?>"<?php echo $documento->correlativo->EditAttributes() ?>>
-</span>
-<?php echo $documento->correlativo->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($documento->fecha->Visible) { // fecha ?>
 	<div id="r_fecha" class="form-group">
 		<label id="elh_documento_fecha" for="x_fecha" class="col-sm-2 control-label ewLabel"><?php echo $documento->fecha->FldCaption() ?></label>
@@ -1656,7 +1737,25 @@ ew_CreateCalendar("fdocumentoadd", "x_fecha", "%d/%m/%Y");
 <?php echo $documento->observaciones->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($documento->fecha_insercion->Visible) { // fecha_insercion ?>
+	<div id="r_fecha_insercion" class="form-group">
+		<label id="elh_documento_fecha_insercion" for="x_fecha_insercion" class="col-sm-2 control-label ewLabel"><?php echo $documento->fecha_insercion->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $documento->fecha_insercion->CellAttributes() ?>>
+<span id="el_documento_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x_fecha_insercion" id="x_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($documento->fecha_insercion->PlaceHolder) ?>" value="<?php echo $documento->fecha_insercion->EditValue ?>"<?php echo $documento->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php echo $documento->fecha_insercion->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 </div>
+<?php
+	if (in_array("detalle_documento", explode(",", $documento->getCurrentDetailTable())) && $detalle_documento->DetailAdd) {
+?>
+<?php if ($documento->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("detalle_documento", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "detalle_documentogrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("AddBtn") ?></button>

@@ -23,6 +23,7 @@ class cdocumento extends cTable {
 	var $fecha_anulacion;
 	var $motivo_anulacion;
 	var $monto;
+	var $fecha_insercion;
 
 	//
 	// Table class constructor
@@ -118,6 +119,11 @@ class cdocumento extends cTable {
 		$this->monto = new cField('documento', 'documento', 'x_monto', 'monto', '`monto`', '`monto`', 131, -1, FALSE, '`monto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->monto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
 		$this->fields['monto'] = &$this->monto;
+
+		// fecha_insercion
+		$this->fecha_insercion = new cField('documento', 'documento', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}
 
 	// Single column sort
@@ -226,6 +232,30 @@ class cdocumento extends cTable {
 	// Detail filter
 	function SqlDetailFilter_serie_documento() {
 		return "`idserie_documento`=@idserie_documento@";
+	}
+
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "detalle_documento") {
+			$sDetailUrl = $GLOBALS["detalle_documento"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_iddocumento=" . urlencode($this->iddocumento->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "documentolist.php";
+		}
+		return $sDetailUrl;
 	}
 
 	// Table level SQL
@@ -581,7 +611,10 @@ class cdocumento extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		return $this->KeyUrl("documentoedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("documentoedit.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("documentoedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -591,7 +624,10 @@ class cdocumento extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		return $this->KeyUrl("documentoadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("documentoadd.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("documentoadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL
@@ -699,6 +735,7 @@ class cdocumento extends cTable {
 		$this->fecha_anulacion->setDbValue($rs->fields('fecha_anulacion'));
 		$this->motivo_anulacion->setDbValue($rs->fields('motivo_anulacion'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Render list row values
@@ -725,6 +762,7 @@ class cdocumento extends cTable {
 		// fecha_anulacion
 		// motivo_anulacion
 		// monto
+		// fecha_insercion
 		// iddocumento
 
 		$this->iddocumento->ViewValue = $this->iddocumento->CurrentValue;
@@ -892,6 +930,11 @@ class cdocumento extends cTable {
 		$this->monto->ViewValue = $this->monto->CurrentValue;
 		$this->monto->ViewCustomAttributes = "";
 
+		// fecha_insercion
+		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+		$this->fecha_insercion->ViewCustomAttributes = "";
+
 		// iddocumento
 		$this->iddocumento->LinkCustomAttributes = "";
 		$this->iddocumento->HrefValue = "";
@@ -971,6 +1014,11 @@ class cdocumento extends cTable {
 		$this->monto->LinkCustomAttributes = "";
 		$this->monto->HrefValue = "";
 		$this->monto->TooltipValue = "";
+
+		// fecha_insercion
+		$this->fecha_insercion->LinkCustomAttributes = "";
+		$this->fecha_insercion->HrefValue = "";
+		$this->fecha_insercion->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -1172,6 +1220,12 @@ class cdocumento extends cTable {
 		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
 		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
 
+		// fecha_insercion
+		$this->fecha_insercion->EditAttrs["class"] = "form-control";
+		$this->fecha_insercion->EditCustomAttributes = "";
+		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -1212,6 +1266,7 @@ class cdocumento extends cTable {
 					if ($this->fecha_anulacion->Exportable) $Doc->ExportCaption($this->fecha_anulacion);
 					if ($this->motivo_anulacion->Exportable) $Doc->ExportCaption($this->motivo_anulacion);
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
 					if ($this->iddocumento->Exportable) $Doc->ExportCaption($this->iddocumento);
 					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
@@ -1229,6 +1284,7 @@ class cdocumento extends cTable {
 					if ($this->fecha_anulacion->Exportable) $Doc->ExportCaption($this->fecha_anulacion);
 					if ($this->motivo_anulacion->Exportable) $Doc->ExportCaption($this->motivo_anulacion);
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1276,6 +1332,7 @@ class cdocumento extends cTable {
 						if ($this->fecha_anulacion->Exportable) $Doc->ExportField($this->fecha_anulacion);
 						if ($this->motivo_anulacion->Exportable) $Doc->ExportField($this->motivo_anulacion);
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
 						if ($this->iddocumento->Exportable) $Doc->ExportField($this->iddocumento);
 						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
@@ -1293,6 +1350,7 @@ class cdocumento extends cTable {
 						if ($this->fecha_anulacion->Exportable) $Doc->ExportField($this->fecha_anulacion);
 						if ($this->motivo_anulacion->Exportable) $Doc->ExportField($this->motivo_anulacion);
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}
 					$Doc->EndExportRow();
 				}

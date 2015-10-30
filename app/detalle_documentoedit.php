@@ -6,8 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "serie_documentoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "detalle_documentoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "documentoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -15,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$serie_documento_edit = NULL; // Initialize page object first
+$detalle_documento_edit = NULL; // Initialize page object first
 
-class cserie_documento_edit extends cserie_documento {
+class cdetalle_documento_edit extends cdetalle_documento {
 
 	// Page ID
 	var $PageID = 'edit';
@@ -26,10 +26,10 @@ class cserie_documento_edit extends cserie_documento {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'serie_documento';
+	var $TableName = 'detalle_documento';
 
 	// Page object name
-	var $PageObjName = 'serie_documento_edit';
+	var $PageObjName = 'detalle_documento_edit';
 
 	// Page name
 	function PageName() {
@@ -196,11 +196,14 @@ class cserie_documento_edit extends cserie_documento {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (serie_documento)
-		if (!isset($GLOBALS["serie_documento"]) || get_class($GLOBALS["serie_documento"]) == "cserie_documento") {
-			$GLOBALS["serie_documento"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["serie_documento"];
+		// Table object (detalle_documento)
+		if (!isset($GLOBALS["detalle_documento"]) || get_class($GLOBALS["detalle_documento"]) == "cdetalle_documento") {
+			$GLOBALS["detalle_documento"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["detalle_documento"];
 		}
+
+		// Table object (documento)
+		if (!isset($GLOBALS['documento'])) $GLOBALS['documento'] = new cdocumento();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -208,7 +211,7 @@ class cserie_documento_edit extends cserie_documento {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'serie_documento', TRUE);
+			define("EW_TABLE_NAME", 'detalle_documento', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -242,14 +245,6 @@ class cserie_documento_edit extends cserie_documento {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'documento'
-			if (@$_POST["grid"] == "fdocumentogrid") {
-				if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
-				$GLOBALS["documento_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -279,13 +274,13 @@ class cserie_documento_edit extends cserie_documento {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $serie_documento;
+		global $EW_EXPORT, $detalle_documento;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($serie_documento);
+				$doc = new $class($detalle_documento);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -318,9 +313,12 @@ class cserie_documento_edit extends cserie_documento {
 		global $objForm, $Language, $gsFormError;
 
 		// Load key from QueryString
-		if (@$_GET["idserie_documento"] <> "") {
-			$this->idserie_documento->setQueryStringValue($_GET["idserie_documento"]);
+		if (@$_GET["iddetalle_documento"] <> "") {
+			$this->iddetalle_documento->setQueryStringValue($_GET["iddetalle_documento"]);
 		}
+
+		// Set up master detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -329,16 +327,13 @@ class cserie_documento_edit extends cserie_documento {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
-
-			// Set up detail parameters
-			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
 
 		// Check if valid key
-		if ($this->idserie_documento->CurrentValue == "")
-			$this->Page_Terminate("serie_documentolist.php"); // Invalid key, return to list
+		if ($this->iddetalle_documento->CurrentValue == "")
+			$this->Page_Terminate("detalle_documentolist.php"); // Invalid key, return to list
 
 		// Validate form if post back
 		if (@$_POST["a_edit"] <> "") {
@@ -353,28 +348,19 @@ class cserie_documento_edit extends cserie_documento {
 			case "I": // Get a record to display
 				if (!$this->LoadRow()) { // Load record based on key
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
-					$this->Page_Terminate("serie_documentolist.php"); // No matching record, return to list
+					$this->Page_Terminate("detalle_documentolist.php"); // No matching record, return to list
 				}
-
-				// Set up detail parameters
-				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
-						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
-					else
-						$sReturnUrl = $this->getReturnUrl();
+					$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
-
-					// Set up detail parameters
-					$this->SetUpDetailParms();
 				}
 		}
 
@@ -432,32 +418,26 @@ class cserie_documento_edit extends cserie_documento {
 
 		// Load from form
 		global $objForm;
-		if (!$this->serie->FldIsDetailKey) {
-			$this->serie->setFormValue($objForm->GetValue("x_serie"));
+		if (!$this->cantidad->FldIsDetailKey) {
+			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
 		}
-		if (!$this->correlativo->FldIsDetailKey) {
-			$this->correlativo->setFormValue($objForm->GetValue("x_correlativo"));
-		}
-		if (!$this->fecha->FldIsDetailKey) {
-			$this->fecha->setFormValue($objForm->GetValue("x_fecha"));
-			$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
+		if (!$this->precio->FldIsDetailKey) {
+			$this->precio->setFormValue($objForm->GetValue("x_precio"));
 		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->idserie_documento->FldIsDetailKey)
-			$this->idserie_documento->setFormValue($objForm->GetValue("x_idserie_documento"));
+		if (!$this->iddetalle_documento->FldIsDetailKey)
+			$this->iddetalle_documento->setFormValue($objForm->GetValue("x_iddetalle_documento"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		$this->LoadRow();
-		$this->idserie_documento->CurrentValue = $this->idserie_documento->FormValue;
-		$this->serie->CurrentValue = $this->serie->FormValue;
-		$this->correlativo->CurrentValue = $this->correlativo->FormValue;
-		$this->fecha->CurrentValue = $this->fecha->FormValue;
-		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
+		$this->iddetalle_documento->CurrentValue = $this->iddetalle_documento->FormValue;
+		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
+		$this->precio->CurrentValue = $this->precio->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
@@ -490,26 +470,30 @@ class cserie_documento_edit extends cserie_documento {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idserie_documento->setDbValue($rs->fields('idserie_documento'));
-		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->serie->setDbValue($rs->fields('serie'));
-		$this->correlativo->setDbValue($rs->fields('correlativo'));
-		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->iddetalle_documento->setDbValue($rs->fields('iddetalle_documento'));
+		$this->iddocumento->setDbValue($rs->fields('iddocumento'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idbodega->setDbValue($rs->fields('idbodega'));
+		$this->cantidad->setDbValue($rs->fields('cantidad'));
+		$this->precio->setDbValue($rs->fields('precio'));
+		$this->monto->setDbValue($rs->fields('monto'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idserie_documento->DbValue = $row['idserie_documento'];
-		$this->idtipo_documento->DbValue = $row['idtipo_documento'];
-		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->serie->DbValue = $row['serie'];
-		$this->correlativo->DbValue = $row['correlativo'];
-		$this->fecha->DbValue = $row['fecha'];
+		$this->iddetalle_documento->DbValue = $row['iddetalle_documento'];
+		$this->iddocumento->DbValue = $row['iddocumento'];
+		$this->idproducto->DbValue = $row['idproducto'];
+		$this->idbodega->DbValue = $row['idbodega'];
+		$this->cantidad->DbValue = $row['cantidad'];
+		$this->precio->DbValue = $row['precio'];
+		$this->monto->DbValue = $row['monto'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -518,29 +502,35 @@ class cserie_documento_edit extends cserie_documento {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->precio->FormValue == $this->precio->CurrentValue && is_numeric(ew_StrToFloat($this->precio->CurrentValue)))
+			$this->precio->CurrentValue = ew_StrToFloat($this->precio->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idserie_documento
-		// idtipo_documento
-		// idsucursal
-		// serie
-		// correlativo
-		// fecha
+		// iddetalle_documento
+		// iddocumento
+		// idproducto
+		// idbodega
+		// cantidad
+		// precio
+		// monto
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idserie_documento
-			$this->idserie_documento->ViewValue = $this->idserie_documento->CurrentValue;
-			$this->idserie_documento->ViewCustomAttributes = "";
+			// iddetalle_documento
+			$this->iddetalle_documento->ViewValue = $this->iddetalle_documento->CurrentValue;
+			$this->iddetalle_documento->ViewCustomAttributes = "";
 
-			// idtipo_documento
-			if (strval($this->idtipo_documento->CurrentValue) <> "") {
-				$sFilterWrk = "`idtipo_documento`" . ew_SearchString("=", $this->idtipo_documento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idtipo_documento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_documento`";
+			// iddocumento
+			if (strval($this->iddocumento->CurrentValue) <> "") {
+				$sFilterWrk = "`iddocumento`" . ew_SearchString("=", $this->iddocumento->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddocumento`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -551,25 +541,26 @@ class cserie_documento_edit extends cserie_documento {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idtipo_documento, $sWhereWrk);
+			$this->Lookup_Selecting($this->iddocumento, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
+			$sSqlWrk .= " ORDER BY `correlativo`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idtipo_documento->ViewValue = $rswrk->fields('DispFld');
+					$this->iddocumento->ViewValue = $rswrk->fields('DispFld');
+					$this->iddocumento->ViewValue .= ew_ValueSeparator(2,$this->iddocumento) . $rswrk->fields('Disp3Fld');
 					$rswrk->Close();
 				} else {
-					$this->idtipo_documento->ViewValue = $this->idtipo_documento->CurrentValue;
+					$this->iddocumento->ViewValue = $this->iddocumento->CurrentValue;
 				}
 			} else {
-				$this->idtipo_documento->ViewValue = NULL;
+				$this->iddocumento->ViewValue = NULL;
 			}
-			$this->idtipo_documento->ViewCustomAttributes = "";
+			$this->iddocumento->ViewCustomAttributes = "";
 
-			// idsucursal
-			if (strval($this->idsucursal->CurrentValue) <> "") {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			// idproducto
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -580,33 +571,61 @@ class cserie_documento_edit extends cserie_documento {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 				}
 			} else {
-				$this->idsucursal->ViewValue = NULL;
+				$this->idproducto->ViewValue = NULL;
 			}
-			$this->idsucursal->ViewCustomAttributes = "";
+			$this->idproducto->ViewCustomAttributes = "";
 
-			// serie
-			$this->serie->ViewValue = $this->serie->CurrentValue;
-			$this->serie->ViewCustomAttributes = "";
+			// idbodega
+			if (strval($this->idbodega->CurrentValue) <> "") {
+				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
 
-			// correlativo
-			$this->correlativo->ViewValue = $this->correlativo->CurrentValue;
-			$this->correlativo->ViewCustomAttributes = "";
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbodega, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `descripcion`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idbodega->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idbodega->ViewValue = $this->idbodega->CurrentValue;
+				}
+			} else {
+				$this->idbodega->ViewValue = NULL;
+			}
+			$this->idbodega->ViewCustomAttributes = "";
 
-			// fecha
-			$this->fecha->ViewValue = $this->fecha->CurrentValue;
-			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
-			$this->fecha->ViewCustomAttributes = "";
+			// cantidad
+			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewCustomAttributes = "";
+
+			// precio
+			$this->precio->ViewValue = $this->precio->CurrentValue;
+			$this->precio->ViewCustomAttributes = "";
+
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -625,20 +644,20 @@ class cserie_documento_edit extends cserie_documento {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// serie
-			$this->serie->LinkCustomAttributes = "";
-			$this->serie->HrefValue = "";
-			$this->serie->TooltipValue = "";
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// correlativo
-			$this->correlativo->LinkCustomAttributes = "";
-			$this->correlativo->HrefValue = "";
-			$this->correlativo->TooltipValue = "";
+			// cantidad
+			$this->cantidad->LinkCustomAttributes = "";
+			$this->cantidad->HrefValue = "";
+			$this->cantidad->TooltipValue = "";
 
-			// fecha
-			$this->fecha->LinkCustomAttributes = "";
-			$this->fecha->HrefValue = "";
-			$this->fecha->TooltipValue = "";
+			// precio
+			$this->precio->LinkCustomAttributes = "";
+			$this->precio->HrefValue = "";
+			$this->precio->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -646,23 +665,18 @@ class cserie_documento_edit extends cserie_documento {
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// serie
-			$this->serie->EditAttrs["class"] = "form-control";
-			$this->serie->EditCustomAttributes = "";
-			$this->serie->EditValue = ew_HtmlEncode($this->serie->CurrentValue);
-			$this->serie->PlaceHolder = ew_RemoveHtml($this->serie->FldCaption());
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
 
-			// correlativo
-			$this->correlativo->EditAttrs["class"] = "form-control";
-			$this->correlativo->EditCustomAttributes = "";
-			$this->correlativo->EditValue = ew_HtmlEncode($this->correlativo->CurrentValue);
-			$this->correlativo->PlaceHolder = ew_RemoveHtml($this->correlativo->FldCaption());
-
-			// fecha
-			$this->fecha->EditAttrs["class"] = "form-control";
-			$this->fecha->EditCustomAttributes = "";
-			$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
-			$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
+			// precio
+			$this->precio->EditAttrs["class"] = "form-control";
+			$this->precio->EditCustomAttributes = "";
+			$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
+			$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
+			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -1, -2, 0);
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -674,15 +688,12 @@ class cserie_documento_edit extends cserie_documento {
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// serie
+			// cantidad
 
-			$this->serie->HrefValue = "";
+			$this->cantidad->HrefValue = "";
 
-			// correlativo
-			$this->correlativo->HrefValue = "";
-
-			// fecha
-			$this->fecha->HrefValue = "";
+			// precio
+			$this->precio->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -708,21 +719,20 @@ class cserie_documento_edit extends cserie_documento {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!ew_CheckInteger($this->correlativo->FormValue)) {
-			ew_AddMessage($gsFormError, $this->correlativo->FldErrMsg());
+		if (!$this->cantidad->FldIsDetailKey && !is_null($this->cantidad->FormValue) && $this->cantidad->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->cantidad->FldCaption(), $this->cantidad->ReqErrMsg));
 		}
-		if (!ew_CheckEuroDate($this->fecha->FormValue)) {
-			ew_AddMessage($gsFormError, $this->fecha->FldErrMsg());
+		if (!ew_CheckInteger($this->cantidad->FormValue)) {
+			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
+		}
+		if (!$this->precio->FldIsDetailKey && !is_null($this->precio->FormValue) && $this->precio->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->precio->FldCaption(), $this->precio->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->precio->FormValue)) {
+			ew_AddMessage($gsFormError, $this->precio->FldErrMsg());
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-
-		// Validate detail grid
-		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("documento", $DetailTblVar) && $GLOBALS["documento"]->DetailEdit) {
-			if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid(); // get detail page object
-			$GLOBALS["documento_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -752,23 +762,16 @@ class cserie_documento_edit extends cserie_documento {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
-			// Begin transaction
-			if ($this->getCurrentDetailTable() <> "")
-				$conn->BeginTrans();
-
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// serie
-			$this->serie->SetDbValueDef($rsnew, $this->serie->CurrentValue, NULL, $this->serie->ReadOnly);
+			// cantidad
+			$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, $this->cantidad->ReadOnly);
 
-			// correlativo
-			$this->correlativo->SetDbValueDef($rsnew, $this->correlativo->CurrentValue, NULL, $this->correlativo->ReadOnly);
-
-			// fecha
-			$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, $this->fecha->ReadOnly);
+			// precio
+			$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, $this->precio->ReadOnly);
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
@@ -783,24 +786,6 @@ class cserie_documento_edit extends cserie_documento {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
-				}
-
-				// Update detail records
-				if ($EditRow) {
-					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-					if (in_array("documento", $DetailTblVar) && $GLOBALS["documento"]->DetailEdit) {
-						if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid(); // Get detail page object
-						$EditRow = $GLOBALS["documento_grid"]->GridUpdate();
-					}
-				}
-
-				// Commit/Rollback transaction
-				if ($this->getCurrentDetailTable() <> "") {
-					if ($EditRow) {
-						$conn->CommitTrans(); // Commit transaction
-					} else {
-						$conn->RollbackTrans(); // Rollback transaction
-					}
 				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -823,41 +808,54 @@ class cserie_documento_edit extends cserie_documento {
 		return $EditRow;
 	}
 
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
 
 		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("documento", $DetailTblVar)) {
-				if (!isset($GLOBALS["documento_grid"]))
-					$GLOBALS["documento_grid"] = new cdocumento_grid;
-				if ($GLOBALS["documento_grid"]->DetailEdit) {
-					$GLOBALS["documento_grid"]->CurrentMode = "edit";
-					$GLOBALS["documento_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["documento_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["documento_grid"]->setStartRecordNumber(1);
-					$GLOBALS["documento_grid"]->idserie_documento->FldIsDetailKey = TRUE;
-					$GLOBALS["documento_grid"]->idserie_documento->CurrentValue = $this->idserie_documento->CurrentValue;
-					$GLOBALS["documento_grid"]->idserie_documento->setSessionValue($GLOBALS["documento_grid"]->idserie_documento->CurrentValue);
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "documento") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_iddocumento"] <> "") {
+					$GLOBALS["documento"]->iddocumento->setQueryStringValue($_GET["fk_iddocumento"]);
+					$this->iddocumento->setQueryStringValue($GLOBALS["documento"]->iddocumento->QueryStringValue);
+					$this->iddocumento->setSessionValue($this->iddocumento->QueryStringValue);
+					if (!is_numeric($GLOBALS["documento"]->iddocumento->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
 				}
 			}
 		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "documento") {
+				if ($this->iddocumento->QueryStringValue == "") $this->iddocumento->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "serie_documentolist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "detalle_documentolist.php", "", $this->TableVar, TRUE);
 		$PageId = "edit";
 		$Breadcrumb->Add("edit", $PageId, ew_CurrentUrl());
 	}
@@ -934,33 +932,33 @@ class cserie_documento_edit extends cserie_documento {
 <?php
 
 // Create page object
-if (!isset($serie_documento_edit)) $serie_documento_edit = new cserie_documento_edit();
+if (!isset($detalle_documento_edit)) $detalle_documento_edit = new cdetalle_documento_edit();
 
 // Page init
-$serie_documento_edit->Page_Init();
+$detalle_documento_edit->Page_Init();
 
 // Page main
-$serie_documento_edit->Page_Main();
+$detalle_documento_edit->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$serie_documento_edit->Page_Render();
+$detalle_documento_edit->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var serie_documento_edit = new ew_Page("serie_documento_edit");
-serie_documento_edit.PageID = "edit"; // Page ID
-var EW_PAGE_ID = serie_documento_edit.PageID; // For backward compatibility
+var detalle_documento_edit = new ew_Page("detalle_documento_edit");
+detalle_documento_edit.PageID = "edit"; // Page ID
+var EW_PAGE_ID = detalle_documento_edit.PageID; // For backward compatibility
 
 // Form object
-var fserie_documentoedit = new ew_Form("fserie_documentoedit");
+var fdetalle_documentoedit = new ew_Form("fdetalle_documentoedit");
 
 // Validate form
-fserie_documentoedit.Validate = function() {
+fdetalle_documentoedit.Validate = function() {
 	if (!this.ValidateRequired)
 		return true; // Ignore validation
 	var $ = jQuery, fobj = this.GetForm(), $fobj = $(fobj);
@@ -975,15 +973,21 @@ fserie_documentoedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_correlativo");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento->cantidad->FldCaption(), $detalle_documento->cantidad->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
 			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($serie_documento->correlativo->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_fecha");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($serie_documento->fecha->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento->cantidad->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento->precio->FldCaption(), $detalle_documento->precio->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento->precio->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $serie_documento->estado->FldCaption(), $serie_documento->estado->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento->estado->FldCaption(), $detalle_documento->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1005,7 +1009,7 @@ fserie_documentoedit.Validate = function() {
 }
 
 // Form_CustomValidate event
-fserie_documentoedit.Form_CustomValidate = 
+fdetalle_documentoedit.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1014,9 +1018,9 @@ fserie_documentoedit.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fserie_documentoedit.ValidateRequired = true;
+fdetalle_documentoedit.ValidateRequired = true;
 <?php } else { ?>
-fserie_documentoedit.ValidateRequired = false; 
+fdetalle_documentoedit.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
@@ -1032,65 +1036,50 @@ fserie_documentoedit.ValidateRequired = false;
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $serie_documento_edit->ShowPageHeader(); ?>
+<?php $detalle_documento_edit->ShowPageHeader(); ?>
 <?php
-$serie_documento_edit->ShowMessage();
+$detalle_documento_edit->ShowMessage();
 ?>
-<form name="fserie_documentoedit" id="fserie_documentoedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($serie_documento_edit->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $serie_documento_edit->Token ?>">
+<form name="fdetalle_documentoedit" id="fdetalle_documentoedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($detalle_documento_edit->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $detalle_documento_edit->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="serie_documento">
+<input type="hidden" name="t" value="detalle_documento">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($serie_documento->serie->Visible) { // serie ?>
-	<div id="r_serie" class="form-group">
-		<label id="elh_serie_documento_serie" for="x_serie" class="col-sm-2 control-label ewLabel"><?php echo $serie_documento->serie->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $serie_documento->serie->CellAttributes() ?>>
-<span id="el_serie_documento_serie">
-<input type="text" data-field="x_serie" name="x_serie" id="x_serie" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($serie_documento->serie->PlaceHolder) ?>" value="<?php echo $serie_documento->serie->EditValue ?>"<?php echo $serie_documento->serie->EditAttributes() ?>>
+<?php if ($detalle_documento->cantidad->Visible) { // cantidad ?>
+	<div id="r_cantidad" class="form-group">
+		<label id="elh_detalle_documento_cantidad" for="x_cantidad" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento->cantidad->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $detalle_documento->cantidad->CellAttributes() ?>>
+<span id="el_detalle_documento_cantidad">
+<input type="text" data-field="x_cantidad" name="x_cantidad" id="x_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento->cantidad->PlaceHolder) ?>" value="<?php echo $detalle_documento->cantidad->EditValue ?>"<?php echo $detalle_documento->cantidad->EditAttributes() ?>>
 </span>
-<?php echo $serie_documento->serie->CustomMsg ?></div></div>
+<?php echo $detalle_documento->cantidad->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($serie_documento->correlativo->Visible) { // correlativo ?>
-	<div id="r_correlativo" class="form-group">
-		<label id="elh_serie_documento_correlativo" for="x_correlativo" class="col-sm-2 control-label ewLabel"><?php echo $serie_documento->correlativo->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $serie_documento->correlativo->CellAttributes() ?>>
-<span id="el_serie_documento_correlativo">
-<input type="text" data-field="x_correlativo" name="x_correlativo" id="x_correlativo" size="30" placeholder="<?php echo ew_HtmlEncode($serie_documento->correlativo->PlaceHolder) ?>" value="<?php echo $serie_documento->correlativo->EditValue ?>"<?php echo $serie_documento->correlativo->EditAttributes() ?>>
+<?php if ($detalle_documento->precio->Visible) { // precio ?>
+	<div id="r_precio" class="form-group">
+		<label id="elh_detalle_documento_precio" for="x_precio" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento->precio->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $detalle_documento->precio->CellAttributes() ?>>
+<span id="el_detalle_documento_precio">
+<input type="text" data-field="x_precio" name="x_precio" id="x_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento->precio->EditValue ?>"<?php echo $detalle_documento->precio->EditAttributes() ?>>
 </span>
-<?php echo $serie_documento->correlativo->CustomMsg ?></div></div>
+<?php echo $detalle_documento->precio->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($serie_documento->fecha->Visible) { // fecha ?>
-	<div id="r_fecha" class="form-group">
-		<label id="elh_serie_documento_fecha" for="x_fecha" class="col-sm-2 control-label ewLabel"><?php echo $serie_documento->fecha->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $serie_documento->fecha->CellAttributes() ?>>
-<span id="el_serie_documento_fecha">
-<input type="text" data-field="x_fecha" name="x_fecha" id="x_fecha" placeholder="<?php echo ew_HtmlEncode($serie_documento->fecha->PlaceHolder) ?>" value="<?php echo $serie_documento->fecha->EditValue ?>"<?php echo $serie_documento->fecha->EditAttributes() ?>>
-<?php if (!$serie_documento->fecha->ReadOnly && !$serie_documento->fecha->Disabled && @$serie_documento->fecha->EditAttrs["readonly"] == "" && @$serie_documento->fecha->EditAttrs["disabled"] == "") { ?>
-<script type="text/javascript">
-ew_CreateCalendar("fserie_documentoedit", "x_fecha", "%d/%m/%Y");
-</script>
-<?php } ?>
-</span>
-<?php echo $serie_documento->fecha->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($serie_documento->estado->Visible) { // estado ?>
+<?php if ($detalle_documento->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_serie_documento_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $serie_documento->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $serie_documento->estado->CellAttributes() ?>>
-<span id="el_serie_documento_estado">
-<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $serie_documento->estado->EditAttributes() ?>>
+		<label id="elh_detalle_documento_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $detalle_documento->estado->CellAttributes() ?>>
+<span id="el_detalle_documento_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $detalle_documento->estado->EditAttributes() ?>>
 <?php
-if (is_array($serie_documento->estado->EditValue)) {
-	$arwrk = $serie_documento->estado->EditValue;
+if (is_array($detalle_documento->estado->EditValue)) {
+	$arwrk = $detalle_documento->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($serie_documento->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($detalle_documento->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1102,19 +1091,11 @@ if (is_array($serie_documento->estado->EditValue)) {
 ?>
 </select>
 </span>
-<?php echo $serie_documento->estado->CustomMsg ?></div></div>
+<?php echo $detalle_documento->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
-<input type="hidden" data-field="x_idserie_documento" name="x_idserie_documento" id="x_idserie_documento" value="<?php echo ew_HtmlEncode($serie_documento->idserie_documento->CurrentValue) ?>">
-<?php
-	if (in_array("documento", explode(",", $serie_documento->getCurrentDetailTable())) && $documento->DetailEdit) {
-?>
-<?php if ($serie_documento->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "documentogrid.php" ?>
-<?php } ?>
+<input type="hidden" data-field="x_iddetalle_documento" name="x_iddetalle_documento" id="x_iddetalle_documento" value="<?php echo ew_HtmlEncode($detalle_documento->iddetalle_documento->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>
@@ -1122,10 +1103,10 @@ if (is_array($serie_documento->estado->EditValue)) {
 </div>
 </form>
 <script type="text/javascript">
-fserie_documentoedit.Init();
+fdetalle_documentoedit.Init();
 </script>
 <?php
-$serie_documento_edit->ShowPageFooter();
+$detalle_documento_edit->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1137,5 +1118,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$serie_documento_edit->Page_Terminate();
+$detalle_documento_edit->Page_Terminate();
 ?>
