@@ -1,17 +1,18 @@
 <?php
 
 // Global variable for table object
-$sucursal = NULL;
+$serie_documento = NULL;
 
 //
-// Table class for sucursal
+// Table class for serie_documento
 //
-class csucursal extends cTable {
+class cserie_documento extends cTable {
+	var $idserie_documento;
+	var $idtipo_documento;
 	var $idsucursal;
-	var $nombre;
-	var $direccion;
-	var $idmunicipio;
-	var $idempresa;
+	var $serie;
+	var $correlativo;
+	var $fecha;
 	var $estado;
 
 	//
@@ -22,8 +23,8 @@ class csucursal extends cTable {
 
 		// Language object
 		if (!isset($Language)) $Language = new cLanguage();
-		$this->TableVar = 'sucursal';
-		$this->TableName = 'sucursal';
+		$this->TableVar = 'serie_documento';
+		$this->TableName = 'serie_documento';
 		$this->TableType = 'TABLE';
 		$this->ExportAll = TRUE;
 		$this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
@@ -38,31 +39,37 @@ class csucursal extends cTable {
 		$this->UserIDAllowSecurity = 0; // User ID Allow
 		$this->BasicSearch = new cBasicSearch($this->TableVar);
 
+		// idserie_documento
+		$this->idserie_documento = new cField('serie_documento', 'serie_documento', 'x_idserie_documento', 'idserie_documento', '`idserie_documento`', '`idserie_documento`', 3, -1, FALSE, '`idserie_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idserie_documento->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idserie_documento'] = &$this->idserie_documento;
+
+		// idtipo_documento
+		$this->idtipo_documento = new cField('serie_documento', 'serie_documento', 'x_idtipo_documento', 'idtipo_documento', '`idtipo_documento`', '`idtipo_documento`', 3, -1, FALSE, '`idtipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idtipo_documento->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idtipo_documento'] = &$this->idtipo_documento;
+
 		// idsucursal
-		$this->idsucursal = new cField('sucursal', 'sucursal', 'x_idsucursal', 'idsucursal', '`idsucursal`', '`idsucursal`', 3, -1, FALSE, '`idsucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idsucursal = new cField('serie_documento', 'serie_documento', 'x_idsucursal', 'idsucursal', '`idsucursal`', '`idsucursal`', 3, -1, FALSE, '`idsucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idsucursal->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idsucursal'] = &$this->idsucursal;
 
-		// nombre
-		$this->nombre = new cField('sucursal', 'sucursal', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['nombre'] = &$this->nombre;
+		// serie
+		$this->serie = new cField('serie_documento', 'serie_documento', 'x_serie', 'serie', '`serie`', '`serie`', 200, -1, FALSE, '`serie`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['serie'] = &$this->serie;
 
-		// direccion
-		$this->direccion = new cField('sucursal', 'sucursal', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['direccion'] = &$this->direccion;
+		// correlativo
+		$this->correlativo = new cField('serie_documento', 'serie_documento', 'x_correlativo', 'correlativo', '`correlativo`', '`correlativo`', 3, -1, FALSE, '`correlativo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->correlativo->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['correlativo'] = &$this->correlativo;
 
-		// idmunicipio
-		$this->idmunicipio = new cField('sucursal', 'sucursal', 'x_idmunicipio', 'idmunicipio', '`idmunicipio`', '`idmunicipio`', 3, -1, FALSE, '`idmunicipio`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idmunicipio->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idmunicipio'] = &$this->idmunicipio;
-
-		// idempresa
-		$this->idempresa = new cField('sucursal', 'sucursal', 'x_idempresa', 'idempresa', '`idempresa`', '`idempresa`', 3, -1, FALSE, '`idempresa`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idempresa->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idempresa'] = &$this->idempresa;
+		// fecha
+		$this->fecha = new cField('serie_documento', 'serie_documento', 'x_fecha', 'fecha', '`fecha`', 'DATE_FORMAT(`fecha`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha'] = &$this->fecha;
 
 		// estado
-		$this->estado = new cField('sucursal', 'sucursal', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->estado = new cField('serie_documento', 'serie_documento', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
 	}
 
@@ -83,53 +90,6 @@ class csucursal extends cTable {
 		}
 	}
 
-	// Current master table name
-	function getCurrentMasterTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
-	}
-
-	function setCurrentMasterTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
-	}
-
-	// Session master WHERE clause
-	function GetMasterFilter() {
-
-		// Master filter
-		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "empresa") {
-			if ($this->idempresa->getSessionValue() <> "")
-				$sMasterFilter .= "`idempresa`=" . ew_QuotedValue($this->idempresa->getSessionValue(), EW_DATATYPE_NUMBER);
-			else
-				return "";
-		}
-		return $sMasterFilter;
-	}
-
-	// Session detail WHERE clause
-	function GetDetailFilter() {
-
-		// Detail filter
-		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "empresa") {
-			if ($this->idempresa->getSessionValue() <> "")
-				$sDetailFilter .= "`idempresa`=" . ew_QuotedValue($this->idempresa->getSessionValue(), EW_DATATYPE_NUMBER);
-			else
-				return "";
-		}
-		return $sDetailFilter;
-	}
-
-	// Master filter
-	function SqlMasterFilter_empresa() {
-		return "`idempresa`=@idempresa@";
-	}
-
-	// Detail filter
-	function SqlDetailFilter_empresa() {
-		return "`idempresa`=@idempresa@";
-	}
-
 	// Current detail table name
 	function getCurrentDetailTable() {
 		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
@@ -144,20 +104,12 @@ class csucursal extends cTable {
 
 		// Detail url
 		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "bodega") {
-			$sDetailUrl = $GLOBALS["bodega"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
-		}
-		if ($this->getCurrentDetailTable() == "producto_sucursal") {
-			$sDetailUrl = $GLOBALS["producto_sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
-		}
 		if ($this->getCurrentDetailTable() == "documento") {
 			$sDetailUrl = $GLOBALS["documento"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
+			$sDetailUrl .= "&fk_idserie_documento=" . urlencode($this->idserie_documento->CurrentValue);
 		}
 		if ($sDetailUrl == "") {
-			$sDetailUrl = "sucursallist.php";
+			$sDetailUrl = "serie_documentolist.php";
 		}
 		return $sDetailUrl;
 	}
@@ -166,7 +118,7 @@ class csucursal extends cTable {
 	var $_SqlFrom = "";
 
 	function getSqlFrom() { // From
-		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`sucursal`";
+		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`serie_documento`";
 	}
 
 	function SqlFrom() { // For backward compatibility
@@ -389,7 +341,7 @@ class csucursal extends cTable {
 	}
 
 	// Update Table
-	var $UpdateTable = "`sucursal`";
+	var $UpdateTable = "`serie_documento`";
 
 	// INSERT statement
 	function InsertSQL(&$rs) {
@@ -442,8 +394,8 @@ class csucursal extends cTable {
 	function DeleteSQL(&$rs, $where = "") {
 		$sql = "DELETE FROM " . $this->UpdateTable . " WHERE ";
 		if ($rs) {
-			if (array_key_exists('idsucursal', $rs))
-				ew_AddFilter($where, ew_QuotedName('idsucursal') . '=' . ew_QuotedValue($rs['idsucursal'], $this->idsucursal->FldDataType));
+			if (array_key_exists('idserie_documento', $rs))
+				ew_AddFilter($where, ew_QuotedName('idserie_documento') . '=' . ew_QuotedValue($rs['idserie_documento'], $this->idserie_documento->FldDataType));
 		}
 		$filter = $this->CurrentFilter;
 		ew_AddFilter($filter, $where);
@@ -462,15 +414,15 @@ class csucursal extends cTable {
 
 	// Key filter WHERE clause
 	function SqlKeyFilter() {
-		return "`idsucursal` = @idsucursal@";
+		return "`idserie_documento` = @idserie_documento@";
 	}
 
 	// Key filter
 	function KeyFilter() {
 		$sKeyFilter = $this->SqlKeyFilter();
-		if (!is_numeric($this->idsucursal->CurrentValue))
+		if (!is_numeric($this->idserie_documento->CurrentValue))
 			$sKeyFilter = "0=1"; // Invalid key
-		$sKeyFilter = str_replace("@idsucursal@", ew_AdjustSql($this->idsucursal->CurrentValue), $sKeyFilter); // Replace key value
+		$sKeyFilter = str_replace("@idserie_documento@", ew_AdjustSql($this->idserie_documento->CurrentValue), $sKeyFilter); // Replace key value
 		return $sKeyFilter;
 	}
 
@@ -484,7 +436,7 @@ class csucursal extends cTable {
 		if (@$_SESSION[$name] <> "") {
 			return $_SESSION[$name];
 		} else {
-			return "sucursallist.php";
+			return "serie_documentolist.php";
 		}
 	}
 
@@ -494,31 +446,31 @@ class csucursal extends cTable {
 
 	// List URL
 	function GetListUrl() {
-		return "sucursallist.php";
+		return "serie_documentolist.php";
 	}
 
 	// View URL
 	function GetViewUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("sucursalview.php", $this->UrlParm($parm));
+			return $this->KeyUrl("serie_documentoview.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("sucursalview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("serie_documentoview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Add URL
 	function GetAddUrl($parm = "") {
 		if ($parm <> "")
-			return "sucursaladd.php?" . $this->UrlParm($parm);
+			return "serie_documentoadd.php?" . $this->UrlParm($parm);
 		else
-			return "sucursaladd.php";
+			return "serie_documentoadd.php";
 	}
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("sucursaledit.php", $this->UrlParm($parm));
+			return $this->KeyUrl("serie_documentoedit.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("sucursaledit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("serie_documentoedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -529,9 +481,9 @@ class csucursal extends cTable {
 	// Copy URL
 	function GetCopyUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("sucursaladd.php", $this->UrlParm($parm));
+			return $this->KeyUrl("serie_documentoadd.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("sucursaladd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("serie_documentoadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL
@@ -541,15 +493,15 @@ class csucursal extends cTable {
 
 	// Delete URL
 	function GetDeleteUrl() {
-		return $this->KeyUrl("sucursaldelete.php", $this->UrlParm());
+		return $this->KeyUrl("serie_documentodelete.php", $this->UrlParm());
 	}
 
 	// Add key value to URL
 	function KeyUrl($url, $parm = "") {
 		$sUrl = $url . "?";
 		if ($parm <> "") $sUrl .= $parm . "&";
-		if (!is_null($this->idsucursal->CurrentValue)) {
-			$sUrl .= "idsucursal=" . urlencode($this->idsucursal->CurrentValue);
+		if (!is_null($this->idserie_documento->CurrentValue)) {
+			$sUrl .= "idserie_documento=" . urlencode($this->idserie_documento->CurrentValue);
 		} else {
 			return "javascript:alert(ewLanguage.Phrase('InvalidRecord'));";
 		}
@@ -581,7 +533,7 @@ class csucursal extends cTable {
 			$arKeys = ew_StripSlashes($_GET["key_m"]);
 			$cnt = count($arKeys);
 		} elseif (isset($_GET)) {
-			$arKeys[] = @$_GET["idsucursal"]; // idsucursal
+			$arKeys[] = @$_GET["idserie_documento"]; // idserie_documento
 
 			//return $arKeys; // Do not return yet, so the values will also be checked by the following code
 		}
@@ -602,7 +554,7 @@ class csucursal extends cTable {
 		$sKeyFilter = "";
 		foreach ($arKeys as $key) {
 			if ($sKeyFilter <> "") $sKeyFilter .= " OR ";
-			$this->idsucursal->CurrentValue = $key;
+			$this->idserie_documento->CurrentValue = $key;
 			$sKeyFilter .= "(" . $this->KeyFilter() . ")";
 		}
 		return $sKeyFilter;
@@ -623,11 +575,12 @@ class csucursal extends cTable {
 
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
+		$this->idserie_documento->setDbValue($rs->fields('idserie_documento'));
+		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
-		$this->idempresa->setDbValue($rs->fields('idempresa'));
+		$this->serie->setDbValue($rs->fields('serie'));
+		$this->correlativo->setDbValue($rs->fields('correlativo'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -639,82 +592,88 @@ class csucursal extends cTable {
 		$this->Row_Rendering();
 
    // Common render codes
+		// idserie_documento
+		// idtipo_documento
 		// idsucursal
-		// nombre
-		// direccion
-		// idmunicipio
-		// idempresa
+		// serie
+		// correlativo
+		// fecha
 		// estado
-		// idsucursal
+		// idserie_documento
 
-		$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+		$this->idserie_documento->ViewValue = $this->idserie_documento->CurrentValue;
+		$this->idserie_documento->ViewCustomAttributes = "";
+
+		// idtipo_documento
+		if (strval($this->idtipo_documento->CurrentValue) <> "") {
+			$sFilterWrk = "`idtipo_documento`" . ew_SearchString("=", $this->idtipo_documento->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idtipo_documento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_documento`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idtipo_documento, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idtipo_documento->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idtipo_documento->ViewValue = $this->idtipo_documento->CurrentValue;
+			}
+		} else {
+			$this->idtipo_documento->ViewValue = NULL;
+		}
+		$this->idtipo_documento->ViewCustomAttributes = "";
+
+		// idsucursal
+		if (strval($this->idsucursal->CurrentValue) <> "") {
+			$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			}
+		} else {
+			$this->idsucursal->ViewValue = NULL;
+		}
 		$this->idsucursal->ViewCustomAttributes = "";
 
-		// nombre
-		$this->nombre->ViewValue = $this->nombre->CurrentValue;
-		$this->nombre->ViewCustomAttributes = "";
+		// serie
+		$this->serie->ViewValue = $this->serie->CurrentValue;
+		$this->serie->ViewCustomAttributes = "";
 
-		// direccion
-		$this->direccion->ViewValue = $this->direccion->CurrentValue;
-		$this->direccion->ViewCustomAttributes = "";
+		// correlativo
+		$this->correlativo->ViewValue = $this->correlativo->CurrentValue;
+		$this->correlativo->ViewCustomAttributes = "";
 
-		// idmunicipio
-		if (strval($this->idmunicipio->CurrentValue) <> "") {
-			$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idmunicipio->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
-			}
-		} else {
-			$this->idmunicipio->ViewValue = NULL;
-		}
-		$this->idmunicipio->ViewCustomAttributes = "";
-
-		// idempresa
-		if (strval($this->idempresa->CurrentValue) <> "") {
-			$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idempresa->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
-			}
-		} else {
-			$this->idempresa->ViewValue = NULL;
-		}
-		$this->idempresa->ViewCustomAttributes = "";
+		// fecha
+		$this->fecha->ViewValue = $this->fecha->CurrentValue;
+		$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+		$this->fecha->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -733,30 +692,35 @@ class csucursal extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
+		// idserie_documento
+		$this->idserie_documento->LinkCustomAttributes = "";
+		$this->idserie_documento->HrefValue = "";
+		$this->idserie_documento->TooltipValue = "";
+
+		// idtipo_documento
+		$this->idtipo_documento->LinkCustomAttributes = "";
+		$this->idtipo_documento->HrefValue = "";
+		$this->idtipo_documento->TooltipValue = "";
+
 		// idsucursal
 		$this->idsucursal->LinkCustomAttributes = "";
 		$this->idsucursal->HrefValue = "";
 		$this->idsucursal->TooltipValue = "";
 
-		// nombre
-		$this->nombre->LinkCustomAttributes = "";
-		$this->nombre->HrefValue = "";
-		$this->nombre->TooltipValue = "";
+		// serie
+		$this->serie->LinkCustomAttributes = "";
+		$this->serie->HrefValue = "";
+		$this->serie->TooltipValue = "";
 
-		// direccion
-		$this->direccion->LinkCustomAttributes = "";
-		$this->direccion->HrefValue = "";
-		$this->direccion->TooltipValue = "";
+		// correlativo
+		$this->correlativo->LinkCustomAttributes = "";
+		$this->correlativo->HrefValue = "";
+		$this->correlativo->TooltipValue = "";
 
-		// idmunicipio
-		$this->idmunicipio->LinkCustomAttributes = "";
-		$this->idmunicipio->HrefValue = "";
-		$this->idmunicipio->TooltipValue = "";
-
-		// idempresa
-		$this->idempresa->LinkCustomAttributes = "";
-		$this->idempresa->HrefValue = "";
-		$this->idempresa->TooltipValue = "";
+		// fecha
+		$this->fecha->LinkCustomAttributes = "";
+		$this->fecha->HrefValue = "";
+		$this->fecha->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
@@ -774,68 +738,45 @@ class csucursal extends cTable {
 		// Call Row Rendering event
 		$this->Row_Rendering();
 
+		// idserie_documento
+		$this->idserie_documento->EditAttrs["class"] = "form-control";
+		$this->idserie_documento->EditCustomAttributes = "";
+		$this->idserie_documento->EditValue = $this->idserie_documento->CurrentValue;
+		$this->idserie_documento->ViewCustomAttributes = "";
+
+		// idtipo_documento
+		$this->idtipo_documento->EditAttrs["class"] = "form-control";
+		$this->idtipo_documento->EditCustomAttributes = "";
+
 		// idsucursal
 		$this->idsucursal->EditAttrs["class"] = "form-control";
 		$this->idsucursal->EditCustomAttributes = "";
-		$this->idsucursal->EditValue = $this->idsucursal->CurrentValue;
-		$this->idsucursal->ViewCustomAttributes = "";
 
-		// nombre
-		$this->nombre->EditAttrs["class"] = "form-control";
-		$this->nombre->EditCustomAttributes = "";
-		$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
-		$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
+		// serie
+		$this->serie->EditAttrs["class"] = "form-control";
+		$this->serie->EditCustomAttributes = "";
+		$this->serie->EditValue = ew_HtmlEncode($this->serie->CurrentValue);
+		$this->serie->PlaceHolder = ew_RemoveHtml($this->serie->FldCaption());
 
-		// direccion
-		$this->direccion->EditAttrs["class"] = "form-control";
-		$this->direccion->EditCustomAttributes = "";
-		$this->direccion->EditValue = ew_HtmlEncode($this->direccion->CurrentValue);
-		$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
+		// correlativo
+		$this->correlativo->EditAttrs["class"] = "form-control";
+		$this->correlativo->EditCustomAttributes = "";
+		$this->correlativo->EditValue = ew_HtmlEncode($this->correlativo->CurrentValue);
+		$this->correlativo->PlaceHolder = ew_RemoveHtml($this->correlativo->FldCaption());
 
-		// idmunicipio
-		$this->idmunicipio->EditAttrs["class"] = "form-control";
-		$this->idmunicipio->EditCustomAttributes = "";
-
-		// idempresa
-		$this->idempresa->EditAttrs["class"] = "form-control";
-		$this->idempresa->EditCustomAttributes = "";
-		if ($this->idempresa->getSessionValue() <> "") {
-			$this->idempresa->CurrentValue = $this->idempresa->getSessionValue();
-		if (strval($this->idempresa->CurrentValue) <> "") {
-			$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idempresa->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
-			}
-		} else {
-			$this->idempresa->ViewValue = NULL;
-		}
-		$this->idempresa->ViewCustomAttributes = "";
-		} else {
-		}
+		// fecha
+		$this->fecha->EditAttrs["class"] = "form-control";
+		$this->fecha->EditCustomAttributes = "";
+		$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
+		$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
 
 		// estado
+		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
 		// Call Row Rendered event
@@ -862,18 +803,20 @@ class csucursal extends cTable {
 			if ($Doc->Horizontal) { // Horizontal format, write header
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
+					if ($this->idserie_documento->Exportable) $Doc->ExportCaption($this->idserie_documento);
+					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->idmunicipio->Exportable) $Doc->ExportCaption($this->idmunicipio);
-					if ($this->idempresa->Exportable) $Doc->ExportCaption($this->idempresa);
+					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
+					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
+					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
+					if ($this->idserie_documento->Exportable) $Doc->ExportCaption($this->idserie_documento);
+					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->idmunicipio->Exportable) $Doc->ExportCaption($this->idmunicipio);
-					if ($this->idempresa->Exportable) $Doc->ExportCaption($this->idempresa);
+					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
+					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
+					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
 				$Doc->EndExportRow();
@@ -906,18 +849,20 @@ class csucursal extends cTable {
 				if (!$Doc->ExportCustom) {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
+						if ($this->idserie_documento->Exportable) $Doc->ExportField($this->idserie_documento);
+						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->idmunicipio->Exportable) $Doc->ExportField($this->idmunicipio);
-						if ($this->idempresa->Exportable) $Doc->ExportField($this->idempresa);
+						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
+						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
+						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
+						if ($this->idserie_documento->Exportable) $Doc->ExportField($this->idserie_documento);
+						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->idmunicipio->Exportable) $Doc->ExportField($this->idmunicipio);
-						if ($this->idempresa->Exportable) $Doc->ExportField($this->idempresa);
+						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
+						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
+						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
 					$Doc->EndExportRow();

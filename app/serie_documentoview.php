@@ -6,10 +6,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "sucursalinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "bodegagridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "serie_documentoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "documentogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
@@ -18,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$sucursal_view = NULL; // Initialize page object first
+$serie_documento_view = NULL; // Initialize page object first
 
-class csucursal_view extends csucursal {
+class cserie_documento_view extends cserie_documento {
 
 	// Page ID
 	var $PageID = 'view';
@@ -29,10 +26,10 @@ class csucursal_view extends csucursal {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'sucursal';
+	var $TableName = 'serie_documento';
 
 	// Page object name
-	var $PageObjName = 'sucursal_view';
+	var $PageObjName = 'serie_documento_view';
 
 	// Page name
 	function PageName() {
@@ -231,15 +228,15 @@ class csucursal_view extends csucursal {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (sucursal)
-		if (!isset($GLOBALS["sucursal"]) || get_class($GLOBALS["sucursal"]) == "csucursal") {
-			$GLOBALS["sucursal"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["sucursal"];
+		// Table object (serie_documento)
+		if (!isset($GLOBALS["serie_documento"]) || get_class($GLOBALS["serie_documento"]) == "cserie_documento") {
+			$GLOBALS["serie_documento"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["serie_documento"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["idsucursal"] <> "") {
-			$this->RecKey["idsucursal"] = $_GET["idsucursal"];
-			$KeyUrl .= "&amp;idsucursal=" . urlencode($this->RecKey["idsucursal"]);
+		if (@$_GET["idserie_documento"] <> "") {
+			$this->RecKey["idserie_documento"] = $_GET["idserie_documento"];
+			$KeyUrl .= "&amp;idserie_documento=" . urlencode($this->RecKey["idserie_documento"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -249,16 +246,13 @@ class csucursal_view extends csucursal {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (empresa)
-		if (!isset($GLOBALS['empresa'])) $GLOBALS['empresa'] = new cempresa();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'sucursal', TRUE);
+			define("EW_TABLE_NAME", 'serie_documento', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -286,7 +280,7 @@ class csucursal_view extends csucursal {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idsucursal->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idserie_documento->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -303,22 +297,6 @@ class csucursal_view extends csucursal {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'bodega'
-			if (@$_POST["grid"] == "fbodegagrid") {
-				if (!isset($GLOBALS["bodega_grid"])) $GLOBALS["bodega_grid"] = new cbodega_grid;
-				$GLOBALS["bodega_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'producto_sucursal'
-			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
-				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
-				$GLOBALS["producto_sucursal_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 
 			// Process auto fill for detail table 'documento'
 			if (@$_POST["grid"] == "fdocumentogrid") {
@@ -356,13 +334,13 @@ class csucursal_view extends csucursal {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $sucursal;
+		global $EW_EXPORT, $serie_documento;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($sucursal);
+				$doc = new $class($serie_documento);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -409,18 +387,15 @@ class csucursal_view extends csucursal {
 		$sReturnUrl = "";
 		$bMatchRecord = FALSE;
 
-		// Set up master/detail parameters
-		$this->SetUpMasterParms();
-
 		// Set up Breadcrumb
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["idsucursal"] <> "") {
-				$this->idsucursal->setQueryStringValue($_GET["idsucursal"]);
-				$this->RecKey["idsucursal"] = $this->idsucursal->QueryStringValue;
+			if (@$_GET["idserie_documento"] <> "") {
+				$this->idserie_documento->setQueryStringValue($_GET["idserie_documento"]);
+				$this->RecKey["idserie_documento"] = $this->idserie_documento->QueryStringValue;
 			} else {
-				$sReturnUrl = "sucursallist.php"; // Return to list
+				$sReturnUrl = "serie_documentolist.php"; // Return to list
 			}
 
 			// Get action
@@ -430,11 +405,11 @@ class csucursal_view extends csucursal {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "sucursallist.php"; // No matching record, return to list
+						$sReturnUrl = "serie_documentolist.php"; // No matching record, return to list
 					}
 			}
 		} else {
-			$sReturnUrl = "sucursallist.php"; // Not page request, return to list
+			$sReturnUrl = "serie_documentolist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -478,66 +453,10 @@ class csucursal_view extends csucursal {
 		$DetailCopyTblVar = "";
 		$DetailEditTblVar = "";
 
-		// "detail_bodega"
-		$item = &$option->Add("detail_bodega");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("bodega", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("bodegalist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["bodega_grid"] && $GLOBALS["bodega_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "bodega";
-		}
-		if ($GLOBALS["bodega_grid"] && $GLOBALS["bodega_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=bodega")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "bodega";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "bodega";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// "detail_producto_sucursal"
-		$item = &$option->Add("detail_producto_sucursal");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_sucursal", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_sucursallist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["producto_sucursal_grid"] && $GLOBALS["producto_sucursal_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "producto_sucursal";
-		}
-		if ($GLOBALS["producto_sucursal_grid"] && $GLOBALS["producto_sucursal_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_sucursal")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "producto_sucursal";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "producto_sucursal";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
 		// "detail_documento"
 		$item = &$option->Add("detail_documento");
 		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("documento", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("documentolist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("documentolist.php?" . EW_TABLE_SHOW_MASTER . "=serie_documento&fk_idserie_documento=" . strval($this->idserie_documento->CurrentValue) . "") . "\">" . $body . "</a>";
 		$links = "";
 		if ($GLOBALS["documento_grid"] && $GLOBALS["documento_grid"]->DetailView) {
 			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=documento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
@@ -675,11 +594,12 @@ class csucursal_view extends csucursal {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
+		$this->idserie_documento->setDbValue($rs->fields('idserie_documento'));
+		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
-		$this->idempresa->setDbValue($rs->fields('idempresa'));
+		$this->serie->setDbValue($rs->fields('serie'));
+		$this->correlativo->setDbValue($rs->fields('correlativo'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -687,11 +607,12 @@ class csucursal_view extends csucursal {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
+		$this->idserie_documento->DbValue = $row['idserie_documento'];
+		$this->idtipo_documento->DbValue = $row['idtipo_documento'];
 		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->nombre->DbValue = $row['nombre'];
-		$this->direccion->DbValue = $row['direccion'];
-		$this->idmunicipio->DbValue = $row['idmunicipio'];
-		$this->idempresa->DbValue = $row['idempresa'];
+		$this->serie->DbValue = $row['serie'];
+		$this->correlativo->DbValue = $row['correlativo'];
+		$this->fecha->DbValue = $row['fecha'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -712,84 +633,90 @@ class csucursal_view extends csucursal {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
+		// idserie_documento
+		// idtipo_documento
 		// idsucursal
-		// nombre
-		// direccion
-		// idmunicipio
-		// idempresa
+		// serie
+		// correlativo
+		// fecha
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
+			// idserie_documento
+			$this->idserie_documento->ViewValue = $this->idserie_documento->CurrentValue;
+			$this->idserie_documento->ViewCustomAttributes = "";
+
+			// idtipo_documento
+			if (strval($this->idtipo_documento->CurrentValue) <> "") {
+				$sFilterWrk = "`idtipo_documento`" . ew_SearchString("=", $this->idtipo_documento->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idtipo_documento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_documento`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idtipo_documento, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idtipo_documento->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idtipo_documento->ViewValue = $this->idtipo_documento->CurrentValue;
+				}
+			} else {
+				$this->idtipo_documento->ViewValue = NULL;
+			}
+			$this->idtipo_documento->ViewCustomAttributes = "";
+
 			// idsucursal
-			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			if (strval($this->idsucursal->CurrentValue) <> "") {
+				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+				}
+			} else {
+				$this->idsucursal->ViewValue = NULL;
+			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
+			// serie
+			$this->serie->ViewValue = $this->serie->CurrentValue;
+			$this->serie->ViewCustomAttributes = "";
 
-			// direccion
-			$this->direccion->ViewValue = $this->direccion->CurrentValue;
-			$this->direccion->ViewCustomAttributes = "";
+			// correlativo
+			$this->correlativo->ViewValue = $this->correlativo->CurrentValue;
+			$this->correlativo->ViewCustomAttributes = "";
 
-			// idmunicipio
-			if (strval($this->idmunicipio->CurrentValue) <> "") {
-				$sFilterWrk = "`idmunicipio`" . ew_SearchString("=", $this->idmunicipio->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmunicipio`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `municipio`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmunicipio, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmunicipio->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idmunicipio->ViewValue = $this->idmunicipio->CurrentValue;
-				}
-			} else {
-				$this->idmunicipio->ViewValue = NULL;
-			}
-			$this->idmunicipio->ViewCustomAttributes = "";
-
-			// idempresa
-			if (strval($this->idempresa->CurrentValue) <> "") {
-				$sFilterWrk = "`idempresa`" . ew_SearchString("=", $this->idempresa->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idempresa`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `empresa`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idempresa, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idempresa->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idempresa->ViewValue = $this->idempresa->CurrentValue;
-				}
-			} else {
-				$this->idempresa->ViewValue = NULL;
-			}
-			$this->idempresa->ViewCustomAttributes = "";
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -808,30 +735,35 @@ class csucursal_view extends csucursal {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// idserie_documento
+			$this->idserie_documento->LinkCustomAttributes = "";
+			$this->idserie_documento->HrefValue = "";
+			$this->idserie_documento->TooltipValue = "";
+
+			// idtipo_documento
+			$this->idtipo_documento->LinkCustomAttributes = "";
+			$this->idtipo_documento->HrefValue = "";
+			$this->idtipo_documento->TooltipValue = "";
+
 			// idsucursal
 			$this->idsucursal->LinkCustomAttributes = "";
 			$this->idsucursal->HrefValue = "";
 			$this->idsucursal->TooltipValue = "";
 
-			// nombre
-			$this->nombre->LinkCustomAttributes = "";
-			$this->nombre->HrefValue = "";
-			$this->nombre->TooltipValue = "";
+			// serie
+			$this->serie->LinkCustomAttributes = "";
+			$this->serie->HrefValue = "";
+			$this->serie->TooltipValue = "";
 
-			// direccion
-			$this->direccion->LinkCustomAttributes = "";
-			$this->direccion->HrefValue = "";
-			$this->direccion->TooltipValue = "";
+			// correlativo
+			$this->correlativo->LinkCustomAttributes = "";
+			$this->correlativo->HrefValue = "";
+			$this->correlativo->TooltipValue = "";
 
-			// idmunicipio
-			$this->idmunicipio->LinkCustomAttributes = "";
-			$this->idmunicipio->HrefValue = "";
-			$this->idmunicipio->TooltipValue = "";
-
-			// idempresa
-			$this->idempresa->LinkCustomAttributes = "";
-			$this->idempresa->HrefValue = "";
-			$this->idempresa->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -842,49 +774,6 @@ class csucursal_view extends csucursal {
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
-	}
-
-	// Set up master/detail based on QueryString
-	function SetUpMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "empresa") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idempresa"] <> "") {
-					$GLOBALS["empresa"]->idempresa->setQueryStringValue($_GET["fk_idempresa"]);
-					$this->idempresa->setQueryStringValue($GLOBALS["empresa"]->idempresa->QueryStringValue);
-					$this->idempresa->setSessionValue($this->idempresa->QueryStringValue);
-					if (!is_numeric($GLOBALS["empresa"]->idempresa->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-			$this->setSessionWhere($this->GetDetailFilter());
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "empresa") {
-				if ($this->idempresa->QueryStringValue == "") $this->idempresa->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up detail parms based on QueryString
@@ -899,34 +788,6 @@ class csucursal_view extends csucursal {
 		}
 		if ($sDetailTblVar <> "") {
 			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("bodega", $DetailTblVar)) {
-				if (!isset($GLOBALS["bodega_grid"]))
-					$GLOBALS["bodega_grid"] = new cbodega_grid;
-				if ($GLOBALS["bodega_grid"]->DetailView) {
-					$GLOBALS["bodega_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["bodega_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["bodega_grid"]->setStartRecordNumber(1);
-					$GLOBALS["bodega_grid"]->idsucursal->FldIsDetailKey = TRUE;
-					$GLOBALS["bodega_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
-					$GLOBALS["bodega_grid"]->idsucursal->setSessionValue($GLOBALS["bodega_grid"]->idsucursal->CurrentValue);
-				}
-			}
-			if (in_array("producto_sucursal", $DetailTblVar)) {
-				if (!isset($GLOBALS["producto_sucursal_grid"]))
-					$GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
-				if ($GLOBALS["producto_sucursal_grid"]->DetailView) {
-					$GLOBALS["producto_sucursal_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["producto_sucursal_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["producto_sucursal_grid"]->setStartRecordNumber(1);
-					$GLOBALS["producto_sucursal_grid"]->idsucursal->FldIsDetailKey = TRUE;
-					$GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
-					$GLOBALS["producto_sucursal_grid"]->idsucursal->setSessionValue($GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue);
-				}
-			}
 			if (in_array("documento", $DetailTblVar)) {
 				if (!isset($GLOBALS["documento_grid"]))
 					$GLOBALS["documento_grid"] = new cdocumento_grid;
@@ -936,9 +797,9 @@ class csucursal_view extends csucursal {
 					// Save current master table to detail table
 					$GLOBALS["documento_grid"]->setCurrentMasterTable($this->TableVar);
 					$GLOBALS["documento_grid"]->setStartRecordNumber(1);
-					$GLOBALS["documento_grid"]->idsucursal->FldIsDetailKey = TRUE;
-					$GLOBALS["documento_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
-					$GLOBALS["documento_grid"]->idsucursal->setSessionValue($GLOBALS["documento_grid"]->idsucursal->CurrentValue);
+					$GLOBALS["documento_grid"]->idserie_documento->FldIsDetailKey = TRUE;
+					$GLOBALS["documento_grid"]->idserie_documento->CurrentValue = $this->idserie_documento->CurrentValue;
+					$GLOBALS["documento_grid"]->idserie_documento->setSessionValue($GLOBALS["documento_grid"]->idserie_documento->CurrentValue);
 				}
 			}
 		}
@@ -948,7 +809,7 @@ class csucursal_view extends csucursal {
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "sucursallist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "serie_documentolist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -1044,33 +905,33 @@ class csucursal_view extends csucursal {
 <?php
 
 // Create page object
-if (!isset($sucursal_view)) $sucursal_view = new csucursal_view();
+if (!isset($serie_documento_view)) $serie_documento_view = new cserie_documento_view();
 
 // Page init
-$sucursal_view->Page_Init();
+$serie_documento_view->Page_Init();
 
 // Page main
-$sucursal_view->Page_Main();
+$serie_documento_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$sucursal_view->Page_Render();
+$serie_documento_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var sucursal_view = new ew_Page("sucursal_view");
-sucursal_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = sucursal_view.PageID; // For backward compatibility
+var serie_documento_view = new ew_Page("serie_documento_view");
+serie_documento_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = serie_documento_view.PageID; // For backward compatibility
 
 // Form object
-var fsucursalview = new ew_Form("fsucursalview");
+var fserie_documentoview = new ew_Form("fserie_documentoview");
 
 // Form_CustomValidate event
-fsucursalview.Form_CustomValidate = 
+fserie_documentoview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1079,14 +940,14 @@ fsucursalview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fsucursalview.ValidateRequired = true;
+fserie_documentoview.ValidateRequired = true;
 <?php } else { ?>
-fsucursalview.ValidateRequired = false; 
+fserie_documentoview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fsucursalview.Lists["x_idmunicipio"] = {"LinkField":"x_idmunicipio","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fsucursalview.Lists["x_idempresa"] = {"LinkField":"x_idempresa","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fserie_documentoview.Lists["x_idtipo_documento"] = {"LinkField":"x_idtipo_documento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fserie_documentoview.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1096,121 +957,116 @@ fsucursalview.Lists["x_idempresa"] = {"LinkField":"x_idempresa","Ajax":true,"Aut
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php $sucursal_view->ExportOptions->Render("body") ?>
+<?php $serie_documento_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($sucursal_view->OtherOptions as &$option)
+	foreach ($serie_documento_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $sucursal_view->ShowPageHeader(); ?>
+<?php $serie_documento_view->ShowPageHeader(); ?>
 <?php
-$sucursal_view->ShowMessage();
+$serie_documento_view->ShowMessage();
 ?>
-<form name="fsucursalview" id="fsucursalview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($sucursal_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $sucursal_view->Token ?>">
+<form name="fserie_documentoview" id="fserie_documentoview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($serie_documento_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $serie_documento_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="sucursal">
+<input type="hidden" name="t" value="serie_documento">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($sucursal->idsucursal->Visible) { // idsucursal ?>
+<?php if ($serie_documento->idserie_documento->Visible) { // idserie_documento ?>
+	<tr id="r_idserie_documento">
+		<td><span id="elh_serie_documento_idserie_documento"><?php echo $serie_documento->idserie_documento->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->idserie_documento->CellAttributes() ?>>
+<span id="el_serie_documento_idserie_documento" class="form-group">
+<span<?php echo $serie_documento->idserie_documento->ViewAttributes() ?>>
+<?php echo $serie_documento->idserie_documento->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($serie_documento->idtipo_documento->Visible) { // idtipo_documento ?>
+	<tr id="r_idtipo_documento">
+		<td><span id="elh_serie_documento_idtipo_documento"><?php echo $serie_documento->idtipo_documento->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->idtipo_documento->CellAttributes() ?>>
+<span id="el_serie_documento_idtipo_documento" class="form-group">
+<span<?php echo $serie_documento->idtipo_documento->ViewAttributes() ?>>
+<?php echo $serie_documento->idtipo_documento->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($serie_documento->idsucursal->Visible) { // idsucursal ?>
 	<tr id="r_idsucursal">
-		<td><span id="elh_sucursal_idsucursal"><?php echo $sucursal->idsucursal->FldCaption() ?></span></td>
-		<td<?php echo $sucursal->idsucursal->CellAttributes() ?>>
-<span id="el_sucursal_idsucursal" class="form-group">
-<span<?php echo $sucursal->idsucursal->ViewAttributes() ?>>
-<?php echo $sucursal->idsucursal->ViewValue ?></span>
+		<td><span id="elh_serie_documento_idsucursal"><?php echo $serie_documento->idsucursal->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->idsucursal->CellAttributes() ?>>
+<span id="el_serie_documento_idsucursal" class="form-group">
+<span<?php echo $serie_documento->idsucursal->ViewAttributes() ?>>
+<?php echo $serie_documento->idsucursal->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($sucursal->nombre->Visible) { // nombre ?>
-	<tr id="r_nombre">
-		<td><span id="elh_sucursal_nombre"><?php echo $sucursal->nombre->FldCaption() ?></span></td>
-		<td<?php echo $sucursal->nombre->CellAttributes() ?>>
-<span id="el_sucursal_nombre" class="form-group">
-<span<?php echo $sucursal->nombre->ViewAttributes() ?>>
-<?php echo $sucursal->nombre->ViewValue ?></span>
+<?php if ($serie_documento->serie->Visible) { // serie ?>
+	<tr id="r_serie">
+		<td><span id="elh_serie_documento_serie"><?php echo $serie_documento->serie->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->serie->CellAttributes() ?>>
+<span id="el_serie_documento_serie" class="form-group">
+<span<?php echo $serie_documento->serie->ViewAttributes() ?>>
+<?php echo $serie_documento->serie->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($sucursal->direccion->Visible) { // direccion ?>
-	<tr id="r_direccion">
-		<td><span id="elh_sucursal_direccion"><?php echo $sucursal->direccion->FldCaption() ?></span></td>
-		<td<?php echo $sucursal->direccion->CellAttributes() ?>>
-<span id="el_sucursal_direccion" class="form-group">
-<span<?php echo $sucursal->direccion->ViewAttributes() ?>>
-<?php echo $sucursal->direccion->ViewValue ?></span>
+<?php if ($serie_documento->correlativo->Visible) { // correlativo ?>
+	<tr id="r_correlativo">
+		<td><span id="elh_serie_documento_correlativo"><?php echo $serie_documento->correlativo->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->correlativo->CellAttributes() ?>>
+<span id="el_serie_documento_correlativo" class="form-group">
+<span<?php echo $serie_documento->correlativo->ViewAttributes() ?>>
+<?php echo $serie_documento->correlativo->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($sucursal->idmunicipio->Visible) { // idmunicipio ?>
-	<tr id="r_idmunicipio">
-		<td><span id="elh_sucursal_idmunicipio"><?php echo $sucursal->idmunicipio->FldCaption() ?></span></td>
-		<td<?php echo $sucursal->idmunicipio->CellAttributes() ?>>
-<span id="el_sucursal_idmunicipio" class="form-group">
-<span<?php echo $sucursal->idmunicipio->ViewAttributes() ?>>
-<?php echo $sucursal->idmunicipio->ViewValue ?></span>
+<?php if ($serie_documento->fecha->Visible) { // fecha ?>
+	<tr id="r_fecha">
+		<td><span id="elh_serie_documento_fecha"><?php echo $serie_documento->fecha->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->fecha->CellAttributes() ?>>
+<span id="el_serie_documento_fecha" class="form-group">
+<span<?php echo $serie_documento->fecha->ViewAttributes() ?>>
+<?php echo $serie_documento->fecha->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($sucursal->idempresa->Visible) { // idempresa ?>
-	<tr id="r_idempresa">
-		<td><span id="elh_sucursal_idempresa"><?php echo $sucursal->idempresa->FldCaption() ?></span></td>
-		<td<?php echo $sucursal->idempresa->CellAttributes() ?>>
-<span id="el_sucursal_idempresa" class="form-group">
-<span<?php echo $sucursal->idempresa->ViewAttributes() ?>>
-<?php echo $sucursal->idempresa->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($sucursal->estado->Visible) { // estado ?>
+<?php if ($serie_documento->estado->Visible) { // estado ?>
 	<tr id="r_estado">
-		<td><span id="elh_sucursal_estado"><?php echo $sucursal->estado->FldCaption() ?></span></td>
-		<td<?php echo $sucursal->estado->CellAttributes() ?>>
-<span id="el_sucursal_estado" class="form-group">
-<span<?php echo $sucursal->estado->ViewAttributes() ?>>
-<?php echo $sucursal->estado->ViewValue ?></span>
+		<td><span id="elh_serie_documento_estado"><?php echo $serie_documento->estado->FldCaption() ?></span></td>
+		<td<?php echo $serie_documento->estado->CellAttributes() ?>>
+<span id="el_serie_documento_estado" class="form-group">
+<span<?php echo $serie_documento->estado->ViewAttributes() ?>>
+<?php echo $serie_documento->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
 <?php
-	if (in_array("bodega", explode(",", $sucursal->getCurrentDetailTable())) && $bodega->DetailView) {
+	if (in_array("documento", explode(",", $serie_documento->getCurrentDetailTable())) && $documento->DetailView) {
 ?>
-<?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("bodega", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "bodegagrid.php" ?>
-<?php } ?>
-<?php
-	if (in_array("producto_sucursal", explode(",", $sucursal->getCurrentDetailTable())) && $producto_sucursal->DetailView) {
-?>
-<?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_sucursal", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "producto_sucursalgrid.php" ?>
-<?php } ?>
-<?php
-	if (in_array("documento", explode(",", $sucursal->getCurrentDetailTable())) && $documento->DetailView) {
-?>
-<?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
+<?php if ($serie_documento->getCurrentDetailTable() <> "") { ?>
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "documentogrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">
-fsucursalview.Init();
+fserie_documentoview.Init();
 </script>
 <?php
-$sucursal_view->ShowPageFooter();
+$serie_documento_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1222,5 +1078,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$sucursal_view->Page_Terminate();
+$serie_documento_view->Page_Terminate();
 ?>

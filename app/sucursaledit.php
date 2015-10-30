@@ -10,6 +10,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "documentogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -260,6 +261,14 @@ class csucursal_edit extends csucursal {
 			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
 				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
 				$GLOBALS["producto_sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'documento'
+			if (@$_POST["grid"] == "fdocumentogrid") {
+				if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
+				$GLOBALS["documento_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -825,6 +834,10 @@ class csucursal_edit extends csucursal {
 			if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid(); // get detail page object
 			$GLOBALS["producto_sucursal_grid"]->ValidateGridForm();
 		}
+		if (in_array("documento", $DetailTblVar) && $GLOBALS["documento"]->DetailEdit) {
+			if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid(); // get detail page object
+			$GLOBALS["documento_grid"]->ValidateGridForm();
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -899,6 +912,10 @@ class csucursal_edit extends csucursal {
 					if (in_array("producto_sucursal", $DetailTblVar) && $GLOBALS["producto_sucursal"]->DetailEdit) {
 						if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid(); // Get detail page object
 						$EditRow = $GLOBALS["producto_sucursal_grid"]->GridUpdate();
+					}
+					if (in_array("documento", $DetailTblVar) && $GLOBALS["documento"]->DetailEdit) {
+						if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid(); // Get detail page object
+						$EditRow = $GLOBALS["documento_grid"]->GridUpdate();
 					}
 				}
 
@@ -1014,6 +1031,21 @@ class csucursal_edit extends csucursal {
 					$GLOBALS["producto_sucursal_grid"]->idsucursal->FldIsDetailKey = TRUE;
 					$GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
 					$GLOBALS["producto_sucursal_grid"]->idsucursal->setSessionValue($GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue);
+				}
+			}
+			if (in_array("documento", $DetailTblVar)) {
+				if (!isset($GLOBALS["documento_grid"]))
+					$GLOBALS["documento_grid"] = new cdocumento_grid;
+				if ($GLOBALS["documento_grid"]->DetailEdit) {
+					$GLOBALS["documento_grid"]->CurrentMode = "edit";
+					$GLOBALS["documento_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["documento_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["documento_grid"]->setStartRecordNumber(1);
+					$GLOBALS["documento_grid"]->idsucursal->FldIsDetailKey = TRUE;
+					$GLOBALS["documento_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
+					$GLOBALS["documento_grid"]->idsucursal->setSessionValue($GLOBALS["documento_grid"]->idsucursal->CurrentValue);
 				}
 			}
 		}
@@ -1368,6 +1400,14 @@ if (is_array($arwrk)) {
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_sucursal", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "producto_sucursalgrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("documento", explode(",", $sucursal->getCurrentDetailTable())) && $documento->DetailEdit) {
+?>
+<?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "documentogrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
