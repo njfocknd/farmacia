@@ -4,6 +4,8 @@
 
 // Generate all menu items
 $RootMenu->IsRoot = TRUE;
+$RootMenu->AddMenuItem(23, "mi_documento_interno", $Language->MenuPhrase("23", "MenuText"), "documento_internolist.php", -1, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(20, "mi_documento_ingreso", $Language->MenuPhrase("20", "MenuText"), "documento_ingresolist.php", -1, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(16, "mi_documento", $Language->MenuPhrase("16", "MenuText"), "documentolist.php?cmd=resetall", -1, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(10, "mci_Cate1logos", $Language->MenuPhrase("10", "MenuText"), "", -1, "", TRUE, FALSE, TRUE);
 $RootMenu->AddMenuItem(6, "mi_pais", $Language->MenuPhrase("6", "MenuText"), "paislist.php", 10, "", TRUE, FALSE);

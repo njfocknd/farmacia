@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0"?>
-<configuration date="2015/10/29" author="e.World Technology Ltd.">
-<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/10/29 22:26:53" languagefolder="phplang" userlevel="">
+<configuration date="2015/11/02" author="e.World Technology Ltd.">
+<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/02 22:10:36" languagefolder="phplang" userlevel="">
 <table id="departamento" name="departamento" caption="Departamento" userlevel="" priv="1"/>
 <table id="empresa" name="empresa" caption="Empresa" userlevel="" priv="1"/>
 <table id="fabricante" name="fabricante" caption="Fabricante" userlevel="" priv="1"/>
@@ -19,4 +19,8 @@
 <table id="serie_documento" name="serie_documento" caption="Serie de Documento" userlevel="" priv="1"/>
 <table id="tipo_documento" name="tipo_documento" caption="Tipo de Documento" userlevel="" priv="1"/>
 <table id="detalle_documento" name="detalle_documento" caption="Detalle de Documento" userlevel="" priv="1"/>
+<table id="documento_ingreso" name="documento_ingreso" caption="Documento Ingreso" userlevel="" priv="1"/>
+<table id="detalle_documento_ingreso" name="detalle_documento_ingreso" caption="Detalle de Documento de Ingreso" userlevel="" priv="1"/>
+<table id="detalle_documento_interno" name="detalle_documento_interno" caption="Detalle de Documento Interno" userlevel="" priv="1"/>
+<table id="documento_interno" name="documento_interno" caption="Documento Interno" userlevel="" priv="1"/>
 </project></configuration>

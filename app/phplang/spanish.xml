@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" standalone="yes"?>
-<ew-language date="2015/10/29" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
+<ew-language date="2015/11/2" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
 	<locale>
 		<phrase id="locale" value=""/><!-- *** system locale for this language -->
 		<phrase id="use_system_locale" value="0"/><!-- *** change to "0" to disable system locale and use the following settings *** -->
@@ -415,6 +415,14 @@
 	</global>
 	<project><phrase id="bodytitle" value="Farmacia"/>
 <phrase id="footertext" value="Nexthor 2015. Proyecto Seminario"/>
+<menu id="23"><phrase id="menutext" value="Documento Interno"/>
+</menu>
+<menu id="22"><phrase id="menutext" value="Detalle de Documento Interno"/>
+</menu>
+<menu id="20"><phrase id="menutext" value="Documento Ingreso"/>
+</menu>
+<menu id="21"><phrase id="menutext" value="Detalle Documento Ingreso"/>
+</menu>
 <menu id="16"><phrase id="menutext" value="Documento"/>
 </menu>
 <menu id="19"><phrase id="menutext" value="Detalle Documento"/>
@@ -726,11 +734,13 @@
 <table id="serie_documento"><phrase id="tblcaption" value="Serie de Documento"/>
 <field id="idserie_documento"><phrase id="fldcaption" value="idserie documento"/>
 </field>
+<field id="idtipo_documento"><phrase id="fldcaption" value="Tipo Documento"/>
+</field>
+<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
+</field>
 <field id="serie"><phrase id="fldcaption" value="Serie"/>
 </field>
 <field id="correlativo"><phrase id="fldcaption" value="Correlativo"/>
-</field>
-<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
 </field>
 <field id="fecha"><phrase id="fldcaption" value="Fecha"/>
 </field>
@@ -739,8 +749,6 @@
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
-</field>
-<field id="idtipo_documento"><phrase id="fldcaption" value="Tipo Documento"/>
 </field>
 </table>
 <table id="tipo_documento"><phrase id="tblcaption" value="Tipo de Documento"/>
@@ -777,6 +785,118 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
+</field>
+</table>
+<table id="documento_ingreso"><phrase id="tblcaption" value="Documento Ingreso"/>
+<field id="iddocumento_ingreso"><phrase id="fldcaption" value="iddocumento ingreso"/>
+</field>
+<field id="idtipo_documento"><phrase id="fldcaption" value="Tipo de Documento"/>
+</field>
+<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
+</field>
+<field id="serie"><phrase id="fldcaption" value="Serie"/>
+</field>
+<field id="correlativo"><phrase id="fldcaption" value="Correlativo"/>
+</field>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
+</field>
+<field id="observaciones"><phrase id="fldcaption" value="Observaciones"/>
+</field>
+<field id="estado_documento"><phrase id="fldcaption" value="Estado de Documento"/>
+<phrase id="fldtagvalue1" value="Emitido"/>
+<phrase id="fldtagcaption1" value="Emitido"/>
+<phrase id="fldtagvalue2" value="Anulado"/>
+<phrase id="fldtagcaption2" value="Anulado"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="monto"><phrase id="fldcaption" value="Monto"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+</table>
+<table id="detalle_documento_ingreso"><phrase id="tblcaption" value="Detalle de Documento de Ingreso"/>
+<field id="iddetalle_documento_ingreso"><phrase id="fldcaption" value="iddetalle documento ingreso"/>
+</field>
+<field id="iddocumento_ingreso"><phrase id="fldcaption" value="Documento Ingreso"/>
+</field>
+<field id="idproducto"><phrase id="fldcaption" value="Producto"/>
+</field>
+<field id="idbodega"><phrase id="fldcaption" value="Bodega"/>
+</field>
+<field id="cantidad"><phrase id="fldcaption" value="Cantidad"/>
+</field>
+<field id="precio"><phrase id="fldcaption" value="Precio"/>
+</field>
+<field id="monto"><phrase id="fldcaption" value="Monto"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Ingreso"/>
+</field>
+</table>
+<table id="detalle_documento_interno"><phrase id="tblcaption" value="Detalle de Documento Interno"/>
+<field id="iddetalle_documento_interno"><phrase id="fldcaption" value="iddetalle documento interno"/>
+</field>
+<field id="iddocumento_interno"><phrase id="fldcaption" value="Documento Interno"/>
+</field>
+<field id="idproducto"><phrase id="fldcaption" value="Producto"/>
+</field>
+<field id="idbodega_ingreso"><phrase id="fldcaption" value="Bodega Ingreso"/>
+</field>
+<field id="idbodega_egreso"><phrase id="fldcaption" value="Bodega Egreso"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="cantidad"><phrase id="fldcaption" value="Cantidad"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+</table>
+<table id="documento_interno"><phrase id="tblcaption" value="Documento Interno"/>
+<field id="iddocumento_interno"><phrase id="fldcaption" value="iddocumento interno"/>
+</field>
+<field id="idtipo_documento"><phrase id="fldcaption" value="Tipo Documento"/>
+</field>
+<field id="idserie_documento"><phrase id="fldcaption" value="Serie Documento"/>
+</field>
+<field id="serie"><phrase id="fldcaption" value="Serie"/>
+</field>
+<field id="correlativo"><phrase id="fldcaption" value="Correlativo"/>
+</field>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
+</field>
+<field id="observaciones"><phrase id="fldcaption" value="Observaciones"/>
+</field>
+<field id="estado_documento"><phrase id="fldcaption" value="Estado Documento"/>
+<phrase id="fldtagvalue1" value="Emitido"/>
+<phrase id="fldtagcaption1" value="Emitido"/>
+<phrase id="fldtagvalue2" value="Anulado"/>
+<phrase id="fldtagcaption2" value="Anulado"/>
+</field>
+<field id="idsucursal_ingreso"><phrase id="fldcaption" value="Sucursal Ingreso"/>
+</field>
+<field id="idsucursal_egreso"><phrase id="fldcaption" value="Sucursal Egreso"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 </project>
