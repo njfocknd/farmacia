@@ -984,13 +984,13 @@ class cdetalle_documento_interno_grid extends cdetalle_documento_interno {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->iddocumento_interno->CurrentValue = NULL;
+		$this->iddocumento_interno->CurrentValue = 1;
 		$this->iddocumento_interno->OldValue = $this->iddocumento_interno->CurrentValue;
-		$this->idproducto->CurrentValue = NULL;
+		$this->idproducto->CurrentValue = 1;
 		$this->idproducto->OldValue = $this->idproducto->CurrentValue;
-		$this->idbodega_ingreso->CurrentValue = NULL;
+		$this->idbodega_ingreso->CurrentValue = 1;
 		$this->idbodega_ingreso->OldValue = $this->idbodega_ingreso->CurrentValue;
-		$this->idbodega_egreso->CurrentValue = NULL;
+		$this->idbodega_egreso->CurrentValue = 1;
 		$this->idbodega_egreso->OldValue = $this->idbodega_egreso->CurrentValue;
 		$this->cantidad->CurrentValue = 0;
 		$this->cantidad->OldValue = $this->cantidad->CurrentValue;
@@ -1867,16 +1867,16 @@ class cdetalle_documento_interno_grid extends cdetalle_documento_interno {
 		$rsnew = array();
 
 		// iddocumento_interno
-		$this->iddocumento_interno->SetDbValueDef($rsnew, $this->iddocumento_interno->CurrentValue, 0, FALSE);
+		$this->iddocumento_interno->SetDbValueDef($rsnew, $this->iddocumento_interno->CurrentValue, 0, strval($this->iddocumento_interno->CurrentValue) == "");
 
 		// idproducto
-		$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, FALSE);
+		$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, strval($this->idproducto->CurrentValue) == "");
 
 		// idbodega_ingreso
-		$this->idbodega_ingreso->SetDbValueDef($rsnew, $this->idbodega_ingreso->CurrentValue, 0, FALSE);
+		$this->idbodega_ingreso->SetDbValueDef($rsnew, $this->idbodega_ingreso->CurrentValue, 0, strval($this->idbodega_ingreso->CurrentValue) == "");
 
 		// idbodega_egreso
-		$this->idbodega_egreso->SetDbValueDef($rsnew, $this->idbodega_egreso->CurrentValue, 0, FALSE);
+		$this->idbodega_egreso->SetDbValueDef($rsnew, $this->idbodega_egreso->CurrentValue, 0, strval($this->idbodega_egreso->CurrentValue) == "");
 
 		// cantidad
 		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");

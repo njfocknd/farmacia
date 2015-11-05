@@ -14,10 +14,10 @@ class cnexthor_empresa_db {
 	var $Language;
 
 	// Database connection info
-	var $Host = 'localhost';
+	var $Host = 'nexthordb.cquvmppcukva.us-west-2.rds.amazonaws.com';
 	var $Port = 3306;
-	var $Username = 'root';
-	var $Password = '';
+	var $Username = 'dbadmin';
+	var $Password = '23Nexthor23';
 	var $DbName = 'nexthor_empresa';
 
 	// ADODB (Access/SQL Server)

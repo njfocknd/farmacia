@@ -881,7 +881,7 @@ class cdocumento_ingreso_edit extends cdocumento_ingreso {
 			$this->serie->SetDbValueDef($rsnew, $this->serie->CurrentValue, NULL, $this->serie->ReadOnly);
 
 			// correlativo
-			$this->correlativo->SetDbValueDef($rsnew, $this->correlativo->CurrentValue, 0, $this->correlativo->ReadOnly);
+			$this->correlativo->SetDbValueDef($rsnew, $this->correlativo->CurrentValue, NULL, $this->correlativo->ReadOnly);
 
 			// fecha
 			$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, $this->fecha->ReadOnly);
@@ -893,7 +893,7 @@ class cdocumento_ingreso_edit extends cdocumento_ingreso {
 			$this->estado_documento->SetDbValueDef($rsnew, $this->estado_documento->CurrentValue, "", $this->estado_documento->ReadOnly);
 
 			// estado
-			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, NULL, $this->estado->ReadOnly);
 
 			// monto
 			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);

@@ -479,7 +479,11 @@ class cproducto_historial_list extends cproducto_historial {
 			}
 
 			// Get default search criteria
+			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
 			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
+
+			// Get basic search values
+			$this->LoadBasicSearchValues();
 
 			// Get and validate search values for advanced search
 			$this->LoadSearchValues(); // Get search values
@@ -495,6 +499,10 @@ class cproducto_historial_list extends cproducto_historial {
 
 			// Set up sorting order
 			$this->SetUpSortOrder();
+
+			// Get basic search criteria
+			if ($gsSearchError == "")
+				$sSrchBasic = $this->BasicSearchWhere();
 
 			// Get search criteria for advanced search
 			if ($gsSearchError == "")
@@ -513,6 +521,11 @@ class cproducto_historial_list extends cproducto_historial {
 
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
+
+			// Load basic search from default
+			$this->BasicSearch->LoadDefault();
+			if ($this->BasicSearch->Keyword != "")
+				$sSrchBasic = $this->BasicSearchWhere();
 
 			// Load advanced search from default
 			if ($this->LoadAdvancedSearchDefault()) {
@@ -629,6 +642,8 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->BuildSearchSql($sWhere, $this->unidades_salida, $Default, FALSE); // unidades_salida
 		$this->BuildSearchSql($sWhere, $this->estado, $Default, FALSE); // estado
 		$this->BuildSearchSql($sWhere, $this->fecha_insercion, $Default, FALSE); // fecha_insercion
+		$this->BuildSearchSql($sWhere, $this->idrelacion, $Default, FALSE); // idrelacion
+		$this->BuildSearchSql($sWhere, $this->tabla_relacion, $Default, FALSE); // tabla_relacion
 
 		// Set up search parm
 		if (!$Default && $sWhere <> "") {
@@ -644,6 +659,8 @@ class cproducto_historial_list extends cproducto_historial {
 			$this->unidades_salida->AdvancedSearch->Save(); // unidades_salida
 			$this->estado->AdvancedSearch->Save(); // estado
 			$this->fecha_insercion->AdvancedSearch->Save(); // fecha_insercion
+			$this->idrelacion->AdvancedSearch->Save(); // idrelacion
+			$this->tabla_relacion->AdvancedSearch->Save(); // tabla_relacion
 		}
 		return $sWhere;
 	}
@@ -697,8 +714,123 @@ class cproducto_historial_list extends cproducto_historial {
 		return $Value;
 	}
 
+	// Return basic search SQL
+	function BasicSearchSQL($arKeywords, $type) {
+		$sWhere = "";
+		$this->BuildBasicSearchSQL($sWhere, $this->tabla_relacion, $arKeywords, $type);
+		return $sWhere;
+	}
+
+	// Build basic search SQL
+	function BuildBasicSearchSql(&$Where, &$Fld, $arKeywords, $type) {
+		$sDefCond = ($type == "OR") ? "OR" : "AND";
+		$sCond = $sDefCond;
+		$arSQL = array(); // Array for SQL parts
+		$arCond = array(); // Array for search conditions
+		$cnt = count($arKeywords);
+		$j = 0; // Number of SQL parts
+		for ($i = 0; $i < $cnt; $i++) {
+			$Keyword = $arKeywords[$i];
+			$Keyword = trim($Keyword);
+			if (EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
+				$Keyword = preg_replace(EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
+				$ar = explode("\\", $Keyword);
+			} else {
+				$ar = array($Keyword);
+			}
+			foreach ($ar as $Keyword) {
+				if ($Keyword <> "") {
+					$sWrk = "";
+					if ($Keyword == "OR" && $type == "") {
+						if ($j > 0)
+							$arCond[$j-1] = "OR";
+					} elseif ($Keyword == EW_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NULL";
+					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NOT NULL";
+					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
+						$sFldExpression = ($Fld->FldVirtualExpression <> $Fld->FldExpression) ? $Fld->FldVirtualExpression : $Fld->FldBasicSearchExpression;
+						$sWrk = $sFldExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING));
+					}
+					if ($sWrk <> "") {
+						$arSQL[$j] = $sWrk;
+						$arCond[$j] = $sDefCond;
+						$j += 1;
+					}
+				}
+			}
+		}
+		$cnt = count($arSQL);
+		$bQuoted = FALSE;
+		$sSql = "";
+		if ($cnt > 0) {
+			for ($i = 0; $i < $cnt-1; $i++) {
+				if ($arCond[$i] == "OR") {
+					if (!$bQuoted) $sSql .= "(";
+					$bQuoted = TRUE;
+				}
+				$sSql .= $arSQL[$i];
+				if ($bQuoted && $arCond[$i] <> "OR") {
+					$sSql .= ")";
+					$bQuoted = FALSE;
+				}
+				$sSql .= " " . $arCond[$i] . " ";
+			}
+			$sSql .= $arSQL[$cnt-1];
+			if ($bQuoted)
+				$sSql .= ")";
+		}
+		if ($sSql <> "") {
+			if ($Where <> "") $Where .= " OR ";
+			$Where .=  "(" . $sSql . ")";
+		}
+	}
+
+	// Return basic search WHERE clause based on search keyword and type
+	function BasicSearchWhere($Default = FALSE) {
+		global $Security;
+		$sSearchStr = "";
+		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
+		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
+		if ($sSearchKeyword <> "") {
+			$sSearch = trim($sSearchKeyword);
+			if ($sSearchType <> "=") {
+				$ar = array();
+
+				// Match quoted keywords (i.e.: "...")
+				if (preg_match_all('/"([^"]*)"/i', $sSearch, $matches, PREG_SET_ORDER)) {
+					foreach ($matches as $match) {
+						$p = strpos($sSearch, $match[0]);
+						$str = substr($sSearch, 0, $p);
+						$sSearch = substr($sSearch, $p + strlen($match[0]));
+						if (strlen(trim($str)) > 0)
+							$ar = array_merge($ar, explode(" ", trim($str)));
+						$ar[] = $match[1]; // Save quoted keyword
+					}
+				}
+
+				// Match individual keywords
+				if (strlen(trim($sSearch)) > 0)
+					$ar = array_merge($ar, explode(" ", trim($sSearch)));
+				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
+			} else {
+				$sSearchStr = $this->BasicSearchSQL(array($sSearch), $sSearchType);
+			}
+			if (!$Default) $this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->BasicSearch->setKeyword($sSearchKeyword);
+			$this->BasicSearch->setType($sSearchType);
+		}
+		return $sSearchStr;
+	}
+
 	// Check if search parm exists
 	function CheckSearchParms() {
+
+		// Check basic search
+		if ($this->BasicSearch->IssetSession())
+			return TRUE;
 		if ($this->idproducto_historial->AdvancedSearch->IssetSession())
 			return TRUE;
 		if ($this->idproducto->AdvancedSearch->IssetSession())
@@ -717,6 +849,10 @@ class cproducto_historial_list extends cproducto_historial {
 			return TRUE;
 		if ($this->fecha_insercion->AdvancedSearch->IssetSession())
 			return TRUE;
+		if ($this->idrelacion->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->tabla_relacion->AdvancedSearch->IssetSession())
+			return TRUE;
 		return FALSE;
 	}
 
@@ -727,6 +863,9 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
+		// Clear basic search parameters
+		$this->ResetBasicSearchParms();
+
 		// Clear advanced search parameters
 		$this->ResetAdvancedSearchParms();
 	}
@@ -734,6 +873,11 @@ class cproducto_historial_list extends cproducto_historial {
 	// Load advanced search default values
 	function LoadAdvancedSearchDefault() {
 		return FALSE;
+	}
+
+	// Clear all basic search parameters
+	function ResetBasicSearchParms() {
+		$this->BasicSearch->UnsetSession();
 	}
 
 	// Clear all advanced search parameters
@@ -747,11 +891,16 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->unidades_salida->AdvancedSearch->UnsetSession();
 		$this->estado->AdvancedSearch->UnsetSession();
 		$this->fecha_insercion->AdvancedSearch->UnsetSession();
+		$this->idrelacion->AdvancedSearch->UnsetSession();
+		$this->tabla_relacion->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
+
+		// Restore basic search values
+		$this->BasicSearch->Load();
 
 		// Restore advanced search values
 		$this->idproducto_historial->AdvancedSearch->Load();
@@ -763,6 +912,8 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->unidades_salida->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
 		$this->fecha_insercion->AdvancedSearch->Load();
+		$this->idrelacion->AdvancedSearch->Load();
+		$this->tabla_relacion->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -778,6 +929,8 @@ class cproducto_historial_list extends cproducto_historial {
 			$this->UpdateSort($this->unidades_ingreso); // unidades_ingreso
 			$this->UpdateSort($this->unidades_salida); // unidades_salida
 			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
+			$this->UpdateSort($this->idrelacion); // idrelacion
+			$this->UpdateSort($this->tabla_relacion); // tabla_relacion
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -824,6 +977,8 @@ class cproducto_historial_list extends cproducto_historial {
 				$this->unidades_ingreso->setSort("");
 				$this->unidades_salida->setSort("");
 				$this->fecha_insercion->setSort("");
+				$this->idrelacion->setSort("");
+				$this->tabla_relacion->setSort("");
 			}
 
 			// Reset start position
@@ -1010,6 +1165,12 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->SearchOptions->Tag = "div";
 		$this->SearchOptions->TagClassName = "ewSearchOption";
 
+		// Search button
+		$item = &$this->SearchOptions->Add("searchtoggle");
+		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
+		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fproducto_historiallistsrch\">" . $Language->Phrase("SearchBtn") . "</button>";
+		$item->Visible = TRUE;
+
 		// Show all button
 		$item = &$this->SearchOptions->Add("showall");
 		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
@@ -1083,6 +1244,13 @@ class cproducto_historial_list extends cproducto_historial {
 		}
 	}
 
+	// Load basic search values
+	function LoadBasicSearchValues() {
+		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
+		if ($this->BasicSearch->Keyword <> "") $this->Command = "search";
+		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	}
+
 	//  Load search values for validation
 	function LoadSearchValues() {
 		global $objForm;
@@ -1133,6 +1301,16 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->fecha_insercion->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_fecha_insercion"]);
 		if ($this->fecha_insercion->AdvancedSearch->SearchValue <> "") $this->Command = "search";
 		$this->fecha_insercion->AdvancedSearch->SearchOperator = @$_GET["z_fecha_insercion"];
+
+		// idrelacion
+		$this->idrelacion->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idrelacion"]);
+		if ($this->idrelacion->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->idrelacion->AdvancedSearch->SearchOperator = @$_GET["z_idrelacion"];
+
+		// tabla_relacion
+		$this->tabla_relacion->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_tabla_relacion"]);
+		if ($this->tabla_relacion->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->tabla_relacion->AdvancedSearch->SearchOperator = @$_GET["z_tabla_relacion"];
 	}
 
 	// Load recordset
@@ -1190,6 +1368,8 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->unidades_salida->setDbValue($rs->fields('unidades_salida'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idrelacion->setDbValue($rs->fields('idrelacion'));
+		$this->tabla_relacion->setDbValue($rs->fields('tabla_relacion'));
 	}
 
 	// Load DbValue from recordset
@@ -1205,6 +1385,8 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->unidades_salida->DbValue = $row['unidades_salida'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idrelacion->DbValue = $row['idrelacion'];
+		$this->tabla_relacion->DbValue = $row['tabla_relacion'];
 	}
 
 	// Load old record
@@ -1255,6 +1437,8 @@ class cproducto_historial_list extends cproducto_historial {
 		// unidades_salida
 		// estado
 		// fecha_insercion
+		// idrelacion
+		// tabla_relacion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1379,6 +1563,14 @@ class cproducto_historial_list extends cproducto_historial {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idrelacion
+			$this->idrelacion->ViewValue = $this->idrelacion->CurrentValue;
+			$this->idrelacion->ViewCustomAttributes = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->ViewValue = $this->tabla_relacion->CurrentValue;
+			$this->tabla_relacion->ViewCustomAttributes = "";
+
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
@@ -1408,6 +1600,16 @@ class cproducto_historial_list extends cproducto_historial {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idrelacion
+			$this->idrelacion->LinkCustomAttributes = "";
+			$this->idrelacion->HrefValue = "";
+			$this->idrelacion->TooltipValue = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->LinkCustomAttributes = "";
+			$this->tabla_relacion->HrefValue = "";
+			$this->tabla_relacion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1449,6 +1651,8 @@ class cproducto_historial_list extends cproducto_historial {
 		$this->unidades_salida->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
 		$this->fecha_insercion->AdvancedSearch->Load();
+		$this->idrelacion->AdvancedSearch->Load();
+		$this->tabla_relacion->AdvancedSearch->Load();
 	}
 
 	// Set up master/detail based on QueryString
@@ -1730,6 +1934,33 @@ if ($producto_historial_list->DbMasterFilter <> "" && $producto_historial->getCu
 	}
 $producto_historial_list->RenderOtherOptions();
 ?>
+<?php if ($producto_historial->Export == "" && $producto_historial->CurrentAction == "") { ?>
+<form name="fproducto_historiallistsrch" id="fproducto_historiallistsrch" class="form-inline ewForm" action="<?php echo ew_CurrentPage() ?>">
+<?php $SearchPanelClass = ($producto_historial_list->SearchWhere <> "") ? " in" : " in"; ?>
+<div id="fproducto_historiallistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
+<input type="hidden" name="cmd" value="search">
+<input type="hidden" name="t" value="producto_historial">
+	<div class="ewBasicSearch">
+<div id="xsr_1" class="ewRow">
+	<div class="ewQuickSearch input-group">
+	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($producto_historial_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
+	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($producto_historial_list->BasicSearch->getType()) ?>">
+	<div class="input-group-btn">
+		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $producto_historial_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
+		<ul class="dropdown-menu pull-right" role="menu">
+			<li<?php if ($producto_historial_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
+			<li<?php if ($producto_historial_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
+			<li<?php if ($producto_historial_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
+			<li<?php if ($producto_historial_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
+		</ul>
+	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("QuickSearchBtn") ?></button>
+	</div>
+	</div>
+</div>
+	</div>
+</div>
+</form>
+<?php } ?>
 <?php $producto_historial_list->ShowPageHeader(); ?>
 <?php
 $producto_historial_list->ShowMessage();
@@ -1806,6 +2037,24 @@ $producto_historial_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_historial->SortUrl($producto_historial->fecha_insercion) ?>',1);"><div id="elh_producto_historial_fecha_insercion" class="producto_historial_fecha_insercion">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_historial->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_historial->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_historial->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+	<?php if ($producto_historial->SortUrl($producto_historial->idrelacion) == "") { ?>
+		<th data-name="idrelacion"><div id="elh_producto_historial_idrelacion" class="producto_historial_idrelacion"><div class="ewTableHeaderCaption"><?php echo $producto_historial->idrelacion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idrelacion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_historial->SortUrl($producto_historial->idrelacion) ?>',1);"><div id="elh_producto_historial_idrelacion" class="producto_historial_idrelacion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_historial->idrelacion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_historial->idrelacion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_historial->idrelacion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+	<?php if ($producto_historial->SortUrl($producto_historial->tabla_relacion) == "") { ?>
+		<th data-name="tabla_relacion"><div id="elh_producto_historial_tabla_relacion" class="producto_historial_tabla_relacion"><div class="ewTableHeaderCaption"><?php echo $producto_historial->tabla_relacion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="tabla_relacion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_historial->SortUrl($producto_historial->tabla_relacion) ?>',1);"><div id="elh_producto_historial_tabla_relacion" class="producto_historial_tabla_relacion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_historial->tabla_relacion->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($producto_historial->tabla_relacion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_historial->tabla_relacion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1908,6 +2157,18 @@ $producto_historial_list->ListOptions->Render("body", "left", $producto_historia
 		<td data-name="fecha_insercion"<?php echo $producto_historial->fecha_insercion->CellAttributes() ?>>
 <span<?php echo $producto_historial->fecha_insercion->ViewAttributes() ?>>
 <?php echo $producto_historial->fecha_insercion->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+		<td data-name="idrelacion"<?php echo $producto_historial->idrelacion->CellAttributes() ?>>
+<span<?php echo $producto_historial->idrelacion->ViewAttributes() ?>>
+<?php echo $producto_historial->idrelacion->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+		<td data-name="tabla_relacion"<?php echo $producto_historial->tabla_relacion->CellAttributes() ?>>
+<span<?php echo $producto_historial->tabla_relacion->ViewAttributes() ?>>
+<?php echo $producto_historial->tabla_relacion->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

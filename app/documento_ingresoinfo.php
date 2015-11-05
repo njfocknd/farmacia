@@ -90,7 +90,7 @@ class cdocumento_ingreso extends cTable {
 		$this->fields['monto'] = &$this->monto;
 
 		// fecha_insercion
-		$this->fecha_insercion = new cField('documento_ingreso', 'documento_ingreso', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion = new cField('documento_ingreso', 'documento_ingreso', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}

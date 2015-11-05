@@ -29,7 +29,7 @@ define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME . "", TRUE); // Config file name
 define("EW_PROJECT_ID", "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", '6t31ZtYa1FhJKxaz', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", 'Hr0hXaU8hPnk7J1k', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/nexthor_farmacia.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -46,10 +46,10 @@ define("EW_TMP_IMAGE_FONT", "DejaVuSans", TRUE); // Font for temp files
 $EW_FONT_PATH = realpath('./phpfont');
 
 // Database connection info
-define("EW_CONN_HOST", 'localhost', TRUE);
+define("EW_CONN_HOST", 'nexthordb.cquvmppcukva.us-west-2.rds.amazonaws.com', TRUE);
 define("EW_CONN_PORT", 3306, TRUE);
-define("EW_CONN_USER", 'root', TRUE);
-define("EW_CONN_PASS", '', TRUE);
+define("EW_CONN_USER", 'dbadmin', TRUE);
+define("EW_CONN_PASS", '23Nexthor23', TRUE);
 define("EW_CONN_DB", 'nexthor_empresa', TRUE);
 
 // ADODB (Access/SQL Server)

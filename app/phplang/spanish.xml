@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" standalone="yes"?>
-<ew-language date="2015/11/2" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
+<ew-language date="2015/11/4" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
 	<locale>
 		<phrase id="locale" value=""/><!-- *** system locale for this language -->
 		<phrase id="use_system_locale" value="0"/><!-- *** change to "0" to disable system locale and use the following settings *** -->
@@ -803,10 +803,10 @@
 <field id="observaciones"><phrase id="fldcaption" value="Observaciones"/>
 </field>
 <field id="estado_documento"><phrase id="fldcaption" value="Estado de Documento"/>
-<phrase id="fldtagvalue1" value="Emitido"/>
-<phrase id="fldtagcaption1" value="Emitido"/>
-<phrase id="fldtagvalue2" value="Anulado"/>
-<phrase id="fldtagcaption2" value="Anulado"/>
+<phrase id="fldtagvalue1" value="Recibido"/>
+<phrase id="fldtagcaption1" value="Recibido"/>
+<phrase id="fldtagvalue2" value="Rechazado"/>
+<phrase id="fldtagcaption2" value="Rechazado"/>
 </field>
 <field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
@@ -854,13 +854,13 @@
 </field>
 <field id="idbodega_egreso"><phrase id="fldcaption" value="Bodega Egreso"/>
 </field>
+<field id="cantidad"><phrase id="fldcaption" value="Cantidad"/>
+</field>
 <field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
-</field>
-<field id="cantidad"><phrase id="fldcaption" value="Cantidad"/>
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>

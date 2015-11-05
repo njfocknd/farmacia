@@ -70,6 +70,12 @@ fproducto_historialgrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_fecha_insercion");
 			if (elm && !ew_CheckEuroDate(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->fecha_insercion->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_idrelacion");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto_historial->idrelacion->FldCaption(), $producto_historial->idrelacion->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idrelacion");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->idrelacion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -91,6 +97,8 @@ fproducto_historialgrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "unidades_ingreso", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "unidades_salida", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "idrelacion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "tabla_relacion", false)) return false;
 	return true;
 }
 
@@ -230,6 +238,24 @@ $producto_historial_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="fecha_insercion"><div><div id="elh_producto_historial_fecha_insercion" class="producto_historial_fecha_insercion">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_historial->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_historial->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_historial->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+	<?php if ($producto_historial->SortUrl($producto_historial->idrelacion) == "") { ?>
+		<th data-name="idrelacion"><div id="elh_producto_historial_idrelacion" class="producto_historial_idrelacion"><div class="ewTableHeaderCaption"><?php echo $producto_historial->idrelacion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idrelacion"><div><div id="elh_producto_historial_idrelacion" class="producto_historial_idrelacion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_historial->idrelacion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_historial->idrelacion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_historial->idrelacion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+	<?php if ($producto_historial->SortUrl($producto_historial->tabla_relacion) == "") { ?>
+		<th data-name="tabla_relacion"><div id="elh_producto_historial_tabla_relacion" class="producto_historial_tabla_relacion"><div class="ewTableHeaderCaption"><?php echo $producto_historial->tabla_relacion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="tabla_relacion"><div><div id="elh_producto_historial_tabla_relacion" class="producto_historial_tabla_relacion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_historial->tabla_relacion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_historial->tabla_relacion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_historial->tabla_relacion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -613,6 +639,48 @@ ew_CreateCalendar("fproducto_historialgrid", "x<?php echo $producto_historial_gr
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+		<td data-name="idrelacion"<?php echo $producto_historial->idrelacion->CellAttributes() ?>>
+<?php if ($producto_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $producto_historial_grid->RowCnt ?>_producto_historial_idrelacion" class="form-group producto_historial_idrelacion">
+<input type="text" data-field="x_idrelacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->idrelacion->PlaceHolder) ?>" value="<?php echo $producto_historial->idrelacion->EditValue ?>"<?php echo $producto_historial->idrelacion->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_idrelacion" name="o<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="o<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" value="<?php echo ew_HtmlEncode($producto_historial->idrelacion->OldValue) ?>">
+<?php } ?>
+<?php if ($producto_historial->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $producto_historial_grid->RowCnt ?>_producto_historial_idrelacion" class="form-group producto_historial_idrelacion">
+<input type="text" data-field="x_idrelacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->idrelacion->PlaceHolder) ?>" value="<?php echo $producto_historial->idrelacion->EditValue ?>"<?php echo $producto_historial->idrelacion->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($producto_historial->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto_historial->idrelacion->ViewAttributes() ?>>
+<?php echo $producto_historial->idrelacion->ListViewValue() ?></span>
+<input type="hidden" data-field="x_idrelacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" value="<?php echo ew_HtmlEncode($producto_historial->idrelacion->FormValue) ?>">
+<input type="hidden" data-field="x_idrelacion" name="o<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="o<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" value="<?php echo ew_HtmlEncode($producto_historial->idrelacion->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+		<td data-name="tabla_relacion"<?php echo $producto_historial->tabla_relacion->CellAttributes() ?>>
+<?php if ($producto_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $producto_historial_grid->RowCnt ?>_producto_historial_tabla_relacion" class="form-group producto_historial_tabla_relacion">
+<input type="text" data-field="x_tabla_relacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->PlaceHolder) ?>" value="<?php echo $producto_historial->tabla_relacion->EditValue ?>"<?php echo $producto_historial->tabla_relacion->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_tabla_relacion" name="o<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="o<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" value="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->OldValue) ?>">
+<?php } ?>
+<?php if ($producto_historial->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $producto_historial_grid->RowCnt ?>_producto_historial_tabla_relacion" class="form-group producto_historial_tabla_relacion">
+<input type="text" data-field="x_tabla_relacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->PlaceHolder) ?>" value="<?php echo $producto_historial->tabla_relacion->EditValue ?>"<?php echo $producto_historial->tabla_relacion->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($producto_historial->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto_historial->tabla_relacion->ViewAttributes() ?>>
+<?php echo $producto_historial->tabla_relacion->ListViewValue() ?></span>
+<input type="hidden" data-field="x_tabla_relacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" value="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->FormValue) ?>">
+<input type="hidden" data-field="x_tabla_relacion" name="o<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="o<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" value="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -818,6 +886,38 @@ ew_CreateCalendar("fproducto_historialgrid", "x<?php echo $producto_historial_gr
 <input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $producto_historial_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_historial->fecha_insercion->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_historial_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_historial->fecha_insercion->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+		<td>
+<?php if ($producto_historial->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_producto_historial_idrelacion" class="form-group producto_historial_idrelacion">
+<input type="text" data-field="x_idrelacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->idrelacion->PlaceHolder) ?>" value="<?php echo $producto_historial->idrelacion->EditValue ?>"<?php echo $producto_historial->idrelacion->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_producto_historial_idrelacion" class="form-group producto_historial_idrelacion">
+<span<?php echo $producto_historial->idrelacion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto_historial->idrelacion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_idrelacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" value="<?php echo ew_HtmlEncode($producto_historial->idrelacion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_idrelacion" name="o<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" id="o<?php echo $producto_historial_grid->RowIndex ?>_idrelacion" value="<?php echo ew_HtmlEncode($producto_historial->idrelacion->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+		<td>
+<?php if ($producto_historial->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_producto_historial_tabla_relacion" class="form-group producto_historial_tabla_relacion">
+<input type="text" data-field="x_tabla_relacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->PlaceHolder) ?>" value="<?php echo $producto_historial->tabla_relacion->EditValue ?>"<?php echo $producto_historial->tabla_relacion->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_producto_historial_tabla_relacion" class="form-group producto_historial_tabla_relacion">
+<span<?php echo $producto_historial->tabla_relacion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto_historial->tabla_relacion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_tabla_relacion" name="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="x<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" value="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_tabla_relacion" name="o<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" id="o<?php echo $producto_historial_grid->RowIndex ?>_tabla_relacion" value="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

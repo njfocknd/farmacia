@@ -64,7 +64,7 @@ class cdocumento_interno extends cTable {
 		$this->fields['serie'] = &$this->serie;
 
 		// correlativo
-		$this->correlativo = new cField('documento_interno', 'documento_interno', 'x_correlativo', 'correlativo', '`correlativo`', '`correlativo`', 200, -1, FALSE, '`correlativo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->correlativo = new cField('documento_interno', 'documento_interno', 'x_correlativo', 'correlativo', '`correlativo`', '`correlativo`', 3, -1, FALSE, '`correlativo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['correlativo'] = &$this->correlativo;
 
 		// fecha

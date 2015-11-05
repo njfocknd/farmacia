@@ -120,7 +120,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_BEFORE_INSERT` BEFORE INSERT ON `detalle_documento` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_BEFORE_INSERT` BEFORE INSERT ON `detalle_documento` FOR EACH ROW
 BEGIN
 	set new.fecha_insercion = now();
     set new.monto = new.cantidad*new.precio;
@@ -139,7 +139,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_AFTER_INSERT` AFTER INSERT ON `detalle_documento` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_AFTER_INSERT` AFTER INSERT ON `detalle_documento` FOR EACH ROW
 BEGIN
 	INSERT INTO producto_historial (idproducto, idbodega, fecha, unidades_salida, idrelacion, tabla_relacion) 
     VALUES (new.idproducto, new.idbodega, now(), new.cantidad, new.iddetalle_documento, 'detalle_documento');
@@ -160,7 +160,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_BEFORE_UPDATE` BEFORE UPDATE ON `detalle_documento` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_BEFORE_UPDATE` BEFORE UPDATE ON `detalle_documento` FOR EACH ROW
 BEGIN
 	 set new.monto = new.cantidad*new.precio;
 END */;;
@@ -178,7 +178,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_AFTER_UPDATE` AFTER UPDATE ON `detalle_documento` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`detalle_documento_AFTER_UPDATE` AFTER UPDATE ON `detalle_documento` FOR EACH ROW
 BEGIN
 	update producto_historial set unidades_salida = unidades_salida +(new.cantidad-old.cantidad) where idrelacion = new.iddetalle_documento and tabla_relacion = 'detalle_documento';
     update documento set monto = monto+(new.monto-old.monto) where iddocumento = new.iddocumento;
@@ -251,7 +251,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`documento_BEFORE_INSERT` BEFORE INSERT ON `documento` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`documento_BEFORE_INSERT` BEFORE INSERT ON `documento` FOR EACH ROW
 BEGIN
 	declare var_serie VARCHAR(45);
 	declare var_correlativo int;
@@ -487,7 +487,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`producto_bodega_BEFORE_INSERT` BEFORE INSERT ON `producto_bodega` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`producto_bodega_BEFORE_INSERT` BEFORE INSERT ON `producto_bodega` FOR EACH ROW
 BEGIN
 	declare var_idproducto_sucursal int default 0;
 	declare var_idsucursal int default 0;
@@ -519,7 +519,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`producto_bodega_BEFORE_UPDATE` BEFORE UPDATE ON `producto_bodega` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`producto_bodega_BEFORE_UPDATE` BEFORE UPDATE ON `producto_bodega` FOR EACH ROW
 BEGIN
 	if new.existencia!=old.existencia then
 		update producto_sucursal set existencia = existencia + (new.existencia-old.existencia) where idproducto_sucursal = new.idproducto_sucursal;
@@ -585,7 +585,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`producto_historial_BEFORE_INSERT` BEFORE INSERT ON `producto_historial` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`producto_historial_BEFORE_INSERT` BEFORE INSERT ON `producto_historial` FOR EACH ROW
 BEGIN
 	declare var_idproducto_bodega int default 0;
 	
@@ -616,7 +616,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`producto_historial_BEFORE_UPDATE` BEFORE UPDATE ON `producto_historial` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`producto_historial_BEFORE_UPDATE` BEFORE UPDATE ON `producto_historial` FOR EACH ROW
 BEGIN
 	if (new.unidades_ingreso-new.unidades_salida)!=(old.unidades_ingreso-old.unidades_salida) then
 		update producto_bodega set existencia = existencia + ((new.unidades_ingreso-new.unidades_salida)-(old.unidades_ingreso-old.unidades_salida)) where idproducto_bodega = new.idproducto_bodega;
@@ -674,7 +674,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`producto_sucursal_AFTER_INSERT` AFTER INSERT ON `producto_sucursal` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`producto_sucursal_AFTER_INSERT` AFTER INSERT ON `producto_sucursal` FOR EACH ROW
 BEGIN
 	update producto set existencia = existencia + (new.existencia) where idproducto = new.idproducto;
 END */;;
@@ -692,7 +692,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `nexthor_empresa`.`producto_sucursal_AFTER_UPDATE` AFTER UPDATE ON `producto_sucursal` FOR EACH ROW
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER `nexthor_empresa`.`producto_sucursal_AFTER_UPDATE` AFTER UPDATE ON `producto_sucursal` FOR EACH ROW
 BEGIN
 	if new.existencia!=old.existencia then
 		update producto set existencia = existencia + (new.existencia-old.existencia) where idproducto = new.idproducto;

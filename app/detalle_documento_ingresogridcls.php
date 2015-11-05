@@ -989,9 +989,9 @@ class cdetalle_documento_ingreso_grid extends cdetalle_documento_ingreso {
 		$this->iddocumento_ingreso->OldValue = $this->iddocumento_ingreso->CurrentValue;
 		$this->idproducto->CurrentValue = 1;
 		$this->idproducto->OldValue = $this->idproducto->CurrentValue;
-		$this->idbodega->CurrentValue = 1;
+		$this->idbodega->CurrentValue = NULL;
 		$this->idbodega->OldValue = $this->idbodega->CurrentValue;
-		$this->cantidad->CurrentValue = 0;
+		$this->cantidad->CurrentValue = NULL;
 		$this->cantidad->OldValue = $this->cantidad->CurrentValue;
 		$this->precio->CurrentValue = 0.00;
 		$this->precio->OldValue = $this->precio->CurrentValue;
@@ -1835,10 +1835,10 @@ class cdetalle_documento_ingreso_grid extends cdetalle_documento_ingreso {
 		$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, strval($this->idproducto->CurrentValue) == "");
 
 		// idbodega
-		$this->idbodega->SetDbValueDef($rsnew, $this->idbodega->CurrentValue, 0, strval($this->idbodega->CurrentValue) == "");
+		$this->idbodega->SetDbValueDef($rsnew, $this->idbodega->CurrentValue, 0, FALSE);
 
 		// cantidad
-		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
+		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, FALSE);
 
 		// precio
 		$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, strval($this->precio->CurrentValue) == "");

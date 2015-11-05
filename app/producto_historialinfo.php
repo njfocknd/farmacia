@@ -16,6 +16,8 @@ class cproducto_historial extends cTable {
 	var $unidades_salida;
 	var $estado;
 	var $fecha_insercion;
+	var $idrelacion;
+	var $tabla_relacion;
 
 	//
 	// Table class constructor
@@ -84,6 +86,15 @@ class cproducto_historial extends cTable {
 		$this->fecha_insercion = new cField('producto_historial', 'producto_historial', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
+
+		// idrelacion
+		$this->idrelacion = new cField('producto_historial', 'producto_historial', 'x_idrelacion', 'idrelacion', '`idrelacion`', '`idrelacion`', 3, -1, FALSE, '`idrelacion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idrelacion->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idrelacion'] = &$this->idrelacion;
+
+		// tabla_relacion
+		$this->tabla_relacion = new cField('producto_historial', 'producto_historial', 'x_tabla_relacion', 'tabla_relacion', '`tabla_relacion`', '`tabla_relacion`', 200, -1, FALSE, '`tabla_relacion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['tabla_relacion'] = &$this->tabla_relacion;
 	}
 
 	// Single column sort
@@ -614,6 +625,8 @@ class cproducto_historial extends cTable {
 		$this->unidades_salida->setDbValue($rs->fields('unidades_salida'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idrelacion->setDbValue($rs->fields('idrelacion'));
+		$this->tabla_relacion->setDbValue($rs->fields('tabla_relacion'));
 	}
 
 	// Render list row values
@@ -633,6 +646,8 @@ class cproducto_historial extends cTable {
 		// unidades_salida
 		// estado
 		// fecha_insercion
+		// idrelacion
+		// tabla_relacion
 		// idproducto_historial
 
 		$this->idproducto_historial->ViewValue = $this->idproducto_historial->CurrentValue;
@@ -755,6 +770,14 @@ class cproducto_historial extends cTable {
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
+		// idrelacion
+		$this->idrelacion->ViewValue = $this->idrelacion->CurrentValue;
+		$this->idrelacion->ViewCustomAttributes = "";
+
+		// tabla_relacion
+		$this->tabla_relacion->ViewValue = $this->tabla_relacion->CurrentValue;
+		$this->tabla_relacion->ViewCustomAttributes = "";
+
 		// idproducto_historial
 		$this->idproducto_historial->LinkCustomAttributes = "";
 		$this->idproducto_historial->HrefValue = "";
@@ -799,6 +822,16 @@ class cproducto_historial extends cTable {
 		$this->fecha_insercion->LinkCustomAttributes = "";
 		$this->fecha_insercion->HrefValue = "";
 		$this->fecha_insercion->TooltipValue = "";
+
+		// idrelacion
+		$this->idrelacion->LinkCustomAttributes = "";
+		$this->idrelacion->HrefValue = "";
+		$this->idrelacion->TooltipValue = "";
+
+		// tabla_relacion
+		$this->tabla_relacion->LinkCustomAttributes = "";
+		$this->tabla_relacion->HrefValue = "";
+		$this->tabla_relacion->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -888,6 +921,18 @@ class cproducto_historial extends cTable {
 		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
+		// idrelacion
+		$this->idrelacion->EditAttrs["class"] = "form-control";
+		$this->idrelacion->EditCustomAttributes = "";
+		$this->idrelacion->EditValue = ew_HtmlEncode($this->idrelacion->CurrentValue);
+		$this->idrelacion->PlaceHolder = ew_RemoveHtml($this->idrelacion->FldCaption());
+
+		// tabla_relacion
+		$this->tabla_relacion->EditAttrs["class"] = "form-control";
+		$this->tabla_relacion->EditCustomAttributes = "";
+		$this->tabla_relacion->EditValue = ew_HtmlEncode($this->tabla_relacion->CurrentValue);
+		$this->tabla_relacion->PlaceHolder = ew_RemoveHtml($this->tabla_relacion->FldCaption());
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -920,6 +965,8 @@ class cproducto_historial extends cTable {
 					if ($this->unidades_salida->Exportable) $Doc->ExportCaption($this->unidades_salida);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->idrelacion->Exportable) $Doc->ExportCaption($this->idrelacion);
+					if ($this->tabla_relacion->Exportable) $Doc->ExportCaption($this->tabla_relacion);
 				} else {
 					if ($this->idproducto_historial->Exportable) $Doc->ExportCaption($this->idproducto_historial);
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
@@ -930,6 +977,8 @@ class cproducto_historial extends cTable {
 					if ($this->unidades_salida->Exportable) $Doc->ExportCaption($this->unidades_salida);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->idrelacion->Exportable) $Doc->ExportCaption($this->idrelacion);
+					if ($this->tabla_relacion->Exportable) $Doc->ExportCaption($this->tabla_relacion);
 				}
 				$Doc->EndExportRow();
 			}
@@ -969,6 +1018,8 @@ class cproducto_historial extends cTable {
 						if ($this->unidades_salida->Exportable) $Doc->ExportField($this->unidades_salida);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->idrelacion->Exportable) $Doc->ExportField($this->idrelacion);
+						if ($this->tabla_relacion->Exportable) $Doc->ExportField($this->tabla_relacion);
 					} else {
 						if ($this->idproducto_historial->Exportable) $Doc->ExportField($this->idproducto_historial);
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
@@ -979,6 +1030,8 @@ class cproducto_historial extends cTable {
 						if ($this->unidades_salida->Exportable) $Doc->ExportField($this->unidades_salida);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->idrelacion->Exportable) $Doc->ExportField($this->idrelacion);
+						if ($this->tabla_relacion->Exportable) $Doc->ExportField($this->tabla_relacion);
 					}
 					$Doc->EndExportRow();
 				}

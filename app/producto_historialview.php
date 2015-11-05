@@ -519,6 +519,8 @@ class cproducto_historial_view extends cproducto_historial {
 		$this->unidades_salida->setDbValue($rs->fields('unidades_salida'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idrelacion->setDbValue($rs->fields('idrelacion'));
+		$this->tabla_relacion->setDbValue($rs->fields('tabla_relacion'));
 	}
 
 	// Load DbValue from recordset
@@ -534,6 +536,8 @@ class cproducto_historial_view extends cproducto_historial {
 		$this->unidades_salida->DbValue = $row['unidades_salida'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idrelacion->DbValue = $row['idrelacion'];
+		$this->tabla_relacion->DbValue = $row['tabla_relacion'];
 	}
 
 	// Render row values based on field settings
@@ -562,6 +566,8 @@ class cproducto_historial_view extends cproducto_historial {
 		// unidades_salida
 		// estado
 		// fecha_insercion
+		// idrelacion
+		// tabla_relacion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -686,6 +692,14 @@ class cproducto_historial_view extends cproducto_historial {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idrelacion
+			$this->idrelacion->ViewValue = $this->idrelacion->CurrentValue;
+			$this->idrelacion->ViewCustomAttributes = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->ViewValue = $this->tabla_relacion->CurrentValue;
+			$this->tabla_relacion->ViewCustomAttributes = "";
+
 			// idproducto_historial
 			$this->idproducto_historial->LinkCustomAttributes = "";
 			$this->idproducto_historial->HrefValue = "";
@@ -725,6 +739,16 @@ class cproducto_historial_view extends cproducto_historial {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idrelacion
+			$this->idrelacion->LinkCustomAttributes = "";
+			$this->idrelacion->HrefValue = "";
+			$this->idrelacion->TooltipValue = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->LinkCustomAttributes = "";
+			$this->tabla_relacion->HrefValue = "";
+			$this->tabla_relacion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1029,6 +1053,28 @@ $producto_historial_view->ShowMessage();
 <span id="el_producto_historial_fecha_insercion" class="form-group">
 <span<?php echo $producto_historial->fecha_insercion->ViewAttributes() ?>>
 <?php echo $producto_historial->fecha_insercion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+	<tr id="r_idrelacion">
+		<td><span id="elh_producto_historial_idrelacion"><?php echo $producto_historial->idrelacion->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->idrelacion->CellAttributes() ?>>
+<span id="el_producto_historial_idrelacion" class="form-group">
+<span<?php echo $producto_historial->idrelacion->ViewAttributes() ?>>
+<?php echo $producto_historial->idrelacion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+	<tr id="r_tabla_relacion">
+		<td><span id="elh_producto_historial_tabla_relacion"><?php echo $producto_historial->tabla_relacion->FldCaption() ?></span></td>
+		<td<?php echo $producto_historial->tabla_relacion->CellAttributes() ?>>
+<span id="el_producto_historial_tabla_relacion" class="form-group">
+<span<?php echo $producto_historial->tabla_relacion->ViewAttributes() ?>>
+<?php echo $producto_historial->tabla_relacion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

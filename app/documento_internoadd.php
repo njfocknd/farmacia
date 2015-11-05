@@ -412,18 +412,14 @@ class cdocumento_interno_add extends cdocumento_interno {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->idtipo_documento->CurrentValue = NULL;
-		$this->idtipo_documento->OldValue = $this->idtipo_documento->CurrentValue;
-		$this->idserie_documento->CurrentValue = NULL;
-		$this->idserie_documento->OldValue = $this->idserie_documento->CurrentValue;
+		$this->idtipo_documento->CurrentValue = 1;
+		$this->idserie_documento->CurrentValue = 1;
 		$this->fecha->CurrentValue = NULL;
 		$this->fecha->OldValue = $this->fecha->CurrentValue;
 		$this->observaciones->CurrentValue = NULL;
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
-		$this->idsucursal_ingreso->CurrentValue = NULL;
-		$this->idsucursal_ingreso->OldValue = $this->idsucursal_ingreso->CurrentValue;
-		$this->idsucursal_egreso->CurrentValue = NULL;
-		$this->idsucursal_egreso->OldValue = $this->idsucursal_egreso->CurrentValue;
+		$this->idsucursal_ingreso->CurrentValue = 1;
+		$this->idsucursal_egreso->CurrentValue = 1;
 	}
 
 	// Load form values
@@ -990,10 +986,10 @@ class cdocumento_interno_add extends cdocumento_interno {
 		$rsnew = array();
 
 		// idtipo_documento
-		$this->idtipo_documento->SetDbValueDef($rsnew, $this->idtipo_documento->CurrentValue, 0, FALSE);
+		$this->idtipo_documento->SetDbValueDef($rsnew, $this->idtipo_documento->CurrentValue, 0, strval($this->idtipo_documento->CurrentValue) == "");
 
 		// idserie_documento
-		$this->idserie_documento->SetDbValueDef($rsnew, $this->idserie_documento->CurrentValue, 0, FALSE);
+		$this->idserie_documento->SetDbValueDef($rsnew, $this->idserie_documento->CurrentValue, 0, strval($this->idserie_documento->CurrentValue) == "");
 
 		// fecha
 		$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, FALSE);
@@ -1002,10 +998,10 @@ class cdocumento_interno_add extends cdocumento_interno {
 		$this->observaciones->SetDbValueDef($rsnew, $this->observaciones->CurrentValue, NULL, FALSE);
 
 		// idsucursal_ingreso
-		$this->idsucursal_ingreso->SetDbValueDef($rsnew, $this->idsucursal_ingreso->CurrentValue, 0, FALSE);
+		$this->idsucursal_ingreso->SetDbValueDef($rsnew, $this->idsucursal_ingreso->CurrentValue, 0, strval($this->idsucursal_ingreso->CurrentValue) == "");
 
 		// idsucursal_egreso
-		$this->idsucursal_egreso->SetDbValueDef($rsnew, $this->idsucursal_egreso->CurrentValue, 0, FALSE);
+		$this->idsucursal_egreso->SetDbValueDef($rsnew, $this->idsucursal_egreso->CurrentValue, 0, strval($this->idsucursal_egreso->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

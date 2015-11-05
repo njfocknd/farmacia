@@ -440,6 +440,12 @@ class cproducto_historial_edit extends cproducto_historial {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
+		if (!$this->idrelacion->FldIsDetailKey) {
+			$this->idrelacion->setFormValue($objForm->GetValue("x_idrelacion"));
+		}
+		if (!$this->tabla_relacion->FldIsDetailKey) {
+			$this->tabla_relacion->setFormValue($objForm->GetValue("x_tabla_relacion"));
+		}
 	}
 
 	// Restore form values
@@ -454,6 +460,8 @@ class cproducto_historial_edit extends cproducto_historial {
 		$this->unidades_ingreso->CurrentValue = $this->unidades_ingreso->FormValue;
 		$this->unidades_salida->CurrentValue = $this->unidades_salida->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
+		$this->idrelacion->CurrentValue = $this->idrelacion->FormValue;
+		$this->tabla_relacion->CurrentValue = $this->tabla_relacion->FormValue;
 	}
 
 	// Load row based on key values
@@ -494,6 +502,8 @@ class cproducto_historial_edit extends cproducto_historial {
 		$this->unidades_salida->setDbValue($rs->fields('unidades_salida'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idrelacion->setDbValue($rs->fields('idrelacion'));
+		$this->tabla_relacion->setDbValue($rs->fields('tabla_relacion'));
 	}
 
 	// Load DbValue from recordset
@@ -509,6 +519,8 @@ class cproducto_historial_edit extends cproducto_historial {
 		$this->unidades_salida->DbValue = $row['unidades_salida'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idrelacion->DbValue = $row['idrelacion'];
+		$this->tabla_relacion->DbValue = $row['tabla_relacion'];
 	}
 
 	// Render row values based on field settings
@@ -531,6 +543,8 @@ class cproducto_historial_edit extends cproducto_historial {
 		// unidades_salida
 		// estado
 		// fecha_insercion
+		// idrelacion
+		// tabla_relacion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -655,6 +669,14 @@ class cproducto_historial_edit extends cproducto_historial {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idrelacion
+			$this->idrelacion->ViewValue = $this->idrelacion->CurrentValue;
+			$this->idrelacion->ViewCustomAttributes = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->ViewValue = $this->tabla_relacion->CurrentValue;
+			$this->tabla_relacion->ViewCustomAttributes = "";
+
 			// idproducto_historial
 			$this->idproducto_historial->LinkCustomAttributes = "";
 			$this->idproducto_historial->HrefValue = "";
@@ -689,6 +711,16 @@ class cproducto_historial_edit extends cproducto_historial {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// idrelacion
+			$this->idrelacion->LinkCustomAttributes = "";
+			$this->idrelacion->HrefValue = "";
+			$this->idrelacion->TooltipValue = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->LinkCustomAttributes = "";
+			$this->tabla_relacion->HrefValue = "";
+			$this->tabla_relacion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// idproducto_historial
@@ -780,6 +812,18 @@ class cproducto_historial_edit extends cproducto_historial {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
+			// idrelacion
+			$this->idrelacion->EditAttrs["class"] = "form-control";
+			$this->idrelacion->EditCustomAttributes = "";
+			$this->idrelacion->EditValue = ew_HtmlEncode($this->idrelacion->CurrentValue);
+			$this->idrelacion->PlaceHolder = ew_RemoveHtml($this->idrelacion->FldCaption());
+
+			// tabla_relacion
+			$this->tabla_relacion->EditAttrs["class"] = "form-control";
+			$this->tabla_relacion->EditCustomAttributes = "";
+			$this->tabla_relacion->EditValue = ew_HtmlEncode($this->tabla_relacion->CurrentValue);
+			$this->tabla_relacion->PlaceHolder = ew_RemoveHtml($this->tabla_relacion->FldCaption());
+
 			// Edit refer script
 			// idproducto_historial
 
@@ -802,6 +846,12 @@ class cproducto_historial_edit extends cproducto_historial {
 
 			// estado
 			$this->estado->HrefValue = "";
+
+			// idrelacion
+			$this->idrelacion->HrefValue = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -847,6 +897,12 @@ class cproducto_historial_edit extends cproducto_historial {
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		}
+		if (!$this->idrelacion->FldIsDetailKey && !is_null($this->idrelacion->FormValue) && $this->idrelacion->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idrelacion->FldCaption(), $this->idrelacion->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idrelacion->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idrelacion->FldErrMsg());
 		}
 
 		// Return validate result
@@ -898,6 +954,12 @@ class cproducto_historial_edit extends cproducto_historial {
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
+
+			// idrelacion
+			$this->idrelacion->SetDbValueDef($rsnew, $this->idrelacion->CurrentValue, 0, $this->idrelacion->ReadOnly);
+
+			// tabla_relacion
+			$this->tabla_relacion->SetDbValueDef($rsnew, $this->tabla_relacion->CurrentValue, NULL, $this->tabla_relacion->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1120,6 +1182,12 @@ fproducto_historialedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto_historial->estado->FldCaption(), $producto_historial->estado->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idrelacion");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto_historial->idrelacion->FldCaption(), $producto_historial->idrelacion->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idrelacion");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->idrelacion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1335,6 +1403,26 @@ if (is_array($producto_historial->estado->EditValue)) {
 </select>
 </span>
 <?php echo $producto_historial->estado->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+	<div id="r_idrelacion" class="form-group">
+		<label id="elh_producto_historial_idrelacion" for="x_idrelacion" class="col-sm-2 control-label ewLabel"><?php echo $producto_historial->idrelacion->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $producto_historial->idrelacion->CellAttributes() ?>>
+<span id="el_producto_historial_idrelacion">
+<input type="text" data-field="x_idrelacion" name="x_idrelacion" id="x_idrelacion" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->idrelacion->PlaceHolder) ?>" value="<?php echo $producto_historial->idrelacion->EditValue ?>"<?php echo $producto_historial->idrelacion->EditAttributes() ?>>
+</span>
+<?php echo $producto_historial->idrelacion->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+	<div id="r_tabla_relacion" class="form-group">
+		<label id="elh_producto_historial_tabla_relacion" for="x_tabla_relacion" class="col-sm-2 control-label ewLabel"><?php echo $producto_historial->tabla_relacion->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $producto_historial->tabla_relacion->CellAttributes() ?>>
+<span id="el_producto_historial_tabla_relacion">
+<input type="text" data-field="x_tabla_relacion" name="x_tabla_relacion" id="x_tabla_relacion" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->PlaceHolder) ?>" value="<?php echo $producto_historial->tabla_relacion->EditValue ?>"<?php echo $producto_historial->tabla_relacion->EditAttributes() ?>>
+</span>
+<?php echo $producto_historial->tabla_relacion->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

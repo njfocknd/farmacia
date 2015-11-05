@@ -416,7 +416,8 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		$this->idsucursal->CurrentValue = 1;
 		$this->serie->CurrentValue = NULL;
 		$this->serie->OldValue = $this->serie->CurrentValue;
-		$this->correlativo->CurrentValue = 1;
+		$this->correlativo->CurrentValue = NULL;
+		$this->correlativo->OldValue = $this->correlativo->CurrentValue;
 		$this->fecha->CurrentValue = NULL;
 		$this->fecha->OldValue = $this->fecha->CurrentValue;
 		$this->observaciones->CurrentValue = NULL;
@@ -898,7 +899,7 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		$this->serie->SetDbValueDef($rsnew, $this->serie->CurrentValue, NULL, FALSE);
 
 		// correlativo
-		$this->correlativo->SetDbValueDef($rsnew, $this->correlativo->CurrentValue, 0, strval($this->correlativo->CurrentValue) == "");
+		$this->correlativo->SetDbValueDef($rsnew, $this->correlativo->CurrentValue, NULL, FALSE);
 
 		// fecha
 		$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, FALSE);

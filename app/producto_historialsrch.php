@@ -375,6 +375,8 @@ class cproducto_historial_search extends cproducto_historial {
 		$this->BuildSearchUrl($sSrchUrl, $this->unidades_salida); // unidades_salida
 		$this->BuildSearchUrl($sSrchUrl, $this->estado); // estado
 		$this->BuildSearchUrl($sSrchUrl, $this->fecha_insercion); // fecha_insercion
+		$this->BuildSearchUrl($sSrchUrl, $this->idrelacion); // idrelacion
+		$this->BuildSearchUrl($sSrchUrl, $this->tabla_relacion); // tabla_relacion
 		if ($sSrchUrl <> "") $sSrchUrl .= "&";
 		$sSrchUrl .= "cmd=search";
 		return $sSrchUrl;
@@ -476,6 +478,14 @@ class cproducto_historial_search extends cproducto_historial {
 		// fecha_insercion
 		$this->fecha_insercion->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_fecha_insercion"));
 		$this->fecha_insercion->AdvancedSearch->SearchOperator = $objForm->GetValue("z_fecha_insercion");
+
+		// idrelacion
+		$this->idrelacion->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_idrelacion"));
+		$this->idrelacion->AdvancedSearch->SearchOperator = $objForm->GetValue("z_idrelacion");
+
+		// tabla_relacion
+		$this->tabla_relacion->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_tabla_relacion"));
+		$this->tabla_relacion->AdvancedSearch->SearchOperator = $objForm->GetValue("z_tabla_relacion");
 	}
 
 	// Render row values based on field settings
@@ -498,6 +508,8 @@ class cproducto_historial_search extends cproducto_historial {
 		// unidades_salida
 		// estado
 		// fecha_insercion
+		// idrelacion
+		// tabla_relacion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -622,6 +634,14 @@ class cproducto_historial_search extends cproducto_historial {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idrelacion
+			$this->idrelacion->ViewValue = $this->idrelacion->CurrentValue;
+			$this->idrelacion->ViewCustomAttributes = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->ViewValue = $this->tabla_relacion->CurrentValue;
+			$this->tabla_relacion->ViewCustomAttributes = "";
+
 			// idproducto_historial
 			$this->idproducto_historial->LinkCustomAttributes = "";
 			$this->idproducto_historial->HrefValue = "";
@@ -666,6 +686,16 @@ class cproducto_historial_search extends cproducto_historial {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idrelacion
+			$this->idrelacion->LinkCustomAttributes = "";
+			$this->idrelacion->HrefValue = "";
+			$this->idrelacion->TooltipValue = "";
+
+			// tabla_relacion
+			$this->tabla_relacion->LinkCustomAttributes = "";
+			$this->tabla_relacion->HrefValue = "";
+			$this->tabla_relacion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
 			// idproducto_historial
@@ -785,6 +815,18 @@ class cproducto_historial_search extends cproducto_historial {
 			$this->fecha_insercion->EditCustomAttributes = "";
 			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha_insercion->AdvancedSearch->SearchValue, 7), 7));
 			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
+			// idrelacion
+			$this->idrelacion->EditAttrs["class"] = "form-control";
+			$this->idrelacion->EditCustomAttributes = "";
+			$this->idrelacion->EditValue = ew_HtmlEncode($this->idrelacion->AdvancedSearch->SearchValue);
+			$this->idrelacion->PlaceHolder = ew_RemoveHtml($this->idrelacion->FldCaption());
+
+			// tabla_relacion
+			$this->tabla_relacion->EditAttrs["class"] = "form-control";
+			$this->tabla_relacion->EditCustomAttributes = "";
+			$this->tabla_relacion->EditValue = ew_HtmlEncode($this->tabla_relacion->AdvancedSearch->SearchValue);
+			$this->tabla_relacion->PlaceHolder = ew_RemoveHtml($this->tabla_relacion->FldCaption());
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -822,6 +864,9 @@ class cproducto_historial_search extends cproducto_historial {
 		if (!ew_CheckEuroDate($this->fecha_insercion->AdvancedSearch->SearchValue)) {
 			ew_AddMessage($gsSearchError, $this->fecha_insercion->FldErrMsg());
 		}
+		if (!ew_CheckInteger($this->idrelacion->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->idrelacion->FldErrMsg());
+		}
 
 		// Return validate result
 		$ValidateSearch = ($gsSearchError == "");
@@ -846,6 +891,8 @@ class cproducto_historial_search extends cproducto_historial {
 		$this->unidades_salida->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
 		$this->fecha_insercion->AdvancedSearch->Load();
+		$this->idrelacion->AdvancedSearch->Load();
+		$this->tabla_relacion->AdvancedSearch->Load();
 	}
 
 	// Set up Breadcrumb
@@ -998,6 +1045,9 @@ fproducto_historialsearch.Validate = function(fobj) {
 	elm = this.GetElements("x" + infix + "_fecha_insercion");
 	if (elm && !ew_CheckEuroDate(elm.value))
 		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->fecha_insercion->FldErrMsg()) ?>");
+	elm = this.GetElements("x" + infix + "_idrelacion");
+	if (elm && !ew_CheckInteger(elm.value))
+		return this.OnError(elm, "<?php echo ew_JsEncode2($producto_historial->idrelacion->FldErrMsg()) ?>");
 
 	// Set up row object
 	ew_ElementsToRow(fobj);
@@ -1247,6 +1297,30 @@ if (is_array($producto_historial->estado->EditValue)) {
 		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->fecha_insercion->CellAttributes() ?>>
 			<span id="el_producto_historial_fecha_insercion">
 <input type="text" data-field="x_fecha_insercion" name="x_fecha_insercion" id="x_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto_historial->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto_historial->fecha_insercion->EditValue ?>"<?php echo $producto_historial->fecha_insercion->EditAttributes() ?>>
+</span>
+		</div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->idrelacion->Visible) { // idrelacion ?>
+	<div id="r_idrelacion" class="form-group">
+		<label for="x_idrelacion" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_idrelacion"><?php echo $producto_historial->idrelacion->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_idrelacion" id="z_idrelacion" value="="></p>
+		</label>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->idrelacion->CellAttributes() ?>>
+			<span id="el_producto_historial_idrelacion">
+<input type="text" data-field="x_idrelacion" name="x_idrelacion" id="x_idrelacion" size="30" placeholder="<?php echo ew_HtmlEncode($producto_historial->idrelacion->PlaceHolder) ?>" value="<?php echo $producto_historial->idrelacion->EditValue ?>"<?php echo $producto_historial->idrelacion->EditAttributes() ?>>
+</span>
+		</div></div>
+	</div>
+<?php } ?>
+<?php if ($producto_historial->tabla_relacion->Visible) { // tabla_relacion ?>
+	<div id="r_tabla_relacion" class="form-group">
+		<label for="x_tabla_relacion" class="<?php echo $producto_historial_search->SearchLabelClass ?>"><span id="elh_producto_historial_tabla_relacion"><?php echo $producto_historial->tabla_relacion->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_tabla_relacion" id="z_tabla_relacion" value="LIKE"></p>
+		</label>
+		<div class="<?php echo $producto_historial_search->SearchRightColumnClass ?>"><div<?php echo $producto_historial->tabla_relacion->CellAttributes() ?>>
+			<span id="el_producto_historial_tabla_relacion">
+<input type="text" data-field="x_tabla_relacion" name="x_tabla_relacion" id="x_tabla_relacion" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto_historial->tabla_relacion->PlaceHolder) ?>" value="<?php echo $producto_historial->tabla_relacion->EditValue ?>"<?php echo $producto_historial->tabla_relacion->EditAttributes() ?>>
 </span>
 		</div></div>
 	</div>

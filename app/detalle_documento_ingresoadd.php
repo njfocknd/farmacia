@@ -400,8 +400,10 @@ class cdetalle_documento_ingreso_add extends cdetalle_documento_ingreso {
 	function LoadDefaultValues() {
 		$this->iddocumento_ingreso->CurrentValue = 1;
 		$this->idproducto->CurrentValue = 1;
-		$this->idbodega->CurrentValue = 1;
-		$this->cantidad->CurrentValue = 0;
+		$this->idbodega->CurrentValue = NULL;
+		$this->idbodega->OldValue = $this->idbodega->CurrentValue;
+		$this->cantidad->CurrentValue = NULL;
+		$this->cantidad->OldValue = $this->cantidad->CurrentValue;
 		$this->precio->CurrentValue = 0.00;
 	}
 
@@ -912,10 +914,10 @@ class cdetalle_documento_ingreso_add extends cdetalle_documento_ingreso {
 		$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, strval($this->idproducto->CurrentValue) == "");
 
 		// idbodega
-		$this->idbodega->SetDbValueDef($rsnew, $this->idbodega->CurrentValue, 0, strval($this->idbodega->CurrentValue) == "");
+		$this->idbodega->SetDbValueDef($rsnew, $this->idbodega->CurrentValue, 0, FALSE);
 
 		// cantidad
-		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
+		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, FALSE);
 
 		// precio
 		$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, strval($this->precio->CurrentValue) == "");
