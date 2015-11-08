@@ -403,6 +403,8 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		$this->idbodega_ingreso->CurrentValue = 1;
 		$this->idbodega_egreso->CurrentValue = 1;
 		$this->cantidad->CurrentValue = 0;
+		$this->monto->CurrentValue = 0.00;
+		$this->precio->CurrentValue = 0.00;
 	}
 
 	// Load form values
@@ -425,6 +427,12 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		if (!$this->cantidad->FldIsDetailKey) {
 			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
 		}
+		if (!$this->monto->FldIsDetailKey) {
+			$this->monto->setFormValue($objForm->GetValue("x_monto"));
+		}
+		if (!$this->precio->FldIsDetailKey) {
+			$this->precio->setFormValue($objForm->GetValue("x_precio"));
+		}
 	}
 
 	// Restore form values
@@ -436,6 +444,8 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		$this->idbodega_ingreso->CurrentValue = $this->idbodega_ingreso->FormValue;
 		$this->idbodega_egreso->CurrentValue = $this->idbodega_egreso->FormValue;
 		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
+		$this->monto->CurrentValue = $this->monto->FormValue;
+		$this->precio->CurrentValue = $this->precio->FormValue;
 	}
 
 	// Load row based on key values
@@ -475,6 +485,8 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
+		$this->precio->setDbValue($rs->fields('precio'));
 	}
 
 	// Load DbValue from recordset
@@ -489,6 +501,8 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		$this->cantidad->DbValue = $row['cantidad'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->monto->DbValue = $row['monto'];
+		$this->precio->DbValue = $row['precio'];
 	}
 
 	// Load old record
@@ -519,8 +533,16 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
+			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->precio->FormValue == $this->precio->CurrentValue && is_numeric(ew_StrToFloat($this->precio->CurrentValue)))
+			$this->precio->CurrentValue = ew_StrToFloat($this->precio->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
@@ -532,6 +554,8 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		// cantidad
 		// estado
 		// fecha_insercion
+		// monto
+		// precio
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -680,6 +704,14 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewCustomAttributes = "";
+
+			// precio
+			$this->precio->ViewValue = $this->precio->CurrentValue;
+			$this->precio->ViewCustomAttributes = "";
+
 			// iddocumento_interno
 			$this->iddocumento_interno->LinkCustomAttributes = "";
 			$this->iddocumento_interno->HrefValue = "";
@@ -704,6 +736,16 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 			$this->cantidad->LinkCustomAttributes = "";
 			$this->cantidad->HrefValue = "";
 			$this->cantidad->TooltipValue = "";
+
+			// monto
+			$this->monto->LinkCustomAttributes = "";
+			$this->monto->HrefValue = "";
+			$this->monto->TooltipValue = "";
+
+			// precio
+			$this->precio->LinkCustomAttributes = "";
+			$this->precio->HrefValue = "";
+			$this->precio->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// iddocumento_interno
@@ -853,6 +895,20 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
 			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
 
+			// monto
+			$this->monto->EditAttrs["class"] = "form-control";
+			$this->monto->EditCustomAttributes = "";
+			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
+			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+
+			// precio
+			$this->precio->EditAttrs["class"] = "form-control";
+			$this->precio->EditCustomAttributes = "";
+			$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
+			$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
+			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -1, -2, 0);
+
 			// Edit refer script
 			// iddocumento_interno
 
@@ -869,6 +925,12 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 
 			// cantidad
 			$this->cantidad->HrefValue = "";
+
+			// monto
+			$this->monto->HrefValue = "";
+
+			// precio
+			$this->precio->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -909,6 +971,18 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 		if (!ew_CheckInteger($this->cantidad->FormValue)) {
 			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
 		}
+		if (!$this->monto->FldIsDetailKey && !is_null($this->monto->FormValue) && $this->monto->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->monto->FldCaption(), $this->monto->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->monto->FormValue)) {
+			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
+		}
+		if (!$this->precio->FldIsDetailKey && !is_null($this->precio->FormValue) && $this->precio->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->precio->FldCaption(), $this->precio->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->precio->FormValue)) {
+			ew_AddMessage($gsFormError, $this->precio->FldErrMsg());
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -946,6 +1020,12 @@ class cdetalle_documento_interno_add extends cdetalle_documento_interno {
 
 		// cantidad
 		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
+
+		// monto
+		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
+
+		// precio
+		$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, strval($this->precio->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1165,6 +1245,18 @@ fdetalle_documento_internoadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_cantidad");
 			if (elm && !ew_CheckInteger(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->cantidad->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->monto->FldCaption(), $detalle_documento_interno->monto->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->monto->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->precio->FldCaption(), $detalle_documento_interno->precio->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->precio->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1406,6 +1498,26 @@ $sSqlWrk .= " ORDER BY `descripcion`";
 <input type="text" data-field="x_cantidad" name="x_cantidad" id="x_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->cantidad->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->cantidad->EditValue ?>"<?php echo $detalle_documento_interno->cantidad->EditAttributes() ?>>
 </span>
 <?php echo $detalle_documento_interno->cantidad->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
+	<div id="r_monto" class="form-group">
+		<label id="elh_detalle_documento_interno_monto" for="x_monto" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento_interno->monto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $detalle_documento_interno->monto->CellAttributes() ?>>
+<span id="el_detalle_documento_interno_monto">
+<input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->monto->EditValue ?>"<?php echo $detalle_documento_interno->monto->EditAttributes() ?>>
+</span>
+<?php echo $detalle_documento_interno->monto->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
+	<div id="r_precio" class="form-group">
+		<label id="elh_detalle_documento_interno_precio" for="x_precio" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento_interno->precio->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $detalle_documento_interno->precio->CellAttributes() ?>>
+<span id="el_detalle_documento_interno_precio">
+<input type="text" data-field="x_precio" name="x_precio" id="x_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->precio->EditValue ?>"<?php echo $detalle_documento_interno->precio->EditAttributes() ?>>
+</span>
+<?php echo $detalle_documento_interno->precio->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

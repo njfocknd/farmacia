@@ -761,6 +761,7 @@ class cdocumento_interno_list extends cdocumento_interno {
 			$this->UpdateSort($this->estado_documento); // estado_documento
 			$this->UpdateSort($this->idsucursal_ingreso); // idsucursal_ingreso
 			$this->UpdateSort($this->idsucursal_egreso); // idsucursal_egreso
+			$this->UpdateSort($this->monto); // monto
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -800,6 +801,7 @@ class cdocumento_interno_list extends cdocumento_interno {
 				$this->estado_documento->setSort("");
 				$this->idsucursal_ingreso->setSort("");
 				$this->idsucursal_egreso->setSort("");
+				$this->monto->setSort("");
 			}
 
 			// Reset start position
@@ -1214,6 +1216,7 @@ class cdocumento_interno_list extends cdocumento_interno {
 		$this->idsucursal_egreso->setDbValue($rs->fields('idsucursal_egreso'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
 	}
 
 	// Load DbValue from recordset
@@ -1232,6 +1235,7 @@ class cdocumento_interno_list extends cdocumento_interno {
 		$this->idsucursal_egreso->DbValue = $row['idsucursal_egreso'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->monto->DbValue = $row['monto'];
 	}
 
 	// Load old record
@@ -1269,6 +1273,10 @@ class cdocumento_interno_list extends cdocumento_interno {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
+		// Convert decimal values if posted back
+		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
+			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -1285,6 +1293,7 @@ class cdocumento_interno_list extends cdocumento_interno {
 		// idsucursal_egreso
 		// estado
 		// fecha_insercion
+		// monto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1461,6 +1470,10 @@ class cdocumento_interno_list extends cdocumento_interno {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -1495,6 +1508,11 @@ class cdocumento_interno_list extends cdocumento_interno {
 			$this->idsucursal_egreso->LinkCustomAttributes = "";
 			$this->idsucursal_egreso->HrefValue = "";
 			$this->idsucursal_egreso->TooltipValue = "";
+
+			// monto
+			$this->monto->LinkCustomAttributes = "";
+			$this->monto->HrefValue = "";
+			$this->monto->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1839,6 +1857,15 @@ $documento_interno_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($documento_interno->monto->Visible) { // monto ?>
+	<?php if ($documento_interno->SortUrl($documento_interno->monto) == "") { ?>
+		<th data-name="monto"><div id="elh_documento_interno_monto" class="documento_interno_monto"><div class="ewTableHeaderCaption"><?php echo $documento_interno->monto->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="monto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_interno->SortUrl($documento_interno->monto) ?>',1);"><div id="elh_documento_interno_monto" class="documento_interno_monto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_interno->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_interno->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_interno->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -1944,6 +1971,12 @@ $documento_interno_list->ListOptions->Render("body", "left", $documento_interno_
 		<td data-name="idsucursal_egreso"<?php echo $documento_interno->idsucursal_egreso->CellAttributes() ?>>
 <span<?php echo $documento_interno->idsucursal_egreso->ViewAttributes() ?>>
 <?php echo $documento_interno->idsucursal_egreso->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($documento_interno->monto->Visible) { // monto ?>
+		<td data-name="monto"<?php echo $documento_interno->monto->CellAttributes() ?>>
+<span<?php echo $documento_interno->monto->ViewAttributes() ?>>
+<?php echo $documento_interno->monto->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -681,6 +681,8 @@ class csucursal_view extends csucursal {
 		$this->idmunicipio->setDbValue($rs->fields('idmunicipio'));
 		$this->idempresa->setDbValue($rs->fields('idempresa'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->credito->setDbValue($rs->fields('credito'));
+		$this->debito->setDbValue($rs->fields('debito'));
 	}
 
 	// Load DbValue from recordset
@@ -693,6 +695,8 @@ class csucursal_view extends csucursal {
 		$this->idmunicipio->DbValue = $row['idmunicipio'];
 		$this->idempresa->DbValue = $row['idempresa'];
 		$this->estado->DbValue = $row['estado'];
+		$this->credito->DbValue = $row['credito'];
+		$this->debito->DbValue = $row['debito'];
 	}
 
 	// Render row values based on field settings
@@ -708,6 +712,14 @@ class csucursal_view extends csucursal {
 		$this->ListUrl = $this->GetListUrl();
 		$this->SetupOtherOptions();
 
+		// Convert decimal values if posted back
+		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
+			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
+			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -718,6 +730,8 @@ class csucursal_view extends csucursal {
 		// idmunicipio
 		// idempresa
 		// estado
+		// credito
+		// debito
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -808,6 +822,14 @@ class csucursal_view extends csucursal {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// credito
+			$this->credito->ViewValue = $this->credito->CurrentValue;
+			$this->credito->ViewCustomAttributes = "";
+
+			// debito
+			$this->debito->ViewValue = $this->debito->CurrentValue;
+			$this->debito->ViewCustomAttributes = "";
+
 			// idsucursal
 			$this->idsucursal->LinkCustomAttributes = "";
 			$this->idsucursal->HrefValue = "";
@@ -837,6 +859,16 @@ class csucursal_view extends csucursal {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// credito
+			$this->credito->LinkCustomAttributes = "";
+			$this->credito->HrefValue = "";
+			$this->credito->TooltipValue = "";
+
+			// debito
+			$this->debito->LinkCustomAttributes = "";
+			$this->debito->HrefValue = "";
+			$this->debito->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1176,6 +1208,28 @@ $sucursal_view->ShowMessage();
 <span id="el_sucursal_estado" class="form-group">
 <span<?php echo $sucursal->estado->ViewAttributes() ?>>
 <?php echo $sucursal->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($sucursal->credito->Visible) { // credito ?>
+	<tr id="r_credito">
+		<td><span id="elh_sucursal_credito"><?php echo $sucursal->credito->FldCaption() ?></span></td>
+		<td<?php echo $sucursal->credito->CellAttributes() ?>>
+<span id="el_sucursal_credito" class="form-group">
+<span<?php echo $sucursal->credito->ViewAttributes() ?>>
+<?php echo $sucursal->credito->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($sucursal->debito->Visible) { // debito ?>
+	<tr id="r_debito">
+		<td><span id="elh_sucursal_debito"><?php echo $sucursal->debito->FldCaption() ?></span></td>
+		<td<?php echo $sucursal->debito->CellAttributes() ?>>
+<span id="el_sucursal_debito" class="form-group">
+<span<?php echo $sucursal->debito->ViewAttributes() ?>>
+<?php echo $sucursal->debito->ViewValue ?></span>
 </span>
 </td>
 	</tr>

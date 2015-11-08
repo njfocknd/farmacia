@@ -763,6 +763,7 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 			$this->UpdateSort($this->estado); // estado
 			$this->UpdateSort($this->monto); // monto
 			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
+			$this->UpdateSort($this->idproveedor); // idproveedor
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -805,6 +806,7 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 				$this->estado->setSort("");
 				$this->monto->setSort("");
 				$this->fecha_insercion->setSort("");
+				$this->idproveedor->setSort("");
 			}
 
 			// Reset start position
@@ -1218,6 +1220,7 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idproveedor->setDbValue($rs->fields('idproveedor'));
 	}
 
 	// Load DbValue from recordset
@@ -1235,6 +1238,7 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 		$this->estado->DbValue = $row['estado'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idproveedor->DbValue = $row['idproveedor'];
 	}
 
 	// Load old record
@@ -1291,6 +1295,7 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 		// estado
 		// monto
 		// fecha_insercion
+		// idproveedor
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1416,6 +1421,10 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idproveedor
+			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			$this->idproveedor->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -1465,6 +1474,11 @@ class cdocumento_ingreso_list extends cdocumento_ingreso {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idproveedor
+			$this->idproveedor->LinkCustomAttributes = "";
+			$this->idproveedor->HrefValue = "";
+			$this->idproveedor->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1835,6 +1849,15 @@ $documento_ingreso_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($documento_ingreso->idproveedor->Visible) { // idproveedor ?>
+	<?php if ($documento_ingreso->SortUrl($documento_ingreso->idproveedor) == "") { ?>
+		<th data-name="idproveedor"><div id="elh_documento_ingreso_idproveedor" class="documento_ingreso_idproveedor"><div class="ewTableHeaderCaption"><?php echo $documento_ingreso->idproveedor->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idproveedor"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_ingreso->SortUrl($documento_ingreso->idproveedor) ?>',1);"><div id="elh_documento_ingreso_idproveedor" class="documento_ingreso_idproveedor">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_ingreso->idproveedor->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_ingreso->idproveedor->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_ingreso->idproveedor->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -1958,6 +1981,12 @@ $documento_ingreso_list->ListOptions->Render("body", "left", $documento_ingreso_
 		<td data-name="fecha_insercion"<?php echo $documento_ingreso->fecha_insercion->CellAttributes() ?>>
 <span<?php echo $documento_ingreso->fecha_insercion->ViewAttributes() ?>>
 <?php echo $documento_ingreso->fecha_insercion->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($documento_ingreso->idproveedor->Visible) { // idproveedor ?>
+		<td data-name="idproveedor"<?php echo $documento_ingreso->idproveedor->CellAttributes() ?>>
+<span<?php echo $documento_ingreso->idproveedor->ViewAttributes() ?>>
+<?php echo $documento_ingreso->idproveedor->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -9,6 +9,7 @@
 // estado_documento
 // monto
 // fecha_insercion
+// idcliente
 
 ?>
 <?php if ($documento->Visible) { ?>
@@ -110,6 +111,17 @@
 <span id="el_documento_fecha_insercion" class="form-group">
 <span<?php echo $documento->fecha_insercion->ViewAttributes() ?>>
 <?php echo $documento->fecha_insercion->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($documento->idcliente->Visible) { // idcliente ?>
+		<tr id="r_idcliente">
+			<td><?php echo $documento->idcliente->FldCaption() ?></td>
+			<td<?php echo $documento->idcliente->CellAttributes() ?>>
+<span id="el_documento_idcliente" class="form-group">
+<span<?php echo $documento->idcliente->ViewAttributes() ?>>
+<?php echo $documento->idcliente->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

@@ -1,24 +1,24 @@
 <?php
 
 // Global variable for table object
-$documento_ingreso = NULL;
+$persona = NULL;
 
 //
-// Table class for documento_ingreso
+// Table class for persona
 //
-class cdocumento_ingreso extends cTable {
-	var $iddocumento_ingreso;
-	var $idtipo_documento;
-	var $idsucursal;
-	var $serie;
-	var $correlativo;
-	var $fecha;
-	var $observaciones;
-	var $estado_documento;
+class cpersona extends cTable {
+	var $idpersona;
+	var $tipo_persona;
+	var $nombre;
+	var $apellido;
+	var $direccion;
+	var $cui;
+	var $idpais;
+	var $fecha_nacimiento;
+	var $_email;
+	var $sexo;
 	var $estado;
-	var $monto;
 	var $fecha_insercion;
-	var $idproveedor;
 
 	//
 	// Table class constructor
@@ -28,8 +28,8 @@ class cdocumento_ingreso extends cTable {
 
 		// Language object
 		if (!isset($Language)) $Language = new cLanguage();
-		$this->TableVar = 'documento_ingreso';
-		$this->TableName = 'documento_ingreso';
+		$this->TableVar = 'persona';
+		$this->TableName = 'persona';
 		$this->TableType = 'TABLE';
 		$this->ExportAll = TRUE;
 		$this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
@@ -44,61 +44,58 @@ class cdocumento_ingreso extends cTable {
 		$this->UserIDAllowSecurity = 0; // User ID Allow
 		$this->BasicSearch = new cBasicSearch($this->TableVar);
 
-		// iddocumento_ingreso
-		$this->iddocumento_ingreso = new cField('documento_ingreso', 'documento_ingreso', 'x_iddocumento_ingreso', 'iddocumento_ingreso', '`iddocumento_ingreso`', '`iddocumento_ingreso`', 3, -1, FALSE, '`iddocumento_ingreso`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->iddocumento_ingreso->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['iddocumento_ingreso'] = &$this->iddocumento_ingreso;
+		// idpersona
+		$this->idpersona = new cField('persona', 'persona', 'x_idpersona', 'idpersona', '`idpersona`', '`idpersona`', 3, -1, FALSE, '`idpersona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idpersona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idpersona'] = &$this->idpersona;
 
-		// idtipo_documento
-		$this->idtipo_documento = new cField('documento_ingreso', 'documento_ingreso', 'x_idtipo_documento', 'idtipo_documento', '`idtipo_documento`', '`idtipo_documento`', 3, -1, FALSE, '`idtipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idtipo_documento->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idtipo_documento'] = &$this->idtipo_documento;
+		// tipo_persona
+		$this->tipo_persona = new cField('persona', 'persona', 'x_tipo_persona', 'tipo_persona', '`tipo_persona`', '`tipo_persona`', 202, -1, FALSE, '`tipo_persona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['tipo_persona'] = &$this->tipo_persona;
 
-		// idsucursal
-		$this->idsucursal = new cField('documento_ingreso', 'documento_ingreso', 'x_idsucursal', 'idsucursal', '`idsucursal`', '`idsucursal`', 3, -1, FALSE, '`idsucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idsucursal->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idsucursal'] = &$this->idsucursal;
+		// nombre
+		$this->nombre = new cField('persona', 'persona', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['nombre'] = &$this->nombre;
 
-		// serie
-		$this->serie = new cField('documento_ingreso', 'documento_ingreso', 'x_serie', 'serie', '`serie`', '`serie`', 200, -1, FALSE, '`serie`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['serie'] = &$this->serie;
+		// apellido
+		$this->apellido = new cField('persona', 'persona', 'x_apellido', 'apellido', '`apellido`', '`apellido`', 200, -1, FALSE, '`apellido`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['apellido'] = &$this->apellido;
 
-		// correlativo
-		$this->correlativo = new cField('documento_ingreso', 'documento_ingreso', 'x_correlativo', 'correlativo', '`correlativo`', '`correlativo`', 3, -1, FALSE, '`correlativo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->correlativo->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['correlativo'] = &$this->correlativo;
+		// direccion
+		$this->direccion = new cField('persona', 'persona', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['direccion'] = &$this->direccion;
 
-		// fecha
-		$this->fecha = new cField('documento_ingreso', 'documento_ingreso', 'x_fecha', 'fecha', '`fecha`', 'DATE_FORMAT(`fecha`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fecha->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
-		$this->fields['fecha'] = &$this->fecha;
+		// cui
+		$this->cui = new cField('persona', 'persona', 'x_cui', 'cui', '`cui`', '`cui`', 200, -1, FALSE, '`cui`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['cui'] = &$this->cui;
 
-		// observaciones
-		$this->observaciones = new cField('documento_ingreso', 'documento_ingreso', 'x_observaciones', 'observaciones', '`observaciones`', '`observaciones`', 200, -1, FALSE, '`observaciones`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['observaciones'] = &$this->observaciones;
+		// idpais
+		$this->idpais = new cField('persona', 'persona', 'x_idpais', 'idpais', '`idpais`', '`idpais`', 3, -1, FALSE, '`idpais`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idpais->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idpais'] = &$this->idpais;
 
-		// estado_documento
-		$this->estado_documento = new cField('documento_ingreso', 'documento_ingreso', 'x_estado_documento', 'estado_documento', '`estado_documento`', '`estado_documento`', 202, -1, FALSE, '`estado_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['estado_documento'] = &$this->estado_documento;
+		// fecha_nacimiento
+		$this->fecha_nacimiento = new cField('persona', 'persona', 'x_fecha_nacimiento', 'fecha_nacimiento', '`fecha_nacimiento`', 'DATE_FORMAT(`fecha_nacimiento`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha_nacimiento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_nacimiento->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_nacimiento'] = &$this->fecha_nacimiento;
+
+		// email
+		$this->_email = new cField('persona', 'persona', 'x__email', 'email', '`email`', '`email`', 200, -1, FALSE, '`email`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->_email->FldDefaultErrMsg = $Language->Phrase("IncorrectEmail");
+		$this->fields['email'] = &$this->_email;
+
+		// sexo
+		$this->sexo = new cField('persona', 'persona', 'x_sexo', 'sexo', '`sexo`', '`sexo`', 202, -1, FALSE, '`sexo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['sexo'] = &$this->sexo;
 
 		// estado
-		$this->estado = new cField('documento_ingreso', 'documento_ingreso', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->estado = new cField('persona', 'persona', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
 
-		// monto
-		$this->monto = new cField('documento_ingreso', 'documento_ingreso', 'x_monto', 'monto', '`monto`', '`monto`', 131, -1, FALSE, '`monto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->monto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
-		$this->fields['monto'] = &$this->monto;
-
 		// fecha_insercion
-		$this->fecha_insercion = new cField('documento_ingreso', 'documento_ingreso', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion = new cField('persona', 'persona', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
-
-		// idproveedor
-		$this->idproveedor = new cField('documento_ingreso', 'documento_ingreso', 'x_idproveedor', 'idproveedor', '`idproveedor`', '`idproveedor`', 3, -1, FALSE, '`idproveedor`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idproveedor->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idproveedor'] = &$this->idproveedor;
 	}
 
 	// Single column sort
@@ -132,12 +129,12 @@ class cdocumento_ingreso extends cTable {
 
 		// Detail url
 		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "detalle_documento_ingreso") {
-			$sDetailUrl = $GLOBALS["detalle_documento_ingreso"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_iddocumento_ingreso=" . urlencode($this->iddocumento_ingreso->CurrentValue);
+		if ($this->getCurrentDetailTable() == "cliente") {
+			$sDetailUrl = $GLOBALS["cliente"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idpersona=" . urlencode($this->idpersona->CurrentValue);
 		}
 		if ($sDetailUrl == "") {
-			$sDetailUrl = "documento_ingresolist.php";
+			$sDetailUrl = "personalist.php";
 		}
 		return $sDetailUrl;
 	}
@@ -146,7 +143,7 @@ class cdocumento_ingreso extends cTable {
 	var $_SqlFrom = "";
 
 	function getSqlFrom() { // From
-		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`documento_ingreso`";
+		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`persona`";
 	}
 
 	function SqlFrom() { // For backward compatibility
@@ -369,7 +366,7 @@ class cdocumento_ingreso extends cTable {
 	}
 
 	// Update Table
-	var $UpdateTable = "`documento_ingreso`";
+	var $UpdateTable = "`persona`";
 
 	// INSERT statement
 	function InsertSQL(&$rs) {
@@ -422,8 +419,8 @@ class cdocumento_ingreso extends cTable {
 	function DeleteSQL(&$rs, $where = "") {
 		$sql = "DELETE FROM " . $this->UpdateTable . " WHERE ";
 		if ($rs) {
-			if (array_key_exists('iddocumento_ingreso', $rs))
-				ew_AddFilter($where, ew_QuotedName('iddocumento_ingreso') . '=' . ew_QuotedValue($rs['iddocumento_ingreso'], $this->iddocumento_ingreso->FldDataType));
+			if (array_key_exists('idpersona', $rs))
+				ew_AddFilter($where, ew_QuotedName('idpersona') . '=' . ew_QuotedValue($rs['idpersona'], $this->idpersona->FldDataType));
 		}
 		$filter = $this->CurrentFilter;
 		ew_AddFilter($filter, $where);
@@ -442,15 +439,15 @@ class cdocumento_ingreso extends cTable {
 
 	// Key filter WHERE clause
 	function SqlKeyFilter() {
-		return "`iddocumento_ingreso` = @iddocumento_ingreso@";
+		return "`idpersona` = @idpersona@";
 	}
 
 	// Key filter
 	function KeyFilter() {
 		$sKeyFilter = $this->SqlKeyFilter();
-		if (!is_numeric($this->iddocumento_ingreso->CurrentValue))
+		if (!is_numeric($this->idpersona->CurrentValue))
 			$sKeyFilter = "0=1"; // Invalid key
-		$sKeyFilter = str_replace("@iddocumento_ingreso@", ew_AdjustSql($this->iddocumento_ingreso->CurrentValue), $sKeyFilter); // Replace key value
+		$sKeyFilter = str_replace("@idpersona@", ew_AdjustSql($this->idpersona->CurrentValue), $sKeyFilter); // Replace key value
 		return $sKeyFilter;
 	}
 
@@ -464,7 +461,7 @@ class cdocumento_ingreso extends cTable {
 		if (@$_SESSION[$name] <> "") {
 			return $_SESSION[$name];
 		} else {
-			return "documento_ingresolist.php";
+			return "personalist.php";
 		}
 	}
 
@@ -474,31 +471,31 @@ class cdocumento_ingreso extends cTable {
 
 	// List URL
 	function GetListUrl() {
-		return "documento_ingresolist.php";
+		return "personalist.php";
 	}
 
 	// View URL
 	function GetViewUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("documento_ingresoview.php", $this->UrlParm($parm));
+			return $this->KeyUrl("personaview.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("documento_ingresoview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("personaview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Add URL
 	function GetAddUrl($parm = "") {
 		if ($parm <> "")
-			return "documento_ingresoadd.php?" . $this->UrlParm($parm);
+			return "personaadd.php?" . $this->UrlParm($parm);
 		else
-			return "documento_ingresoadd.php";
+			return "personaadd.php";
 	}
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("documento_ingresoedit.php", $this->UrlParm($parm));
+			return $this->KeyUrl("personaedit.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("documento_ingresoedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("personaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -509,9 +506,9 @@ class cdocumento_ingreso extends cTable {
 	// Copy URL
 	function GetCopyUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("documento_ingresoadd.php", $this->UrlParm($parm));
+			return $this->KeyUrl("personaadd.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("documento_ingresoadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("personaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL
@@ -521,15 +518,15 @@ class cdocumento_ingreso extends cTable {
 
 	// Delete URL
 	function GetDeleteUrl() {
-		return $this->KeyUrl("documento_ingresodelete.php", $this->UrlParm());
+		return $this->KeyUrl("personadelete.php", $this->UrlParm());
 	}
 
 	// Add key value to URL
 	function KeyUrl($url, $parm = "") {
 		$sUrl = $url . "?";
 		if ($parm <> "") $sUrl .= $parm . "&";
-		if (!is_null($this->iddocumento_ingreso->CurrentValue)) {
-			$sUrl .= "iddocumento_ingreso=" . urlencode($this->iddocumento_ingreso->CurrentValue);
+		if (!is_null($this->idpersona->CurrentValue)) {
+			$sUrl .= "idpersona=" . urlencode($this->idpersona->CurrentValue);
 		} else {
 			return "javascript:alert(ewLanguage.Phrase('InvalidRecord'));";
 		}
@@ -561,7 +558,7 @@ class cdocumento_ingreso extends cTable {
 			$arKeys = ew_StripSlashes($_GET["key_m"]);
 			$cnt = count($arKeys);
 		} elseif (isset($_GET)) {
-			$arKeys[] = @$_GET["iddocumento_ingreso"]; // iddocumento_ingreso
+			$arKeys[] = @$_GET["idpersona"]; // idpersona
 
 			//return $arKeys; // Do not return yet, so the values will also be checked by the following code
 		}
@@ -582,7 +579,7 @@ class cdocumento_ingreso extends cTable {
 		$sKeyFilter = "";
 		foreach ($arKeys as $key) {
 			if ($sKeyFilter <> "") $sKeyFilter .= " OR ";
-			$this->iddocumento_ingreso->CurrentValue = $key;
+			$this->idpersona->CurrentValue = $key;
 			$sKeyFilter .= "(" . $this->KeyFilter() . ")";
 		}
 		return $sKeyFilter;
@@ -603,18 +600,18 @@ class cdocumento_ingreso extends cTable {
 
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
-		$this->iddocumento_ingreso->setDbValue($rs->fields('iddocumento_ingreso'));
-		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->serie->setDbValue($rs->fields('serie'));
-		$this->correlativo->setDbValue($rs->fields('correlativo'));
-		$this->fecha->setDbValue($rs->fields('fecha'));
-		$this->observaciones->setDbValue($rs->fields('observaciones'));
-		$this->estado_documento->setDbValue($rs->fields('estado_documento'));
+		$this->idpersona->setDbValue($rs->fields('idpersona'));
+		$this->tipo_persona->setDbValue($rs->fields('tipo_persona'));
+		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->apellido->setDbValue($rs->fields('apellido'));
+		$this->direccion->setDbValue($rs->fields('direccion'));
+		$this->cui->setDbValue($rs->fields('cui'));
+		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->fecha_nacimiento->setDbValue($rs->fields('fecha_nacimiento'));
+		$this->_email->setDbValue($rs->fields('email'));
+		$this->sexo->setDbValue($rs->fields('sexo'));
 		$this->estado->setDbValue($rs->fields('estado'));
-		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
-		$this->idproveedor->setDbValue($rs->fields('idproveedor'));
 	}
 
 	// Render list row values
@@ -625,114 +622,110 @@ class cdocumento_ingreso extends cTable {
 		$this->Row_Rendering();
 
    // Common render codes
-		// iddocumento_ingreso
-		// idtipo_documento
-		// idsucursal
-		// serie
-		// correlativo
-		// fecha
-		// observaciones
-		// estado_documento
+		// idpersona
+		// tipo_persona
+		// nombre
+		// apellido
+		// direccion
+		// cui
+		// idpais
+		// fecha_nacimiento
+		// email
+		// sexo
 		// estado
-		// monto
 		// fecha_insercion
-		// idproveedor
-		// iddocumento_ingreso
+		// idpersona
 
-		$this->iddocumento_ingreso->ViewValue = $this->iddocumento_ingreso->CurrentValue;
-		$this->iddocumento_ingreso->ViewCustomAttributes = "";
+		$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
+		$this->idpersona->ViewCustomAttributes = "";
 
-		// idtipo_documento
-		if (strval($this->idtipo_documento->CurrentValue) <> "") {
-			$sFilterWrk = "`idtipo_documento`" . ew_SearchString("=", $this->idtipo_documento->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idtipo_documento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_documento`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idtipo_documento, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idtipo_documento->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idtipo_documento->ViewValue = $this->idtipo_documento->CurrentValue;
-			}
-		} else {
-			$this->idtipo_documento->ViewValue = NULL;
-		}
-		$this->idtipo_documento->ViewCustomAttributes = "";
-
-		// idsucursal
-		if (strval($this->idsucursal->CurrentValue) <> "") {
-			$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-			}
-		} else {
-			$this->idsucursal->ViewValue = NULL;
-		}
-		$this->idsucursal->ViewCustomAttributes = "";
-
-		// serie
-		$this->serie->ViewValue = $this->serie->CurrentValue;
-		$this->serie->ViewCustomAttributes = "";
-
-		// correlativo
-		$this->correlativo->ViewValue = $this->correlativo->CurrentValue;
-		$this->correlativo->ViewCustomAttributes = "";
-
-		// fecha
-		$this->fecha->ViewValue = $this->fecha->CurrentValue;
-		$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
-		$this->fecha->ViewCustomAttributes = "";
-
-		// observaciones
-		$this->observaciones->ViewValue = $this->observaciones->CurrentValue;
-		$this->observaciones->ViewCustomAttributes = "";
-
-		// estado_documento
-		if (strval($this->estado_documento->CurrentValue) <> "") {
-			switch ($this->estado_documento->CurrentValue) {
-				case $this->estado_documento->FldTagValue(1):
-					$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(1) <> "" ? $this->estado_documento->FldTagCaption(1) : $this->estado_documento->CurrentValue;
+		// tipo_persona
+		if (strval($this->tipo_persona->CurrentValue) <> "") {
+			switch ($this->tipo_persona->CurrentValue) {
+				case $this->tipo_persona->FldTagValue(1):
+					$this->tipo_persona->ViewValue = $this->tipo_persona->FldTagCaption(1) <> "" ? $this->tipo_persona->FldTagCaption(1) : $this->tipo_persona->CurrentValue;
 					break;
-				case $this->estado_documento->FldTagValue(2):
-					$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->CurrentValue;
+				case $this->tipo_persona->FldTagValue(2):
+					$this->tipo_persona->ViewValue = $this->tipo_persona->FldTagCaption(2) <> "" ? $this->tipo_persona->FldTagCaption(2) : $this->tipo_persona->CurrentValue;
 					break;
 				default:
-					$this->estado_documento->ViewValue = $this->estado_documento->CurrentValue;
+					$this->tipo_persona->ViewValue = $this->tipo_persona->CurrentValue;
 			}
 		} else {
-			$this->estado_documento->ViewValue = NULL;
+			$this->tipo_persona->ViewValue = NULL;
 		}
-		$this->estado_documento->ViewCustomAttributes = "";
+		$this->tipo_persona->ViewCustomAttributes = "";
+
+		// nombre
+		$this->nombre->ViewValue = $this->nombre->CurrentValue;
+		$this->nombre->ViewCustomAttributes = "";
+
+		// apellido
+		$this->apellido->ViewValue = $this->apellido->CurrentValue;
+		$this->apellido->ViewCustomAttributes = "";
+
+		// direccion
+		$this->direccion->ViewValue = $this->direccion->CurrentValue;
+		$this->direccion->ViewCustomAttributes = "";
+
+		// cui
+		$this->cui->ViewValue = $this->cui->CurrentValue;
+		$this->cui->ViewCustomAttributes = "";
+
+		// idpais
+		if (strval($this->idpais->CurrentValue) <> "") {
+			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idpais->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idpais->ViewValue = $this->idpais->CurrentValue;
+			}
+		} else {
+			$this->idpais->ViewValue = NULL;
+		}
+		$this->idpais->ViewCustomAttributes = "";
+
+		// fecha_nacimiento
+		$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
+		$this->fecha_nacimiento->ViewValue = ew_FormatDateTime($this->fecha_nacimiento->ViewValue, 7);
+		$this->fecha_nacimiento->ViewCustomAttributes = "";
+
+		// email
+		$this->_email->ViewValue = $this->_email->CurrentValue;
+		$this->_email->ViewCustomAttributes = "";
+
+		// sexo
+		if (strval($this->sexo->CurrentValue) <> "") {
+			switch ($this->sexo->CurrentValue) {
+				case $this->sexo->FldTagValue(1):
+					$this->sexo->ViewValue = $this->sexo->FldTagCaption(1) <> "" ? $this->sexo->FldTagCaption(1) : $this->sexo->CurrentValue;
+					break;
+				case $this->sexo->FldTagValue(2):
+					$this->sexo->ViewValue = $this->sexo->FldTagCaption(2) <> "" ? $this->sexo->FldTagCaption(2) : $this->sexo->CurrentValue;
+					break;
+				default:
+					$this->sexo->ViewValue = $this->sexo->CurrentValue;
+			}
+		} else {
+			$this->sexo->ViewValue = NULL;
+		}
+		$this->sexo->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -751,78 +744,70 @@ class cdocumento_ingreso extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
-		// monto
-		$this->monto->ViewValue = $this->monto->CurrentValue;
-		$this->monto->ViewCustomAttributes = "";
-
 		// fecha_insercion
 		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
-		// idproveedor
-		$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
-		$this->idproveedor->ViewCustomAttributes = "";
+		// idpersona
+		$this->idpersona->LinkCustomAttributes = "";
+		$this->idpersona->HrefValue = "";
+		$this->idpersona->TooltipValue = "";
 
-		// iddocumento_ingreso
-		$this->iddocumento_ingreso->LinkCustomAttributes = "";
-		$this->iddocumento_ingreso->HrefValue = "";
-		$this->iddocumento_ingreso->TooltipValue = "";
+		// tipo_persona
+		$this->tipo_persona->LinkCustomAttributes = "";
+		$this->tipo_persona->HrefValue = "";
+		$this->tipo_persona->TooltipValue = "";
 
-		// idtipo_documento
-		$this->idtipo_documento->LinkCustomAttributes = "";
-		$this->idtipo_documento->HrefValue = "";
-		$this->idtipo_documento->TooltipValue = "";
+		// nombre
+		$this->nombre->LinkCustomAttributes = "";
+		$this->nombre->HrefValue = "";
+		$this->nombre->TooltipValue = "";
 
-		// idsucursal
-		$this->idsucursal->LinkCustomAttributes = "";
-		$this->idsucursal->HrefValue = "";
-		$this->idsucursal->TooltipValue = "";
+		// apellido
+		$this->apellido->LinkCustomAttributes = "";
+		$this->apellido->HrefValue = "";
+		$this->apellido->TooltipValue = "";
 
-		// serie
-		$this->serie->LinkCustomAttributes = "";
-		$this->serie->HrefValue = "";
-		$this->serie->TooltipValue = "";
+		// direccion
+		$this->direccion->LinkCustomAttributes = "";
+		$this->direccion->HrefValue = "";
+		$this->direccion->TooltipValue = "";
 
-		// correlativo
-		$this->correlativo->LinkCustomAttributes = "";
-		$this->correlativo->HrefValue = "";
-		$this->correlativo->TooltipValue = "";
+		// cui
+		$this->cui->LinkCustomAttributes = "";
+		$this->cui->HrefValue = "";
+		$this->cui->TooltipValue = "";
 
-		// fecha
-		$this->fecha->LinkCustomAttributes = "";
-		$this->fecha->HrefValue = "";
-		$this->fecha->TooltipValue = "";
+		// idpais
+		$this->idpais->LinkCustomAttributes = "";
+		$this->idpais->HrefValue = "";
+		$this->idpais->TooltipValue = "";
 
-		// observaciones
-		$this->observaciones->LinkCustomAttributes = "";
-		$this->observaciones->HrefValue = "";
-		$this->observaciones->TooltipValue = "";
+		// fecha_nacimiento
+		$this->fecha_nacimiento->LinkCustomAttributes = "";
+		$this->fecha_nacimiento->HrefValue = "";
+		$this->fecha_nacimiento->TooltipValue = "";
 
-		// estado_documento
-		$this->estado_documento->LinkCustomAttributes = "";
-		$this->estado_documento->HrefValue = "";
-		$this->estado_documento->TooltipValue = "";
+		// email
+		$this->_email->LinkCustomAttributes = "";
+		$this->_email->HrefValue = "";
+		$this->_email->TooltipValue = "";
+
+		// sexo
+		$this->sexo->LinkCustomAttributes = "";
+		$this->sexo->HrefValue = "";
+		$this->sexo->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
 		$this->estado->HrefValue = "";
 		$this->estado->TooltipValue = "";
 
-		// monto
-		$this->monto->LinkCustomAttributes = "";
-		$this->monto->HrefValue = "";
-		$this->monto->TooltipValue = "";
-
 		// fecha_insercion
 		$this->fecha_insercion->LinkCustomAttributes = "";
 		$this->fecha_insercion->HrefValue = "";
 		$this->fecha_insercion->TooltipValue = "";
-
-		// idproveedor
-		$this->idproveedor->LinkCustomAttributes = "";
-		$this->idproveedor->HrefValue = "";
-		$this->idproveedor->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -835,52 +820,69 @@ class cdocumento_ingreso extends cTable {
 		// Call Row Rendering event
 		$this->Row_Rendering();
 
-		// iddocumento_ingreso
-		$this->iddocumento_ingreso->EditAttrs["class"] = "form-control";
-		$this->iddocumento_ingreso->EditCustomAttributes = "";
-		$this->iddocumento_ingreso->EditValue = $this->iddocumento_ingreso->CurrentValue;
-		$this->iddocumento_ingreso->ViewCustomAttributes = "";
+		// idpersona
+		$this->idpersona->EditAttrs["class"] = "form-control";
+		$this->idpersona->EditCustomAttributes = "";
+		$this->idpersona->EditValue = $this->idpersona->CurrentValue;
+		$this->idpersona->ViewCustomAttributes = "";
 
-		// idtipo_documento
-		$this->idtipo_documento->EditAttrs["class"] = "form-control";
-		$this->idtipo_documento->EditCustomAttributes = "";
-
-		// idsucursal
-		$this->idsucursal->EditAttrs["class"] = "form-control";
-		$this->idsucursal->EditCustomAttributes = "";
-
-		// serie
-		$this->serie->EditAttrs["class"] = "form-control";
-		$this->serie->EditCustomAttributes = "";
-		$this->serie->EditValue = ew_HtmlEncode($this->serie->CurrentValue);
-		$this->serie->PlaceHolder = ew_RemoveHtml($this->serie->FldCaption());
-
-		// correlativo
-		$this->correlativo->EditAttrs["class"] = "form-control";
-		$this->correlativo->EditCustomAttributes = "";
-		$this->correlativo->EditValue = ew_HtmlEncode($this->correlativo->CurrentValue);
-		$this->correlativo->PlaceHolder = ew_RemoveHtml($this->correlativo->FldCaption());
-
-		// fecha
-		$this->fecha->EditAttrs["class"] = "form-control";
-		$this->fecha->EditCustomAttributes = "";
-		$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
-		$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
-
-		// observaciones
-		$this->observaciones->EditAttrs["class"] = "form-control";
-		$this->observaciones->EditCustomAttributes = "";
-		$this->observaciones->EditValue = ew_HtmlEncode($this->observaciones->CurrentValue);
-		$this->observaciones->PlaceHolder = ew_RemoveHtml($this->observaciones->FldCaption());
-
-		// estado_documento
-		$this->estado_documento->EditAttrs["class"] = "form-control";
-		$this->estado_documento->EditCustomAttributes = "";
+		// tipo_persona
+		$this->tipo_persona->EditAttrs["class"] = "form-control";
+		$this->tipo_persona->EditCustomAttributes = "";
 		$arwrk = array();
-		$arwrk[] = array($this->estado_documento->FldTagValue(1), $this->estado_documento->FldTagCaption(1) <> "" ? $this->estado_documento->FldTagCaption(1) : $this->estado_documento->FldTagValue(1));
-		$arwrk[] = array($this->estado_documento->FldTagValue(2), $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->FldTagValue(2));
+		$arwrk[] = array($this->tipo_persona->FldTagValue(1), $this->tipo_persona->FldTagCaption(1) <> "" ? $this->tipo_persona->FldTagCaption(1) : $this->tipo_persona->FldTagValue(1));
+		$arwrk[] = array($this->tipo_persona->FldTagValue(2), $this->tipo_persona->FldTagCaption(2) <> "" ? $this->tipo_persona->FldTagCaption(2) : $this->tipo_persona->FldTagValue(2));
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-		$this->estado_documento->EditValue = $arwrk;
+		$this->tipo_persona->EditValue = $arwrk;
+
+		// nombre
+		$this->nombre->EditAttrs["class"] = "form-control";
+		$this->nombre->EditCustomAttributes = "";
+		$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
+		$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
+
+		// apellido
+		$this->apellido->EditAttrs["class"] = "form-control";
+		$this->apellido->EditCustomAttributes = "";
+		$this->apellido->EditValue = ew_HtmlEncode($this->apellido->CurrentValue);
+		$this->apellido->PlaceHolder = ew_RemoveHtml($this->apellido->FldCaption());
+
+		// direccion
+		$this->direccion->EditAttrs["class"] = "form-control";
+		$this->direccion->EditCustomAttributes = "";
+		$this->direccion->EditValue = ew_HtmlEncode($this->direccion->CurrentValue);
+		$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
+
+		// cui
+		$this->cui->EditAttrs["class"] = "form-control";
+		$this->cui->EditCustomAttributes = "";
+		$this->cui->EditValue = ew_HtmlEncode($this->cui->CurrentValue);
+		$this->cui->PlaceHolder = ew_RemoveHtml($this->cui->FldCaption());
+
+		// idpais
+		$this->idpais->EditAttrs["class"] = "form-control";
+		$this->idpais->EditCustomAttributes = "";
+
+		// fecha_nacimiento
+		$this->fecha_nacimiento->EditAttrs["class"] = "form-control";
+		$this->fecha_nacimiento->EditCustomAttributes = "";
+		$this->fecha_nacimiento->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_nacimiento->CurrentValue, 7));
+		$this->fecha_nacimiento->PlaceHolder = ew_RemoveHtml($this->fecha_nacimiento->FldCaption());
+
+		// email
+		$this->_email->EditAttrs["class"] = "form-control";
+		$this->_email->EditCustomAttributes = "";
+		$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
+		$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
+
+		// sexo
+		$this->sexo->EditAttrs["class"] = "form-control";
+		$this->sexo->EditCustomAttributes = "";
+		$arwrk = array();
+		$arwrk[] = array($this->sexo->FldTagValue(1), $this->sexo->FldTagCaption(1) <> "" ? $this->sexo->FldTagCaption(1) : $this->sexo->FldTagValue(1));
+		$arwrk[] = array($this->sexo->FldTagValue(2), $this->sexo->FldTagCaption(2) <> "" ? $this->sexo->FldTagCaption(2) : $this->sexo->FldTagValue(2));
+		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+		$this->sexo->EditValue = $arwrk;
 
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";
@@ -891,24 +893,11 @@ class cdocumento_ingreso extends cTable {
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
-		// monto
-		$this->monto->EditAttrs["class"] = "form-control";
-		$this->monto->EditCustomAttributes = "";
-		$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
-		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
-
 		// fecha_insercion
 		$this->fecha_insercion->EditAttrs["class"] = "form-control";
 		$this->fecha_insercion->EditCustomAttributes = "";
 		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
-		// idproveedor
-		$this->idproveedor->EditAttrs["class"] = "form-control";
-		$this->idproveedor->EditCustomAttributes = "";
-		$this->idproveedor->EditValue = ew_HtmlEncode($this->idproveedor->CurrentValue);
-		$this->idproveedor->PlaceHolder = ew_RemoveHtml($this->idproveedor->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -934,31 +923,31 @@ class cdocumento_ingreso extends cTable {
 			if ($Doc->Horizontal) { // Horizontal format, write header
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
-					if ($this->iddocumento_ingreso->Exportable) $Doc->ExportCaption($this->iddocumento_ingreso);
-					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
-					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
-					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
-					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
-					if ($this->observaciones->Exportable) $Doc->ExportCaption($this->observaciones);
-					if ($this->estado_documento->Exportable) $Doc->ExportCaption($this->estado_documento);
+					if ($this->idpersona->Exportable) $Doc->ExportCaption($this->idpersona);
+					if ($this->tipo_persona->Exportable) $Doc->ExportCaption($this->tipo_persona);
+					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
+					if ($this->apellido->Exportable) $Doc->ExportCaption($this->apellido);
+					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
+					if ($this->cui->Exportable) $Doc->ExportCaption($this->cui);
+					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
+					if ($this->fecha_nacimiento->Exportable) $Doc->ExportCaption($this->fecha_nacimiento);
+					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
+					if ($this->sexo->Exportable) $Doc->ExportCaption($this->sexo);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
-					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
-					if ($this->idproveedor->Exportable) $Doc->ExportCaption($this->idproveedor);
 				} else {
-					if ($this->iddocumento_ingreso->Exportable) $Doc->ExportCaption($this->iddocumento_ingreso);
-					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
-					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
-					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
-					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
-					if ($this->observaciones->Exportable) $Doc->ExportCaption($this->observaciones);
-					if ($this->estado_documento->Exportable) $Doc->ExportCaption($this->estado_documento);
+					if ($this->idpersona->Exportable) $Doc->ExportCaption($this->idpersona);
+					if ($this->tipo_persona->Exportable) $Doc->ExportCaption($this->tipo_persona);
+					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
+					if ($this->apellido->Exportable) $Doc->ExportCaption($this->apellido);
+					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
+					if ($this->cui->Exportable) $Doc->ExportCaption($this->cui);
+					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
+					if ($this->fecha_nacimiento->Exportable) $Doc->ExportCaption($this->fecha_nacimiento);
+					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
+					if ($this->sexo->Exportable) $Doc->ExportCaption($this->sexo);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
-					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
-					if ($this->idproveedor->Exportable) $Doc->ExportCaption($this->idproveedor);
 				}
 				$Doc->EndExportRow();
 			}
@@ -990,31 +979,31 @@ class cdocumento_ingreso extends cTable {
 				if (!$Doc->ExportCustom) {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
-						if ($this->iddocumento_ingreso->Exportable) $Doc->ExportField($this->iddocumento_ingreso);
-						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
-						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
-						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
-						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
-						if ($this->observaciones->Exportable) $Doc->ExportField($this->observaciones);
-						if ($this->estado_documento->Exportable) $Doc->ExportField($this->estado_documento);
+						if ($this->idpersona->Exportable) $Doc->ExportField($this->idpersona);
+						if ($this->tipo_persona->Exportable) $Doc->ExportField($this->tipo_persona);
+						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
+						if ($this->apellido->Exportable) $Doc->ExportField($this->apellido);
+						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
+						if ($this->cui->Exportable) $Doc->ExportField($this->cui);
+						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
+						if ($this->fecha_nacimiento->Exportable) $Doc->ExportField($this->fecha_nacimiento);
+						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
+						if ($this->sexo->Exportable) $Doc->ExportField($this->sexo);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
-						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
-						if ($this->idproveedor->Exportable) $Doc->ExportField($this->idproveedor);
 					} else {
-						if ($this->iddocumento_ingreso->Exportable) $Doc->ExportField($this->iddocumento_ingreso);
-						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
-						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
-						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
-						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
-						if ($this->observaciones->Exportable) $Doc->ExportField($this->observaciones);
-						if ($this->estado_documento->Exportable) $Doc->ExportField($this->estado_documento);
+						if ($this->idpersona->Exportable) $Doc->ExportField($this->idpersona);
+						if ($this->tipo_persona->Exportable) $Doc->ExportField($this->tipo_persona);
+						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
+						if ($this->apellido->Exportable) $Doc->ExportField($this->apellido);
+						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
+						if ($this->cui->Exportable) $Doc->ExportField($this->cui);
+						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
+						if ($this->fecha_nacimiento->Exportable) $Doc->ExportField($this->fecha_nacimiento);
+						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
+						if ($this->sexo->Exportable) $Doc->ExportField($this->sexo);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
-						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
-						if ($this->idproveedor->Exportable) $Doc->ExportField($this->idproveedor);
 					}
 					$Doc->EndExportRow();
 				}

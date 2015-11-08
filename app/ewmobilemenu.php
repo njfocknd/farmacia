@@ -23,6 +23,8 @@ $RootMenu->AddMenuItem(8, "mmi_registro_sanitario", $Language->MenuPhrase("8", "
 $RootMenu->AddMenuItem(12, "mmi_tipo_bodega", $Language->MenuPhrase("12", "MenuText"), "tipo_bodegalist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(18, "mmi_tipo_documento", $Language->MenuPhrase("18", "MenuText"), "tipo_documentolist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(17, "mmi_serie_documento", $Language->MenuPhrase("17", "MenuText"), "serie_documentolist.php", 18, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(29, "mmi_persona", $Language->MenuPhrase("29", "MenuText"), "personalist.php", -1, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(25, "mmi_cliente", $Language->MenuPhrase("25", "MenuText"), "clientelist.php?cmd=resetall", 29, "", TRUE, FALSE);
 $RootMenu->Render();
 ?>
 <!-- End Main Menu -->

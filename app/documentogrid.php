@@ -73,6 +73,12 @@ fdocumentogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_fecha_insercion");
 			if (elm && !ew_CheckEuroDate(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->fecha_insercion->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_idcliente");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento->idcliente->FldCaption(), $documento->idcliente->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idcliente");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->idcliente->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -97,6 +103,7 @@ fdocumentogrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "estado_documento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "monto", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "idcliente", false)) return false;
 	return true;
 }
 
@@ -263,6 +270,15 @@ $documento_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="fecha_insercion"><div><div id="elh_documento_fecha_insercion" class="documento_fecha_insercion">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($documento->idcliente->Visible) { // idcliente ?>
+	<?php if ($documento->SortUrl($documento->idcliente) == "") { ?>
+		<th data-name="idcliente"><div id="elh_documento_idcliente" class="documento_idcliente"><div class="ewTableHeaderCaption"><?php echo $documento->idcliente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idcliente"><div><div id="elh_documento_idcliente" class="documento_idcliente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento->idcliente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento->idcliente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento->idcliente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -775,6 +791,27 @@ if (@$emptywrk) $documento->estado_documento->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($documento->idcliente->Visible) { // idcliente ?>
+		<td data-name="idcliente"<?php echo $documento->idcliente->CellAttributes() ?>>
+<?php if ($documento->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $documento_grid->RowCnt ?>_documento_idcliente" class="form-group documento_idcliente">
+<input type="text" data-field="x_idcliente" name="x<?php echo $documento_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_grid->RowIndex ?>_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento->idcliente->PlaceHolder) ?>" value="<?php echo $documento->idcliente->EditValue ?>"<?php echo $documento->idcliente->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_idcliente" name="o<?php echo $documento_grid->RowIndex ?>_idcliente" id="o<?php echo $documento_grid->RowIndex ?>_idcliente" value="<?php echo ew_HtmlEncode($documento->idcliente->OldValue) ?>">
+<?php } ?>
+<?php if ($documento->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $documento_grid->RowCnt ?>_documento_idcliente" class="form-group documento_idcliente">
+<input type="text" data-field="x_idcliente" name="x<?php echo $documento_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_grid->RowIndex ?>_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento->idcliente->PlaceHolder) ?>" value="<?php echo $documento->idcliente->EditValue ?>"<?php echo $documento->idcliente->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($documento->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $documento->idcliente->ViewAttributes() ?>>
+<?php echo $documento->idcliente->ListViewValue() ?></span>
+<input type="hidden" data-field="x_idcliente" name="x<?php echo $documento_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_grid->RowIndex ?>_idcliente" value="<?php echo ew_HtmlEncode($documento->idcliente->FormValue) ?>">
+<input type="hidden" data-field="x_idcliente" name="o<?php echo $documento_grid->RowIndex ?>_idcliente" id="o<?php echo $documento_grid->RowIndex ?>_idcliente" value="<?php echo ew_HtmlEncode($documento->idcliente->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -1061,6 +1098,22 @@ if (@$emptywrk) $documento->estado_documento->OldValue = "";
 <input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $documento_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $documento_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento->fecha_insercion->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $documento_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $documento_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento->fecha_insercion->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($documento->idcliente->Visible) { // idcliente ?>
+		<td>
+<?php if ($documento->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_documento_idcliente" class="form-group documento_idcliente">
+<input type="text" data-field="x_idcliente" name="x<?php echo $documento_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_grid->RowIndex ?>_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento->idcliente->PlaceHolder) ?>" value="<?php echo $documento->idcliente->EditValue ?>"<?php echo $documento->idcliente->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_documento_idcliente" class="form-group documento_idcliente">
+<span<?php echo $documento->idcliente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $documento->idcliente->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_idcliente" name="x<?php echo $documento_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_grid->RowIndex ?>_idcliente" value="<?php echo ew_HtmlEncode($documento->idcliente->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_idcliente" name="o<?php echo $documento_grid->RowIndex ?>_idcliente" id="o<?php echo $documento_grid->RowIndex ?>_idcliente" value="<?php echo ew_HtmlEncode($documento->idcliente->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

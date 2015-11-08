@@ -6,8 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "detalle_documento_internoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documento_internoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -15,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$detalle_documento_interno_view = NULL; // Initialize page object first
+$cliente_view = NULL; // Initialize page object first
 
-class cdetalle_documento_interno_view extends cdetalle_documento_interno {
+class ccliente_view extends ccliente {
 
 	// Page ID
 	var $PageID = 'view';
@@ -26,10 +26,10 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'detalle_documento_interno';
+	var $TableName = 'cliente';
 
 	// Page object name
-	var $PageObjName = 'detalle_documento_interno_view';
+	var $PageObjName = 'cliente_view';
 
 	// Page name
 	function PageName() {
@@ -228,15 +228,15 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (detalle_documento_interno)
-		if (!isset($GLOBALS["detalle_documento_interno"]) || get_class($GLOBALS["detalle_documento_interno"]) == "cdetalle_documento_interno") {
-			$GLOBALS["detalle_documento_interno"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["detalle_documento_interno"];
+		// Table object (cliente)
+		if (!isset($GLOBALS["cliente"]) || get_class($GLOBALS["cliente"]) == "ccliente") {
+			$GLOBALS["cliente"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["cliente"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["iddetalle_documento_interno"] <> "") {
-			$this->RecKey["iddetalle_documento_interno"] = $_GET["iddetalle_documento_interno"];
-			$KeyUrl .= "&amp;iddetalle_documento_interno=" . urlencode($this->RecKey["iddetalle_documento_interno"]);
+		if (@$_GET["idcliente"] <> "") {
+			$this->RecKey["idcliente"] = $_GET["idcliente"];
+			$KeyUrl .= "&amp;idcliente=" . urlencode($this->RecKey["idcliente"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -246,8 +246,8 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (documento_interno)
-		if (!isset($GLOBALS['documento_interno'])) $GLOBALS['documento_interno'] = new cdocumento_interno();
+		// Table object (persona)
+		if (!isset($GLOBALS['persona'])) $GLOBALS['persona'] = new cpersona();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -255,7 +255,7 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'detalle_documento_interno', TRUE);
+			define("EW_TABLE_NAME", 'cliente', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -283,7 +283,7 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->iddetalle_documento_interno->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idcliente->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -329,13 +329,13 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $detalle_documento_interno;
+		global $EW_EXPORT, $cliente;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($detalle_documento_interno);
+				$doc = new $class($cliente);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -389,11 +389,11 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["iddetalle_documento_interno"] <> "") {
-				$this->iddetalle_documento_interno->setQueryStringValue($_GET["iddetalle_documento_interno"]);
-				$this->RecKey["iddetalle_documento_interno"] = $this->iddetalle_documento_interno->QueryStringValue;
+			if (@$_GET["idcliente"] <> "") {
+				$this->idcliente->setQueryStringValue($_GET["idcliente"]);
+				$this->RecKey["idcliente"] = $this->idcliente->QueryStringValue;
 			} else {
-				$sReturnUrl = "detalle_documento_internolist.php"; // Return to list
+				$sReturnUrl = "clientelist.php"; // Return to list
 			}
 
 			// Get action
@@ -403,11 +403,11 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "detalle_documento_internolist.php"; // No matching record, return to list
+						$sReturnUrl = "clientelist.php"; // No matching record, return to list
 					}
 			}
 		} else {
-			$sReturnUrl = "detalle_documento_internolist.php"; // Not page request, return to list
+			$sReturnUrl = "clientelist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -510,32 +510,34 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->iddetalle_documento_interno->setDbValue($rs->fields('iddetalle_documento_interno'));
-		$this->iddocumento_interno->setDbValue($rs->fields('iddocumento_interno'));
-		$this->idproducto->setDbValue($rs->fields('idproducto'));
-		$this->idbodega_ingreso->setDbValue($rs->fields('idbodega_ingreso'));
-		$this->idbodega_egreso->setDbValue($rs->fields('idbodega_egreso'));
-		$this->cantidad->setDbValue($rs->fields('cantidad'));
-		$this->estado->setDbValue($rs->fields('estado'));
+		$this->idcliente->setDbValue($rs->fields('idcliente'));
+		$this->idpersona->setDbValue($rs->fields('idpersona'));
+		$this->codigo->setDbValue($rs->fields('codigo'));
+		$this->nit->setDbValue($rs->fields('nit'));
+		$this->nombre_factura->setDbValue($rs->fields('nombre_factura'));
+		$this->direccion_factura->setDbValue($rs->fields('direccion_factura'));
+		$this->debito->setDbValue($rs->fields('debito'));
+		$this->credito->setDbValue($rs->fields('credito'));
+		$this->_email->setDbValue($rs->fields('email'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
-		$this->monto->setDbValue($rs->fields('monto'));
-		$this->precio->setDbValue($rs->fields('precio'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->iddetalle_documento_interno->DbValue = $row['iddetalle_documento_interno'];
-		$this->iddocumento_interno->DbValue = $row['iddocumento_interno'];
-		$this->idproducto->DbValue = $row['idproducto'];
-		$this->idbodega_ingreso->DbValue = $row['idbodega_ingreso'];
-		$this->idbodega_egreso->DbValue = $row['idbodega_egreso'];
-		$this->cantidad->DbValue = $row['cantidad'];
-		$this->estado->DbValue = $row['estado'];
+		$this->idcliente->DbValue = $row['idcliente'];
+		$this->idpersona->DbValue = $row['idpersona'];
+		$this->codigo->DbValue = $row['codigo'];
+		$this->nit->DbValue = $row['nit'];
+		$this->nombre_factura->DbValue = $row['nombre_factura'];
+		$this->direccion_factura->DbValue = $row['direccion_factura'];
+		$this->debito->DbValue = $row['debito'];
+		$this->credito->DbValue = $row['credito'];
+		$this->_email->DbValue = $row['email'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
-		$this->monto->DbValue = $row['monto'];
-		$this->precio->DbValue = $row['precio'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -552,38 +554,39 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 		$this->SetupOtherOptions();
 
 		// Convert decimal values if posted back
-		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
-			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
+		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
+			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
 
 		// Convert decimal values if posted back
-		if ($this->precio->FormValue == $this->precio->CurrentValue && is_numeric(ew_StrToFloat($this->precio->CurrentValue)))
-			$this->precio->CurrentValue = ew_StrToFloat($this->precio->CurrentValue);
+		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
+			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
 
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// iddetalle_documento_interno
-		// iddocumento_interno
-		// idproducto
-		// idbodega_ingreso
-		// idbodega_egreso
-		// cantidad
-		// estado
+		// idcliente
+		// idpersona
+		// codigo
+		// nit
+		// nombre_factura
+		// direccion_factura
+		// debito
+		// credito
+		// email
 		// fecha_insercion
-		// monto
-		// precio
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// iddetalle_documento_interno
-			$this->iddetalle_documento_interno->ViewValue = $this->iddetalle_documento_interno->CurrentValue;
-			$this->iddetalle_documento_interno->ViewCustomAttributes = "";
+			// idcliente
+			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			$this->idcliente->ViewCustomAttributes = "";
 
-			// iddocumento_interno
-			if (strval($this->iddocumento_interno->CurrentValue) <> "") {
-				$sFilterWrk = "`iddocumento_interno`" . ew_SearchString("=", $this->iddocumento_interno->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `iddocumento_interno`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_interno`";
+			// idpersona
+			if (strval($this->idpersona->CurrentValue) <> "") {
+				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -594,110 +597,53 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddocumento_interno, $sWhereWrk);
+			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->iddocumento_interno->ViewValue = $rswrk->fields('DispFld');
-					$this->iddocumento_interno->ViewValue .= ew_ValueSeparator(2,$this->iddocumento_interno) . $rswrk->fields('Disp3Fld');
+					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
+					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
 					$rswrk->Close();
 				} else {
-					$this->iddocumento_interno->ViewValue = $this->iddocumento_interno->CurrentValue;
+					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
 				}
 			} else {
-				$this->iddocumento_interno->ViewValue = NULL;
+				$this->idpersona->ViewValue = NULL;
 			}
-			$this->iddocumento_interno->ViewCustomAttributes = "";
+			$this->idpersona->ViewCustomAttributes = "";
 
-			// idproducto
-			if (strval($this->idproducto->CurrentValue) <> "") {
-				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// codigo
+			$this->codigo->ViewValue = $this->codigo->CurrentValue;
+			$this->codigo->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
-				}
-			} else {
-				$this->idproducto->ViewValue = NULL;
-			}
-			$this->idproducto->ViewCustomAttributes = "";
+			// nit
+			$this->nit->ViewValue = $this->nit->CurrentValue;
+			$this->nit->ViewCustomAttributes = "";
 
-			// idbodega_ingreso
-			if (strval($this->idbodega_ingreso->CurrentValue) <> "") {
-				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega_ingreso->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// nombre_factura
+			$this->nombre_factura->ViewValue = $this->nombre_factura->CurrentValue;
+			$this->nombre_factura->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbodega_ingreso, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `descripcion`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbodega_ingreso->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbodega_ingreso->ViewValue = $this->idbodega_ingreso->CurrentValue;
-				}
-			} else {
-				$this->idbodega_ingreso->ViewValue = NULL;
-			}
-			$this->idbodega_ingreso->ViewCustomAttributes = "";
+			// direccion_factura
+			$this->direccion_factura->ViewValue = $this->direccion_factura->CurrentValue;
+			$this->direccion_factura->ViewCustomAttributes = "";
 
-			// idbodega_egreso
-			if (strval($this->idbodega_egreso->CurrentValue) <> "") {
-				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega_egreso->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// debito
+			$this->debito->ViewValue = $this->debito->CurrentValue;
+			$this->debito->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbodega_egreso, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `descripcion`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbodega_egreso->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbodega_egreso->ViewValue = $this->idbodega_egreso->CurrentValue;
-				}
-			} else {
-				$this->idbodega_egreso->ViewValue = NULL;
-			}
-			$this->idbodega_egreso->ViewCustomAttributes = "";
+			// credito
+			$this->credito->ViewValue = $this->credito->CurrentValue;
+			$this->credito->ViewCustomAttributes = "";
 
-			// cantidad
-			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
-			$this->cantidad->ViewCustomAttributes = "";
+			// email
+			$this->_email->ViewValue = $this->_email->CurrentValue;
+			$this->_email->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -716,68 +662,60 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// fecha_insercion
-			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
-			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
-			$this->fecha_insercion->ViewCustomAttributes = "";
+			// idcliente
+			$this->idcliente->LinkCustomAttributes = "";
+			$this->idcliente->HrefValue = "";
+			$this->idcliente->TooltipValue = "";
 
-			// monto
-			$this->monto->ViewValue = $this->monto->CurrentValue;
-			$this->monto->ViewCustomAttributes = "";
+			// idpersona
+			$this->idpersona->LinkCustomAttributes = "";
+			$this->idpersona->HrefValue = "";
+			$this->idpersona->TooltipValue = "";
 
-			// precio
-			$this->precio->ViewValue = $this->precio->CurrentValue;
-			$this->precio->ViewCustomAttributes = "";
+			// codigo
+			$this->codigo->LinkCustomAttributes = "";
+			$this->codigo->HrefValue = "";
+			$this->codigo->TooltipValue = "";
 
-			// iddetalle_documento_interno
-			$this->iddetalle_documento_interno->LinkCustomAttributes = "";
-			$this->iddetalle_documento_interno->HrefValue = "";
-			$this->iddetalle_documento_interno->TooltipValue = "";
+			// nit
+			$this->nit->LinkCustomAttributes = "";
+			$this->nit->HrefValue = "";
+			$this->nit->TooltipValue = "";
 
-			// iddocumento_interno
-			$this->iddocumento_interno->LinkCustomAttributes = "";
-			$this->iddocumento_interno->HrefValue = "";
-			$this->iddocumento_interno->TooltipValue = "";
+			// nombre_factura
+			$this->nombre_factura->LinkCustomAttributes = "";
+			$this->nombre_factura->HrefValue = "";
+			$this->nombre_factura->TooltipValue = "";
 
-			// idproducto
-			$this->idproducto->LinkCustomAttributes = "";
-			$this->idproducto->HrefValue = "";
-			$this->idproducto->TooltipValue = "";
+			// direccion_factura
+			$this->direccion_factura->LinkCustomAttributes = "";
+			$this->direccion_factura->HrefValue = "";
+			$this->direccion_factura->TooltipValue = "";
 
-			// idbodega_ingreso
-			$this->idbodega_ingreso->LinkCustomAttributes = "";
-			$this->idbodega_ingreso->HrefValue = "";
-			$this->idbodega_ingreso->TooltipValue = "";
+			// debito
+			$this->debito->LinkCustomAttributes = "";
+			$this->debito->HrefValue = "";
+			$this->debito->TooltipValue = "";
 
-			// idbodega_egreso
-			$this->idbodega_egreso->LinkCustomAttributes = "";
-			$this->idbodega_egreso->HrefValue = "";
-			$this->idbodega_egreso->TooltipValue = "";
+			// credito
+			$this->credito->LinkCustomAttributes = "";
+			$this->credito->HrefValue = "";
+			$this->credito->TooltipValue = "";
 
-			// cantidad
-			$this->cantidad->LinkCustomAttributes = "";
-			$this->cantidad->HrefValue = "";
-			$this->cantidad->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
+			// email
+			$this->_email->LinkCustomAttributes = "";
+			$this->_email->HrefValue = "";
+			$this->_email->TooltipValue = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
 
-			// monto
-			$this->monto->LinkCustomAttributes = "";
-			$this->monto->HrefValue = "";
-			$this->monto->TooltipValue = "";
-
-			// precio
-			$this->precio->LinkCustomAttributes = "";
-			$this->precio->HrefValue = "";
-			$this->precio->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -797,13 +735,13 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "documento_interno") {
+			if ($sMasterTblVar == "persona") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_iddocumento_interno"] <> "") {
-					$GLOBALS["documento_interno"]->iddocumento_interno->setQueryStringValue($_GET["fk_iddocumento_interno"]);
-					$this->iddocumento_interno->setQueryStringValue($GLOBALS["documento_interno"]->iddocumento_interno->QueryStringValue);
-					$this->iddocumento_interno->setSessionValue($this->iddocumento_interno->QueryStringValue);
-					if (!is_numeric($GLOBALS["documento_interno"]->iddocumento_interno->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idpersona"] <> "") {
+					$GLOBALS["persona"]->idpersona->setQueryStringValue($_GET["fk_idpersona"]);
+					$this->idpersona->setQueryStringValue($GLOBALS["persona"]->idpersona->QueryStringValue);
+					$this->idpersona->setSessionValue($this->idpersona->QueryStringValue);
+					if (!is_numeric($GLOBALS["persona"]->idpersona->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -820,8 +758,8 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "documento_interno") {
-				if ($this->iddocumento_interno->QueryStringValue == "") $this->iddocumento_interno->setSessionValue("");
+			if ($sMasterTblVar <> "persona") {
+				if ($this->idpersona->QueryStringValue == "") $this->idpersona->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -832,7 +770,7 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "detalle_documento_internolist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "clientelist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -928,33 +866,33 @@ class cdetalle_documento_interno_view extends cdetalle_documento_interno {
 <?php
 
 // Create page object
-if (!isset($detalle_documento_interno_view)) $detalle_documento_interno_view = new cdetalle_documento_interno_view();
+if (!isset($cliente_view)) $cliente_view = new ccliente_view();
 
 // Page init
-$detalle_documento_interno_view->Page_Init();
+$cliente_view->Page_Init();
 
 // Page main
-$detalle_documento_interno_view->Page_Main();
+$cliente_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$detalle_documento_interno_view->Page_Render();
+$cliente_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var detalle_documento_interno_view = new ew_Page("detalle_documento_interno_view");
-detalle_documento_interno_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = detalle_documento_interno_view.PageID; // For backward compatibility
+var cliente_view = new ew_Page("cliente_view");
+cliente_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = cliente_view.PageID; // For backward compatibility
 
 // Form object
-var fdetalle_documento_internoview = new ew_Form("fdetalle_documento_internoview");
+var fclienteview = new ew_Form("fclienteview");
 
 // Form_CustomValidate event
-fdetalle_documento_internoview.Form_CustomValidate = 
+fclienteview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -963,16 +901,13 @@ fdetalle_documento_internoview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fdetalle_documento_internoview.ValidateRequired = true;
+fclienteview.ValidateRequired = true;
 <?php } else { ?>
-fdetalle_documento_internoview.ValidateRequired = false; 
+fclienteview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fdetalle_documento_internoview.Lists["x_iddocumento_interno"] = {"LinkField":"x_iddocumento_interno","Ajax":true,"AutoFill":false,"DisplayFields":["x_serie","","x_correlativo",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fdetalle_documento_internoview.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fdetalle_documento_internoview.Lists["x_idbodega_ingreso"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fdetalle_documento_internoview.Lists["x_idbodega_egreso"] = {"LinkField":"x_idbodega","Ajax":true,"AutoFill":false,"DisplayFields":["x_descripcion","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fclienteview.Lists["x_idpersona"] = {"LinkField":"x_idpersona","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","x_apellido",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -982,130 +917,141 @@ fdetalle_documento_internoview.Lists["x_idbodega_egreso"] = {"LinkField":"x_idbo
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php $detalle_documento_interno_view->ExportOptions->Render("body") ?>
+<?php $cliente_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($detalle_documento_interno_view->OtherOptions as &$option)
+	foreach ($cliente_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $detalle_documento_interno_view->ShowPageHeader(); ?>
+<?php $cliente_view->ShowPageHeader(); ?>
 <?php
-$detalle_documento_interno_view->ShowMessage();
+$cliente_view->ShowMessage();
 ?>
-<form name="fdetalle_documento_internoview" id="fdetalle_documento_internoview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($detalle_documento_interno_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $detalle_documento_interno_view->Token ?>">
+<form name="fclienteview" id="fclienteview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($cliente_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cliente_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="detalle_documento_interno">
+<input type="hidden" name="t" value="cliente">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($detalle_documento_interno->iddetalle_documento_interno->Visible) { // iddetalle_documento_interno ?>
-	<tr id="r_iddetalle_documento_interno">
-		<td><span id="elh_detalle_documento_interno_iddetalle_documento_interno"><?php echo $detalle_documento_interno->iddetalle_documento_interno->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->iddetalle_documento_interno->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_iddetalle_documento_interno" class="form-group">
-<span<?php echo $detalle_documento_interno->iddetalle_documento_interno->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->iddetalle_documento_interno->ViewValue ?></span>
+<?php if ($cliente->idcliente->Visible) { // idcliente ?>
+	<tr id="r_idcliente">
+		<td><span id="elh_cliente_idcliente"><?php echo $cliente->idcliente->FldCaption() ?></span></td>
+		<td<?php echo $cliente->idcliente->CellAttributes() ?>>
+<span id="el_cliente_idcliente" class="form-group">
+<span<?php echo $cliente->idcliente->ViewAttributes() ?>>
+<?php echo $cliente->idcliente->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->iddocumento_interno->Visible) { // iddocumento_interno ?>
-	<tr id="r_iddocumento_interno">
-		<td><span id="elh_detalle_documento_interno_iddocumento_interno"><?php echo $detalle_documento_interno->iddocumento_interno->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->iddocumento_interno->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_iddocumento_interno" class="form-group">
-<span<?php echo $detalle_documento_interno->iddocumento_interno->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->iddocumento_interno->ViewValue ?></span>
+<?php if ($cliente->idpersona->Visible) { // idpersona ?>
+	<tr id="r_idpersona">
+		<td><span id="elh_cliente_idpersona"><?php echo $cliente->idpersona->FldCaption() ?></span></td>
+		<td<?php echo $cliente->idpersona->CellAttributes() ?>>
+<span id="el_cliente_idpersona" class="form-group">
+<span<?php echo $cliente->idpersona->ViewAttributes() ?>>
+<?php echo $cliente->idpersona->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->idproducto->Visible) { // idproducto ?>
-	<tr id="r_idproducto">
-		<td><span id="elh_detalle_documento_interno_idproducto"><?php echo $detalle_documento_interno->idproducto->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->idproducto->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_idproducto" class="form-group">
-<span<?php echo $detalle_documento_interno->idproducto->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->idproducto->ViewValue ?></span>
+<?php if ($cliente->codigo->Visible) { // codigo ?>
+	<tr id="r_codigo">
+		<td><span id="elh_cliente_codigo"><?php echo $cliente->codigo->FldCaption() ?></span></td>
+		<td<?php echo $cliente->codigo->CellAttributes() ?>>
+<span id="el_cliente_codigo" class="form-group">
+<span<?php echo $cliente->codigo->ViewAttributes() ?>>
+<?php echo $cliente->codigo->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->idbodega_ingreso->Visible) { // idbodega_ingreso ?>
-	<tr id="r_idbodega_ingreso">
-		<td><span id="elh_detalle_documento_interno_idbodega_ingreso"><?php echo $detalle_documento_interno->idbodega_ingreso->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->idbodega_ingreso->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_idbodega_ingreso" class="form-group">
-<span<?php echo $detalle_documento_interno->idbodega_ingreso->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->idbodega_ingreso->ViewValue ?></span>
+<?php if ($cliente->nit->Visible) { // nit ?>
+	<tr id="r_nit">
+		<td><span id="elh_cliente_nit"><?php echo $cliente->nit->FldCaption() ?></span></td>
+		<td<?php echo $cliente->nit->CellAttributes() ?>>
+<span id="el_cliente_nit" class="form-group">
+<span<?php echo $cliente->nit->ViewAttributes() ?>>
+<?php echo $cliente->nit->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->idbodega_egreso->Visible) { // idbodega_egreso ?>
-	<tr id="r_idbodega_egreso">
-		<td><span id="elh_detalle_documento_interno_idbodega_egreso"><?php echo $detalle_documento_interno->idbodega_egreso->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->idbodega_egreso->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_idbodega_egreso" class="form-group">
-<span<?php echo $detalle_documento_interno->idbodega_egreso->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->idbodega_egreso->ViewValue ?></span>
+<?php if ($cliente->nombre_factura->Visible) { // nombre_factura ?>
+	<tr id="r_nombre_factura">
+		<td><span id="elh_cliente_nombre_factura"><?php echo $cliente->nombre_factura->FldCaption() ?></span></td>
+		<td<?php echo $cliente->nombre_factura->CellAttributes() ?>>
+<span id="el_cliente_nombre_factura" class="form-group">
+<span<?php echo $cliente->nombre_factura->ViewAttributes() ?>>
+<?php echo $cliente->nombre_factura->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->cantidad->Visible) { // cantidad ?>
-	<tr id="r_cantidad">
-		<td><span id="elh_detalle_documento_interno_cantidad"><?php echo $detalle_documento_interno->cantidad->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->cantidad->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_cantidad" class="form-group">
-<span<?php echo $detalle_documento_interno->cantidad->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->cantidad->ViewValue ?></span>
+<?php if ($cliente->direccion_factura->Visible) { // direccion_factura ?>
+	<tr id="r_direccion_factura">
+		<td><span id="elh_cliente_direccion_factura"><?php echo $cliente->direccion_factura->FldCaption() ?></span></td>
+		<td<?php echo $cliente->direccion_factura->CellAttributes() ?>>
+<span id="el_cliente_direccion_factura" class="form-group">
+<span<?php echo $cliente->direccion_factura->ViewAttributes() ?>>
+<?php echo $cliente->direccion_factura->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->estado->Visible) { // estado ?>
-	<tr id="r_estado">
-		<td><span id="elh_detalle_documento_interno_estado"><?php echo $detalle_documento_interno->estado->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->estado->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_estado" class="form-group">
-<span<?php echo $detalle_documento_interno->estado->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->estado->ViewValue ?></span>
+<?php if ($cliente->debito->Visible) { // debito ?>
+	<tr id="r_debito">
+		<td><span id="elh_cliente_debito"><?php echo $cliente->debito->FldCaption() ?></span></td>
+		<td<?php echo $cliente->debito->CellAttributes() ?>>
+<span id="el_cliente_debito" class="form-group">
+<span<?php echo $cliente->debito->ViewAttributes() ?>>
+<?php echo $cliente->debito->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->fecha_insercion->Visible) { // fecha_insercion ?>
+<?php if ($cliente->credito->Visible) { // credito ?>
+	<tr id="r_credito">
+		<td><span id="elh_cliente_credito"><?php echo $cliente->credito->FldCaption() ?></span></td>
+		<td<?php echo $cliente->credito->CellAttributes() ?>>
+<span id="el_cliente_credito" class="form-group">
+<span<?php echo $cliente->credito->ViewAttributes() ?>>
+<?php echo $cliente->credito->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cliente->_email->Visible) { // email ?>
+	<tr id="r__email">
+		<td><span id="elh_cliente__email"><?php echo $cliente->_email->FldCaption() ?></span></td>
+		<td<?php echo $cliente->_email->CellAttributes() ?>>
+<span id="el_cliente__email" class="form-group">
+<span<?php echo $cliente->_email->ViewAttributes() ?>>
+<?php echo $cliente->_email->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cliente->fecha_insercion->Visible) { // fecha_insercion ?>
 	<tr id="r_fecha_insercion">
-		<td><span id="elh_detalle_documento_interno_fecha_insercion"><?php echo $detalle_documento_interno->fecha_insercion->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->fecha_insercion->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_fecha_insercion" class="form-group">
-<span<?php echo $detalle_documento_interno->fecha_insercion->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->fecha_insercion->ViewValue ?></span>
+		<td><span id="elh_cliente_fecha_insercion"><?php echo $cliente->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $cliente->fecha_insercion->CellAttributes() ?>>
+<span id="el_cliente_fecha_insercion" class="form-group">
+<span<?php echo $cliente->fecha_insercion->ViewAttributes() ?>>
+<?php echo $cliente->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
-	<tr id="r_monto">
-		<td><span id="elh_detalle_documento_interno_monto"><?php echo $detalle_documento_interno->monto->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->monto->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_monto" class="form-group">
-<span<?php echo $detalle_documento_interno->monto->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->monto->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
-	<tr id="r_precio">
-		<td><span id="elh_detalle_documento_interno_precio"><?php echo $detalle_documento_interno->precio->FldCaption() ?></span></td>
-		<td<?php echo $detalle_documento_interno->precio->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_precio" class="form-group">
-<span<?php echo $detalle_documento_interno->precio->ViewAttributes() ?>>
-<?php echo $detalle_documento_interno->precio->ViewValue ?></span>
+<?php if ($cliente->estado->Visible) { // estado ?>
+	<tr id="r_estado">
+		<td><span id="elh_cliente_estado"><?php echo $cliente->estado->FldCaption() ?></span></td>
+		<td<?php echo $cliente->estado->CellAttributes() ?>>
+<span id="el_cliente_estado" class="form-group">
+<span<?php echo $cliente->estado->ViewAttributes() ?>>
+<?php echo $cliente->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>
@@ -1113,10 +1059,10 @@ $detalle_documento_interno_view->ShowMessage();
 </table>
 </form>
 <script type="text/javascript">
-fdetalle_documento_internoview.Init();
+fclienteview.Init();
 </script>
 <?php
-$detalle_documento_interno_view->ShowPageFooter();
+$cliente_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1128,5 +1074,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$detalle_documento_interno_view->Page_Terminate();
+$cliente_view->Page_Terminate();
 ?>

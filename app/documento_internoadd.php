@@ -420,6 +420,7 @@ class cdocumento_interno_add extends cdocumento_interno {
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
 		$this->idsucursal_ingreso->CurrentValue = 1;
 		$this->idsucursal_egreso->CurrentValue = 1;
+		$this->monto->CurrentValue = 0.00;
 	}
 
 	// Load form values
@@ -446,6 +447,9 @@ class cdocumento_interno_add extends cdocumento_interno {
 		if (!$this->idsucursal_egreso->FldIsDetailKey) {
 			$this->idsucursal_egreso->setFormValue($objForm->GetValue("x_idsucursal_egreso"));
 		}
+		if (!$this->monto->FldIsDetailKey) {
+			$this->monto->setFormValue($objForm->GetValue("x_monto"));
+		}
 	}
 
 	// Restore form values
@@ -459,6 +463,7 @@ class cdocumento_interno_add extends cdocumento_interno {
 		$this->observaciones->CurrentValue = $this->observaciones->FormValue;
 		$this->idsucursal_ingreso->CurrentValue = $this->idsucursal_ingreso->FormValue;
 		$this->idsucursal_egreso->CurrentValue = $this->idsucursal_egreso->FormValue;
+		$this->monto->CurrentValue = $this->monto->FormValue;
 	}
 
 	// Load row based on key values
@@ -502,6 +507,7 @@ class cdocumento_interno_add extends cdocumento_interno {
 		$this->idsucursal_egreso->setDbValue($rs->fields('idsucursal_egreso'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
 	}
 
 	// Load DbValue from recordset
@@ -520,6 +526,7 @@ class cdocumento_interno_add extends cdocumento_interno {
 		$this->idsucursal_egreso->DbValue = $row['idsucursal_egreso'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->monto->DbValue = $row['monto'];
 	}
 
 	// Load old record
@@ -550,8 +557,12 @@ class cdocumento_interno_add extends cdocumento_interno {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
+			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
@@ -567,6 +578,7 @@ class cdocumento_interno_add extends cdocumento_interno {
 		// idsucursal_egreso
 		// estado
 		// fecha_insercion
+		// monto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -743,6 +755,10 @@ class cdocumento_interno_add extends cdocumento_interno {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -772,6 +788,11 @@ class cdocumento_interno_add extends cdocumento_interno {
 			$this->idsucursal_egreso->LinkCustomAttributes = "";
 			$this->idsucursal_egreso->HrefValue = "";
 			$this->idsucursal_egreso->TooltipValue = "";
+
+			// monto
+			$this->monto->LinkCustomAttributes = "";
+			$this->monto->HrefValue = "";
+			$this->monto->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idtipo_documento
@@ -895,6 +916,13 @@ class cdocumento_interno_add extends cdocumento_interno {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idsucursal_egreso->EditValue = $arwrk;
 
+			// monto
+			$this->monto->EditAttrs["class"] = "form-control";
+			$this->monto->EditCustomAttributes = "";
+			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
+			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+
 			// Edit refer script
 			// idtipo_documento
 
@@ -914,6 +942,9 @@ class cdocumento_interno_add extends cdocumento_interno {
 
 			// idsucursal_egreso
 			$this->idsucursal_egreso->HrefValue = "";
+
+			// monto
+			$this->monto->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -950,6 +981,12 @@ class cdocumento_interno_add extends cdocumento_interno {
 		}
 		if (!$this->idsucursal_egreso->FldIsDetailKey && !is_null($this->idsucursal_egreso->FormValue) && $this->idsucursal_egreso->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idsucursal_egreso->FldCaption(), $this->idsucursal_egreso->ReqErrMsg));
+		}
+		if (!$this->monto->FldIsDetailKey && !is_null($this->monto->FormValue) && $this->monto->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->monto->FldCaption(), $this->monto->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->monto->FormValue)) {
+			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
 		}
 
 		// Validate detail grid
@@ -1002,6 +1039,9 @@ class cdocumento_interno_add extends cdocumento_interno {
 
 		// idsucursal_egreso
 		$this->idsucursal_egreso->SetDbValueDef($rsnew, $this->idsucursal_egreso->CurrentValue, 0, strval($this->idsucursal_egreso->CurrentValue) == "");
+
+		// monto
+		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1230,6 +1270,12 @@ fdocumento_internoadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idsucursal_egreso");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_interno->idsucursal_egreso->FldCaption(), $documento_interno->idsucursal_egreso->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_interno->monto->FldCaption(), $documento_interno->monto->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_interno->monto->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1477,6 +1523,16 @@ $sSqlWrk .= " ORDER BY `nombre`";
 <input type="hidden" name="s_x_idsucursal_egreso" id="s_x_idsucursal_egreso" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idsucursal` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $documento_interno->idsucursal_egreso->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($documento_interno->monto->Visible) { // monto ?>
+	<div id="r_monto" class="form-group">
+		<label id="elh_documento_interno_monto" for="x_monto" class="col-sm-2 control-label ewLabel"><?php echo $documento_interno->monto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $documento_interno->monto->CellAttributes() ?>>
+<span id="el_documento_interno_monto">
+<input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($documento_interno->monto->PlaceHolder) ?>" value="<?php echo $documento_interno->monto->EditValue ?>"<?php echo $documento_interno->monto->EditAttributes() ?>>
+</span>
+<?php echo $documento_interno->monto->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

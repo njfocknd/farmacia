@@ -19,6 +19,7 @@ class cdocumento_interno extends cTable {
 	var $idsucursal_egreso;
 	var $estado;
 	var $fecha_insercion;
+	var $monto;
 
 	//
 	// Table class constructor
@@ -98,6 +99,11 @@ class cdocumento_interno extends cTable {
 		$this->fecha_insercion = new cField('documento_interno', 'documento_interno', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
+
+		// monto
+		$this->monto = new cField('documento_interno', 'documento_interno', 'x_monto', 'monto', '`monto`', '`monto`', 131, -1, FALSE, '`monto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->monto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['monto'] = &$this->monto;
 	}
 
 	// Single column sort
@@ -614,6 +620,7 @@ class cdocumento_interno extends cTable {
 		$this->idsucursal_egreso->setDbValue($rs->fields('idsucursal_egreso'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
 	}
 
 	// Render list row values
@@ -636,6 +643,7 @@ class cdocumento_interno extends cTable {
 		// idsucursal_egreso
 		// estado
 		// fecha_insercion
+		// monto
 		// iddocumento_interno
 
 		$this->iddocumento_interno->ViewValue = $this->iddocumento_interno->CurrentValue;
@@ -810,6 +818,10 @@ class cdocumento_interno extends cTable {
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
+		// monto
+		$this->monto->ViewValue = $this->monto->CurrentValue;
+		$this->monto->ViewCustomAttributes = "";
+
 		// iddocumento_interno
 		$this->iddocumento_interno->LinkCustomAttributes = "";
 		$this->iddocumento_interno->HrefValue = "";
@@ -869,6 +881,11 @@ class cdocumento_interno extends cTable {
 		$this->fecha_insercion->LinkCustomAttributes = "";
 		$this->fecha_insercion->HrefValue = "";
 		$this->fecha_insercion->TooltipValue = "";
+
+		// monto
+		$this->monto->LinkCustomAttributes = "";
+		$this->monto->HrefValue = "";
+		$this->monto->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -949,6 +966,13 @@ class cdocumento_interno extends cTable {
 		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
+		// monto
+		$this->monto->EditAttrs["class"] = "form-control";
+		$this->monto->EditCustomAttributes = "";
+		$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
+		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
+		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -985,6 +1009,7 @@ class cdocumento_interno extends cTable {
 					if ($this->idsucursal_egreso->Exportable) $Doc->ExportCaption($this->idsucursal_egreso);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 				} else {
 					if ($this->iddocumento_interno->Exportable) $Doc->ExportCaption($this->iddocumento_interno);
 					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
@@ -998,6 +1023,7 @@ class cdocumento_interno extends cTable {
 					if ($this->idsucursal_egreso->Exportable) $Doc->ExportCaption($this->idsucursal_egreso);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1041,6 +1067,7 @@ class cdocumento_interno extends cTable {
 						if ($this->idsucursal_egreso->Exportable) $Doc->ExportField($this->idsucursal_egreso);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 					} else {
 						if ($this->iddocumento_interno->Exportable) $Doc->ExportField($this->iddocumento_interno);
 						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
@@ -1054,6 +1081,7 @@ class cdocumento_interno extends cTable {
 						if ($this->idsucursal_egreso->Exportable) $Doc->ExportField($this->idsucursal_egreso);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 					}
 					$Doc->EndExportRow();
 				}

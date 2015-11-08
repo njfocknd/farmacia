@@ -442,6 +442,7 @@ class cdocumento_add extends cdocumento {
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
 		$this->fecha_insercion->CurrentValue = NULL;
 		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
+		$this->idcliente->CurrentValue = 1;
 	}
 
 	// Load form values
@@ -478,6 +479,9 @@ class cdocumento_add extends cdocumento {
 			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
 			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 		}
+		if (!$this->idcliente->FldIsDetailKey) {
+			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
+		}
 	}
 
 	// Restore form values
@@ -495,6 +499,7 @@ class cdocumento_add extends cdocumento {
 		$this->observaciones->CurrentValue = $this->observaciones->FormValue;
 		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
 		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
+		$this->idcliente->CurrentValue = $this->idcliente->FormValue;
 	}
 
 	// Load row based on key values
@@ -543,6 +548,7 @@ class cdocumento_add extends cdocumento {
 		$this->motivo_anulacion->setDbValue($rs->fields('motivo_anulacion'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idcliente->setDbValue($rs->fields('idcliente'));
 	}
 
 	// Load DbValue from recordset
@@ -566,6 +572,7 @@ class cdocumento_add extends cdocumento {
 		$this->motivo_anulacion->DbValue = $row['motivo_anulacion'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idcliente->DbValue = $row['idcliente'];
 	}
 
 	// Load old record
@@ -618,6 +625,7 @@ class cdocumento_add extends cdocumento {
 		// motivo_anulacion
 		// monto
 		// fecha_insercion
+		// idcliente
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -792,6 +800,10 @@ class cdocumento_add extends cdocumento {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idcliente
+			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			$this->idcliente->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -836,6 +848,11 @@ class cdocumento_add extends cdocumento {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idcliente
+			$this->idcliente->LinkCustomAttributes = "";
+			$this->idcliente->HrefValue = "";
+			$this->idcliente->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idtipo_documento
@@ -1049,6 +1066,12 @@ class cdocumento_add extends cdocumento {
 			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
+			// idcliente
+			$this->idcliente->EditAttrs["class"] = "form-control";
+			$this->idcliente->EditCustomAttributes = "";
+			$this->idcliente->EditValue = ew_HtmlEncode($this->idcliente->CurrentValue);
+			$this->idcliente->PlaceHolder = ew_RemoveHtml($this->idcliente->FldCaption());
+
 			// Edit refer script
 			// idtipo_documento
 
@@ -1077,6 +1100,9 @@ class cdocumento_add extends cdocumento {
 
 			// fecha_insercion
 			$this->fecha_insercion->HrefValue = "";
+
+			// idcliente
+			$this->idcliente->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1113,6 +1139,12 @@ class cdocumento_add extends cdocumento {
 		}
 		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
 			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
+		}
+		if (!$this->idcliente->FldIsDetailKey && !is_null($this->idcliente->FormValue) && $this->idcliente->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idcliente->FldCaption(), $this->idcliente->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idcliente->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idcliente->FldErrMsg());
 		}
 
 		// Validate detail grid
@@ -1174,6 +1206,9 @@ class cdocumento_add extends cdocumento {
 
 		// fecha_insercion
 		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
+
+		// idcliente
+		$this->idcliente->SetDbValueDef($rsnew, $this->idcliente->CurrentValue, 0, strval($this->idcliente->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1472,6 +1507,12 @@ fdocumentoadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_fecha_insercion");
 			if (elm && !ew_CheckEuroDate(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->fecha_insercion->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_idcliente");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento->idcliente->FldCaption(), $documento->idcliente->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idcliente");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($documento->idcliente->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1745,6 +1786,16 @@ ew_CreateCalendar("fdocumentoadd", "x_fecha", "%d/%m/%Y");
 <input type="text" data-field="x_fecha_insercion" name="x_fecha_insercion" id="x_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($documento->fecha_insercion->PlaceHolder) ?>" value="<?php echo $documento->fecha_insercion->EditValue ?>"<?php echo $documento->fecha_insercion->EditAttributes() ?>>
 </span>
 <?php echo $documento->fecha_insercion->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($documento->idcliente->Visible) { // idcliente ?>
+	<div id="r_idcliente" class="form-group">
+		<label id="elh_documento_idcliente" for="x_idcliente" class="col-sm-2 control-label ewLabel"><?php echo $documento->idcliente->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $documento->idcliente->CellAttributes() ?>>
+<span id="el_documento_idcliente">
+<input type="text" data-field="x_idcliente" name="x_idcliente" id="x_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento->idcliente->PlaceHolder) ?>" value="<?php echo $documento->idcliente->EditValue ?>"<?php echo $documento->idcliente->EditAttributes() ?>>
+</span>
+<?php echo $documento->idcliente->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

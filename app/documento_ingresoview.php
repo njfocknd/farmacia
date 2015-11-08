@@ -605,6 +605,7 @@ class cdocumento_ingreso_view extends cdocumento_ingreso {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idproveedor->setDbValue($rs->fields('idproveedor'));
 	}
 
 	// Load DbValue from recordset
@@ -622,6 +623,7 @@ class cdocumento_ingreso_view extends cdocumento_ingreso {
 		$this->estado->DbValue = $row['estado'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idproveedor->DbValue = $row['idproveedor'];
 	}
 
 	// Render row values based on field settings
@@ -656,6 +658,7 @@ class cdocumento_ingreso_view extends cdocumento_ingreso {
 		// estado
 		// monto
 		// fecha_insercion
+		// idproveedor
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -781,6 +784,10 @@ class cdocumento_ingreso_view extends cdocumento_ingreso {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idproveedor
+			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			$this->idproveedor->ViewCustomAttributes = "";
+
 			// iddocumento_ingreso
 			$this->iddocumento_ingreso->LinkCustomAttributes = "";
 			$this->iddocumento_ingreso->HrefValue = "";
@@ -835,6 +842,11 @@ class cdocumento_ingreso_view extends cdocumento_ingreso {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idproveedor
+			$this->idproveedor->LinkCustomAttributes = "";
+			$this->idproveedor->HrefValue = "";
+			$this->idproveedor->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1158,6 +1170,17 @@ $documento_ingreso_view->ShowMessage();
 <span id="el_documento_ingreso_fecha_insercion" class="form-group">
 <span<?php echo $documento_ingreso->fecha_insercion->ViewAttributes() ?>>
 <?php echo $documento_ingreso->fecha_insercion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($documento_ingreso->idproveedor->Visible) { // idproveedor ?>
+	<tr id="r_idproveedor">
+		<td><span id="elh_documento_ingreso_idproveedor"><?php echo $documento_ingreso->idproveedor->FldCaption() ?></span></td>
+		<td<?php echo $documento_ingreso->idproveedor->CellAttributes() ?>>
+<span id="el_documento_ingreso_idproveedor" class="form-group">
+<span<?php echo $documento_ingreso->idproveedor->ViewAttributes() ?>>
+<?php echo $documento_ingreso->idproveedor->ViewValue ?></span>
 </span>
 </td>
 	</tr>

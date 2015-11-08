@@ -24,6 +24,8 @@ $RootMenu->AddMenuItem(8, "mi_registro_sanitario", $Language->MenuPhrase("8", "M
 $RootMenu->AddMenuItem(12, "mi_tipo_bodega", $Language->MenuPhrase("12", "MenuText"), "tipo_bodegalist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(18, "mi_tipo_documento", $Language->MenuPhrase("18", "MenuText"), "tipo_documentolist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(17, "mi_serie_documento", $Language->MenuPhrase("17", "MenuText"), "serie_documentolist.php", 18, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(29, "mi_persona", $Language->MenuPhrase("29", "MenuText"), "personalist.php", -1, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(25, "mi_cliente", $Language->MenuPhrase("25", "MenuText"), "clientelist.php?cmd=resetall", 29, "", TRUE, FALSE);
 $RootMenu->Render();
 ?>
 <!-- End Main Menu -->

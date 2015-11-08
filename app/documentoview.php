@@ -626,6 +626,7 @@ class cdocumento_view extends cdocumento {
 		$this->motivo_anulacion->setDbValue($rs->fields('motivo_anulacion'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idcliente->setDbValue($rs->fields('idcliente'));
 	}
 
 	// Load DbValue from recordset
@@ -649,6 +650,7 @@ class cdocumento_view extends cdocumento {
 		$this->motivo_anulacion->DbValue = $row['motivo_anulacion'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idcliente->DbValue = $row['idcliente'];
 	}
 
 	// Render row values based on field settings
@@ -689,6 +691,7 @@ class cdocumento_view extends cdocumento {
 		// motivo_anulacion
 		// monto
 		// fecha_insercion
+		// idcliente
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -863,6 +866,10 @@ class cdocumento_view extends cdocumento {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idcliente
+			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			$this->idcliente->ViewCustomAttributes = "";
+
 			// iddocumento
 			$this->iddocumento->LinkCustomAttributes = "";
 			$this->iddocumento->HrefValue = "";
@@ -947,6 +954,11 @@ class cdocumento_view extends cdocumento {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idcliente
+			$this->idcliente->LinkCustomAttributes = "";
+			$this->idcliente->HrefValue = "";
+			$this->idcliente->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1408,6 +1420,17 @@ $documento_view->ShowMessage();
 <span id="el_documento_fecha_insercion" class="form-group">
 <span<?php echo $documento->fecha_insercion->ViewAttributes() ?>>
 <?php echo $documento->fecha_insercion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($documento->idcliente->Visible) { // idcliente ?>
+	<tr id="r_idcliente">
+		<td><span id="elh_documento_idcliente"><?php echo $documento->idcliente->FldCaption() ?></span></td>
+		<td<?php echo $documento->idcliente->CellAttributes() ?>>
+<span id="el_documento_idcliente" class="form-group">
+<span<?php echo $documento->idcliente->ViewAttributes() ?>>
+<?php echo $documento->idcliente->ViewValue ?></span>
 </span>
 </td>
 	</tr>

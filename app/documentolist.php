@@ -834,6 +834,7 @@ class cdocumento_list extends cdocumento {
 			$this->UpdateSort($this->estado_documento); // estado_documento
 			$this->UpdateSort($this->monto); // monto
 			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
+			$this->UpdateSort($this->idcliente); // idcliente
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -885,6 +886,7 @@ class cdocumento_list extends cdocumento {
 				$this->estado_documento->setSort("");
 				$this->monto->setSort("");
 				$this->fecha_insercion->setSort("");
+				$this->idcliente->setSort("");
 			}
 
 			// Reset start position
@@ -1304,6 +1306,7 @@ class cdocumento_list extends cdocumento {
 		$this->motivo_anulacion->setDbValue($rs->fields('motivo_anulacion'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idcliente->setDbValue($rs->fields('idcliente'));
 	}
 
 	// Load DbValue from recordset
@@ -1327,6 +1330,7 @@ class cdocumento_list extends cdocumento {
 		$this->motivo_anulacion->DbValue = $row['motivo_anulacion'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idcliente->DbValue = $row['idcliente'];
 	}
 
 	// Load old record
@@ -1389,6 +1393,7 @@ class cdocumento_list extends cdocumento {
 		// motivo_anulacion
 		// monto
 		// fecha_insercion
+		// idcliente
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1563,6 +1568,10 @@ class cdocumento_list extends cdocumento {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idcliente
+			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			$this->idcliente->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -1607,6 +1616,11 @@ class cdocumento_list extends cdocumento {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// idcliente
+			$this->idcliente->LinkCustomAttributes = "";
+			$this->idcliente->HrefValue = "";
+			$this->idcliente->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -2082,6 +2096,15 @@ $documento_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($documento->idcliente->Visible) { // idcliente ?>
+	<?php if ($documento->SortUrl($documento->idcliente) == "") { ?>
+		<th data-name="idcliente"><div id="elh_documento_idcliente" class="documento_idcliente"><div class="ewTableHeaderCaption"><?php echo $documento->idcliente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idcliente"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento->SortUrl($documento->idcliente) ?>',1);"><div id="elh_documento_idcliente" class="documento_idcliente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento->idcliente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento->idcliente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento->idcliente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2199,6 +2222,12 @@ $documento_list->ListOptions->Render("body", "left", $documento_list->RowCnt);
 		<td data-name="fecha_insercion"<?php echo $documento->fecha_insercion->CellAttributes() ?>>
 <span<?php echo $documento->fecha_insercion->ViewAttributes() ?>>
 <?php echo $documento->fecha_insercion->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($documento->idcliente->Visible) { // idcliente ?>
+		<td data-name="idcliente"<?php echo $documento->idcliente->CellAttributes() ?>>
+<span<?php echo $documento->idcliente->ViewAttributes() ?>>
+<?php echo $documento->idcliente->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

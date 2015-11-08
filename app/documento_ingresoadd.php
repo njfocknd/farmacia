@@ -422,6 +422,7 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		$this->fecha->OldValue = $this->fecha->CurrentValue;
 		$this->observaciones->CurrentValue = NULL;
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
+		$this->idproveedor->CurrentValue = 1;
 	}
 
 	// Load form values
@@ -448,6 +449,9 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		if (!$this->observaciones->FldIsDetailKey) {
 			$this->observaciones->setFormValue($objForm->GetValue("x_observaciones"));
 		}
+		if (!$this->idproveedor->FldIsDetailKey) {
+			$this->idproveedor->setFormValue($objForm->GetValue("x_idproveedor"));
+		}
 	}
 
 	// Restore form values
@@ -461,6 +465,7 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		$this->fecha->CurrentValue = $this->fecha->FormValue;
 		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		$this->observaciones->CurrentValue = $this->observaciones->FormValue;
+		$this->idproveedor->CurrentValue = $this->idproveedor->FormValue;
 	}
 
 	// Load row based on key values
@@ -503,6 +508,7 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idproveedor->setDbValue($rs->fields('idproveedor'));
 	}
 
 	// Load DbValue from recordset
@@ -520,6 +526,7 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		$this->estado->DbValue = $row['estado'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idproveedor->DbValue = $row['idproveedor'];
 	}
 
 	// Load old record
@@ -566,6 +573,7 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		// estado
 		// monto
 		// fecha_insercion
+		// idproveedor
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -691,6 +699,10 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idproveedor
+			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			$this->idproveedor->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -720,6 +732,11 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 			$this->observaciones->LinkCustomAttributes = "";
 			$this->observaciones->HrefValue = "";
 			$this->observaciones->TooltipValue = "";
+
+			// idproveedor
+			$this->idproveedor->LinkCustomAttributes = "";
+			$this->idproveedor->HrefValue = "";
+			$this->idproveedor->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idtipo_documento
@@ -802,6 +819,12 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 			$this->observaciones->EditValue = ew_HtmlEncode($this->observaciones->CurrentValue);
 			$this->observaciones->PlaceHolder = ew_RemoveHtml($this->observaciones->FldCaption());
 
+			// idproveedor
+			$this->idproveedor->EditAttrs["class"] = "form-control";
+			$this->idproveedor->EditCustomAttributes = "";
+			$this->idproveedor->EditValue = ew_HtmlEncode($this->idproveedor->CurrentValue);
+			$this->idproveedor->PlaceHolder = ew_RemoveHtml($this->idproveedor->FldCaption());
+
 			// Edit refer script
 			// idtipo_documento
 
@@ -821,6 +844,9 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 
 			// observaciones
 			$this->observaciones->HrefValue = "";
+
+			// idproveedor
+			$this->idproveedor->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -854,6 +880,12 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 		}
 		if (!ew_CheckEuroDate($this->fecha->FormValue)) {
 			ew_AddMessage($gsFormError, $this->fecha->FldErrMsg());
+		}
+		if (!$this->idproveedor->FldIsDetailKey && !is_null($this->idproveedor->FormValue) && $this->idproveedor->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idproveedor->FldCaption(), $this->idproveedor->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idproveedor->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idproveedor->FldErrMsg());
 		}
 
 		// Validate detail grid
@@ -906,6 +938,9 @@ class cdocumento_ingreso_add extends cdocumento_ingreso {
 
 		// observaciones
 		$this->observaciones->SetDbValueDef($rsnew, $this->observaciones->CurrentValue, NULL, FALSE);
+
+		// idproveedor
+		$this->idproveedor->SetDbValueDef($rsnew, $this->idproveedor->CurrentValue, 0, strval($this->idproveedor->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1131,6 +1166,12 @@ fdocumento_ingresoadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_fecha");
 			if (elm && !ew_CheckEuroDate(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_ingreso->fecha->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_idproveedor");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_ingreso->idproveedor->FldCaption(), $documento_ingreso->idproveedor->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idproveedor");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_ingreso->idproveedor->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1317,6 +1358,16 @@ ew_CreateCalendar("fdocumento_ingresoadd", "x_fecha", "%d/%m/%Y");
 <input type="text" data-field="x_observaciones" name="x_observaciones" id="x_observaciones" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($documento_ingreso->observaciones->PlaceHolder) ?>" value="<?php echo $documento_ingreso->observaciones->EditValue ?>"<?php echo $documento_ingreso->observaciones->EditAttributes() ?>>
 </span>
 <?php echo $documento_ingreso->observaciones->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($documento_ingreso->idproveedor->Visible) { // idproveedor ?>
+	<div id="r_idproveedor" class="form-group">
+		<label id="elh_documento_ingreso_idproveedor" for="x_idproveedor" class="col-sm-2 control-label ewLabel"><?php echo $documento_ingreso->idproveedor->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $documento_ingreso->idproveedor->CellAttributes() ?>>
+<span id="el_documento_ingreso_idproveedor">
+<input type="text" data-field="x_idproveedor" name="x_idproveedor" id="x_idproveedor" size="30" placeholder="<?php echo ew_HtmlEncode($documento_ingreso->idproveedor->PlaceHolder) ?>" value="<?php echo $documento_ingreso->idproveedor->EditValue ?>"<?php echo $documento_ingreso->idproveedor->EditAttributes() ?>>
+</span>
+<?php echo $documento_ingreso->idproveedor->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

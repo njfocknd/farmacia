@@ -584,6 +584,8 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 			$this->UpdateSort($this->idbodega_ingreso); // idbodega_ingreso
 			$this->UpdateSort($this->idbodega_egreso); // idbodega_egreso
 			$this->UpdateSort($this->cantidad); // cantidad
+			$this->UpdateSort($this->monto); // monto
+			$this->UpdateSort($this->precio); // precio
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -625,6 +627,8 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 				$this->idbodega_ingreso->setSort("");
 				$this->idbodega_egreso->setSort("");
 				$this->cantidad->setSort("");
+				$this->monto->setSort("");
+				$this->precio->setSort("");
 			}
 
 			// Reset start position
@@ -925,6 +929,8 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
+		$this->precio->setDbValue($rs->fields('precio'));
 	}
 
 	// Load DbValue from recordset
@@ -939,6 +945,8 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 		$this->cantidad->DbValue = $row['cantidad'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->monto->DbValue = $row['monto'];
+		$this->precio->DbValue = $row['precio'];
 	}
 
 	// Load old record
@@ -976,6 +984,14 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
+		// Convert decimal values if posted back
+		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
+			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->precio->FormValue == $this->precio->CurrentValue && is_numeric(ew_StrToFloat($this->precio->CurrentValue)))
+			$this->precio->CurrentValue = ew_StrToFloat($this->precio->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -988,6 +1004,8 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 		// cantidad
 		// estado
 		// fecha_insercion
+		// monto
+		// precio
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1136,6 +1154,14 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewCustomAttributes = "";
+
+			// precio
+			$this->precio->ViewValue = $this->precio->CurrentValue;
+			$this->precio->ViewCustomAttributes = "";
+
 			// iddocumento_interno
 			$this->iddocumento_interno->LinkCustomAttributes = "";
 			$this->iddocumento_interno->HrefValue = "";
@@ -1160,6 +1186,16 @@ class cdetalle_documento_interno_list extends cdetalle_documento_interno {
 			$this->cantidad->LinkCustomAttributes = "";
 			$this->cantidad->HrefValue = "";
 			$this->cantidad->TooltipValue = "";
+
+			// monto
+			$this->monto->LinkCustomAttributes = "";
+			$this->monto->HrefValue = "";
+			$this->monto->TooltipValue = "";
+
+			// precio
+			$this->precio->LinkCustomAttributes = "";
+			$this->precio->HrefValue = "";
+			$this->precio->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1514,6 +1550,24 @@ $detalle_documento_interno_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
+	<?php if ($detalle_documento_interno->SortUrl($detalle_documento_interno->monto) == "") { ?>
+		<th data-name="monto"><div id="elh_detalle_documento_interno_monto" class="detalle_documento_interno_monto"><div class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->monto->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="monto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $detalle_documento_interno->SortUrl($detalle_documento_interno->monto) ?>',1);"><div id="elh_detalle_documento_interno_monto" class="detalle_documento_interno_monto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($detalle_documento_interno->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($detalle_documento_interno->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
+	<?php if ($detalle_documento_interno->SortUrl($detalle_documento_interno->precio) == "") { ?>
+		<th data-name="precio"><div id="elh_detalle_documento_interno_precio" class="detalle_documento_interno_precio"><div class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->precio->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="precio"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $detalle_documento_interno->SortUrl($detalle_documento_interno->precio) ?>',1);"><div id="elh_detalle_documento_interno_precio" class="detalle_documento_interno_precio">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->precio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($detalle_documento_interno->precio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($detalle_documento_interno->precio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -1607,6 +1661,18 @@ $detalle_documento_interno_list->ListOptions->Render("body", "left", $detalle_do
 		<td data-name="cantidad"<?php echo $detalle_documento_interno->cantidad->CellAttributes() ?>>
 <span<?php echo $detalle_documento_interno->cantidad->ViewAttributes() ?>>
 <?php echo $detalle_documento_interno->cantidad->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
+		<td data-name="monto"<?php echo $detalle_documento_interno->monto->CellAttributes() ?>>
+<span<?php echo $detalle_documento_interno->monto->ViewAttributes() ?>>
+<?php echo $detalle_documento_interno->monto->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
+		<td data-name="precio"<?php echo $detalle_documento_interno->precio->CellAttributes() ?>>
+<span<?php echo $detalle_documento_interno->precio->ViewAttributes() ?>>
+<?php echo $detalle_documento_interno->precio->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

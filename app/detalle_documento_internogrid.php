@@ -64,6 +64,18 @@ fdetalle_documento_internogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_cantidad");
 			if (elm && !ew_CheckInteger(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->cantidad->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->monto->FldCaption(), $detalle_documento_interno->monto->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->monto->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->precio->FldCaption(), $detalle_documento_interno->precio->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->precio->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -84,6 +96,8 @@ fdetalle_documento_internogrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "idbodega_ingreso", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idbodega_egreso", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "cantidad", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "monto", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "precio", false)) return false;
 	return true;
 }
 
@@ -216,6 +230,24 @@ $detalle_documento_interno_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="cantidad"><div><div id="elh_detalle_documento_interno_cantidad" class="detalle_documento_interno_cantidad">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->cantidad->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($detalle_documento_interno->cantidad->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($detalle_documento_interno->cantidad->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
+	<?php if ($detalle_documento_interno->SortUrl($detalle_documento_interno->monto) == "") { ?>
+		<th data-name="monto"><div id="elh_detalle_documento_interno_monto" class="detalle_documento_interno_monto"><div class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->monto->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="monto"><div><div id="elh_detalle_documento_interno_monto" class="detalle_documento_interno_monto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($detalle_documento_interno->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($detalle_documento_interno->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
+	<?php if ($detalle_documento_interno->SortUrl($detalle_documento_interno->precio) == "") { ?>
+		<th data-name="precio"><div id="elh_detalle_documento_interno_precio" class="detalle_documento_interno_precio"><div class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->precio->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="precio"><div><div id="elh_detalle_documento_interno_precio" class="detalle_documento_interno_precio">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $detalle_documento_interno->precio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($detalle_documento_interno->precio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($detalle_documento_interno->precio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -708,6 +740,48 @@ if (@$emptywrk) $detalle_documento_interno->idbodega_egreso->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
+		<td data-name="monto"<?php echo $detalle_documento_interno->monto->CellAttributes() ?>>
+<?php if ($detalle_documento_interno->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_interno_grid->RowCnt ?>_detalle_documento_interno_monto" class="form-group detalle_documento_interno_monto">
+<input type="text" data-field="x_monto" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->monto->EditValue ?>"<?php echo $detalle_documento_interno->monto->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_monto" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_interno->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_interno_grid->RowCnt ?>_detalle_documento_interno_monto" class="form-group detalle_documento_interno_monto">
+<input type="text" data-field="x_monto" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->monto->EditValue ?>"<?php echo $detalle_documento_interno->monto->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($detalle_documento_interno->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $detalle_documento_interno->monto->ViewAttributes() ?>>
+<?php echo $detalle_documento_interno->monto->ListViewValue() ?></span>
+<input type="hidden" data-field="x_monto" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->FormValue) ?>">
+<input type="hidden" data-field="x_monto" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
+		<td data-name="precio"<?php echo $detalle_documento_interno->precio->CellAttributes() ?>>
+<?php if ($detalle_documento_interno->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_interno_grid->RowCnt ?>_detalle_documento_interno_precio" class="form-group detalle_documento_interno_precio">
+<input type="text" data-field="x_precio" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->precio->EditValue ?>"<?php echo $detalle_documento_interno->precio->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_precio" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_interno->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_interno_grid->RowCnt ?>_detalle_documento_interno_precio" class="form-group detalle_documento_interno_precio">
+<input type="text" data-field="x_precio" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->precio->EditValue ?>"<?php echo $detalle_documento_interno->precio->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($detalle_documento_interno->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $detalle_documento_interno->precio->ViewAttributes() ?>>
+<?php echo $detalle_documento_interno->precio->ListViewValue() ?></span>
+<input type="hidden" data-field="x_precio" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->FormValue) ?>">
+<input type="hidden" data-field="x_precio" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -962,6 +1036,38 @@ if (@$emptywrk) $detalle_documento_interno->idbodega_egreso->OldValue = "";
 <input type="hidden" data-field="x_cantidad" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_cantidad" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($detalle_documento_interno->cantidad->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_cantidad" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_cantidad" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($detalle_documento_interno->cantidad->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
+		<td>
+<?php if ($detalle_documento_interno->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_detalle_documento_interno_monto" class="form-group detalle_documento_interno_monto">
+<input type="text" data-field="x_monto" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->monto->EditValue ?>"<?php echo $detalle_documento_interno->monto->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_detalle_documento_interno_monto" class="form-group detalle_documento_interno_monto">
+<span<?php echo $detalle_documento_interno->monto->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $detalle_documento_interno->monto->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_monto" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_monto" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
+		<td>
+<?php if ($detalle_documento_interno->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_detalle_documento_interno_precio" class="form-group detalle_documento_interno_precio">
+<input type="text" data-field="x_precio" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->precio->EditValue ?>"<?php echo $detalle_documento_interno->precio->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_detalle_documento_interno_precio" class="form-group detalle_documento_interno_precio">
+<span<?php echo $detalle_documento_interno->precio->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $detalle_documento_interno->precio->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_precio" name="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="x<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_precio" name="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" id="o<?php echo $detalle_documento_interno_grid->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

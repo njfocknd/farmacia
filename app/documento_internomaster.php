@@ -7,6 +7,7 @@
 // estado_documento
 // idsucursal_ingreso
 // idsucursal_egreso
+// monto
 
 ?>
 <?php if ($documento_interno->Visible) { ?>
@@ -86,6 +87,17 @@
 <span id="el_documento_interno_idsucursal_egreso" class="form-group">
 <span<?php echo $documento_interno->idsucursal_egreso->ViewAttributes() ?>>
 <?php echo $documento_interno->idsucursal_egreso->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($documento_interno->monto->Visible) { // monto ?>
+		<tr id="r_monto">
+			<td><?php echo $documento_interno->monto->FldCaption() ?></td>
+			<td<?php echo $documento_interno->monto->CellAttributes() ?>>
+<span id="el_documento_interno_monto" class="form-group">
+<span<?php echo $documento_interno->monto->ViewAttributes() ?>>
+<?php echo $documento_interno->monto->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

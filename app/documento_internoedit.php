@@ -445,6 +445,9 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
+		if (!$this->monto->FldIsDetailKey) {
+			$this->monto->setFormValue($objForm->GetValue("x_monto"));
+		}
 		if (!$this->iddocumento_interno->FldIsDetailKey)
 			$this->iddocumento_interno->setFormValue($objForm->GetValue("x_iddocumento_interno"));
 	}
@@ -459,6 +462,7 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		$this->observaciones->CurrentValue = $this->observaciones->FormValue;
 		$this->estado_documento->CurrentValue = $this->estado_documento->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
+		$this->monto->CurrentValue = $this->monto->FormValue;
 	}
 
 	// Load row based on key values
@@ -502,6 +506,7 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		$this->idsucursal_egreso->setDbValue($rs->fields('idsucursal_egreso'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
 	}
 
 	// Load DbValue from recordset
@@ -520,6 +525,7 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		$this->idsucursal_egreso->DbValue = $row['idsucursal_egreso'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->monto->DbValue = $row['monto'];
 	}
 
 	// Render row values based on field settings
@@ -528,8 +534,12 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
+			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
@@ -545,6 +555,7 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		// idsucursal_egreso
 		// estado
 		// fecha_insercion
+		// monto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -721,6 +732,10 @@ class cdocumento_interno_edit extends cdocumento_interno {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewCustomAttributes = "";
+
 			// fecha
 			$this->fecha->LinkCustomAttributes = "";
 			$this->fecha->HrefValue = "";
@@ -740,6 +755,11 @@ class cdocumento_interno_edit extends cdocumento_interno {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// monto
+			$this->monto->LinkCustomAttributes = "";
+			$this->monto->HrefValue = "";
+			$this->monto->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// fecha
@@ -770,6 +790,13 @@ class cdocumento_interno_edit extends cdocumento_interno {
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
 			$this->estado->EditValue = $arwrk;
 
+			// monto
+			$this->monto->EditAttrs["class"] = "form-control";
+			$this->monto->EditCustomAttributes = "";
+			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
+			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+
 			// Edit refer script
 			// fecha
 
@@ -783,6 +810,9 @@ class cdocumento_interno_edit extends cdocumento_interno {
 
 			// estado
 			$this->estado->HrefValue = "";
+
+			// monto
+			$this->monto->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -813,6 +843,12 @@ class cdocumento_interno_edit extends cdocumento_interno {
 		}
 		if ($this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		}
+		if (!$this->monto->FldIsDetailKey && !is_null($this->monto->FormValue) && $this->monto->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->monto->FldCaption(), $this->monto->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->monto->FormValue)) {
+			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
 		}
 
 		// Validate detail grid
@@ -869,6 +905,9 @@ class cdocumento_interno_edit extends cdocumento_interno {
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
+
+			// monto
+			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1081,6 +1120,12 @@ fdocumento_internoedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_interno->estado->FldCaption(), $documento_interno->estado->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_interno->monto->FldCaption(), $documento_interno->monto->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_interno->monto->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1220,6 +1265,16 @@ if (is_array($arwrk)) {
 </div>
 </span>
 <?php echo $documento_interno->estado->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($documento_interno->monto->Visible) { // monto ?>
+	<div id="r_monto" class="form-group">
+		<label id="elh_documento_interno_monto" for="x_monto" class="col-sm-2 control-label ewLabel"><?php echo $documento_interno->monto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $documento_interno->monto->CellAttributes() ?>>
+<span id="el_documento_interno_monto">
+<input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($documento_interno->monto->PlaceHolder) ?>" value="<?php echo $documento_interno->monto->EditValue ?>"<?php echo $documento_interno->monto->EditAttributes() ?>>
+</span>
+<?php echo $documento_interno->monto->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

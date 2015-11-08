@@ -6,8 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documento_internoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "detalle_documento_internogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "clientegridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -15,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$documento_interno_view = NULL; // Initialize page object first
+$persona_view = NULL; // Initialize page object first
 
-class cdocumento_interno_view extends cdocumento_interno {
+class cpersona_view extends cpersona {
 
 	// Page ID
 	var $PageID = 'view';
@@ -26,10 +26,10 @@ class cdocumento_interno_view extends cdocumento_interno {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'documento_interno';
+	var $TableName = 'persona';
 
 	// Page object name
-	var $PageObjName = 'documento_interno_view';
+	var $PageObjName = 'persona_view';
 
 	// Page name
 	function PageName() {
@@ -228,15 +228,15 @@ class cdocumento_interno_view extends cdocumento_interno {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (documento_interno)
-		if (!isset($GLOBALS["documento_interno"]) || get_class($GLOBALS["documento_interno"]) == "cdocumento_interno") {
-			$GLOBALS["documento_interno"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["documento_interno"];
+		// Table object (persona)
+		if (!isset($GLOBALS["persona"]) || get_class($GLOBALS["persona"]) == "cpersona") {
+			$GLOBALS["persona"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["persona"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["iddocumento_interno"] <> "") {
-			$this->RecKey["iddocumento_interno"] = $_GET["iddocumento_interno"];
-			$KeyUrl .= "&amp;iddocumento_interno=" . urlencode($this->RecKey["iddocumento_interno"]);
+		if (@$_GET["idpersona"] <> "") {
+			$this->RecKey["idpersona"] = $_GET["idpersona"];
+			$KeyUrl .= "&amp;idpersona=" . urlencode($this->RecKey["idpersona"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -252,7 +252,7 @@ class cdocumento_interno_view extends cdocumento_interno {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'documento_interno', TRUE);
+			define("EW_TABLE_NAME", 'persona', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -280,7 +280,7 @@ class cdocumento_interno_view extends cdocumento_interno {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->iddocumento_interno->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idpersona->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -298,10 +298,10 @@ class cdocumento_interno_view extends cdocumento_interno {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'detalle_documento_interno'
-			if (@$_POST["grid"] == "fdetalle_documento_internogrid") {
-				if (!isset($GLOBALS["detalle_documento_interno_grid"])) $GLOBALS["detalle_documento_interno_grid"] = new cdetalle_documento_interno_grid;
-				$GLOBALS["detalle_documento_interno_grid"]->Page_Init();
+			// Process auto fill for detail table 'cliente'
+			if (@$_POST["grid"] == "fclientegrid") {
+				if (!isset($GLOBALS["cliente_grid"])) $GLOBALS["cliente_grid"] = new ccliente_grid;
+				$GLOBALS["cliente_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -334,13 +334,13 @@ class cdocumento_interno_view extends cdocumento_interno {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $documento_interno;
+		global $EW_EXPORT, $persona;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($documento_interno);
+				$doc = new $class($persona);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -391,11 +391,11 @@ class cdocumento_interno_view extends cdocumento_interno {
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["iddocumento_interno"] <> "") {
-				$this->iddocumento_interno->setQueryStringValue($_GET["iddocumento_interno"]);
-				$this->RecKey["iddocumento_interno"] = $this->iddocumento_interno->QueryStringValue;
+			if (@$_GET["idpersona"] <> "") {
+				$this->idpersona->setQueryStringValue($_GET["idpersona"]);
+				$this->RecKey["idpersona"] = $this->idpersona->QueryStringValue;
 			} else {
-				$sReturnUrl = "documento_internolist.php"; // Return to list
+				$sReturnUrl = "personalist.php"; // Return to list
 			}
 
 			// Get action
@@ -405,11 +405,11 @@ class cdocumento_interno_view extends cdocumento_interno {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "documento_internolist.php"; // No matching record, return to list
+						$sReturnUrl = "personalist.php"; // No matching record, return to list
 					}
 			}
 		} else {
-			$sReturnUrl = "documento_internolist.php"; // Not page request, return to list
+			$sReturnUrl = "personalist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -439,12 +439,22 @@ class cdocumento_interno_view extends cdocumento_interno {
 		$item->Body = "<a class=\"ewAction ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("ViewPageEditLink") . "</a>";
 		$item->Visible = ($this->EditUrl <> "");
 
+		// Copy
+		$item = &$option->Add("copy");
+		$item->Body = "<a class=\"ewAction ewCopy\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageCopyLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->CopyUrl) . "\">" . $Language->Phrase("ViewPageCopyLink") . "</a>";
+		$item->Visible = ($this->CopyUrl <> "");
+
 		// Show detail edit/copy
 		if ($this->getCurrentDetailTable() <> "") {
 
 			// Detail Edit
 			$item = &$option->Add("detailedit");
 			$item->Body = "<a class=\"ewAction ewDetailEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable())) . "\">" . $Language->Phrase("MasterDetailEditLink") . "</a>";
+			$item->Visible = (TRUE);
+
+			// Detail Copy
+			$item = &$option->Add("detailcopy");
+			$item->Body = "<a class=\"ewAction ewDetailCopy\" title=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable())) . "\">" . $Language->Phrase("MasterDetailCopyLink") . "</a>";
 			$item->Visible = (TRUE);
 		}
 		$option = &$options["detail"];
@@ -453,20 +463,25 @@ class cdocumento_interno_view extends cdocumento_interno {
 		$DetailCopyTblVar = "";
 		$DetailEditTblVar = "";
 
-		// "detail_detalle_documento_interno"
-		$item = &$option->Add("detail_detalle_documento_interno");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("detalle_documento_interno", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("detalle_documento_internolist.php?" . EW_TABLE_SHOW_MASTER . "=documento_interno&fk_iddocumento_interno=" . strval($this->iddocumento_interno->CurrentValue) . "") . "\">" . $body . "</a>";
+		// "detail_cliente"
+		$item = &$option->Add("detail_cliente");
+		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("cliente", "TblCaption");
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("clientelist.php?" . EW_TABLE_SHOW_MASTER . "=persona&fk_idpersona=" . strval($this->idpersona->CurrentValue) . "") . "\">" . $body . "</a>";
 		$links = "";
-		if ($GLOBALS["detalle_documento_interno_grid"] && $GLOBALS["detalle_documento_interno_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=detalle_documento_interno")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+		if ($GLOBALS["cliente_grid"] && $GLOBALS["cliente_grid"]->DetailView) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
 			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "detalle_documento_interno";
+			$DetailViewTblVar .= "cliente";
 		}
-		if ($GLOBALS["detalle_documento_interno_grid"] && $GLOBALS["detalle_documento_interno_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=detalle_documento_interno")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+		if ($GLOBALS["cliente_grid"] && $GLOBALS["cliente_grid"]->DetailEdit) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
 			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "detalle_documento_interno";
+			$DetailEditTblVar .= "cliente";
+		}
+		if ($GLOBALS["cliente_grid"] && $GLOBALS["cliente_grid"]->DetailAdd) {
+			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+			$DetailCopyTblVar .= "cliente";
 		}
 		if ($links <> "") {
 			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
@@ -477,7 +492,7 @@ class cdocumento_interno_view extends cdocumento_interno {
 		$item->Visible = TRUE;
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "detalle_documento_interno";
+			$DetailTableLink .= "cliente";
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
@@ -594,38 +609,36 @@ class cdocumento_interno_view extends cdocumento_interno {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->iddocumento_interno->setDbValue($rs->fields('iddocumento_interno'));
-		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
-		$this->idserie_documento->setDbValue($rs->fields('idserie_documento'));
-		$this->serie->setDbValue($rs->fields('serie'));
-		$this->correlativo->setDbValue($rs->fields('correlativo'));
-		$this->fecha->setDbValue($rs->fields('fecha'));
-		$this->observaciones->setDbValue($rs->fields('observaciones'));
-		$this->estado_documento->setDbValue($rs->fields('estado_documento'));
-		$this->idsucursal_ingreso->setDbValue($rs->fields('idsucursal_ingreso'));
-		$this->idsucursal_egreso->setDbValue($rs->fields('idsucursal_egreso'));
+		$this->idpersona->setDbValue($rs->fields('idpersona'));
+		$this->tipo_persona->setDbValue($rs->fields('tipo_persona'));
+		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->apellido->setDbValue($rs->fields('apellido'));
+		$this->direccion->setDbValue($rs->fields('direccion'));
+		$this->cui->setDbValue($rs->fields('cui'));
+		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->fecha_nacimiento->setDbValue($rs->fields('fecha_nacimiento'));
+		$this->_email->setDbValue($rs->fields('email'));
+		$this->sexo->setDbValue($rs->fields('sexo'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
-		$this->monto->setDbValue($rs->fields('monto'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->iddocumento_interno->DbValue = $row['iddocumento_interno'];
-		$this->idtipo_documento->DbValue = $row['idtipo_documento'];
-		$this->idserie_documento->DbValue = $row['idserie_documento'];
-		$this->serie->DbValue = $row['serie'];
-		$this->correlativo->DbValue = $row['correlativo'];
-		$this->fecha->DbValue = $row['fecha'];
-		$this->observaciones->DbValue = $row['observaciones'];
-		$this->estado_documento->DbValue = $row['estado_documento'];
-		$this->idsucursal_ingreso->DbValue = $row['idsucursal_ingreso'];
-		$this->idsucursal_egreso->DbValue = $row['idsucursal_egreso'];
+		$this->idpersona->DbValue = $row['idpersona'];
+		$this->tipo_persona->DbValue = $row['tipo_persona'];
+		$this->nombre->DbValue = $row['nombre'];
+		$this->apellido->DbValue = $row['apellido'];
+		$this->direccion->DbValue = $row['direccion'];
+		$this->cui->DbValue = $row['cui'];
+		$this->idpais->DbValue = $row['idpais'];
+		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
+		$this->_email->DbValue = $row['email'];
+		$this->sexo->DbValue = $row['sexo'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
-		$this->monto->DbValue = $row['monto'];
 	}
 
 	// Render row values based on field settings
@@ -641,128 +654,66 @@ class cdocumento_interno_view extends cdocumento_interno {
 		$this->ListUrl = $this->GetListUrl();
 		$this->SetupOtherOptions();
 
-		// Convert decimal values if posted back
-		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
-			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
-
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// iddocumento_interno
-		// idtipo_documento
-		// idserie_documento
-		// serie
-		// correlativo
-		// fecha
-		// observaciones
-		// estado_documento
-		// idsucursal_ingreso
-		// idsucursal_egreso
+		// idpersona
+		// tipo_persona
+		// nombre
+		// apellido
+		// direccion
+		// cui
+		// idpais
+		// fecha_nacimiento
+		// email
+		// sexo
 		// estado
 		// fecha_insercion
-		// monto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// iddocumento_interno
-			$this->iddocumento_interno->ViewValue = $this->iddocumento_interno->CurrentValue;
-			$this->iddocumento_interno->ViewCustomAttributes = "";
+			// idpersona
+			$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
+			$this->idpersona->ViewCustomAttributes = "";
 
-			// idtipo_documento
-			if (strval($this->idtipo_documento->CurrentValue) <> "") {
-				$sFilterWrk = "`idtipo_documento`" . ew_SearchString("=", $this->idtipo_documento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idtipo_documento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_documento`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idtipo_documento, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idtipo_documento->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idtipo_documento->ViewValue = $this->idtipo_documento->CurrentValue;
-				}
-			} else {
-				$this->idtipo_documento->ViewValue = NULL;
-			}
-			$this->idtipo_documento->ViewCustomAttributes = "";
-
-			// idserie_documento
-			if (strval($this->idserie_documento->CurrentValue) <> "") {
-				$sFilterWrk = "`idserie_documento`" . ew_SearchString("=", $this->idserie_documento->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idserie_documento`, `serie` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `serie_documento`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idserie_documento, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idserie_documento->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idserie_documento->ViewValue = $this->idserie_documento->CurrentValue;
-				}
-			} else {
-				$this->idserie_documento->ViewValue = NULL;
-			}
-			$this->idserie_documento->ViewCustomAttributes = "";
-
-			// serie
-			$this->serie->ViewValue = $this->serie->CurrentValue;
-			$this->serie->ViewCustomAttributes = "";
-
-			// correlativo
-			$this->correlativo->ViewValue = $this->correlativo->CurrentValue;
-			$this->correlativo->ViewCustomAttributes = "";
-
-			// fecha
-			$this->fecha->ViewValue = $this->fecha->CurrentValue;
-			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
-			$this->fecha->ViewCustomAttributes = "";
-
-			// observaciones
-			$this->observaciones->ViewValue = $this->observaciones->CurrentValue;
-			$this->observaciones->ViewCustomAttributes = "";
-
-			// estado_documento
-			if (strval($this->estado_documento->CurrentValue) <> "") {
-				switch ($this->estado_documento->CurrentValue) {
-					case $this->estado_documento->FldTagValue(1):
-						$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(1) <> "" ? $this->estado_documento->FldTagCaption(1) : $this->estado_documento->CurrentValue;
+			// tipo_persona
+			if (strval($this->tipo_persona->CurrentValue) <> "") {
+				switch ($this->tipo_persona->CurrentValue) {
+					case $this->tipo_persona->FldTagValue(1):
+						$this->tipo_persona->ViewValue = $this->tipo_persona->FldTagCaption(1) <> "" ? $this->tipo_persona->FldTagCaption(1) : $this->tipo_persona->CurrentValue;
 						break;
-					case $this->estado_documento->FldTagValue(2):
-						$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->CurrentValue;
+					case $this->tipo_persona->FldTagValue(2):
+						$this->tipo_persona->ViewValue = $this->tipo_persona->FldTagCaption(2) <> "" ? $this->tipo_persona->FldTagCaption(2) : $this->tipo_persona->CurrentValue;
 						break;
 					default:
-						$this->estado_documento->ViewValue = $this->estado_documento->CurrentValue;
+						$this->tipo_persona->ViewValue = $this->tipo_persona->CurrentValue;
 				}
 			} else {
-				$this->estado_documento->ViewValue = NULL;
+				$this->tipo_persona->ViewValue = NULL;
 			}
-			$this->estado_documento->ViewCustomAttributes = "";
+			$this->tipo_persona->ViewCustomAttributes = "";
 
-			// idsucursal_ingreso
-			if (strval($this->idsucursal_ingreso->CurrentValue) <> "") {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal_ingreso->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			// nombre
+			$this->nombre->ViewValue = $this->nombre->CurrentValue;
+			$this->nombre->ViewCustomAttributes = "";
+
+			// apellido
+			$this->apellido->ViewValue = $this->apellido->CurrentValue;
+			$this->apellido->ViewCustomAttributes = "";
+
+			// direccion
+			$this->direccion->ViewValue = $this->direccion->CurrentValue;
+			$this->direccion->ViewCustomAttributes = "";
+
+			// cui
+			$this->cui->ViewValue = $this->cui->CurrentValue;
+			$this->cui->ViewCustomAttributes = "";
+
+			// idpais
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -773,48 +724,46 @@ class cdocumento_interno_view extends cdocumento_interno {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal_ingreso, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idsucursal_ingreso->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idsucursal_ingreso->ViewValue = $this->idsucursal_ingreso->CurrentValue;
-				}
-			} else {
-				$this->idsucursal_ingreso->ViewValue = NULL;
-			}
-			$this->idsucursal_ingreso->ViewCustomAttributes = "";
-
-			// idsucursal_egreso
-			if (strval($this->idsucursal_egreso->CurrentValue) <> "") {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal_egreso->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal_egreso, $sWhereWrk);
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idsucursal_egreso->ViewValue = $rswrk->fields('DispFld');
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idsucursal_egreso->ViewValue = $this->idsucursal_egreso->CurrentValue;
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
 				}
 			} else {
-				$this->idsucursal_egreso->ViewValue = NULL;
+				$this->idpais->ViewValue = NULL;
 			}
-			$this->idsucursal_egreso->ViewCustomAttributes = "";
+			$this->idpais->ViewCustomAttributes = "";
+
+			// fecha_nacimiento
+			$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
+			$this->fecha_nacimiento->ViewValue = ew_FormatDateTime($this->fecha_nacimiento->ViewValue, 7);
+			$this->fecha_nacimiento->ViewCustomAttributes = "";
+
+			// email
+			$this->_email->ViewValue = $this->_email->CurrentValue;
+			$this->_email->ViewCustomAttributes = "";
+
+			// sexo
+			if (strval($this->sexo->CurrentValue) <> "") {
+				switch ($this->sexo->CurrentValue) {
+					case $this->sexo->FldTagValue(1):
+						$this->sexo->ViewValue = $this->sexo->FldTagCaption(1) <> "" ? $this->sexo->FldTagCaption(1) : $this->sexo->CurrentValue;
+						break;
+					case $this->sexo->FldTagValue(2):
+						$this->sexo->ViewValue = $this->sexo->FldTagCaption(2) <> "" ? $this->sexo->FldTagCaption(2) : $this->sexo->CurrentValue;
+						break;
+					default:
+						$this->sexo->ViewValue = $this->sexo->CurrentValue;
+				}
+			} else {
+				$this->sexo->ViewValue = NULL;
+			}
+			$this->sexo->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -838,59 +787,55 @@ class cdocumento_interno_view extends cdocumento_interno {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// monto
-			$this->monto->ViewValue = $this->monto->CurrentValue;
-			$this->monto->ViewCustomAttributes = "";
+			// idpersona
+			$this->idpersona->LinkCustomAttributes = "";
+			$this->idpersona->HrefValue = "";
+			$this->idpersona->TooltipValue = "";
 
-			// iddocumento_interno
-			$this->iddocumento_interno->LinkCustomAttributes = "";
-			$this->iddocumento_interno->HrefValue = "";
-			$this->iddocumento_interno->TooltipValue = "";
+			// tipo_persona
+			$this->tipo_persona->LinkCustomAttributes = "";
+			$this->tipo_persona->HrefValue = "";
+			$this->tipo_persona->TooltipValue = "";
 
-			// idtipo_documento
-			$this->idtipo_documento->LinkCustomAttributes = "";
-			$this->idtipo_documento->HrefValue = "";
-			$this->idtipo_documento->TooltipValue = "";
+			// nombre
+			$this->nombre->LinkCustomAttributes = "";
+			$this->nombre->HrefValue = "";
+			$this->nombre->TooltipValue = "";
 
-			// idserie_documento
-			$this->idserie_documento->LinkCustomAttributes = "";
-			$this->idserie_documento->HrefValue = "";
-			$this->idserie_documento->TooltipValue = "";
+			// apellido
+			$this->apellido->LinkCustomAttributes = "";
+			$this->apellido->HrefValue = "";
+			$this->apellido->TooltipValue = "";
 
-			// serie
-			$this->serie->LinkCustomAttributes = "";
-			$this->serie->HrefValue = "";
-			$this->serie->TooltipValue = "";
+			// direccion
+			$this->direccion->LinkCustomAttributes = "";
+			$this->direccion->HrefValue = "";
+			$this->direccion->TooltipValue = "";
 
-			// correlativo
-			$this->correlativo->LinkCustomAttributes = "";
-			$this->correlativo->HrefValue = "";
-			$this->correlativo->TooltipValue = "";
+			// cui
+			$this->cui->LinkCustomAttributes = "";
+			$this->cui->HrefValue = "";
+			$this->cui->TooltipValue = "";
 
-			// fecha
-			$this->fecha->LinkCustomAttributes = "";
-			$this->fecha->HrefValue = "";
-			$this->fecha->TooltipValue = "";
+			// idpais
+			$this->idpais->LinkCustomAttributes = "";
+			$this->idpais->HrefValue = "";
+			$this->idpais->TooltipValue = "";
 
-			// observaciones
-			$this->observaciones->LinkCustomAttributes = "";
-			$this->observaciones->HrefValue = "";
-			$this->observaciones->TooltipValue = "";
+			// fecha_nacimiento
+			$this->fecha_nacimiento->LinkCustomAttributes = "";
+			$this->fecha_nacimiento->HrefValue = "";
+			$this->fecha_nacimiento->TooltipValue = "";
 
-			// estado_documento
-			$this->estado_documento->LinkCustomAttributes = "";
-			$this->estado_documento->HrefValue = "";
-			$this->estado_documento->TooltipValue = "";
+			// email
+			$this->_email->LinkCustomAttributes = "";
+			$this->_email->HrefValue = "";
+			$this->_email->TooltipValue = "";
 
-			// idsucursal_ingreso
-			$this->idsucursal_ingreso->LinkCustomAttributes = "";
-			$this->idsucursal_ingreso->HrefValue = "";
-			$this->idsucursal_ingreso->TooltipValue = "";
-
-			// idsucursal_egreso
-			$this->idsucursal_egreso->LinkCustomAttributes = "";
-			$this->idsucursal_egreso->HrefValue = "";
-			$this->idsucursal_egreso->TooltipValue = "";
+			// sexo
+			$this->sexo->LinkCustomAttributes = "";
+			$this->sexo->HrefValue = "";
+			$this->sexo->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -901,11 +846,6 @@ class cdocumento_interno_view extends cdocumento_interno {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
-
-			// monto
-			$this->monto->LinkCustomAttributes = "";
-			$this->monto->HrefValue = "";
-			$this->monto->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -925,18 +865,18 @@ class cdocumento_interno_view extends cdocumento_interno {
 		}
 		if ($sDetailTblVar <> "") {
 			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("detalle_documento_interno", $DetailTblVar)) {
-				if (!isset($GLOBALS["detalle_documento_interno_grid"]))
-					$GLOBALS["detalle_documento_interno_grid"] = new cdetalle_documento_interno_grid;
-				if ($GLOBALS["detalle_documento_interno_grid"]->DetailView) {
-					$GLOBALS["detalle_documento_interno_grid"]->CurrentMode = "view";
+			if (in_array("cliente", $DetailTblVar)) {
+				if (!isset($GLOBALS["cliente_grid"]))
+					$GLOBALS["cliente_grid"] = new ccliente_grid;
+				if ($GLOBALS["cliente_grid"]->DetailView) {
+					$GLOBALS["cliente_grid"]->CurrentMode = "view";
 
 					// Save current master table to detail table
-					$GLOBALS["detalle_documento_interno_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["detalle_documento_interno_grid"]->setStartRecordNumber(1);
-					$GLOBALS["detalle_documento_interno_grid"]->iddocumento_interno->FldIsDetailKey = TRUE;
-					$GLOBALS["detalle_documento_interno_grid"]->iddocumento_interno->CurrentValue = $this->iddocumento_interno->CurrentValue;
-					$GLOBALS["detalle_documento_interno_grid"]->iddocumento_interno->setSessionValue($GLOBALS["detalle_documento_interno_grid"]->iddocumento_interno->CurrentValue);
+					$GLOBALS["cliente_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["cliente_grid"]->setStartRecordNumber(1);
+					$GLOBALS["cliente_grid"]->idpersona->FldIsDetailKey = TRUE;
+					$GLOBALS["cliente_grid"]->idpersona->CurrentValue = $this->idpersona->CurrentValue;
+					$GLOBALS["cliente_grid"]->idpersona->setSessionValue($GLOBALS["cliente_grid"]->idpersona->CurrentValue);
 				}
 			}
 		}
@@ -946,7 +886,7 @@ class cdocumento_interno_view extends cdocumento_interno {
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "documento_internolist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "personalist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -1042,33 +982,33 @@ class cdocumento_interno_view extends cdocumento_interno {
 <?php
 
 // Create page object
-if (!isset($documento_interno_view)) $documento_interno_view = new cdocumento_interno_view();
+if (!isset($persona_view)) $persona_view = new cpersona_view();
 
 // Page init
-$documento_interno_view->Page_Init();
+$persona_view->Page_Init();
 
 // Page main
-$documento_interno_view->Page_Main();
+$persona_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$documento_interno_view->Page_Render();
+$persona_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var documento_interno_view = new ew_Page("documento_interno_view");
-documento_interno_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = documento_interno_view.PageID; // For backward compatibility
+var persona_view = new ew_Page("persona_view");
+persona_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = persona_view.PageID; // For backward compatibility
 
 // Form object
-var fdocumento_internoview = new ew_Form("fdocumento_internoview");
+var fpersonaview = new ew_Form("fpersonaview");
 
 // Form_CustomValidate event
-fdocumento_internoview.Form_CustomValidate = 
+fpersonaview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1077,16 +1017,13 @@ fdocumento_internoview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fdocumento_internoview.ValidateRequired = true;
+fpersonaview.ValidateRequired = true;
 <?php } else { ?>
-fdocumento_internoview.ValidateRequired = false; 
+fpersonaview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fdocumento_internoview.Lists["x_idtipo_documento"] = {"LinkField":"x_idtipo_documento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fdocumento_internoview.Lists["x_idserie_documento"] = {"LinkField":"x_idserie_documento","Ajax":true,"AutoFill":false,"DisplayFields":["x_serie","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fdocumento_internoview.Lists["x_idsucursal_ingreso"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fdocumento_internoview.Lists["x_idsucursal_egreso"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fpersonaview.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1096,182 +1033,171 @@ fdocumento_internoview.Lists["x_idsucursal_egreso"] = {"LinkField":"x_idsucursal
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php $documento_interno_view->ExportOptions->Render("body") ?>
+<?php $persona_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($documento_interno_view->OtherOptions as &$option)
+	foreach ($persona_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $documento_interno_view->ShowPageHeader(); ?>
+<?php $persona_view->ShowPageHeader(); ?>
 <?php
-$documento_interno_view->ShowMessage();
+$persona_view->ShowMessage();
 ?>
-<form name="fdocumento_internoview" id="fdocumento_internoview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($documento_interno_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $documento_interno_view->Token ?>">
+<form name="fpersonaview" id="fpersonaview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($persona_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $persona_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="documento_interno">
+<input type="hidden" name="t" value="persona">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($documento_interno->iddocumento_interno->Visible) { // iddocumento_interno ?>
-	<tr id="r_iddocumento_interno">
-		<td><span id="elh_documento_interno_iddocumento_interno"><?php echo $documento_interno->iddocumento_interno->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->iddocumento_interno->CellAttributes() ?>>
-<span id="el_documento_interno_iddocumento_interno" class="form-group">
-<span<?php echo $documento_interno->iddocumento_interno->ViewAttributes() ?>>
-<?php echo $documento_interno->iddocumento_interno->ViewValue ?></span>
+<?php if ($persona->idpersona->Visible) { // idpersona ?>
+	<tr id="r_idpersona">
+		<td><span id="elh_persona_idpersona"><?php echo $persona->idpersona->FldCaption() ?></span></td>
+		<td<?php echo $persona->idpersona->CellAttributes() ?>>
+<span id="el_persona_idpersona" class="form-group">
+<span<?php echo $persona->idpersona->ViewAttributes() ?>>
+<?php echo $persona->idpersona->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->idtipo_documento->Visible) { // idtipo_documento ?>
-	<tr id="r_idtipo_documento">
-		<td><span id="elh_documento_interno_idtipo_documento"><?php echo $documento_interno->idtipo_documento->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->idtipo_documento->CellAttributes() ?>>
-<span id="el_documento_interno_idtipo_documento" class="form-group">
-<span<?php echo $documento_interno->idtipo_documento->ViewAttributes() ?>>
-<?php echo $documento_interno->idtipo_documento->ViewValue ?></span>
+<?php if ($persona->tipo_persona->Visible) { // tipo_persona ?>
+	<tr id="r_tipo_persona">
+		<td><span id="elh_persona_tipo_persona"><?php echo $persona->tipo_persona->FldCaption() ?></span></td>
+		<td<?php echo $persona->tipo_persona->CellAttributes() ?>>
+<span id="el_persona_tipo_persona" class="form-group">
+<span<?php echo $persona->tipo_persona->ViewAttributes() ?>>
+<?php echo $persona->tipo_persona->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->idserie_documento->Visible) { // idserie_documento ?>
-	<tr id="r_idserie_documento">
-		<td><span id="elh_documento_interno_idserie_documento"><?php echo $documento_interno->idserie_documento->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->idserie_documento->CellAttributes() ?>>
-<span id="el_documento_interno_idserie_documento" class="form-group">
-<span<?php echo $documento_interno->idserie_documento->ViewAttributes() ?>>
-<?php echo $documento_interno->idserie_documento->ViewValue ?></span>
+<?php if ($persona->nombre->Visible) { // nombre ?>
+	<tr id="r_nombre">
+		<td><span id="elh_persona_nombre"><?php echo $persona->nombre->FldCaption() ?></span></td>
+		<td<?php echo $persona->nombre->CellAttributes() ?>>
+<span id="el_persona_nombre" class="form-group">
+<span<?php echo $persona->nombre->ViewAttributes() ?>>
+<?php echo $persona->nombre->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->serie->Visible) { // serie ?>
-	<tr id="r_serie">
-		<td><span id="elh_documento_interno_serie"><?php echo $documento_interno->serie->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->serie->CellAttributes() ?>>
-<span id="el_documento_interno_serie" class="form-group">
-<span<?php echo $documento_interno->serie->ViewAttributes() ?>>
-<?php echo $documento_interno->serie->ViewValue ?></span>
+<?php if ($persona->apellido->Visible) { // apellido ?>
+	<tr id="r_apellido">
+		<td><span id="elh_persona_apellido"><?php echo $persona->apellido->FldCaption() ?></span></td>
+		<td<?php echo $persona->apellido->CellAttributes() ?>>
+<span id="el_persona_apellido" class="form-group">
+<span<?php echo $persona->apellido->ViewAttributes() ?>>
+<?php echo $persona->apellido->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->correlativo->Visible) { // correlativo ?>
-	<tr id="r_correlativo">
-		<td><span id="elh_documento_interno_correlativo"><?php echo $documento_interno->correlativo->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->correlativo->CellAttributes() ?>>
-<span id="el_documento_interno_correlativo" class="form-group">
-<span<?php echo $documento_interno->correlativo->ViewAttributes() ?>>
-<?php echo $documento_interno->correlativo->ViewValue ?></span>
+<?php if ($persona->direccion->Visible) { // direccion ?>
+	<tr id="r_direccion">
+		<td><span id="elh_persona_direccion"><?php echo $persona->direccion->FldCaption() ?></span></td>
+		<td<?php echo $persona->direccion->CellAttributes() ?>>
+<span id="el_persona_direccion" class="form-group">
+<span<?php echo $persona->direccion->ViewAttributes() ?>>
+<?php echo $persona->direccion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->fecha->Visible) { // fecha ?>
-	<tr id="r_fecha">
-		<td><span id="elh_documento_interno_fecha"><?php echo $documento_interno->fecha->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->fecha->CellAttributes() ?>>
-<span id="el_documento_interno_fecha" class="form-group">
-<span<?php echo $documento_interno->fecha->ViewAttributes() ?>>
-<?php echo $documento_interno->fecha->ViewValue ?></span>
+<?php if ($persona->cui->Visible) { // cui ?>
+	<tr id="r_cui">
+		<td><span id="elh_persona_cui"><?php echo $persona->cui->FldCaption() ?></span></td>
+		<td<?php echo $persona->cui->CellAttributes() ?>>
+<span id="el_persona_cui" class="form-group">
+<span<?php echo $persona->cui->ViewAttributes() ?>>
+<?php echo $persona->cui->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->observaciones->Visible) { // observaciones ?>
-	<tr id="r_observaciones">
-		<td><span id="elh_documento_interno_observaciones"><?php echo $documento_interno->observaciones->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->observaciones->CellAttributes() ?>>
-<span id="el_documento_interno_observaciones" class="form-group">
-<span<?php echo $documento_interno->observaciones->ViewAttributes() ?>>
-<?php echo $documento_interno->observaciones->ViewValue ?></span>
+<?php if ($persona->idpais->Visible) { // idpais ?>
+	<tr id="r_idpais">
+		<td><span id="elh_persona_idpais"><?php echo $persona->idpais->FldCaption() ?></span></td>
+		<td<?php echo $persona->idpais->CellAttributes() ?>>
+<span id="el_persona_idpais" class="form-group">
+<span<?php echo $persona->idpais->ViewAttributes() ?>>
+<?php echo $persona->idpais->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->estado_documento->Visible) { // estado_documento ?>
-	<tr id="r_estado_documento">
-		<td><span id="elh_documento_interno_estado_documento"><?php echo $documento_interno->estado_documento->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->estado_documento->CellAttributes() ?>>
-<span id="el_documento_interno_estado_documento" class="form-group">
-<span<?php echo $documento_interno->estado_documento->ViewAttributes() ?>>
-<?php echo $documento_interno->estado_documento->ViewValue ?></span>
+<?php if ($persona->fecha_nacimiento->Visible) { // fecha_nacimiento ?>
+	<tr id="r_fecha_nacimiento">
+		<td><span id="elh_persona_fecha_nacimiento"><?php echo $persona->fecha_nacimiento->FldCaption() ?></span></td>
+		<td<?php echo $persona->fecha_nacimiento->CellAttributes() ?>>
+<span id="el_persona_fecha_nacimiento" class="form-group">
+<span<?php echo $persona->fecha_nacimiento->ViewAttributes() ?>>
+<?php echo $persona->fecha_nacimiento->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->idsucursal_ingreso->Visible) { // idsucursal_ingreso ?>
-	<tr id="r_idsucursal_ingreso">
-		<td><span id="elh_documento_interno_idsucursal_ingreso"><?php echo $documento_interno->idsucursal_ingreso->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->idsucursal_ingreso->CellAttributes() ?>>
-<span id="el_documento_interno_idsucursal_ingreso" class="form-group">
-<span<?php echo $documento_interno->idsucursal_ingreso->ViewAttributes() ?>>
-<?php echo $documento_interno->idsucursal_ingreso->ViewValue ?></span>
+<?php if ($persona->_email->Visible) { // email ?>
+	<tr id="r__email">
+		<td><span id="elh_persona__email"><?php echo $persona->_email->FldCaption() ?></span></td>
+		<td<?php echo $persona->_email->CellAttributes() ?>>
+<span id="el_persona__email" class="form-group">
+<span<?php echo $persona->_email->ViewAttributes() ?>>
+<?php echo $persona->_email->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->idsucursal_egreso->Visible) { // idsucursal_egreso ?>
-	<tr id="r_idsucursal_egreso">
-		<td><span id="elh_documento_interno_idsucursal_egreso"><?php echo $documento_interno->idsucursal_egreso->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->idsucursal_egreso->CellAttributes() ?>>
-<span id="el_documento_interno_idsucursal_egreso" class="form-group">
-<span<?php echo $documento_interno->idsucursal_egreso->ViewAttributes() ?>>
-<?php echo $documento_interno->idsucursal_egreso->ViewValue ?></span>
+<?php if ($persona->sexo->Visible) { // sexo ?>
+	<tr id="r_sexo">
+		<td><span id="elh_persona_sexo"><?php echo $persona->sexo->FldCaption() ?></span></td>
+		<td<?php echo $persona->sexo->CellAttributes() ?>>
+<span id="el_persona_sexo" class="form-group">
+<span<?php echo $persona->sexo->ViewAttributes() ?>>
+<?php echo $persona->sexo->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->estado->Visible) { // estado ?>
+<?php if ($persona->estado->Visible) { // estado ?>
 	<tr id="r_estado">
-		<td><span id="elh_documento_interno_estado"><?php echo $documento_interno->estado->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->estado->CellAttributes() ?>>
-<span id="el_documento_interno_estado" class="form-group">
-<span<?php echo $documento_interno->estado->ViewAttributes() ?>>
-<?php echo $documento_interno->estado->ViewValue ?></span>
+		<td><span id="elh_persona_estado"><?php echo $persona->estado->FldCaption() ?></span></td>
+		<td<?php echo $persona->estado->CellAttributes() ?>>
+<span id="el_persona_estado" class="form-group">
+<span<?php echo $persona->estado->ViewAttributes() ?>>
+<?php echo $persona->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($documento_interno->fecha_insercion->Visible) { // fecha_insercion ?>
+<?php if ($persona->fecha_insercion->Visible) { // fecha_insercion ?>
 	<tr id="r_fecha_insercion">
-		<td><span id="elh_documento_interno_fecha_insercion"><?php echo $documento_interno->fecha_insercion->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->fecha_insercion->CellAttributes() ?>>
-<span id="el_documento_interno_fecha_insercion" class="form-group">
-<span<?php echo $documento_interno->fecha_insercion->ViewAttributes() ?>>
-<?php echo $documento_interno->fecha_insercion->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($documento_interno->monto->Visible) { // monto ?>
-	<tr id="r_monto">
-		<td><span id="elh_documento_interno_monto"><?php echo $documento_interno->monto->FldCaption() ?></span></td>
-		<td<?php echo $documento_interno->monto->CellAttributes() ?>>
-<span id="el_documento_interno_monto" class="form-group">
-<span<?php echo $documento_interno->monto->ViewAttributes() ?>>
-<?php echo $documento_interno->monto->ViewValue ?></span>
+		<td><span id="elh_persona_fecha_insercion"><?php echo $persona->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $persona->fecha_insercion->CellAttributes() ?>>
+<span id="el_persona_fecha_insercion" class="form-group">
+<span<?php echo $persona->fecha_insercion->ViewAttributes() ?>>
+<?php echo $persona->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
 <?php
-	if (in_array("detalle_documento_interno", explode(",", $documento_interno->getCurrentDetailTable())) && $detalle_documento_interno->DetailView) {
+	if (in_array("cliente", explode(",", $persona->getCurrentDetailTable())) && $cliente->DetailView) {
 ?>
-<?php if ($documento_interno->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("detalle_documento_interno", "TblCaption") ?></h4>
+<?php if ($persona->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("cliente", "TblCaption") ?></h4>
 <?php } ?>
-<?php include_once "detalle_documento_internogrid.php" ?>
+<?php include_once "clientegrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">
-fdocumento_internoview.Init();
+fpersonaview.Init();
 </script>
 <?php
-$documento_interno_view->ShowPageFooter();
+$persona_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1283,5 +1209,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$documento_interno_view->Page_Terminate();
+$persona_view->Page_Terminate();
 ?>

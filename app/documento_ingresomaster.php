@@ -10,6 +10,7 @@
 // estado
 // monto
 // fecha_insercion
+// idproveedor
 
 ?>
 <?php if ($documento_ingreso->Visible) { ?>
@@ -122,6 +123,17 @@
 <span id="el_documento_ingreso_fecha_insercion" class="form-group">
 <span<?php echo $documento_ingreso->fecha_insercion->ViewAttributes() ?>>
 <?php echo $documento_ingreso->fecha_insercion->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($documento_ingreso->idproveedor->Visible) { // idproveedor ?>
+		<tr id="r_idproveedor">
+			<td><?php echo $documento_ingreso->idproveedor->FldCaption() ?></td>
+			<td<?php echo $documento_ingreso->idproveedor->CellAttributes() ?>>
+<span id="el_documento_ingreso_idproveedor" class="form-group">
+<span<?php echo $documento_ingreso->idproveedor->ViewAttributes() ?>>
+<?php echo $documento_ingreso->idproveedor->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

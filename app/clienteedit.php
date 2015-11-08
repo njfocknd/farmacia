@@ -6,8 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "detalle_documento_internoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documento_internoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -15,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$detalle_documento_interno_edit = NULL; // Initialize page object first
+$cliente_edit = NULL; // Initialize page object first
 
-class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
+class ccliente_edit extends ccliente {
 
 	// Page ID
 	var $PageID = 'edit';
@@ -26,10 +26,10 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'detalle_documento_interno';
+	var $TableName = 'cliente';
 
 	// Page object name
-	var $PageObjName = 'detalle_documento_interno_edit';
+	var $PageObjName = 'cliente_edit';
 
 	// Page name
 	function PageName() {
@@ -196,14 +196,14 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (detalle_documento_interno)
-		if (!isset($GLOBALS["detalle_documento_interno"]) || get_class($GLOBALS["detalle_documento_interno"]) == "cdetalle_documento_interno") {
-			$GLOBALS["detalle_documento_interno"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["detalle_documento_interno"];
+		// Table object (cliente)
+		if (!isset($GLOBALS["cliente"]) || get_class($GLOBALS["cliente"]) == "ccliente") {
+			$GLOBALS["cliente"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["cliente"];
 		}
 
-		// Table object (documento_interno)
-		if (!isset($GLOBALS['documento_interno'])) $GLOBALS['documento_interno'] = new cdocumento_interno();
+		// Table object (persona)
+		if (!isset($GLOBALS['persona'])) $GLOBALS['persona'] = new cpersona();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -211,7 +211,7 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'detalle_documento_interno', TRUE);
+			define("EW_TABLE_NAME", 'cliente', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -274,13 +274,13 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $detalle_documento_interno;
+		global $EW_EXPORT, $cliente;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($detalle_documento_interno);
+				$doc = new $class($cliente);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -313,8 +313,8 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		global $objForm, $Language, $gsFormError;
 
 		// Load key from QueryString
-		if (@$_GET["iddetalle_documento_interno"] <> "") {
-			$this->iddetalle_documento_interno->setQueryStringValue($_GET["iddetalle_documento_interno"]);
+		if (@$_GET["idcliente"] <> "") {
+			$this->idcliente->setQueryStringValue($_GET["idcliente"]);
 		}
 
 		// Set up master detail parameters
@@ -332,8 +332,8 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		}
 
 		// Check if valid key
-		if ($this->iddetalle_documento_interno->CurrentValue == "")
-			$this->Page_Terminate("detalle_documento_internolist.php"); // Invalid key, return to list
+		if ($this->idcliente->CurrentValue == "")
+			$this->Page_Terminate("clientelist.php"); // Invalid key, return to list
 
 		// Validate form if post back
 		if (@$_POST["a_edit"] <> "") {
@@ -348,7 +348,7 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 			case "I": // Get a record to display
 				if (!$this->LoadRow()) { // Load record based on key
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
-					$this->Page_Terminate("detalle_documento_internolist.php"); // No matching record, return to list
+					$this->Page_Terminate("clientelist.php"); // No matching record, return to list
 				}
 				break;
 			Case "U": // Update
@@ -418,31 +418,35 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 
 		// Load from form
 		global $objForm;
-		if (!$this->cantidad->FldIsDetailKey) {
-			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
+		if (!$this->nit->FldIsDetailKey) {
+			$this->nit->setFormValue($objForm->GetValue("x_nit"));
+		}
+		if (!$this->nombre_factura->FldIsDetailKey) {
+			$this->nombre_factura->setFormValue($objForm->GetValue("x_nombre_factura"));
+		}
+		if (!$this->direccion_factura->FldIsDetailKey) {
+			$this->direccion_factura->setFormValue($objForm->GetValue("x_direccion_factura"));
+		}
+		if (!$this->_email->FldIsDetailKey) {
+			$this->_email->setFormValue($objForm->GetValue("x__email"));
 		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->monto->FldIsDetailKey) {
-			$this->monto->setFormValue($objForm->GetValue("x_monto"));
-		}
-		if (!$this->precio->FldIsDetailKey) {
-			$this->precio->setFormValue($objForm->GetValue("x_precio"));
-		}
-		if (!$this->iddetalle_documento_interno->FldIsDetailKey)
-			$this->iddetalle_documento_interno->setFormValue($objForm->GetValue("x_iddetalle_documento_interno"));
+		if (!$this->idcliente->FldIsDetailKey)
+			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		$this->LoadRow();
-		$this->iddetalle_documento_interno->CurrentValue = $this->iddetalle_documento_interno->FormValue;
-		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
+		$this->idcliente->CurrentValue = $this->idcliente->FormValue;
+		$this->nit->CurrentValue = $this->nit->FormValue;
+		$this->nombre_factura->CurrentValue = $this->nombre_factura->FormValue;
+		$this->direccion_factura->CurrentValue = $this->direccion_factura->FormValue;
+		$this->_email->CurrentValue = $this->_email->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
-		$this->monto->CurrentValue = $this->monto->FormValue;
-		$this->precio->CurrentValue = $this->precio->FormValue;
 	}
 
 	// Load row based on key values
@@ -474,32 +478,34 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->iddetalle_documento_interno->setDbValue($rs->fields('iddetalle_documento_interno'));
-		$this->iddocumento_interno->setDbValue($rs->fields('iddocumento_interno'));
-		$this->idproducto->setDbValue($rs->fields('idproducto'));
-		$this->idbodega_ingreso->setDbValue($rs->fields('idbodega_ingreso'));
-		$this->idbodega_egreso->setDbValue($rs->fields('idbodega_egreso'));
-		$this->cantidad->setDbValue($rs->fields('cantidad'));
-		$this->estado->setDbValue($rs->fields('estado'));
+		$this->idcliente->setDbValue($rs->fields('idcliente'));
+		$this->idpersona->setDbValue($rs->fields('idpersona'));
+		$this->codigo->setDbValue($rs->fields('codigo'));
+		$this->nit->setDbValue($rs->fields('nit'));
+		$this->nombre_factura->setDbValue($rs->fields('nombre_factura'));
+		$this->direccion_factura->setDbValue($rs->fields('direccion_factura'));
+		$this->debito->setDbValue($rs->fields('debito'));
+		$this->credito->setDbValue($rs->fields('credito'));
+		$this->_email->setDbValue($rs->fields('email'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
-		$this->monto->setDbValue($rs->fields('monto'));
-		$this->precio->setDbValue($rs->fields('precio'));
+		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->iddetalle_documento_interno->DbValue = $row['iddetalle_documento_interno'];
-		$this->iddocumento_interno->DbValue = $row['iddocumento_interno'];
-		$this->idproducto->DbValue = $row['idproducto'];
-		$this->idbodega_ingreso->DbValue = $row['idbodega_ingreso'];
-		$this->idbodega_egreso->DbValue = $row['idbodega_egreso'];
-		$this->cantidad->DbValue = $row['cantidad'];
-		$this->estado->DbValue = $row['estado'];
+		$this->idcliente->DbValue = $row['idcliente'];
+		$this->idpersona->DbValue = $row['idpersona'];
+		$this->codigo->DbValue = $row['codigo'];
+		$this->nit->DbValue = $row['nit'];
+		$this->nombre_factura->DbValue = $row['nombre_factura'];
+		$this->direccion_factura->DbValue = $row['direccion_factura'];
+		$this->debito->DbValue = $row['debito'];
+		$this->credito->DbValue = $row['credito'];
+		$this->_email->DbValue = $row['email'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
-		$this->monto->DbValue = $row['monto'];
-		$this->precio->DbValue = $row['precio'];
+		$this->estado->DbValue = $row['estado'];
 	}
 
 	// Render row values based on field settings
@@ -508,40 +514,33 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Convert decimal values if posted back
-
-		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
-			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->precio->FormValue == $this->precio->CurrentValue && is_numeric(ew_StrToFloat($this->precio->CurrentValue)))
-			$this->precio->CurrentValue = ew_StrToFloat($this->precio->CurrentValue);
-
 		// Call Row_Rendering event
+
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// iddetalle_documento_interno
-		// iddocumento_interno
-		// idproducto
-		// idbodega_ingreso
-		// idbodega_egreso
-		// cantidad
-		// estado
+		// idcliente
+		// idpersona
+		// codigo
+		// nit
+		// nombre_factura
+		// direccion_factura
+		// debito
+		// credito
+		// email
 		// fecha_insercion
-		// monto
-		// precio
+		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// iddetalle_documento_interno
-			$this->iddetalle_documento_interno->ViewValue = $this->iddetalle_documento_interno->CurrentValue;
-			$this->iddetalle_documento_interno->ViewCustomAttributes = "";
+			// idcliente
+			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			$this->idcliente->ViewCustomAttributes = "";
 
-			// iddocumento_interno
-			if (strval($this->iddocumento_interno->CurrentValue) <> "") {
-				$sFilterWrk = "`iddocumento_interno`" . ew_SearchString("=", $this->iddocumento_interno->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `iddocumento_interno`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_interno`";
+			// idpersona
+			if (strval($this->idpersona->CurrentValue) <> "") {
+				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -552,110 +551,53 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->iddocumento_interno, $sWhereWrk);
+			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->iddocumento_interno->ViewValue = $rswrk->fields('DispFld');
-					$this->iddocumento_interno->ViewValue .= ew_ValueSeparator(2,$this->iddocumento_interno) . $rswrk->fields('Disp3Fld');
+					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
+					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
 					$rswrk->Close();
 				} else {
-					$this->iddocumento_interno->ViewValue = $this->iddocumento_interno->CurrentValue;
+					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
 				}
 			} else {
-				$this->iddocumento_interno->ViewValue = NULL;
+				$this->idpersona->ViewValue = NULL;
 			}
-			$this->iddocumento_interno->ViewCustomAttributes = "";
+			$this->idpersona->ViewCustomAttributes = "";
 
-			// idproducto
-			if (strval($this->idproducto->CurrentValue) <> "") {
-				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// codigo
+			$this->codigo->ViewValue = $this->codigo->CurrentValue;
+			$this->codigo->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
-				}
-			} else {
-				$this->idproducto->ViewValue = NULL;
-			}
-			$this->idproducto->ViewCustomAttributes = "";
+			// nit
+			$this->nit->ViewValue = $this->nit->CurrentValue;
+			$this->nit->ViewCustomAttributes = "";
 
-			// idbodega_ingreso
-			if (strval($this->idbodega_ingreso->CurrentValue) <> "") {
-				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega_ingreso->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// nombre_factura
+			$this->nombre_factura->ViewValue = $this->nombre_factura->CurrentValue;
+			$this->nombre_factura->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbodega_ingreso, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `descripcion`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbodega_ingreso->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbodega_ingreso->ViewValue = $this->idbodega_ingreso->CurrentValue;
-				}
-			} else {
-				$this->idbodega_ingreso->ViewValue = NULL;
-			}
-			$this->idbodega_ingreso->ViewCustomAttributes = "";
+			// direccion_factura
+			$this->direccion_factura->ViewValue = $this->direccion_factura->CurrentValue;
+			$this->direccion_factura->ViewCustomAttributes = "";
 
-			// idbodega_egreso
-			if (strval($this->idbodega_egreso->CurrentValue) <> "") {
-				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega_egreso->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// debito
+			$this->debito->ViewValue = $this->debito->CurrentValue;
+			$this->debito->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbodega_egreso, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `descripcion`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbodega_egreso->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbodega_egreso->ViewValue = $this->idbodega_egreso->CurrentValue;
-				}
-			} else {
-				$this->idbodega_egreso->ViewValue = NULL;
-			}
-			$this->idbodega_egreso->ViewCustomAttributes = "";
+			// credito
+			$this->credito->ViewValue = $this->credito->CurrentValue;
+			$this->credito->ViewCustomAttributes = "";
 
-			// cantidad
-			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
-			$this->cantidad->ViewCustomAttributes = "";
+			// email
+			$this->_email->ViewValue = $this->_email->CurrentValue;
+			$this->_email->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -674,45 +616,55 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// fecha_insercion
-			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
-			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
-			$this->fecha_insercion->ViewCustomAttributes = "";
+			// nit
+			$this->nit->LinkCustomAttributes = "";
+			$this->nit->HrefValue = "";
+			$this->nit->TooltipValue = "";
 
-			// monto
-			$this->monto->ViewValue = $this->monto->CurrentValue;
-			$this->monto->ViewCustomAttributes = "";
+			// nombre_factura
+			$this->nombre_factura->LinkCustomAttributes = "";
+			$this->nombre_factura->HrefValue = "";
+			$this->nombre_factura->TooltipValue = "";
 
-			// precio
-			$this->precio->ViewValue = $this->precio->CurrentValue;
-			$this->precio->ViewCustomAttributes = "";
+			// direccion_factura
+			$this->direccion_factura->LinkCustomAttributes = "";
+			$this->direccion_factura->HrefValue = "";
+			$this->direccion_factura->TooltipValue = "";
 
-			// cantidad
-			$this->cantidad->LinkCustomAttributes = "";
-			$this->cantidad->HrefValue = "";
-			$this->cantidad->TooltipValue = "";
+			// email
+			$this->_email->LinkCustomAttributes = "";
+			$this->_email->HrefValue = "";
+			$this->_email->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
-
-			// monto
-			$this->monto->LinkCustomAttributes = "";
-			$this->monto->HrefValue = "";
-			$this->monto->TooltipValue = "";
-
-			// precio
-			$this->precio->LinkCustomAttributes = "";
-			$this->precio->HrefValue = "";
-			$this->precio->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// cantidad
-			$this->cantidad->EditAttrs["class"] = "form-control";
-			$this->cantidad->EditCustomAttributes = "";
-			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
-			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+			// nit
+			$this->nit->EditAttrs["class"] = "form-control";
+			$this->nit->EditCustomAttributes = "";
+			$this->nit->EditValue = ew_HtmlEncode($this->nit->CurrentValue);
+			$this->nit->PlaceHolder = ew_RemoveHtml($this->nit->FldCaption());
+
+			// nombre_factura
+			$this->nombre_factura->EditAttrs["class"] = "form-control";
+			$this->nombre_factura->EditCustomAttributes = "";
+			$this->nombre_factura->EditValue = ew_HtmlEncode($this->nombre_factura->CurrentValue);
+			$this->nombre_factura->PlaceHolder = ew_RemoveHtml($this->nombre_factura->FldCaption());
+
+			// direccion_factura
+			$this->direccion_factura->EditAttrs["class"] = "form-control";
+			$this->direccion_factura->EditCustomAttributes = "";
+			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
+			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
+
+			// email
+			$this->_email->EditAttrs["class"] = "form-control";
+			$this->_email->EditCustomAttributes = "";
+			$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
+			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -723,33 +675,22 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
-			// monto
-			$this->monto->EditAttrs["class"] = "form-control";
-			$this->monto->EditCustomAttributes = "";
-			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
-			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
-
-			// precio
-			$this->precio->EditAttrs["class"] = "form-control";
-			$this->precio->EditCustomAttributes = "";
-			$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
-			$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
-			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -1, -2, 0);
-
 			// Edit refer script
-			// cantidad
+			// nit
 
-			$this->cantidad->HrefValue = "";
+			$this->nit->HrefValue = "";
+
+			// nombre_factura
+			$this->nombre_factura->HrefValue = "";
+
+			// direccion_factura
+			$this->direccion_factura->HrefValue = "";
+
+			// email
+			$this->_email->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
-
-			// monto
-			$this->monto->HrefValue = "";
-
-			// precio
-			$this->precio->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -772,26 +713,11 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->cantidad->FldIsDetailKey && !is_null($this->cantidad->FormValue) && $this->cantidad->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->cantidad->FldCaption(), $this->cantidad->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->cantidad->FormValue)) {
-			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
+		if (!ew_CheckEmail($this->_email->FormValue)) {
+			ew_AddMessage($gsFormError, $this->_email->FldErrMsg());
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-		if (!$this->monto->FldIsDetailKey && !is_null($this->monto->FormValue) && $this->monto->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->monto->FldCaption(), $this->monto->ReqErrMsg));
-		}
-		if (!ew_CheckNumber($this->monto->FormValue)) {
-			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
-		}
-		if (!$this->precio->FldIsDetailKey && !is_null($this->precio->FormValue) && $this->precio->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->precio->FldCaption(), $this->precio->ReqErrMsg));
-		}
-		if (!ew_CheckNumber($this->precio->FormValue)) {
-			ew_AddMessage($gsFormError, $this->precio->FldErrMsg());
 		}
 
 		// Return validate result
@@ -826,17 +752,20 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// cantidad
-			$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, $this->cantidad->ReadOnly);
+			// nit
+			$this->nit->SetDbValueDef($rsnew, $this->nit->CurrentValue, NULL, $this->nit->ReadOnly);
+
+			// nombre_factura
+			$this->nombre_factura->SetDbValueDef($rsnew, $this->nombre_factura->CurrentValue, NULL, $this->nombre_factura->ReadOnly);
+
+			// direccion_factura
+			$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, $this->direccion_factura->ReadOnly);
+
+			// email
+			$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, NULL, $this->_email->ReadOnly);
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
-
-			// monto
-			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
-
-			// precio
-			$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, $this->precio->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -882,13 +811,13 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "documento_interno") {
+			if ($sMasterTblVar == "persona") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_iddocumento_interno"] <> "") {
-					$GLOBALS["documento_interno"]->iddocumento_interno->setQueryStringValue($_GET["fk_iddocumento_interno"]);
-					$this->iddocumento_interno->setQueryStringValue($GLOBALS["documento_interno"]->iddocumento_interno->QueryStringValue);
-					$this->iddocumento_interno->setSessionValue($this->iddocumento_interno->QueryStringValue);
-					if (!is_numeric($GLOBALS["documento_interno"]->iddocumento_interno->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idpersona"] <> "") {
+					$GLOBALS["persona"]->idpersona->setQueryStringValue($_GET["fk_idpersona"]);
+					$this->idpersona->setQueryStringValue($GLOBALS["persona"]->idpersona->QueryStringValue);
+					$this->idpersona->setSessionValue($this->idpersona->QueryStringValue);
+					if (!is_numeric($GLOBALS["persona"]->idpersona->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -905,8 +834,8 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "documento_interno") {
-				if ($this->iddocumento_interno->QueryStringValue == "") $this->iddocumento_interno->setSessionValue("");
+			if ($sMasterTblVar <> "persona") {
+				if ($this->idpersona->QueryStringValue == "") $this->idpersona->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -917,7 +846,7 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "detalle_documento_internolist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "clientelist.php", "", $this->TableVar, TRUE);
 		$PageId = "edit";
 		$Breadcrumb->Add("edit", $PageId, ew_CurrentUrl());
 	}
@@ -994,33 +923,33 @@ class cdetalle_documento_interno_edit extends cdetalle_documento_interno {
 <?php
 
 // Create page object
-if (!isset($detalle_documento_interno_edit)) $detalle_documento_interno_edit = new cdetalle_documento_interno_edit();
+if (!isset($cliente_edit)) $cliente_edit = new ccliente_edit();
 
 // Page init
-$detalle_documento_interno_edit->Page_Init();
+$cliente_edit->Page_Init();
 
 // Page main
-$detalle_documento_interno_edit->Page_Main();
+$cliente_edit->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$detalle_documento_interno_edit->Page_Render();
+$cliente_edit->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var detalle_documento_interno_edit = new ew_Page("detalle_documento_interno_edit");
-detalle_documento_interno_edit.PageID = "edit"; // Page ID
-var EW_PAGE_ID = detalle_documento_interno_edit.PageID; // For backward compatibility
+var cliente_edit = new ew_Page("cliente_edit");
+cliente_edit.PageID = "edit"; // Page ID
+var EW_PAGE_ID = cliente_edit.PageID; // For backward compatibility
 
 // Form object
-var fdetalle_documento_internoedit = new ew_Form("fdetalle_documento_internoedit");
+var fclienteedit = new ew_Form("fclienteedit");
 
 // Validate form
-fdetalle_documento_internoedit.Validate = function() {
+fclienteedit.Validate = function() {
 	if (!this.ValidateRequired)
 		return true; // Ignore validation
 	var $ = jQuery, fobj = this.GetForm(), $fobj = $(fobj);
@@ -1035,27 +964,12 @@ fdetalle_documento_internoedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_cantidad");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->cantidad->FldCaption(), $detalle_documento_interno->cantidad->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_cantidad");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->cantidad->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "__email");
+			if (elm && !ew_CheckEmail(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($cliente->_email->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->estado->FldCaption(), $detalle_documento_interno->estado->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_monto");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->monto->FldCaption(), $detalle_documento_interno->monto->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_monto");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->monto->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_precio");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_interno->precio->FldCaption(), $detalle_documento_interno->precio->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_precio");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_interno->precio->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cliente->estado->FldCaption(), $cliente->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1077,7 +991,7 @@ fdetalle_documento_internoedit.Validate = function() {
 }
 
 // Form_CustomValidate event
-fdetalle_documento_internoedit.Form_CustomValidate = 
+fclienteedit.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1086,9 +1000,9 @@ fdetalle_documento_internoedit.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fdetalle_documento_internoedit.ValidateRequired = true;
+fclienteedit.ValidateRequired = true;
 <?php } else { ?>
-fdetalle_documento_internoedit.ValidateRequired = false; 
+fclienteedit.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
@@ -1104,40 +1018,70 @@ fdetalle_documento_internoedit.ValidateRequired = false;
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $detalle_documento_interno_edit->ShowPageHeader(); ?>
+<?php $cliente_edit->ShowPageHeader(); ?>
 <?php
-$detalle_documento_interno_edit->ShowMessage();
+$cliente_edit->ShowMessage();
 ?>
-<form name="fdetalle_documento_internoedit" id="fdetalle_documento_internoedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($detalle_documento_interno_edit->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $detalle_documento_interno_edit->Token ?>">
+<form name="fclienteedit" id="fclienteedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($cliente_edit->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cliente_edit->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="detalle_documento_interno">
+<input type="hidden" name="t" value="cliente">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($detalle_documento_interno->cantidad->Visible) { // cantidad ?>
-	<div id="r_cantidad" class="form-group">
-		<label id="elh_detalle_documento_interno_cantidad" for="x_cantidad" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento_interno->cantidad->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $detalle_documento_interno->cantidad->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_cantidad">
-<input type="text" data-field="x_cantidad" name="x_cantidad" id="x_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->cantidad->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->cantidad->EditValue ?>"<?php echo $detalle_documento_interno->cantidad->EditAttributes() ?>>
+<?php if ($cliente->nit->Visible) { // nit ?>
+	<div id="r_nit" class="form-group">
+		<label id="elh_cliente_nit" for="x_nit" class="col-sm-2 control-label ewLabel"><?php echo $cliente->nit->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->nit->CellAttributes() ?>>
+<span id="el_cliente_nit">
+<input type="text" data-field="x_nit" name="x_nit" id="x_nit" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->nit->PlaceHolder) ?>" value="<?php echo $cliente->nit->EditValue ?>"<?php echo $cliente->nit->EditAttributes() ?>>
 </span>
-<?php echo $detalle_documento_interno->cantidad->CustomMsg ?></div></div>
+<?php echo $cliente->nit->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($detalle_documento_interno->estado->Visible) { // estado ?>
+<?php if ($cliente->nombre_factura->Visible) { // nombre_factura ?>
+	<div id="r_nombre_factura" class="form-group">
+		<label id="elh_cliente_nombre_factura" for="x_nombre_factura" class="col-sm-2 control-label ewLabel"><?php echo $cliente->nombre_factura->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->nombre_factura->CellAttributes() ?>>
+<span id="el_cliente_nombre_factura">
+<input type="text" data-field="x_nombre_factura" name="x_nombre_factura" id="x_nombre_factura" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->nombre_factura->PlaceHolder) ?>" value="<?php echo $cliente->nombre_factura->EditValue ?>"<?php echo $cliente->nombre_factura->EditAttributes() ?>>
+</span>
+<?php echo $cliente->nombre_factura->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cliente->direccion_factura->Visible) { // direccion_factura ?>
+	<div id="r_direccion_factura" class="form-group">
+		<label id="elh_cliente_direccion_factura" for="x_direccion_factura" class="col-sm-2 control-label ewLabel"><?php echo $cliente->direccion_factura->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->direccion_factura->CellAttributes() ?>>
+<span id="el_cliente_direccion_factura">
+<input type="text" data-field="x_direccion_factura" name="x_direccion_factura" id="x_direccion_factura" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->direccion_factura->PlaceHolder) ?>" value="<?php echo $cliente->direccion_factura->EditValue ?>"<?php echo $cliente->direccion_factura->EditAttributes() ?>>
+</span>
+<?php echo $cliente->direccion_factura->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cliente->_email->Visible) { // email ?>
+	<div id="r__email" class="form-group">
+		<label id="elh_cliente__email" for="x__email" class="col-sm-2 control-label ewLabel"><?php echo $cliente->_email->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->_email->CellAttributes() ?>>
+<span id="el_cliente__email">
+<input type="text" data-field="x__email" name="x__email" id="x__email" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->_email->PlaceHolder) ?>" value="<?php echo $cliente->_email->EditValue ?>"<?php echo $cliente->_email->EditAttributes() ?>>
+</span>
+<?php echo $cliente->_email->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cliente->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_detalle_documento_interno_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento_interno->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $detalle_documento_interno->estado->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_estado">
-<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $detalle_documento_interno->estado->EditAttributes() ?>>
+		<label id="elh_cliente_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $cliente->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->estado->CellAttributes() ?>>
+<span id="el_cliente_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $cliente->estado->EditAttributes() ?>>
 <?php
-if (is_array($detalle_documento_interno->estado->EditValue)) {
-	$arwrk = $detalle_documento_interno->estado->EditValue;
+if (is_array($cliente->estado->EditValue)) {
+	$arwrk = $cliente->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($detalle_documento_interno->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($cliente->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1149,31 +1093,11 @@ if (is_array($detalle_documento_interno->estado->EditValue)) {
 ?>
 </select>
 </span>
-<?php echo $detalle_documento_interno->estado->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($detalle_documento_interno->monto->Visible) { // monto ?>
-	<div id="r_monto" class="form-group">
-		<label id="elh_detalle_documento_interno_monto" for="x_monto" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento_interno->monto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $detalle_documento_interno->monto->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_monto">
-<input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->monto->EditValue ?>"<?php echo $detalle_documento_interno->monto->EditAttributes() ?>>
-</span>
-<?php echo $detalle_documento_interno->monto->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($detalle_documento_interno->precio->Visible) { // precio ?>
-	<div id="r_precio" class="form-group">
-		<label id="elh_detalle_documento_interno_precio" for="x_precio" class="col-sm-2 control-label ewLabel"><?php echo $detalle_documento_interno->precio->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $detalle_documento_interno->precio->CellAttributes() ?>>
-<span id="el_detalle_documento_interno_precio">
-<input type="text" data-field="x_precio" name="x_precio" id="x_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_interno->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_interno->precio->EditValue ?>"<?php echo $detalle_documento_interno->precio->EditAttributes() ?>>
-</span>
-<?php echo $detalle_documento_interno->precio->CustomMsg ?></div></div>
+<?php echo $cliente->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
-<input type="hidden" data-field="x_iddetalle_documento_interno" name="x_iddetalle_documento_interno" id="x_iddetalle_documento_interno" value="<?php echo ew_HtmlEncode($detalle_documento_interno->iddetalle_documento_interno->CurrentValue) ?>">
+<input type="hidden" data-field="x_idcliente" name="x_idcliente" id="x_idcliente" value="<?php echo ew_HtmlEncode($cliente->idcliente->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>
@@ -1181,10 +1105,10 @@ if (is_array($detalle_documento_interno->estado->EditValue)) {
 </div>
 </form>
 <script type="text/javascript">
-fdetalle_documento_internoedit.Init();
+fclienteedit.Init();
 </script>
 <?php
-$detalle_documento_interno_edit->ShowPageFooter();
+$cliente_edit->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1196,5 +1120,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$detalle_documento_interno_edit->Page_Terminate();
+$cliente_edit->Page_Terminate();
 ?>
