@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -140,6 +141,8 @@ if ($pago_cliente->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($pago_cliente->CurrentAction == "" && $pago_cliente_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$pago_cliente_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($pago_cliente_grid->SearchWhere == "0=101")
 			$pago_cliente_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

@@ -1,37 +1,41 @@
 ﻿<?xml version="1.0"?>
-<configuration date="2015/11/08" author="e.World Technology Ltd.">
-<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/08 23:11:19" languagefolder="phplang" userlevel="">
-<table id="departamento" name="departamento" caption="Departamento" userlevel="" priv="1"/>
-<table id="empresa" name="empresa" caption="Empresa" userlevel="" priv="1"/>
-<table id="fabricante" name="fabricante" caption="Fabricante" userlevel="" priv="1"/>
-<table id="marca" name="marca" caption="Marca" userlevel="" priv="1"/>
-<table id="municipio" name="municipio" caption="Municipio" userlevel="" priv="1"/>
-<table id="pais" name="pais" caption="País" userlevel="" priv="1"/>
-<table id="producto" name="producto" caption="Producto" userlevel="" priv="1"/>
-<table id="registro_sanitario" name="registro_sanitario" caption="registro sanitario" userlevel="" priv="1"/>
-<table id="sucursal" name="sucursal" caption="Producto" userlevel="" priv="1"/>
-<table id="bodega" name="bodega" caption="Bodega" userlevel="" priv="1"/>
-<table id="tipo_bodega" name="tipo_bodega" caption="Producto en Sucursal" userlevel="" priv="1"/>
-<table id="producto_bodega" name="producto_bodega" caption="Producto en Bodega" userlevel="" priv="1"/>
-<table id="producto_sucursal" name="producto_sucursal" caption="Producto en Sucursal" userlevel="" priv="1"/>
-<table id="producto_historial" name="producto_historial" caption="Documento Debito" userlevel="" priv="1"/>
-<table id="documento_debito" name="documento_debito" caption="Documento Debito" userlevel="" priv="1"/>
-<table id="serie_documento" name="serie_documento" caption="Serie de Documento" userlevel="" priv="1"/>
-<table id="tipo_documento" name="tipo_documento" caption="Tipo de Documento" userlevel="" priv="1"/>
-<table id="detalle_documento_debito" name="detalle_documento_debito" caption="Detalle de Documento" userlevel="" priv="1"/>
-<table id="documento_credito" name="documento_credito" caption="Documento Credito" userlevel="" priv="1"/>
-<table id="detalle_documento_credito" name="detalle_documento_credito" caption="Detalle de Documento de Ingreso" userlevel="" priv="1"/>
-<table id="detalle_documento_movimiento" name="detalle_documento_movimiento" caption="Detalle de Documento Movimiento" userlevel="" priv="1"/>
-<table id="documento_movimiento" name="documento_movimiento" caption="Documento Movimiento" userlevel="" priv="1"/>
-<table id="aplicacion_movimiento" name="aplicacion_movimiento" caption="aplicacion movimiento" userlevel="" priv="1"/>
-<table id="cliente" name="cliente" caption="Cliente" userlevel="" priv="1"/>
-<table id="movimiento" name="movimiento" caption="movimiento" userlevel="" priv="1"/>
-<table id="pago_cliente" name="pago_cliente" caption="Pago de Clientes" userlevel="" priv="1"/>
-<table id="pago_proveedor" name="pago_proveedor" caption="Pagos a Proveedor" userlevel="" priv="1"/>
-<table id="persona" name="persona" caption="Persona" userlevel="" priv="1"/>
-<table id="proveedor" name="proveedor" caption="Pagos de Clientes" userlevel="" priv="1"/>
-<table id="banco" name="banco" caption="Banco" userlevel="" priv="1"/>
-<table id="cuenta" name="cuenta" caption="Cuenta" userlevel="" priv="1"/>
-<table id="moneda" name="moneda" caption="Moneda" userlevel="" priv="1"/>
-<table id="cuenta_transaccion" name="cuenta_transaccion" caption="Transacción" userlevel="" priv="1"/>
+<configuration date="2015/11/09" author="e.World Technology Ltd.">
+<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/09 00:43:04" languagefolder="phplang" userlevel="0,&quot;Default&quot;,0">
+<table id="departamento" name="departamento" caption="Departamento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="empresa" name="empresa" caption="Empresa" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="fabricante" name="fabricante" caption="Fabricante" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="marca" name="marca" caption="Marca" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="municipio" name="municipio" caption="Municipio" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="pais" name="pais" caption="País" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="producto" name="producto" caption="Producto" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="registro_sanitario" name="registro_sanitario" caption="registro sanitario" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="sucursal" name="sucursal" caption="Producto" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="bodega" name="bodega" caption="Bodega" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="tipo_bodega" name="tipo_bodega" caption="Producto en Sucursal" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="producto_bodega" name="producto_bodega" caption="Producto en Bodega" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="producto_sucursal" name="producto_sucursal" caption="Producto en Sucursal" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="producto_historial" name="producto_historial" caption="Documento Debito" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="documento_debito" name="documento_debito" caption="Documento Debito" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="serie_documento" name="serie_documento" caption="Serie de Documento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="tipo_documento" name="tipo_documento" caption="Tipo de Documento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="detalle_documento_debito" name="detalle_documento_debito" caption="Detalle de Documento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="documento_credito" name="documento_credito" caption="Documento Credito" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="detalle_documento_credito" name="detalle_documento_credito" caption="Detalle de Documento de Ingreso" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="detalle_documento_movimiento" name="detalle_documento_movimiento" caption="Detalle de Documento Movimiento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="documento_movimiento" name="documento_movimiento" caption="Documento Movimiento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="aplicacion_movimiento" name="aplicacion_movimiento" caption="aplicacion movimiento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="cliente" name="cliente" caption="Cliente" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="movimiento" name="movimiento" caption="movimiento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="pago_cliente" name="pago_cliente" caption="Pago de Clientes" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="pago_proveedor" name="pago_proveedor" caption="Pagos a Proveedor" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="persona" name="persona" caption="Persona" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="proveedor" name="proveedor" caption="Pagos de Clientes" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="banco" name="banco" caption="Banco" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="cuenta" name="cuenta" caption="Cuenta" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="moneda" name="moneda" caption="Moneda" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="cuenta_transaccion" name="cuenta_transaccion" caption="Transacción" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="usuario" name="usuario" caption="Usuario" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="userlevelpermissions" name="userlevelpermissions" caption="userlevelpermissions" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="userlevels" name="userlevels" caption="Rol" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="audittrail" name="audittrail" caption="Auditoría" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 </project></configuration>

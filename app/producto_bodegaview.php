@@ -10,6 +10,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bodegainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_historialgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
@@ -258,6 +259,12 @@ class cproducto_bodega_view extends cproducto_bodega {
 		// Table object (producto_sucursal)
 		if (!isset($GLOBALS['producto_sucursal'])) $GLOBALS['producto_sucursal'] = new cproducto_sucursal();
 
+		// Table object (usuario)
+		if (!isset($GLOBALS['usuario'])) $GLOBALS['usuario'] = new cusuario();
+
+		// User table object (usuario)
+		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
@@ -291,7 +298,74 @@ class cproducto_bodega_view extends cproducto_bodega {
 	//
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
+
+		// Security
+		$Security = new cAdvancedSecurity();
+		if (!$Security->IsLoggedIn()) $Security->AutoLogin();
+		if (!$Security->IsLoggedIn()) {
+			$Security->SaveLastUrl();
+			$this->Page_Terminate(ew_GetUrl("login.php"));
+		}
+		$Security->TablePermission_Loading();
+		$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName);
+		$Security->TablePermission_Loaded();
+		if (!$Security->IsLoggedIn()) {
+			$Security->SaveLastUrl();
+			$this->Page_Terminate(ew_GetUrl("login.php"));
+		}
+		if (!$Security->CanView()) {
+			$Security->SaveLastUrl();
+			$this->setFailureMessage($Language->Phrase("NoPermission")); // Set no permission
+			$this->Page_Terminate(ew_GetUrl("producto_bodegalist.php"));
+		}
+		$Security->UserID_Loading();
+		if ($Security->IsLoggedIn()) $Security->LoadUserID();
+		$Security->UserID_Loaded();
+
+		// Get export parameters
+		$custom = "";
+		if (@$_GET["export"] <> "") {
+			$this->Export = $_GET["export"];
+			$custom = @$_GET["custom"];
+		} elseif (@$_POST["export"] <> "") {
+			$this->Export = $_POST["export"];
+			$custom = @$_POST["custom"];
+		} elseif (ew_IsHttpPost()) {
+			if (@$_POST["exporttype"] <> "")
+				$this->Export = $_POST["exporttype"];
+			$custom = @$_POST["custom"];
+		} else {
+			$this->setExportReturnUrl(ew_CurrentUrl());
+		}
+		$gsExportFile = $this->TableVar; // Get export file, used in header
+		if (@$_GET["idproducto_bodega"] <> "") {
+			if ($gsExportFile <> "") $gsExportFile .= "_";
+			$gsExportFile .= ew_StripSlashes($_GET["idproducto_bodega"]);
+		}
+
+		// Get custom export parameters
+		if ($this->Export <> "" && $custom <> "") {
+			$this->CustomExport = $this->Export;
+			$this->Export = "print";
+		}
+		$gsCustomExport = $this->CustomExport;
+		$gsExport = $this->Export; // Get export parameter, used in header
+
+		// Update Export URLs
+		if (defined("EW_USE_PHPEXCEL"))
+			$this->ExportExcelCustom = FALSE;
+		if ($this->ExportExcelCustom)
+			$this->ExportExcelUrl .= "&amp;custom=1";
+		if (defined("EW_USE_PHPWORD"))
+			$this->ExportWordCustom = FALSE;
+		if ($this->ExportWordCustom)
+			$this->ExportWordUrl .= "&amp;custom=1";
+		if ($this->ExportPdfCustom)
+			$this->ExportPdfUrl .= "&amp;custom=1";
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
+
+		// Setup export options
+		$this->SetupExportOptions();
 		$this->idproducto_bodega->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
@@ -423,6 +497,13 @@ class cproducto_bodega_view extends cproducto_bodega {
 						$sReturnUrl = "producto_bodegalist.php"; // No matching record, return to list
 					}
 			}
+
+			// Export data only
+			if ($this->CustomExport == "" && in_array($this->Export, array("html","word","excel","xml","csv","email","pdf"))) {
+				$this->ExportData();
+				$this->Page_Terminate(); // Terminate response
+				exit();
+			}
 		} else {
 			$sReturnUrl = "producto_bodegalist.php"; // Not page request, return to list
 		}
@@ -458,7 +539,7 @@ class cproducto_bodega_view extends cproducto_bodega {
 		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_historial", "TblCaption");
 		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_historiallist.php?" . EW_TABLE_SHOW_MASTER . "=producto_bodega&fk_idproducto_bodega=" . strval($this->idproducto_bodega->CurrentValue) . "") . "\">" . $body . "</a>";
 		$links = "";
-		if ($GLOBALS["producto_historial_grid"] && $GLOBALS["producto_historial_grid"]->DetailView) {
+		if ($GLOBALS["producto_historial_grid"] && $GLOBALS["producto_historial_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'producto_historial')) {
 			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_historial")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
 			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
 			$DetailViewTblVar .= "producto_historial";
@@ -469,7 +550,7 @@ class cproducto_bodega_view extends cproducto_bodega {
 		}
 		$body = "<div class=\"btn-group\">" . $body . "</div>";
 		$item->Body = $body;
-		$item->Visible = TRUE;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_historial');
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "producto_historial";
@@ -558,6 +639,23 @@ class cproducto_bodega_view extends cproducto_bodega {
 			$this->StartRec = intval(($this->StartRec-1)/$this->DisplayRecs)*$this->DisplayRecs+1; // Point to page boundary
 			$this->setStartRecordNumber($this->StartRec);
 		}
+	}
+
+	// Load recordset
+	function LoadRecordset($offset = -1, $rowcnt = -1) {
+		global $conn;
+
+		// Load List page SQL
+		$sSql = $this->SelectSQL();
+
+		// Load recordset
+		$conn->raiseErrorFn = 'ew_ErrorFn';
+		$rs = $conn->SelectLimit($sSql, $rowcnt, $offset);
+		$conn->raiseErrorFn = '';
+
+		// Call Recordset Selected event
+		$this->Recordset_Selected($rs);
+		return $rs;
 	}
 
 	// Load row based on key values
@@ -779,6 +877,158 @@ class cproducto_bodega_view extends cproducto_bodega {
 			$this->Row_Rendered();
 	}
 
+	// Set up export options
+	function SetupExportOptions() {
+		global $Language;
+
+		// Printer friendly
+		$item = &$this->ExportOptions->Add("print");
+		$item->Body = "<a href=\"" . $this->ExportPrintUrl . "\" class=\"ewExportLink ewPrint\" title=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("PrinterFriendlyText")) . "\">" . $Language->Phrase("PrinterFriendly") . "</a>";
+		$item->Visible = FALSE;
+
+		// Export to Excel
+		$item = &$this->ExportOptions->Add("excel");
+		$item->Body = "<a href=\"" . $this->ExportExcelUrl . "\" class=\"ewExportLink ewExcel\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToExcelText")) . "\">" . $Language->Phrase("ExportToExcel") . "</a>";
+		$item->Visible = TRUE;
+
+		// Export to Word
+		$item = &$this->ExportOptions->Add("word");
+		$item->Body = "<a href=\"" . $this->ExportWordUrl . "\" class=\"ewExportLink ewWord\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToWordText")) . "\">" . $Language->Phrase("ExportToWord") . "</a>";
+		$item->Visible = TRUE;
+
+		// Export to Html
+		$item = &$this->ExportOptions->Add("html");
+		$item->Body = "<a href=\"" . $this->ExportHtmlUrl . "\" class=\"ewExportLink ewHtml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToHtmlText")) . "\">" . $Language->Phrase("ExportToHtml") . "</a>";
+		$item->Visible = FALSE;
+
+		// Export to Xml
+		$item = &$this->ExportOptions->Add("xml");
+		$item->Body = "<a href=\"" . $this->ExportXmlUrl . "\" class=\"ewExportLink ewXml\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToXmlText")) . "\">" . $Language->Phrase("ExportToXml") . "</a>";
+		$item->Visible = FALSE;
+
+		// Export to Csv
+		$item = &$this->ExportOptions->Add("csv");
+		$item->Body = "<a href=\"" . $this->ExportCsvUrl . "\" class=\"ewExportLink ewCsv\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToCsvText")) . "\">" . $Language->Phrase("ExportToCsv") . "</a>";
+		$item->Visible = FALSE;
+
+		// Export to Pdf
+		$item = &$this->ExportOptions->Add("pdf");
+		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
+		$item->Visible = TRUE;
+
+		// Export to Email
+		$item = &$this->ExportOptions->Add("email");
+		$url = "";
+		$item->Body = "<button id=\"emf_producto_bodega\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_producto_bodega',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fproducto_bodegaview,key:" . ew_ArrayToJsonAttr($this->RecKey) . ",sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
+		$item->Visible = FALSE;
+
+		// Drop down button for export
+		$this->ExportOptions->UseButtonGroup = TRUE;
+		$this->ExportOptions->UseImageAndText = TRUE;
+		$this->ExportOptions->UseDropDownButton = FALSE;
+		if ($this->ExportOptions->UseButtonGroup && ew_IsMobile())
+			$this->ExportOptions->UseDropDownButton = TRUE;
+		$this->ExportOptions->DropDownButtonPhrase = $Language->Phrase("ButtonExport");
+
+		// Add group option item
+		$item = &$this->ExportOptions->Add($this->ExportOptions->GroupOptionName);
+		$item->Body = "";
+		$item->Visible = FALSE;
+
+		// Hide options for export
+		if ($this->Export <> "")
+			$this->ExportOptions->HideAllOptions();
+	}
+
+	// Export data in HTML/CSV/Word/Excel/XML/Email/PDF format
+	function ExportData() {
+		$utf8 = (strtolower(EW_CHARSET) == "utf-8");
+		$bSelectLimit = FALSE;
+
+		// Load recordset
+		if ($bSelectLimit) {
+			$this->TotalRecs = $this->SelectRecordCount();
+		} else {
+			if ($rs = $this->LoadRecordset())
+				$this->TotalRecs = $rs->RecordCount();
+		}
+		$this->StartRec = 1;
+		$this->SetUpStartRec(); // Set up start record position
+
+		// Set the last record to display
+		if ($this->DisplayRecs <= 0) {
+			$this->StopRec = $this->TotalRecs;
+		} else {
+			$this->StopRec = $this->StartRec + $this->DisplayRecs - 1;
+		}
+		if (!$rs) {
+			header("Content-Type:"); // Remove header
+			header("Content-Disposition:");
+			$this->ShowMessage();
+			return;
+		}
+		$this->ExportDoc = ew_ExportDocument($this, "v");
+		$Doc = &$this->ExportDoc;
+		if ($bSelectLimit) {
+			$this->StartRec = 1;
+			$this->StopRec = $this->DisplayRecs <= 0 ? $this->TotalRecs : $this->DisplayRecs;
+		} else {
+
+			//$this->StartRec = $this->StartRec;
+			//$this->StopRec = $this->StopRec;
+
+		}
+
+		// Call Page Exporting server event
+		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
+		$ParentTable = "";
+		$sHeader = $this->PageHeader;
+		$this->Page_DataRendering($sHeader);
+		$Doc->Text .= $sHeader;
+		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "view");
+
+		// Export detail records (producto_historial)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("producto_historial", explode(",", $this->getCurrentDetailTable()))) {
+			global $producto_historial;
+			if (!isset($producto_historial)) $producto_historial = new cproducto_historial;
+			$rsdetail = $producto_historial->LoadRs($producto_historial->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$producto_historial->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
+		$sFooter = $this->PageFooter;
+		$this->Page_DataRendered($sFooter);
+		$Doc->Text .= $sFooter;
+
+		// Close recordset
+		$rs->Close();
+
+		// Export header and footer
+		$Doc->ExportHeaderAndFooter();
+
+		// Call Page Exported server event
+		$this->Page_Exported();
+
+		// Clean output buffer
+		if (!EW_DEBUG_ENABLED && ob_get_length())
+			ob_end_clean();
+
+		// Write debug message if enabled
+		if (EW_DEBUG_ENABLED)
+			echo ew_DebugMsg();
+
+		// Output data
+		$Doc->Export();
+	}
+
 	// Set up master/detail based on QueryString
 	function SetUpMasterParms() {
 		$bValidMaster = FALSE;
@@ -994,6 +1244,7 @@ Page_Rendering();
 $producto_bodega_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
+<?php if ($producto_bodega->Export == "") { ?>
 <script type="text/javascript">
 
 // Page object
@@ -1030,16 +1281,23 @@ fproducto_bodegaview.Lists["x_idproducto_sucursal"] = {"LinkField":"x_idproducto
 
 // Write your client script here, no need to add script tags.
 </script>
+<?php } ?>
+<?php if ($producto_bodega->Export == "") { ?>
 <div class="ewToolbar">
+<?php if ($producto_bodega->Export == "") { ?>
 <?php $Breadcrumb->Render(); ?>
+<?php } ?>
 <?php $producto_bodega_view->ExportOptions->Render("body") ?>
 <?php
 	foreach ($producto_bodega_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
+<?php if ($producto_bodega->Export == "") { ?>
 <?php echo $Language->SelectionForm(); ?>
+<?php } ?>
 <div class="clearfix"></div>
 </div>
+<?php } ?>
 <?php $producto_bodega_view->ShowPageHeader(); ?>
 <?php
 $producto_bodega_view->ShowMessage();
@@ -1134,12 +1392,14 @@ $producto_bodega_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
+<?php if ($producto_bodega->Export == "") { ?>
 <script type="text/javascript">
 
 // Write your table-specific startup script here
 // document.write("page loaded");
 
 </script>
+<?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
 $producto_bodega_view->Page_Terminate();

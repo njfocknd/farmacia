@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -164,6 +165,8 @@ if ($documento_debito->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($documento_debito->CurrentAction == "" && $documento_debito_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$documento_debito_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($documento_debito_grid->SearchWhere == "0=101")
 			$documento_debito_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

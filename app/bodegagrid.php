@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -130,6 +131,8 @@ if ($bodega->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($bodega->CurrentAction == "" && $bodega_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$bodega_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($bodega_grid->SearchWhere == "0=101")
 			$bodega_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

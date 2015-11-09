@@ -10,6 +10,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bodegainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -213,6 +214,12 @@ class cproducto_bodega_search extends cproducto_bodega {
 		// Table object (producto_sucursal)
 		if (!isset($GLOBALS['producto_sucursal'])) $GLOBALS['producto_sucursal'] = new cproducto_sucursal();
 
+		// Table object (usuario)
+		if (!isset($GLOBALS['usuario'])) $GLOBALS['usuario'] = new cusuario();
+
+		// User table object (usuario)
+		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'search', TRUE);
@@ -233,6 +240,29 @@ class cproducto_bodega_search extends cproducto_bodega {
 	//
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
+
+		// Security
+		$Security = new cAdvancedSecurity();
+		if (!$Security->IsLoggedIn()) $Security->AutoLogin();
+		if (!$Security->IsLoggedIn()) {
+			$Security->SaveLastUrl();
+			$this->Page_Terminate(ew_GetUrl("login.php"));
+		}
+		$Security->TablePermission_Loading();
+		$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName);
+		$Security->TablePermission_Loaded();
+		if (!$Security->IsLoggedIn()) {
+			$Security->SaveLastUrl();
+			$this->Page_Terminate(ew_GetUrl("login.php"));
+		}
+		if (!$Security->CanSearch()) {
+			$Security->SaveLastUrl();
+			$this->setFailureMessage($Language->Phrase("NoPermission")); // Set no permission
+			$this->Page_Terminate(ew_GetUrl("producto_bodegalist.php"));
+		}
+		$Security->UserID_Loading();
+		if ($Security->IsLoggedIn()) $Security->LoadUserID();
+		$Security->UserID_Loaded();
 
 		// Create form object
 		$objForm = new cFormObj();

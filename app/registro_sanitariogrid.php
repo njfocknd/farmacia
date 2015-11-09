@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -133,6 +134,8 @@ if ($registro_sanitario->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($registro_sanitario->CurrentAction == "" && $registro_sanitario_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$registro_sanitario_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($registro_sanitario_grid->SearchWhere == "0=101")
 			$registro_sanitario_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

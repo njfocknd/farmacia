@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -145,6 +146,8 @@ if ($cuenta_transaccion->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($cuenta_transaccion->CurrentAction == "" && $cuenta_transaccion_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$cuenta_transaccion_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($cuenta_transaccion_grid->SearchWhere == "0=101")
 			$cuenta_transaccion_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

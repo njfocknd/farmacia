@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" standalone="yes"?>
-<ew-language date="2015/11/8" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
+<ew-language date="2015/11/9" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
 	<locale>
 		<phrase id="locale" value=""/><!-- *** system locale for this language -->
 		<phrase id="use_system_locale" value="0"/><!-- *** change to "0" to disable system locale and use the following settings *** -->
@@ -415,6 +415,16 @@
 	</global>
 	<project><phrase id="bodytitle" value="Farmacia"/>
 <phrase id="footertext" value="Nexthor 2015. Proyecto Seminario"/>
+<menu id="107"><phrase id="menutext" value="Administración de Aplicación"/>
+</menu>
+<menu id="69"><phrase id="menutext" value="Rol"/>
+</menu>
+<menu id="70"><phrase id="menutext" value="Auditoria"/>
+</menu>
+<menu id="68"><phrase id="menutext" value="Permisos por Rol"/>
+</menu>
+<menu id="67"><phrase id="menutext" value="Usuario"/>
+</menu>
 <menu id="62"><phrase id="menutext" value="Documentos"/>
 </menu>
 <menu id="23"><phrase id="menutext" value="Documento Movimiento"/>
@@ -1215,6 +1225,62 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+</table>
+<table id="usuario"><phrase id="tblcaption" value="Usuario"/>
+<field id="idusuario"><phrase id="fldcaption" value="idusuario"/>
+</field>
+<field id="usuario"><phrase id="fldcaption" value="Usuario"/>
+</field>
+<field id="contrasena"><phrase id="fldcaption" value="Contraseña"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+<field id="userlevelid"><phrase id="fldcaption" value="Rol"/>
+</field>
+<field id="session"><phrase id="fldcaption" value="Session"/>
+</field>
+</table>
+<table id="userlevelpermissions"><phrase id="tblcaption" value="userlevelpermissions"/>
+<field id="userlevelid"><phrase id="fldcaption" value="userlevelid"/>
+</field>
+<field id="_tablename"><phrase id="fldcaption" value="tablename"/>
+</field>
+<field id="permission"><phrase id="fldcaption" value="permission"/>
+</field>
+</table>
+<table id="userlevels"><phrase id="tblcaption" value="Rol"/>
+<field id="userlevelid"><phrase id="fldcaption" value="idRol"/>
+</field>
+<field id="userlevelname"><phrase id="fldcaption" value="Rol"/>
+</field>
+</table>
+<table id="audittrail"><phrase id="tblcaption" value="Auditoría"/>
+<field id="id"><phrase id="fldcaption" value="ID Auditoria"/>
+</field>
+<field id="datetime"><phrase id="fldcaption" value="Fecha y Hora"/>
+</field>
+<field id="script"><phrase id="fldcaption" value="Script"/>
+</field>
+<field id="user"><phrase id="fldcaption" value="Usuario"/>
+</field>
+<field id="action"><phrase id="fldcaption" value="Acción"/>
+</field>
+<field id="_table"><phrase id="fldcaption" value="Tabla"/>
+</field>
+<field id="_field"><phrase id="fldcaption" value="Campo"/>
+</field>
+<field id="keyvalue"><phrase id="fldcaption" value="ID"/>
+</field>
+<field id="oldvalue"><phrase id="fldcaption" value="Antiguo Valor"/>
+</field>
+<field id="newvalue"><phrase id="fldcaption" value="Nuevo Valor"/>
 </field>
 </table>
 </project>

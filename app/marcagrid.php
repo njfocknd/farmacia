@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -128,6 +129,8 @@ if ($marca->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($marca->CurrentAction == "" && $marca_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$marca_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($marca_grid->SearchWhere == "0=101")
 			$marca_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

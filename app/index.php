@@ -6,6 +6,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -154,6 +155,9 @@ class cdefault {
 		// Language object
 		if (!isset($Language)) $Language = new cLanguage();
 
+		// User table object (usuario)
+		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'default', TRUE);
@@ -170,6 +174,9 @@ class cdefault {
 	//
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
+
+		// Security
+		$Security = new cAdvancedSecurity();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -220,7 +227,81 @@ class cdefault {
 	//
 	function Page_Main() {
 		global $Security, $Language;
+		if (!$Security->IsLoggedIn()) $Security->AutoLogin();
+		$Security->LoadUserLevel(); // Load User Level
+		if ($Security->AllowList(CurrentProjectID() . 'departamento'))
 		$this->Page_Terminate("departamentolist.php"); // Exit and go to default page
+		if ($Security->AllowList(CurrentProjectID() . 'empresa'))
+			$this->Page_Terminate("empresalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'fabricante'))
+			$this->Page_Terminate("fabricantelist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'marca'))
+			$this->Page_Terminate("marcalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'municipio'))
+			$this->Page_Terminate("municipiolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'pais'))
+			$this->Page_Terminate("paislist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'producto'))
+			$this->Page_Terminate("productolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'registro_sanitario'))
+			$this->Page_Terminate("registro_sanitariolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'sucursal'))
+			$this->Page_Terminate("sucursallist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'bodega'))
+			$this->Page_Terminate("bodegalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_bodega'))
+			$this->Page_Terminate("tipo_bodegalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'producto_bodega'))
+			$this->Page_Terminate("producto_bodegalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'producto_sucursal'))
+			$this->Page_Terminate("producto_sucursallist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'producto_historial'))
+			$this->Page_Terminate("producto_historiallist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'documento_debito'))
+			$this->Page_Terminate("documento_debitolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'serie_documento'))
+			$this->Page_Terminate("serie_documentolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_documento'))
+			$this->Page_Terminate("tipo_documentolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'detalle_documento_debito'))
+			$this->Page_Terminate("detalle_documento_debitolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'documento_credito'))
+			$this->Page_Terminate("documento_creditolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'detalle_documento_credito'))
+			$this->Page_Terminate("detalle_documento_creditolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'detalle_documento_movimiento'))
+			$this->Page_Terminate("detalle_documento_movimientolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'documento_movimiento'))
+			$this->Page_Terminate("documento_movimientolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'cliente'))
+			$this->Page_Terminate("clientelist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'pago_cliente'))
+			$this->Page_Terminate("pago_clientelist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'pago_proveedor'))
+			$this->Page_Terminate("pago_proveedorlist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'persona'))
+			$this->Page_Terminate("personalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'proveedor'))
+			$this->Page_Terminate("proveedorlist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'banco'))
+			$this->Page_Terminate("bancolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'cuenta'))
+			$this->Page_Terminate("cuentalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'moneda'))
+			$this->Page_Terminate("monedalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'cuenta_transaccion'))
+			$this->Page_Terminate("cuenta_transaccionlist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'usuario'))
+			$this->Page_Terminate("usuariolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'userlevels'))
+			$this->Page_Terminate("userlevelslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'audittrail'))
+			$this->Page_Terminate("audittraillist.php");
+		if ($Security->IsLoggedIn()) {
+			$this->setFailureMessage($Language->Phrase("NoPermission") . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
+		} else {
+			$this->Page_Terminate("login.php"); // Exit and go to login page
+		}
 	}
 
 	// Page Load event

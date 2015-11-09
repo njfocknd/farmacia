@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -144,6 +145,8 @@ if ($producto->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($producto->CurrentAction == "" && $producto_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$producto_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($producto_grid->SearchWhere == "0=101")
 			$producto_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

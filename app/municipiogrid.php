@@ -1,3 +1,4 @@
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
 // Create page object
@@ -125,6 +126,8 @@ if ($municipio->CurrentAction == "gridadd") {
 
 	// Set no record found message
 	if ($municipio->CurrentAction == "" && $municipio_grid->TotalRecs == 0) {
+		if (!$Security->CanList())
+			$municipio_grid->setWarningMessage($Language->Phrase("NoPermission"));
 		if ($municipio_grid->SearchWhere == "0=101")
 			$municipio_grid->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else

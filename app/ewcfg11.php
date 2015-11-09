@@ -29,7 +29,7 @@ define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME . "", TRUE); // Config file name
 define("EW_PROJECT_ID", "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", 'fBBzK0choeahf6dk', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", 'ufJrfT68G9qGV9kf', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/nexthor_farmacia.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -94,7 +94,7 @@ define("EW_MYSQL_CHARSET", "utf8", TRUE);
  * Otherwise, existing users will not be able to login. MD5 hash is
  * irreversible, password will be reset during password recovery.
  */
-define("EW_ENCRYPTED_PASSWORD", FALSE, TRUE); // Use encrypted password
+define("EW_ENCRYPTED_PASSWORD", TRUE, TRUE); // Use encrypted password
 define("EW_CASE_SENSITIVE_PASSWORD", FALSE, TRUE); // Case-sensitive password
 
 /**
@@ -189,22 +189,37 @@ define("EW_TABLE_EXPORT_RETURN_URL", "exportreturn", TRUE); // Export return URL
 define("EW_TABLE_GRID_ADD_ROW_COUNT", "gridaddcnt", TRUE); // Grid add row count
 
 // Audit Trail
-define("EW_AUDIT_TRAIL_TO_DATABASE", FALSE, TRUE); // Write audit trail to DB
-define("EW_AUDIT_TRAIL_TABLE_NAME", "", TRUE); // Audit trail table name
-define("EW_AUDIT_TRAIL_FIELD_NAME_DATETIME", "", TRUE); // Audit trail DateTime field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_SCRIPT", "", TRUE); // Audit trail Script field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_USER", "", TRUE); // Audit trail User field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_ACTION", "", TRUE); // Audit trail Action field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_TABLE", "", TRUE); // Audit trail Table field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_FIELD", "", TRUE); // Audit trail Field field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_KEYVALUE", "", TRUE); // Audit trail Key Value field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_OLDVALUE", "", TRUE); // Audit trail Old Value field name
-define("EW_AUDIT_TRAIL_FIELD_NAME_NEWVALUE", "", TRUE); // Audit trail New Value field name
+define("EW_AUDIT_TRAIL_TO_DATABASE", TRUE, TRUE); // Write audit trail to DB
+define("EW_AUDIT_TRAIL_TABLE_NAME", "`audittrail`", TRUE); // Audit trail table name
+define("EW_AUDIT_TRAIL_FIELD_NAME_DATETIME", "datetime", TRUE); // Audit trail DateTime field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_SCRIPT", "script", TRUE); // Audit trail Script field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_USER", "user", TRUE); // Audit trail User field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_ACTION", "action", TRUE); // Audit trail Action field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_TABLE", "table", TRUE); // Audit trail Table field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_FIELD", "field", TRUE); // Audit trail Field field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_KEYVALUE", "keyvalue", TRUE); // Audit trail Key Value field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_OLDVALUE", "oldvalue", TRUE); // Audit trail Old Value field name
+define("EW_AUDIT_TRAIL_FIELD_NAME_NEWVALUE", "newvalue", TRUE); // Audit trail New Value field name
 
 // Security
-define("EW_ADMIN_USER_NAME", "", TRUE); // Administrator user name
-define("EW_ADMIN_PASSWORD", "", TRUE); // Administrator password
+define("EW_ADMIN_USER_NAME", "admin", TRUE); // Administrator user name
+define("EW_ADMIN_PASSWORD", "123", TRUE); // Administrator password
 define("EW_USE_CUSTOM_LOGIN", TRUE, TRUE); // Use custom login
+
+// Dynamic User Level settings
+// User level definition table/field names
+
+@define("EW_USER_LEVEL_TABLE", "`userlevels`", TRUE);
+@define("EW_USER_LEVEL_ID_FIELD", "`userlevelid`", TRUE);
+@define("EW_USER_LEVEL_NAME_FIELD", "`userlevelname`", TRUE);
+
+// User Level privileges table/field names
+@define("EW_USER_LEVEL_PRIV_TABLE", "`userlevelpermissions`", TRUE);
+@define("EW_USER_LEVEL_PRIV_TABLE_NAME_FIELD", "`tablename`", TRUE);
+@define("EW_USER_LEVEL_PRIV_TABLE_NAME_FIELD_2", "tablename", TRUE);
+@define("EW_USER_LEVEL_PRIV_TABLE_NAME_FIELD_SIZE", 255, TRUE);
+@define("EW_USER_LEVEL_PRIV_USER_LEVEL_ID_FIELD", "`userlevelid`", TRUE);
+@define("EW_USER_LEVEL_PRIV_PRIV_FIELD", "`permission`", TRUE);
 
 // User level constants
 define("EW_ALLOW_ADD", 1, TRUE); // Add
@@ -229,8 +244,13 @@ define("EW_USE_SUBQUERY_FOR_MASTER_USER_ID", FALSE, TRUE);
 define("EW_USER_ID_ALLOW", 104, TRUE);
 
 // User table filters
-// User Profile Constants
+define("EW_USER_TABLE", "`usuario`",  TRUE);
+define("EW_USER_NAME_FILTER", "(`usuario` = '%u')",  TRUE);
+define("EW_USER_ID_FILTER", "(`idusuario` = %u)",  TRUE);
+define("EW_USER_EMAIL_FILTER", "",  TRUE);
+define("EW_USER_ACTIVATE_FILTER", "",  TRUE);
 
+// User Profile Constants
 define("EW_USER_PROFILE_KEY_SEPARATOR", "", TRUE);
 define("EW_USER_PROFILE_FIELD_SEPARATOR", "", TRUE);
 define("EW_USER_PROFILE_SESSION_ID", "SessionID", TRUE);
@@ -414,6 +434,9 @@ $DEFAULT_N_CS_PRECEDES = &$DEFAULT_LOCALE["n_cs_precedes"];
 $DEFAULT_N_SEP_BY_SPACE = &$DEFAULT_LOCALE["n_sep_by_space"];
 $DEFAULT_P_SIGN_POSN = &$DEFAULT_LOCALE["p_sign_posn"];
 $DEFAULT_N_SIGN_POSN = &$DEFAULT_LOCALE["n_sign_posn"];
+define("EW_DEFAULT_LOCALE", '{"decimal_point":".","thousands_sep":",","int_curr_symbol":"$","currency_symbol":"Q","mon_decimal_point":".","mon_thousands_sep":",","positive_sign":null,"negative_sign":"-","int_frac_digits":2,"frac_digits":2,"p_cs_precedes":true,"p_sep_by_space":false,"n_cs_precedes":true,"n_sep_by_space":false,"p_sign_posn":3,"n_sign_posn":3}', TRUE);
+if (!json_decode(EW_DEFAULT_LOCALE)) // String, not JSON
+	@setlocale(LC_ALL, EW_DEFAULT_LOCALE);
 
 // Cookies
 define("EW_COOKIE_EXPIRY_TIME", time() + 365*24*60*60, TRUE); // Change cookie expiry time here
