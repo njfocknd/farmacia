@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0"?>
 <configuration date="2015/11/08" author="e.World Technology Ltd.">
-<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/08 19:50:31" languagefolder="phplang" userlevel="">
+<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/08 20:20:11" languagefolder="phplang" userlevel="">
 <table id="departamento" name="departamento" caption="Departamento" userlevel="" priv="1"/>
 <table id="empresa" name="empresa" caption="Empresa" userlevel="" priv="1"/>
 <table id="fabricante" name="fabricante" caption="Fabricante" userlevel="" priv="1"/>
@@ -32,5 +32,5 @@
 <table id="proveedor" name="proveedor" caption="Pagos de Clientes" userlevel="" priv="1"/>
 <table id="banco" name="banco" caption="Banco" userlevel="" priv="1"/>
 <table id="cuenta" name="cuenta" caption="Cuenta" userlevel="" priv="1"/>
-<table id="moneda" name="moneda" caption="moneda" userlevel="" priv="1"/>
+<table id="moneda" name="moneda" caption="Moneda" userlevel="" priv="1"/>
 </project></configuration>

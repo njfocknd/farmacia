@@ -84,6 +84,10 @@ class cpais extends cTable {
 			$sDetailUrl = $GLOBALS["departamento"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idpais=" . urlencode($this->idpais->CurrentValue);
 		}
+		if ($this->getCurrentDetailTable() == "moneda") {
+			$sDetailUrl = $GLOBALS["moneda"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idpais=" . urlencode($this->idpais->CurrentValue);
+		}
 		if ($sDetailUrl == "") {
 			$sDetailUrl = "paislist.php";
 		}

@@ -8,6 +8,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "departamentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "monedagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -247,6 +248,14 @@ class cpais_add extends cpais {
 			if (@$_POST["grid"] == "fdepartamentogrid") {
 				if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid;
 				$GLOBALS["departamento_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'moneda'
+			if (@$_POST["grid"] == "fmonedagrid") {
+				if (!isset($GLOBALS["moneda_grid"])) $GLOBALS["moneda_grid"] = new cmoneda_grid;
+				$GLOBALS["moneda_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -588,6 +597,10 @@ class cpais_add extends cpais {
 			if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // get detail page object
 			$GLOBALS["departamento_grid"]->ValidateGridForm();
 		}
+		if (in_array("moneda", $DetailTblVar) && $GLOBALS["moneda"]->DetailAdd) {
+			if (!isset($GLOBALS["moneda_grid"])) $GLOBALS["moneda_grid"] = new cmoneda_grid(); // get detail page object
+			$GLOBALS["moneda_grid"]->ValidateGridForm();
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -656,6 +669,13 @@ class cpais_add extends cpais {
 				if (!$AddRow)
 					$GLOBALS["departamento"]->idpais->setSessionValue(""); // Clear master key if insert failed
 			}
+			if (in_array("moneda", $DetailTblVar) && $GLOBALS["moneda"]->DetailAdd) {
+				$GLOBALS["moneda"]->idpais->setSessionValue($this->idpais->CurrentValue); // Set master key
+				if (!isset($GLOBALS["moneda_grid"])) $GLOBALS["moneda_grid"] = new cmoneda_grid(); // Get detail page object
+				$AddRow = $GLOBALS["moneda_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["moneda"]->idpais->setSessionValue(""); // Clear master key if insert failed
+			}
 		}
 
 		// Commit/Rollback transaction
@@ -703,6 +723,24 @@ class cpais_add extends cpais {
 					$GLOBALS["departamento_grid"]->idpais->FldIsDetailKey = TRUE;
 					$GLOBALS["departamento_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
 					$GLOBALS["departamento_grid"]->idpais->setSessionValue($GLOBALS["departamento_grid"]->idpais->CurrentValue);
+				}
+			}
+			if (in_array("moneda", $DetailTblVar)) {
+				if (!isset($GLOBALS["moneda_grid"]))
+					$GLOBALS["moneda_grid"] = new cmoneda_grid;
+				if ($GLOBALS["moneda_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["moneda_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["moneda_grid"]->CurrentMode = "add";
+					$GLOBALS["moneda_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["moneda_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["moneda_grid"]->setStartRecordNumber(1);
+					$GLOBALS["moneda_grid"]->idpais->FldIsDetailKey = TRUE;
+					$GLOBALS["moneda_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
+					$GLOBALS["moneda_grid"]->idpais->setSessionValue($GLOBALS["moneda_grid"]->idpais->CurrentValue);
 				}
 			}
 		}
@@ -910,6 +948,14 @@ $pais_add->ShowMessage();
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("departamento", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "departamentogrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("moneda", explode(",", $pais->getCurrentDetailTable())) && $moneda->DetailAdd) {
+?>
+<?php if ($pais->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("moneda", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "monedagrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

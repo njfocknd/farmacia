@@ -110,7 +110,7 @@ class ccuenta_view extends ccuenta {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -283,6 +283,7 @@ class ccuenta_view extends ccuenta {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
+		$this->idcuenta->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -519,7 +520,7 @@ class ccuenta_view extends ccuenta {
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->estado->setDbValue($rs->fields('estado'));
-		$this->fecha_insercio->setDbValue($rs->fields('fecha_insercio'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -536,7 +537,7 @@ class ccuenta_view extends ccuenta {
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
 		$this->estado->DbValue = $row['estado'];
-		$this->fecha_insercio->DbValue = $row['fecha_insercio'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -578,7 +579,7 @@ class ccuenta_view extends ccuenta {
 		// debito
 		// credito
 		// estado
-		// fecha_insercio
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -587,15 +588,88 @@ class ccuenta_view extends ccuenta {
 			$this->idcuenta->ViewCustomAttributes = "";
 
 			// idbanco
-			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			if (strval($this->idbanco->CurrentValue) <> "") {
+				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+				}
+			} else {
+				$this->idbanco->ViewValue = NULL;
+			}
 			$this->idbanco->ViewCustomAttributes = "";
 
 			// idsucursal
-			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			if (strval($this->idsucursal->CurrentValue) <> "") {
+				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+				}
+			} else {
+				$this->idsucursal->ViewValue = NULL;
+			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
 			// idmoneda
-			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			if (strval($this->idmoneda->CurrentValue) <> "") {
+				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmoneda->ViewValue = $rswrk->fields('DispFld');
+					$this->idmoneda->ViewValue .= ew_ValueSeparator(1,$this->idmoneda) . $rswrk->fields('Disp2Fld');
+					$rswrk->Close();
+				} else {
+					$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+				}
+			} else {
+				$this->idmoneda->ViewValue = NULL;
+			}
 			$this->idmoneda->ViewCustomAttributes = "";
 
 			// numero
@@ -635,10 +709,10 @@ class ccuenta_view extends ccuenta {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// fecha_insercio
-			$this->fecha_insercio->ViewValue = $this->fecha_insercio->CurrentValue;
-			$this->fecha_insercio->ViewValue = ew_FormatDateTime($this->fecha_insercio->ViewValue, 7);
-			$this->fecha_insercio->ViewCustomAttributes = "";
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idcuenta
 			$this->idcuenta->LinkCustomAttributes = "";
@@ -690,10 +764,10 @@ class ccuenta_view extends ccuenta {
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
 
-			// fecha_insercio
-			$this->fecha_insercio->LinkCustomAttributes = "";
-			$this->fecha_insercio->HrefValue = "";
-			$this->fecha_insercio->TooltipValue = "";
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -885,8 +959,11 @@ fcuentaview.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fcuentaview.Lists["x_idbanco"] = {"LinkField":"x_idbanco","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentaview.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentaview.Lists["x_idmoneda"] = {"LinkField":"x_idmoneda","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","x_simbolo","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -1022,13 +1099,13 @@ $cuenta_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-	<tr id="r_fecha_insercio">
-		<td><span id="elh_cuenta_fecha_insercio"><?php echo $cuenta->fecha_insercio->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->fecha_insercio->CellAttributes() ?>>
-<span id="el_cuenta_fecha_insercio" class="form-group">
-<span<?php echo $cuenta->fecha_insercio->ViewAttributes() ?>>
-<?php echo $cuenta->fecha_insercio->ViewValue ?></span>
+<?php if ($cuenta->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_cuenta_fecha_insercion"><?php echo $cuenta->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $cuenta->fecha_insercion->CellAttributes() ?>>
+<span id="el_cuenta_fecha_insercion" class="form-group">
+<span<?php echo $cuenta->fecha_insercion->ViewAttributes() ?>>
+<?php echo $cuenta->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

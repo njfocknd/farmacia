@@ -118,7 +118,7 @@ class ccuenta_list extends ccuenta {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -771,17 +771,11 @@ class ccuenta_list extends ccuenta {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idcuenta); // idcuenta
 			$this->UpdateSort($this->idbanco); // idbanco
 			$this->UpdateSort($this->idsucursal); // idsucursal
 			$this->UpdateSort($this->idmoneda); // idmoneda
 			$this->UpdateSort($this->numero); // numero
 			$this->UpdateSort($this->nombre); // nombre
-			$this->UpdateSort($this->saldo); // saldo
-			$this->UpdateSort($this->debito); // debito
-			$this->UpdateSort($this->credito); // credito
-			$this->UpdateSort($this->estado); // estado
-			$this->UpdateSort($this->fecha_insercio); // fecha_insercio
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -822,17 +816,11 @@ class ccuenta_list extends ccuenta {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idcuenta->setSort("");
 				$this->idbanco->setSort("");
 				$this->idsucursal->setSort("");
 				$this->idmoneda->setSort("");
 				$this->numero->setSort("");
 				$this->nombre->setSort("");
-				$this->saldo->setSort("");
-				$this->debito->setSort("");
-				$this->credito->setSort("");
-				$this->estado->setSort("");
-				$this->fecha_insercio->setSort("");
 			}
 
 			// Reset start position
@@ -1153,7 +1141,7 @@ class ccuenta_list extends ccuenta {
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->estado->setDbValue($rs->fields('estado'));
-		$this->fecha_insercio->setDbValue($rs->fields('fecha_insercio'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1170,7 +1158,7 @@ class ccuenta_list extends ccuenta {
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
 		$this->estado->DbValue = $row['estado'];
-		$this->fecha_insercio->DbValue = $row['fecha_insercio'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1208,18 +1196,6 @@ class ccuenta_list extends ccuenta {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
-		// Convert decimal values if posted back
-		if ($this->saldo->FormValue == $this->saldo->CurrentValue && is_numeric(ew_StrToFloat($this->saldo->CurrentValue)))
-			$this->saldo->CurrentValue = ew_StrToFloat($this->saldo->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
-			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
-			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
-
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -1234,7 +1210,7 @@ class ccuenta_list extends ccuenta {
 		// debito
 		// credito
 		// estado
-		// fecha_insercio
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1243,15 +1219,88 @@ class ccuenta_list extends ccuenta {
 			$this->idcuenta->ViewCustomAttributes = "";
 
 			// idbanco
-			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			if (strval($this->idbanco->CurrentValue) <> "") {
+				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+				}
+			} else {
+				$this->idbanco->ViewValue = NULL;
+			}
 			$this->idbanco->ViewCustomAttributes = "";
 
 			// idsucursal
-			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			if (strval($this->idsucursal->CurrentValue) <> "") {
+				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+				}
+			} else {
+				$this->idsucursal->ViewValue = NULL;
+			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
 			// idmoneda
-			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			if (strval($this->idmoneda->CurrentValue) <> "") {
+				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmoneda->ViewValue = $rswrk->fields('DispFld');
+					$this->idmoneda->ViewValue .= ew_ValueSeparator(1,$this->idmoneda) . $rswrk->fields('Disp2Fld');
+					$rswrk->Close();
+				} else {
+					$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+				}
+			} else {
+				$this->idmoneda->ViewValue = NULL;
+			}
 			$this->idmoneda->ViewCustomAttributes = "";
 
 			// numero
@@ -1291,15 +1340,10 @@ class ccuenta_list extends ccuenta {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// fecha_insercio
-			$this->fecha_insercio->ViewValue = $this->fecha_insercio->CurrentValue;
-			$this->fecha_insercio->ViewValue = ew_FormatDateTime($this->fecha_insercio->ViewValue, 7);
-			$this->fecha_insercio->ViewCustomAttributes = "";
-
-			// idcuenta
-			$this->idcuenta->LinkCustomAttributes = "";
-			$this->idcuenta->HrefValue = "";
-			$this->idcuenta->TooltipValue = "";
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idbanco
 			$this->idbanco->LinkCustomAttributes = "";
@@ -1325,31 +1369,6 @@ class ccuenta_list extends ccuenta {
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
-
-			// saldo
-			$this->saldo->LinkCustomAttributes = "";
-			$this->saldo->HrefValue = "";
-			$this->saldo->TooltipValue = "";
-
-			// debito
-			$this->debito->LinkCustomAttributes = "";
-			$this->debito->HrefValue = "";
-			$this->debito->TooltipValue = "";
-
-			// credito
-			$this->credito->LinkCustomAttributes = "";
-			$this->credito->HrefValue = "";
-			$this->credito->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
-			// fecha_insercio
-			$this->fecha_insercio->LinkCustomAttributes = "";
-			$this->fecha_insercio->HrefValue = "";
-			$this->fecha_insercio->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1574,8 +1593,11 @@ fcuentalist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fcuentalist.Lists["x_idbanco"] = {"LinkField":"x_idbanco","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentalist.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentalist.Lists["x_idmoneda"] = {"LinkField":"x_idmoneda","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","x_simbolo","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 var fcuentalistsrch = new ew_Form("fcuentalistsrch");
 </script>
 <script type="text/javascript">
@@ -1686,15 +1708,6 @@ $cuenta_list->RenderListOptions();
 // Render list options (header, left)
 $cuenta_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
-	<?php if ($cuenta->SortUrl($cuenta->idcuenta) == "") { ?>
-		<th data-name="idcuenta"><div id="elh_cuenta_idcuenta" class="cuenta_idcuenta"><div class="ewTableHeaderCaption"><?php echo $cuenta->idcuenta->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idcuenta"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idcuenta) ?>',1);"><div id="elh_cuenta_idcuenta" class="cuenta_idcuenta">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idcuenta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idcuenta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idcuenta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($cuenta->idbanco->Visible) { // idbanco ?>
 	<?php if ($cuenta->SortUrl($cuenta->idbanco) == "") { ?>
 		<th data-name="idbanco"><div id="elh_cuenta_idbanco" class="cuenta_idbanco"><div class="ewTableHeaderCaption"><?php echo $cuenta->idbanco->FldCaption() ?></div></div></th>
@@ -1737,51 +1750,6 @@ $cuenta_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="nombre"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->nombre) ?>',1);"><div id="elh_cuenta_nombre" class="cuenta_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->saldo->Visible) { // saldo ?>
-	<?php if ($cuenta->SortUrl($cuenta->saldo) == "") { ?>
-		<th data-name="saldo"><div id="elh_cuenta_saldo" class="cuenta_saldo"><div class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="saldo"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->saldo) ?>',1);"><div id="elh_cuenta_saldo" class="cuenta_saldo">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->saldo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->saldo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->debito->Visible) { // debito ?>
-	<?php if ($cuenta->SortUrl($cuenta->debito) == "") { ?>
-		<th data-name="debito"><div id="elh_cuenta_debito" class="cuenta_debito"><div class="ewTableHeaderCaption"><?php echo $cuenta->debito->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="debito"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->debito) ?>',1);"><div id="elh_cuenta_debito" class="cuenta_debito">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->debito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->debito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->debito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->credito->Visible) { // credito ?>
-	<?php if ($cuenta->SortUrl($cuenta->credito) == "") { ?>
-		<th data-name="credito"><div id="elh_cuenta_credito" class="cuenta_credito"><div class="ewTableHeaderCaption"><?php echo $cuenta->credito->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="credito"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->credito) ?>',1);"><div id="elh_cuenta_credito" class="cuenta_credito">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->credito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->credito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->credito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->estado->Visible) { // estado ?>
-	<?php if ($cuenta->SortUrl($cuenta->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_cuenta_estado" class="cuenta_estado"><div class="ewTableHeaderCaption"><?php echo $cuenta->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->estado) ?>',1);"><div id="elh_cuenta_estado" class="cuenta_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-	<?php if ($cuenta->SortUrl($cuenta->fecha_insercio) == "") { ?>
-		<th data-name="fecha_insercio"><div id="elh_cuenta_fecha_insercio" class="cuenta_fecha_insercio"><div class="ewTableHeaderCaption"><?php echo $cuenta->fecha_insercio->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercio"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->fecha_insercio) ?>',1);"><div id="elh_cuenta_fecha_insercio" class="cuenta_fecha_insercio">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->fecha_insercio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->fecha_insercio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->fecha_insercio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1850,17 +1818,11 @@ while ($cuenta_list->RecCnt < $cuenta_list->StopRec) {
 // Render list options (body, left)
 $cuenta_list->ListOptions->Render("body", "left", $cuenta_list->RowCnt);
 ?>
-	<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
-		<td data-name="idcuenta"<?php echo $cuenta->idcuenta->CellAttributes() ?>>
-<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
-<?php echo $cuenta->idcuenta->ListViewValue() ?></span>
-<a id="<?php echo $cuenta_list->PageObjName . "_row_" . $cuenta_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($cuenta->idbanco->Visible) { // idbanco ?>
 		<td data-name="idbanco"<?php echo $cuenta->idbanco->CellAttributes() ?>>
 <span<?php echo $cuenta->idbanco->ViewAttributes() ?>>
 <?php echo $cuenta->idbanco->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $cuenta_list->PageObjName . "_row_" . $cuenta_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($cuenta->idsucursal->Visible) { // idsucursal ?>
 		<td data-name="idsucursal"<?php echo $cuenta->idsucursal->CellAttributes() ?>>
@@ -1884,36 +1846,6 @@ $cuenta_list->ListOptions->Render("body", "left", $cuenta_list->RowCnt);
 		<td data-name="nombre"<?php echo $cuenta->nombre->CellAttributes() ?>>
 <span<?php echo $cuenta->nombre->ViewAttributes() ?>>
 <?php echo $cuenta->nombre->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->saldo->Visible) { // saldo ?>
-		<td data-name="saldo"<?php echo $cuenta->saldo->CellAttributes() ?>>
-<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
-<?php echo $cuenta->saldo->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->debito->Visible) { // debito ?>
-		<td data-name="debito"<?php echo $cuenta->debito->CellAttributes() ?>>
-<span<?php echo $cuenta->debito->ViewAttributes() ?>>
-<?php echo $cuenta->debito->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->credito->Visible) { // credito ?>
-		<td data-name="credito"<?php echo $cuenta->credito->CellAttributes() ?>>
-<span<?php echo $cuenta->credito->ViewAttributes() ?>>
-<?php echo $cuenta->credito->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $cuenta->estado->CellAttributes() ?>>
-<span<?php echo $cuenta->estado->ViewAttributes() ?>>
-<?php echo $cuenta->estado->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-		<td data-name="fecha_insercio"<?php echo $cuenta->fecha_insercio->CellAttributes() ?>>
-<span<?php echo $cuenta->fecha_insercio->ViewAttributes() ?>>
-<?php echo $cuenta->fecha_insercio->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

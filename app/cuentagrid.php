@@ -46,54 +46,15 @@ fcuentagrid.Validate = function() {
 		var checkrow = (gridinsert) ? !this.EmptyRow(infix) : true;
 		if (checkrow) {
 			addcnt++;
-			elm = this.GetElements("x" + infix + "_idcuenta");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idcuenta->FldCaption(), $cuenta->idcuenta->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idcuenta");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idcuenta->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idbanco");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idbanco->FldCaption(), $cuenta->idbanco->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idbanco");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idbanco->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idsucursal");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idsucursal->FldCaption(), $cuenta->idsucursal->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idsucursal");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idsucursal->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idmoneda");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idmoneda->FldCaption(), $cuenta->idmoneda->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idmoneda");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idmoneda->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_saldo");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->saldo->FldCaption(), $cuenta->saldo->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_saldo");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->saldo->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_debito");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->debito->FldCaption(), $cuenta->debito->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_debito");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->debito->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_credito");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->credito->FldCaption(), $cuenta->credito->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_credito");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->credito->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_estado");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->estado->FldCaption(), $cuenta->estado->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_fecha_insercio");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->fecha_insercio->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -109,17 +70,11 @@ fcuentagrid.Validate = function() {
 // Check empty row
 fcuentagrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
-	if (ew_ValueChanged(fobj, infix, "idcuenta", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idbanco", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idsucursal", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idmoneda", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "numero", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "saldo", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "debito", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "credito", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "fecha_insercio", false)) return false;
 	return true;
 }
 
@@ -139,8 +94,11 @@ fcuentagrid.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fcuentagrid.Lists["x_idbanco"] = {"LinkField":"x_idbanco","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentagrid.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentagrid.Lists["x_idmoneda"] = {"LinkField":"x_idmoneda","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","x_simbolo","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <?php } ?>
 <?php
@@ -206,15 +164,6 @@ $cuenta_grid->RenderListOptions();
 // Render list options (header, left)
 $cuenta_grid->ListOptions->Render("header", "left");
 ?>
-<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
-	<?php if ($cuenta->SortUrl($cuenta->idcuenta) == "") { ?>
-		<th data-name="idcuenta"><div id="elh_cuenta_idcuenta" class="cuenta_idcuenta"><div class="ewTableHeaderCaption"><?php echo $cuenta->idcuenta->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idcuenta"><div><div id="elh_cuenta_idcuenta" class="cuenta_idcuenta">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idcuenta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idcuenta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idcuenta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($cuenta->idbanco->Visible) { // idbanco ?>
 	<?php if ($cuenta->SortUrl($cuenta->idbanco) == "") { ?>
 		<th data-name="idbanco"><div id="elh_cuenta_idbanco" class="cuenta_idbanco"><div class="ewTableHeaderCaption"><?php echo $cuenta->idbanco->FldCaption() ?></div></div></th>
@@ -257,51 +206,6 @@ $cuenta_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="nombre"><div><div id="elh_cuenta_nombre" class="cuenta_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->nombre->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->saldo->Visible) { // saldo ?>
-	<?php if ($cuenta->SortUrl($cuenta->saldo) == "") { ?>
-		<th data-name="saldo"><div id="elh_cuenta_saldo" class="cuenta_saldo"><div class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="saldo"><div><div id="elh_cuenta_saldo" class="cuenta_saldo">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->saldo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->saldo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->debito->Visible) { // debito ?>
-	<?php if ($cuenta->SortUrl($cuenta->debito) == "") { ?>
-		<th data-name="debito"><div id="elh_cuenta_debito" class="cuenta_debito"><div class="ewTableHeaderCaption"><?php echo $cuenta->debito->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="debito"><div><div id="elh_cuenta_debito" class="cuenta_debito">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->debito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->debito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->debito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->credito->Visible) { // credito ?>
-	<?php if ($cuenta->SortUrl($cuenta->credito) == "") { ?>
-		<th data-name="credito"><div id="elh_cuenta_credito" class="cuenta_credito"><div class="ewTableHeaderCaption"><?php echo $cuenta->credito->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="credito"><div><div id="elh_cuenta_credito" class="cuenta_credito">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->credito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->credito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->credito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->estado->Visible) { // estado ?>
-	<?php if ($cuenta->SortUrl($cuenta->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_cuenta_estado" class="cuenta_estado"><div class="ewTableHeaderCaption"><?php echo $cuenta->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div><div id="elh_cuenta_estado" class="cuenta_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-	<?php if ($cuenta->SortUrl($cuenta->fecha_insercio) == "") { ?>
-		<th data-name="fecha_insercio"><div id="elh_cuenta_fecha_insercio" class="cuenta_fecha_insercio"><div class="ewTableHeaderCaption"><?php echo $cuenta->fecha_insercio->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercio"><div><div id="elh_cuenta_fecha_insercio" class="cuenta_fecha_insercio">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->fecha_insercio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->fecha_insercio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->fecha_insercio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -414,29 +318,6 @@ while ($cuenta_grid->RecCnt < $cuenta_grid->StopRec) {
 // Render list options (body, left)
 $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowCnt);
 ?>
-	<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
-		<td data-name="idcuenta"<?php echo $cuenta->idcuenta->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idcuenta" class="form-group cuenta_idcuenta">
-<input type="text" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idcuenta->PlaceHolder) ?>" value="<?php echo $cuenta->idcuenta->EditValue ?>"<?php echo $cuenta->idcuenta->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_idcuenta" name="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idcuenta" class="form-group cuenta_idcuenta">
-<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->idcuenta->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->CurrentValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
-<?php echo $cuenta->idcuenta->ListViewValue() ?></span>
-<input type="hidden" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->FormValue) ?>">
-<input type="hidden" data-field="x_idcuenta" name="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->OldValue) ?>">
-<?php } ?>
-<a id="<?php echo $cuenta_grid->PageObjName . "_row_" . $cuenta_grid->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($cuenta->idbanco->Visible) { // idbanco ?>
 		<td data-name="idbanco"<?php echo $cuenta->idbanco->CellAttributes() ?>>
 <?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -448,7 +329,38 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowCnt);
 <input type="hidden" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idbanco" class="form-group cuenta_idbanco">
-<input type="text" data-field="x_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idbanco->PlaceHolder) ?>" value="<?php echo $cuenta->idbanco->EditValue ?>"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<select data-field="x_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idbanco->EditValue)) {
+	$arwrk = $cuenta->idbanco->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idbanco->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idbanco->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idbanco, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbanco` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <input type="hidden" data-field="x_idbanco" name="o<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="o<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->OldValue) ?>">
@@ -462,7 +374,38 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowCnt);
 <input type="hidden" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idbanco" class="form-group cuenta_idbanco">
-<input type="text" data-field="x_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idbanco->PlaceHolder) ?>" value="<?php echo $cuenta->idbanco->EditValue ?>"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<select data-field="x_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idbanco->EditValue)) {
+	$arwrk = $cuenta->idbanco->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idbanco->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idbanco->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idbanco, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbanco` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <?php } ?>
@@ -472,19 +415,88 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowCnt);
 <input type="hidden" data-field="x_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->FormValue) ?>">
 <input type="hidden" data-field="x_idbanco" name="o<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="o<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->OldValue) ?>">
 <?php } ?>
-</td>
+<a id="<?php echo $cuenta_grid->PageObjName . "_row_" . $cuenta_grid->RowCnt ?>"></a></td>
 	<?php } ?>
+<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<input type="hidden" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->CurrentValue) ?>">
+<input type="hidden" data-field="x_idcuenta" name="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->OldValue) ?>">
+<?php } ?>
+<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT || $cuenta->CurrentMode == "edit") { ?>
+<input type="hidden" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->CurrentValue) ?>">
+<?php } ?>
 	<?php if ($cuenta->idsucursal->Visible) { // idsucursal ?>
 		<td data-name="idsucursal"<?php echo $cuenta->idsucursal->CellAttributes() ?>>
 <?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
 <span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idsucursal" class="form-group cuenta_idsucursal">
-<input type="text" data-field="x_idsucursal" name="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idsucursal->PlaceHolder) ?>" value="<?php echo $cuenta->idsucursal->EditValue ?>"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<select data-field="x_idsucursal" id="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" name="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idsucursal->EditValue)) {
+	$arwrk = $cuenta->idsucursal->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idsucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idsucursal->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idsucursal, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idsucursal` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <input type="hidden" data-field="x_idsucursal" name="o<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="o<?php echo $cuenta_grid->RowIndex ?>_idsucursal" value="<?php echo ew_HtmlEncode($cuenta->idsucursal->OldValue) ?>">
 <?php } ?>
 <?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idsucursal" class="form-group cuenta_idsucursal">
-<input type="text" data-field="x_idsucursal" name="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idsucursal->PlaceHolder) ?>" value="<?php echo $cuenta->idsucursal->EditValue ?>"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<select data-field="x_idsucursal" id="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" name="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idsucursal->EditValue)) {
+	$arwrk = $cuenta->idsucursal->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idsucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idsucursal->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idsucursal, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idsucursal` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
@@ -499,13 +511,81 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowCnt);
 		<td data-name="idmoneda"<?php echo $cuenta->idmoneda->CellAttributes() ?>>
 <?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
 <span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idmoneda" class="form-group cuenta_idmoneda">
-<input type="text" data-field="x_idmoneda" name="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idmoneda->PlaceHolder) ?>" value="<?php echo $cuenta->idmoneda->EditValue ?>"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<select data-field="x_idmoneda" id="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" name="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idmoneda->EditValue)) {
+	$arwrk = $cuenta->idmoneda->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idmoneda->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$cuenta->idmoneda) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idmoneda->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idmoneda, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idmoneda` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <input type="hidden" data-field="x_idmoneda" name="o<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="o<?php echo $cuenta_grid->RowIndex ?>_idmoneda" value="<?php echo ew_HtmlEncode($cuenta->idmoneda->OldValue) ?>">
 <?php } ?>
 <?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_idmoneda" class="form-group cuenta_idmoneda">
-<input type="text" data-field="x_idmoneda" name="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idmoneda->PlaceHolder) ?>" value="<?php echo $cuenta->idmoneda->EditValue ?>"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<select data-field="x_idmoneda" id="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" name="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idmoneda->EditValue)) {
+	$arwrk = $cuenta->idmoneda->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idmoneda->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$cuenta->idmoneda) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idmoneda->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idmoneda, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idmoneda` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
@@ -558,153 +638,6 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowCnt);
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($cuenta->saldo->Visible) { // saldo ?>
-		<td data-name="saldo"<?php echo $cuenta->saldo->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_saldo" class="form-group cuenta_saldo">
-<input type="text" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_saldo" name="o<?php echo $cuenta_grid->RowIndex ?>_saldo" id="o<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_saldo" class="form-group cuenta_saldo">
-<input type="text" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
-<?php echo $cuenta->saldo->ListViewValue() ?></span>
-<input type="hidden" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->FormValue) ?>">
-<input type="hidden" data-field="x_saldo" name="o<?php echo $cuenta_grid->RowIndex ?>_saldo" id="o<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->debito->Visible) { // debito ?>
-		<td data-name="debito"<?php echo $cuenta->debito->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_debito" class="form-group cuenta_debito">
-<input type="text" data-field="x_debito" name="x<?php echo $cuenta_grid->RowIndex ?>_debito" id="x<?php echo $cuenta_grid->RowIndex ?>_debito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->debito->PlaceHolder) ?>" value="<?php echo $cuenta->debito->EditValue ?>"<?php echo $cuenta->debito->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_debito" name="o<?php echo $cuenta_grid->RowIndex ?>_debito" id="o<?php echo $cuenta_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($cuenta->debito->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_debito" class="form-group cuenta_debito">
-<input type="text" data-field="x_debito" name="x<?php echo $cuenta_grid->RowIndex ?>_debito" id="x<?php echo $cuenta_grid->RowIndex ?>_debito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->debito->PlaceHolder) ?>" value="<?php echo $cuenta->debito->EditValue ?>"<?php echo $cuenta->debito->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->debito->ViewAttributes() ?>>
-<?php echo $cuenta->debito->ListViewValue() ?></span>
-<input type="hidden" data-field="x_debito" name="x<?php echo $cuenta_grid->RowIndex ?>_debito" id="x<?php echo $cuenta_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($cuenta->debito->FormValue) ?>">
-<input type="hidden" data-field="x_debito" name="o<?php echo $cuenta_grid->RowIndex ?>_debito" id="o<?php echo $cuenta_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($cuenta->debito->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->credito->Visible) { // credito ?>
-		<td data-name="credito"<?php echo $cuenta->credito->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_credito" class="form-group cuenta_credito">
-<input type="text" data-field="x_credito" name="x<?php echo $cuenta_grid->RowIndex ?>_credito" id="x<?php echo $cuenta_grid->RowIndex ?>_credito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->credito->PlaceHolder) ?>" value="<?php echo $cuenta->credito->EditValue ?>"<?php echo $cuenta->credito->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_credito" name="o<?php echo $cuenta_grid->RowIndex ?>_credito" id="o<?php echo $cuenta_grid->RowIndex ?>_credito" value="<?php echo ew_HtmlEncode($cuenta->credito->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_credito" class="form-group cuenta_credito">
-<input type="text" data-field="x_credito" name="x<?php echo $cuenta_grid->RowIndex ?>_credito" id="x<?php echo $cuenta_grid->RowIndex ?>_credito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->credito->PlaceHolder) ?>" value="<?php echo $cuenta->credito->EditValue ?>"<?php echo $cuenta->credito->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->credito->ViewAttributes() ?>>
-<?php echo $cuenta->credito->ListViewValue() ?></span>
-<input type="hidden" data-field="x_credito" name="x<?php echo $cuenta_grid->RowIndex ?>_credito" id="x<?php echo $cuenta_grid->RowIndex ?>_credito" value="<?php echo ew_HtmlEncode($cuenta->credito->FormValue) ?>">
-<input type="hidden" data-field="x_credito" name="o<?php echo $cuenta_grid->RowIndex ?>_credito" id="o<?php echo $cuenta_grid->RowIndex ?>_credito" value="<?php echo ew_HtmlEncode($cuenta->credito->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $cuenta->estado->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_estado" class="form-group cuenta_estado">
-<div id="tp_x<?php echo $cuenta_grid->RowIndex ?>_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado" value="{value}"<?php echo $cuenta->estado->EditAttributes() ?>></div>
-<div id="dsl_x<?php echo $cuenta_grid->RowIndex ?>_estado" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cuenta->estado->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cuenta->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cuenta->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-if (@$emptywrk) $cuenta->estado->OldValue = "";
-?>
-</div>
-</span>
-<input type="hidden" data-field="x_estado" name="o<?php echo $cuenta_grid->RowIndex ?>_estado" id="o<?php echo $cuenta_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($cuenta->estado->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_estado" class="form-group cuenta_estado">
-<div id="tp_x<?php echo $cuenta_grid->RowIndex ?>_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado" value="{value}"<?php echo $cuenta->estado->EditAttributes() ?>></div>
-<div id="dsl_x<?php echo $cuenta_grid->RowIndex ?>_estado" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cuenta->estado->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cuenta->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cuenta->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-if (@$emptywrk) $cuenta->estado->OldValue = "";
-?>
-</div>
-</span>
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->estado->ViewAttributes() ?>>
-<?php echo $cuenta->estado->ListViewValue() ?></span>
-<input type="hidden" data-field="x_estado" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($cuenta->estado->FormValue) ?>">
-<input type="hidden" data-field="x_estado" name="o<?php echo $cuenta_grid->RowIndex ?>_estado" id="o<?php echo $cuenta_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($cuenta->estado->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-		<td data-name="fecha_insercio"<?php echo $cuenta->fecha_insercio->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_fecha_insercio" class="form-group cuenta_fecha_insercio">
-<input type="text" data-field="x_fecha_insercio" name="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" placeholder="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->PlaceHolder) ?>" value="<?php echo $cuenta->fecha_insercio->EditValue ?>"<?php echo $cuenta->fecha_insercio->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_fecha_insercio" name="o<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="o<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" value="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_fecha_insercio" class="form-group cuenta_fecha_insercio">
-<input type="text" data-field="x_fecha_insercio" name="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" placeholder="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->PlaceHolder) ?>" value="<?php echo $cuenta->fecha_insercio->EditValue ?>"<?php echo $cuenta->fecha_insercio->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->fecha_insercio->ViewAttributes() ?>>
-<?php echo $cuenta->fecha_insercio->ListViewValue() ?></span>
-<input type="hidden" data-field="x_fecha_insercio" name="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" value="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->FormValue) ?>">
-<input type="hidden" data-field="x_fecha_insercio" name="o<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="o<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" value="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -747,22 +680,6 @@ fcuentagrid.UpdateOpts(<?php echo $cuenta_grid->RowIndex ?>);
 // Render list options (body, left)
 $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowIndex);
 ?>
-	<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_idcuenta" class="form-group cuenta_idcuenta">
-<input type="text" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idcuenta->PlaceHolder) ?>" value="<?php echo $cuenta->idcuenta->EditValue ?>"<?php echo $cuenta->idcuenta->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_idcuenta" class="form-group cuenta_idcuenta">
-<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->idcuenta->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idcuenta" name="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="x<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_idcuenta" name="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" id="o<?php echo $cuenta_grid->RowIndex ?>_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->OldValue) ?>">
-</td>
-	<?php } ?>
 	<?php if ($cuenta->idbanco->Visible) { // idbanco ?>
 		<td>
 <?php if ($cuenta->CurrentAction <> "F") { ?>
@@ -774,7 +691,38 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowIndex);
 <input type="hidden" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el$rowindex$_cuenta_idbanco" class="form-group cuenta_idbanco">
-<input type="text" data-field="x_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idbanco->PlaceHolder) ?>" value="<?php echo $cuenta->idbanco->EditValue ?>"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<select data-field="x_idbanco" id="x<?php echo $cuenta_grid->RowIndex ?>_idbanco" name="x<?php echo $cuenta_grid->RowIndex ?>_idbanco"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idbanco->EditValue)) {
+	$arwrk = $cuenta->idbanco->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idbanco->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idbanco->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idbanco, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idbanco" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idbanco" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbanco` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <?php } else { ?>
@@ -791,7 +739,38 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowIndex);
 		<td>
 <?php if ($cuenta->CurrentAction <> "F") { ?>
 <span id="el$rowindex$_cuenta_idsucursal" class="form-group cuenta_idsucursal">
-<input type="text" data-field="x_idsucursal" name="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idsucursal->PlaceHolder) ?>" value="<?php echo $cuenta->idsucursal->EditValue ?>"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<select data-field="x_idsucursal" id="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" name="x<?php echo $cuenta_grid->RowIndex ?>_idsucursal"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idsucursal->EditValue)) {
+	$arwrk = $cuenta->idsucursal->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idsucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idsucursal->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idsucursal, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idsucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idsucursal` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } else { ?>
 <span id="el$rowindex$_cuenta_idsucursal" class="form-group cuenta_idsucursal">
@@ -807,7 +786,41 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowIndex);
 		<td>
 <?php if ($cuenta->CurrentAction <> "F") { ?>
 <span id="el$rowindex$_cuenta_idmoneda" class="form-group cuenta_idmoneda">
-<input type="text" data-field="x_idmoneda" name="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idmoneda->PlaceHolder) ?>" value="<?php echo $cuenta->idmoneda->EditValue ?>"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<select data-field="x_idmoneda" id="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" name="x<?php echo $cuenta_grid->RowIndex ?>_idmoneda"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idmoneda->EditValue)) {
+	$arwrk = $cuenta->idmoneda->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idmoneda->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$cuenta->idmoneda) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $cuenta->idmoneda->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $cuenta->Lookup_Selecting($cuenta->idmoneda, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="s_x<?php echo $cuenta_grid->RowIndex ?>_idmoneda" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idmoneda` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } else { ?>
 <span id="el$rowindex$_cuenta_idmoneda" class="form-group cuenta_idmoneda">
@@ -849,107 +862,6 @@ $cuenta_grid->ListOptions->Render("body", "left", $cuenta_grid->RowIndex);
 <input type="hidden" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cuenta->saldo->Visible) { // saldo ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_saldo" class="form-group cuenta_saldo">
-<input type="text" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_saldo" class="form-group cuenta_saldo">
-<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->saldo->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_saldo" name="o<?php echo $cuenta_grid->RowIndex ?>_saldo" id="o<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cuenta->debito->Visible) { // debito ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_debito" class="form-group cuenta_debito">
-<input type="text" data-field="x_debito" name="x<?php echo $cuenta_grid->RowIndex ?>_debito" id="x<?php echo $cuenta_grid->RowIndex ?>_debito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->debito->PlaceHolder) ?>" value="<?php echo $cuenta->debito->EditValue ?>"<?php echo $cuenta->debito->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_debito" class="form-group cuenta_debito">
-<span<?php echo $cuenta->debito->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->debito->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_debito" name="x<?php echo $cuenta_grid->RowIndex ?>_debito" id="x<?php echo $cuenta_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($cuenta->debito->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_debito" name="o<?php echo $cuenta_grid->RowIndex ?>_debito" id="o<?php echo $cuenta_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($cuenta->debito->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cuenta->credito->Visible) { // credito ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_credito" class="form-group cuenta_credito">
-<input type="text" data-field="x_credito" name="x<?php echo $cuenta_grid->RowIndex ?>_credito" id="x<?php echo $cuenta_grid->RowIndex ?>_credito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->credito->PlaceHolder) ?>" value="<?php echo $cuenta->credito->EditValue ?>"<?php echo $cuenta->credito->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_credito" class="form-group cuenta_credito">
-<span<?php echo $cuenta->credito->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->credito->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_credito" name="x<?php echo $cuenta_grid->RowIndex ?>_credito" id="x<?php echo $cuenta_grid->RowIndex ?>_credito" value="<?php echo ew_HtmlEncode($cuenta->credito->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_credito" name="o<?php echo $cuenta_grid->RowIndex ?>_credito" id="o<?php echo $cuenta_grid->RowIndex ?>_credito" value="<?php echo ew_HtmlEncode($cuenta->credito->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cuenta->estado->Visible) { // estado ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_estado" class="form-group cuenta_estado">
-<div id="tp_x<?php echo $cuenta_grid->RowIndex ?>_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado" value="{value}"<?php echo $cuenta->estado->EditAttributes() ?>></div>
-<div id="dsl_x<?php echo $cuenta_grid->RowIndex ?>_estado" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cuenta->estado->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cuenta->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cuenta->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-if (@$emptywrk) $cuenta->estado->OldValue = "";
-?>
-</div>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_estado" class="form-group cuenta_estado">
-<span<?php echo $cuenta->estado->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->estado->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_estado" name="x<?php echo $cuenta_grid->RowIndex ?>_estado" id="x<?php echo $cuenta_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($cuenta->estado->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_estado" name="o<?php echo $cuenta_grid->RowIndex ?>_estado" id="o<?php echo $cuenta_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($cuenta->estado->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_fecha_insercio" class="form-group cuenta_fecha_insercio">
-<input type="text" data-field="x_fecha_insercio" name="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" placeholder="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->PlaceHolder) ?>" value="<?php echo $cuenta->fecha_insercio->EditValue ?>"<?php echo $cuenta->fecha_insercio->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_fecha_insercio" class="form-group cuenta_fecha_insercio">
-<span<?php echo $cuenta->fecha_insercio->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->fecha_insercio->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_fecha_insercio" name="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="x<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" value="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_fecha_insercio" name="o<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" id="o<?php echo $cuenta_grid->RowIndex ?>_fecha_insercio" value="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

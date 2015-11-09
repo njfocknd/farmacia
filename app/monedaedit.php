@@ -6,9 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "monedainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "paisinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "departamentogridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "monedagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -16,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$pais_edit = NULL; // Initialize page object first
+$moneda_edit = NULL; // Initialize page object first
 
-class cpais_edit extends cpais {
+class cmoneda_edit extends cmoneda {
 
 	// Page ID
 	var $PageID = 'edit';
@@ -27,10 +26,10 @@ class cpais_edit extends cpais {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'pais';
+	var $TableName = 'moneda';
 
 	// Page object name
-	var $PageObjName = 'pais_edit';
+	var $PageObjName = 'moneda_edit';
 
 	// Page name
 	function PageName() {
@@ -197,11 +196,14 @@ class cpais_edit extends cpais {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (pais)
-		if (!isset($GLOBALS["pais"]) || get_class($GLOBALS["pais"]) == "cpais") {
-			$GLOBALS["pais"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["pais"];
+		// Table object (moneda)
+		if (!isset($GLOBALS["moneda"]) || get_class($GLOBALS["moneda"]) == "cmoneda") {
+			$GLOBALS["moneda"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["moneda"];
 		}
+
+		// Table object (pais)
+		if (!isset($GLOBALS['pais'])) $GLOBALS['pais'] = new cpais();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -209,7 +211,7 @@ class cpais_edit extends cpais {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'pais', TRUE);
+			define("EW_TABLE_NAME", 'moneda', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -243,22 +245,6 @@ class cpais_edit extends cpais {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'departamento'
-			if (@$_POST["grid"] == "fdepartamentogrid") {
-				if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid;
-				$GLOBALS["departamento_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'moneda'
-			if (@$_POST["grid"] == "fmonedagrid") {
-				if (!isset($GLOBALS["moneda_grid"])) $GLOBALS["moneda_grid"] = new cmoneda_grid;
-				$GLOBALS["moneda_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -288,13 +274,13 @@ class cpais_edit extends cpais {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $pais;
+		global $EW_EXPORT, $moneda;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($pais);
+				$doc = new $class($moneda);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -327,9 +313,12 @@ class cpais_edit extends cpais {
 		global $objForm, $Language, $gsFormError;
 
 		// Load key from QueryString
-		if (@$_GET["idpais"] <> "") {
-			$this->idpais->setQueryStringValue($_GET["idpais"]);
+		if (@$_GET["idmoneda"] <> "") {
+			$this->idmoneda->setQueryStringValue($_GET["idmoneda"]);
 		}
+
+		// Set up master detail parameters
+		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -338,16 +327,13 @@ class cpais_edit extends cpais {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
-
-			// Set up detail parameters
-			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
 
 		// Check if valid key
-		if ($this->idpais->CurrentValue == "")
-			$this->Page_Terminate("paislist.php"); // Invalid key, return to list
+		if ($this->idmoneda->CurrentValue == "")
+			$this->Page_Terminate("monedalist.php"); // Invalid key, return to list
 
 		// Validate form if post back
 		if (@$_POST["a_edit"] <> "") {
@@ -362,28 +348,19 @@ class cpais_edit extends cpais {
 			case "I": // Get a record to display
 				if (!$this->LoadRow()) { // Load record based on key
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
-					$this->Page_Terminate("paislist.php"); // No matching record, return to list
+					$this->Page_Terminate("monedalist.php"); // No matching record, return to list
 				}
-
-				// Set up detail parameters
-				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
-						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
-					else
-						$sReturnUrl = $this->getReturnUrl();
+					$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
-
-					// Set up detail parameters
-					$this->SetUpDetailParms();
 				}
 		}
 
@@ -444,19 +421,31 @@ class cpais_edit extends cpais {
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
+		if (!$this->simbolo->FldIsDetailKey) {
+			$this->simbolo->setFormValue($objForm->GetValue("x_simbolo"));
+		}
+		if (!$this->idpais->FldIsDetailKey) {
+			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
+		}
+		if (!$this->tasa_cambio->FldIsDetailKey) {
+			$this->tasa_cambio->setFormValue($objForm->GetValue("x_tasa_cambio"));
+		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->idpais->FldIsDetailKey)
-			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
+		if (!$this->idmoneda->FldIsDetailKey)
+			$this->idmoneda->setFormValue($objForm->GetValue("x_idmoneda"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		$this->LoadRow();
-		$this->idpais->CurrentValue = $this->idpais->FormValue;
+		$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
+		$this->simbolo->CurrentValue = $this->simbolo->FormValue;
+		$this->idpais->CurrentValue = $this->idpais->FormValue;
+		$this->tasa_cambio->CurrentValue = $this->tasa_cambio->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
@@ -489,18 +478,26 @@ class cpais_edit extends cpais {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->simbolo->setDbValue($rs->fields('simbolo'));
+		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->tasa_cambio->setDbValue($rs->fields('tasa_cambio'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idpais->DbValue = $row['idpais'];
+		$this->idmoneda->DbValue = $row['idmoneda'];
 		$this->nombre->DbValue = $row['nombre'];
+		$this->simbolo->DbValue = $row['simbolo'];
+		$this->idpais->DbValue = $row['idpais'];
+		$this->tasa_cambio->DbValue = $row['tasa_cambio'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -509,24 +506,68 @@ class cpais_edit extends cpais {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->tasa_cambio->FormValue == $this->tasa_cambio->CurrentValue && is_numeric(ew_StrToFloat($this->tasa_cambio->CurrentValue)))
+			$this->tasa_cambio->CurrentValue = ew_StrToFloat($this->tasa_cambio->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idpais
+		// idmoneda
 		// nombre
+		// simbolo
+		// idpais
+		// tasa_cambio
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idpais
-			$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			$this->idpais->ViewCustomAttributes = "";
+			// idmoneda
+			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			$this->idmoneda->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->ViewValue = $this->nombre->CurrentValue;
 			$this->nombre->ViewCustomAttributes = "";
+
+			// simbolo
+			$this->simbolo->ViewValue = $this->simbolo->CurrentValue;
+			$this->simbolo->ViewCustomAttributes = "";
+
+			// idpais
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->ViewValue = $this->tasa_cambio->CurrentValue;
+			$this->tasa_cambio->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -545,10 +586,30 @@ class cpais_edit extends cpais {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// simbolo
+			$this->simbolo->LinkCustomAttributes = "";
+			$this->simbolo->HrefValue = "";
+			$this->simbolo->TooltipValue = "";
+
+			// idpais
+			$this->idpais->LinkCustomAttributes = "";
+			$this->idpais->HrefValue = "";
+			$this->idpais->TooltipValue = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->LinkCustomAttributes = "";
+			$this->tasa_cambio->HrefValue = "";
+			$this->tasa_cambio->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -561,6 +622,76 @@ class cpais_edit extends cpais {
 			$this->nombre->EditCustomAttributes = "";
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
+
+			// simbolo
+			$this->simbolo->EditAttrs["class"] = "form-control";
+			$this->simbolo->EditCustomAttributes = "";
+			$this->simbolo->EditValue = ew_HtmlEncode($this->simbolo->CurrentValue);
+			$this->simbolo->PlaceHolder = ew_RemoveHtml($this->simbolo->FldCaption());
+
+			// idpais
+			$this->idpais->EditAttrs["class"] = "form-control";
+			$this->idpais->EditCustomAttributes = "";
+			if ($this->idpais->getSessionValue() <> "") {
+				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
+			}
+
+			// tasa_cambio
+			$this->tasa_cambio->EditAttrs["class"] = "form-control";
+			$this->tasa_cambio->EditCustomAttributes = "";
+			$this->tasa_cambio->EditValue = ew_HtmlEncode($this->tasa_cambio->CurrentValue);
+			$this->tasa_cambio->PlaceHolder = ew_RemoveHtml($this->tasa_cambio->FldCaption());
+			if (strval($this->tasa_cambio->EditValue) <> "" && is_numeric($this->tasa_cambio->EditValue)) $this->tasa_cambio->EditValue = ew_FormatNumber($this->tasa_cambio->EditValue, -2, -1, -2, 0);
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -575,6 +706,15 @@ class cpais_edit extends cpais {
 			// nombre
 
 			$this->nombre->HrefValue = "";
+
+			// simbolo
+			$this->simbolo->HrefValue = "";
+
+			// idpais
+			$this->idpais->HrefValue = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -600,22 +740,14 @@ class cpais_edit extends cpais {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->nombre->FldIsDetailKey && !is_null($this->nombre->FormValue) && $this->nombre->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->nombre->FldCaption(), $this->nombre->ReqErrMsg));
+		if (!$this->tasa_cambio->FldIsDetailKey && !is_null($this->tasa_cambio->FormValue) && $this->tasa_cambio->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->tasa_cambio->FldCaption(), $this->tasa_cambio->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->tasa_cambio->FormValue)) {
+			ew_AddMessage($gsFormError, $this->tasa_cambio->FldErrMsg());
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-
-		// Validate detail grid
-		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("departamento", $DetailTblVar) && $GLOBALS["departamento"]->DetailEdit) {
-			if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // get detail page object
-			$GLOBALS["departamento_grid"]->ValidateGridForm();
-		}
-		if (in_array("moneda", $DetailTblVar) && $GLOBALS["moneda"]->DetailEdit) {
-			if (!isset($GLOBALS["moneda_grid"])) $GLOBALS["moneda_grid"] = new cmoneda_grid(); // get detail page object
-			$GLOBALS["moneda_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -645,17 +777,22 @@ class cpais_edit extends cpais {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
-			// Begin transaction
-			if ($this->getCurrentDetailTable() <> "")
-				$conn->BeginTrans();
-
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
 			// nombre
-			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", $this->nombre->ReadOnly);
+			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, $this->nombre->ReadOnly);
+
+			// simbolo
+			$this->simbolo->SetDbValueDef($rsnew, $this->simbolo->CurrentValue, NULL, $this->simbolo->ReadOnly);
+
+			// idpais
+			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, NULL, $this->idpais->ReadOnly);
+
+			// tasa_cambio
+			$this->tasa_cambio->SetDbValueDef($rsnew, $this->tasa_cambio->CurrentValue, 0, $this->tasa_cambio->ReadOnly);
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
@@ -670,28 +807,6 @@ class cpais_edit extends cpais {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
-				}
-
-				// Update detail records
-				if ($EditRow) {
-					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-					if (in_array("departamento", $DetailTblVar) && $GLOBALS["departamento"]->DetailEdit) {
-						if (!isset($GLOBALS["departamento_grid"])) $GLOBALS["departamento_grid"] = new cdepartamento_grid(); // Get detail page object
-						$EditRow = $GLOBALS["departamento_grid"]->GridUpdate();
-					}
-					if (in_array("moneda", $DetailTblVar) && $GLOBALS["moneda"]->DetailEdit) {
-						if (!isset($GLOBALS["moneda_grid"])) $GLOBALS["moneda_grid"] = new cmoneda_grid(); // Get detail page object
-						$EditRow = $GLOBALS["moneda_grid"]->GridUpdate();
-					}
-				}
-
-				// Commit/Rollback transaction
-				if ($this->getCurrentDetailTable() <> "") {
-					if ($EditRow) {
-						$conn->CommitTrans(); // Commit transaction
-					} else {
-						$conn->RollbackTrans(); // Rollback transaction
-					}
 				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -714,56 +829,54 @@ class cpais_edit extends cpais {
 		return $EditRow;
 	}
 
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
+	// Set up master/detail based on QueryString
+	function SetUpMasterParms() {
+		$bValidMaster = FALSE;
 
 		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("departamento", $DetailTblVar)) {
-				if (!isset($GLOBALS["departamento_grid"]))
-					$GLOBALS["departamento_grid"] = new cdepartamento_grid;
-				if ($GLOBALS["departamento_grid"]->DetailEdit) {
-					$GLOBALS["departamento_grid"]->CurrentMode = "edit";
-					$GLOBALS["departamento_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["departamento_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["departamento_grid"]->setStartRecordNumber(1);
-					$GLOBALS["departamento_grid"]->idpais->FldIsDetailKey = TRUE;
-					$GLOBALS["departamento_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
-					$GLOBALS["departamento_grid"]->idpais->setSessionValue($GLOBALS["departamento_grid"]->idpais->CurrentValue);
-				}
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
 			}
-			if (in_array("moneda", $DetailTblVar)) {
-				if (!isset($GLOBALS["moneda_grid"]))
-					$GLOBALS["moneda_grid"] = new cmoneda_grid;
-				if ($GLOBALS["moneda_grid"]->DetailEdit) {
-					$GLOBALS["moneda_grid"]->CurrentMode = "edit";
-					$GLOBALS["moneda_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["moneda_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["moneda_grid"]->setStartRecordNumber(1);
-					$GLOBALS["moneda_grid"]->idpais->FldIsDetailKey = TRUE;
-					$GLOBALS["moneda_grid"]->idpais->CurrentValue = $this->idpais->CurrentValue;
-					$GLOBALS["moneda_grid"]->idpais->setSessionValue($GLOBALS["moneda_grid"]->idpais->CurrentValue);
+			if ($sMasterTblVar == "pais") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idpais"] <> "") {
+					$GLOBALS["pais"]->idpais->setQueryStringValue($_GET["fk_idpais"]);
+					$this->idpais->setQueryStringValue($GLOBALS["pais"]->idpais->QueryStringValue);
+					$this->idpais->setSessionValue($this->idpais->QueryStringValue);
+					if (!is_numeric($GLOBALS["pais"]->idpais->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
 				}
 			}
 		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "pais") {
+				if ($this->idpais->QueryStringValue == "") $this->idpais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "paislist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "monedalist.php", "", $this->TableVar, TRUE);
 		$PageId = "edit";
 		$Breadcrumb->Add("edit", $PageId, ew_CurrentUrl());
 	}
@@ -840,33 +953,33 @@ class cpais_edit extends cpais {
 <?php
 
 // Create page object
-if (!isset($pais_edit)) $pais_edit = new cpais_edit();
+if (!isset($moneda_edit)) $moneda_edit = new cmoneda_edit();
 
 // Page init
-$pais_edit->Page_Init();
+$moneda_edit->Page_Init();
 
 // Page main
-$pais_edit->Page_Main();
+$moneda_edit->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$pais_edit->Page_Render();
+$moneda_edit->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var pais_edit = new ew_Page("pais_edit");
-pais_edit.PageID = "edit"; // Page ID
-var EW_PAGE_ID = pais_edit.PageID; // For backward compatibility
+var moneda_edit = new ew_Page("moneda_edit");
+moneda_edit.PageID = "edit"; // Page ID
+var EW_PAGE_ID = moneda_edit.PageID; // For backward compatibility
 
 // Form object
-var fpaisedit = new ew_Form("fpaisedit");
+var fmonedaedit = new ew_Form("fmonedaedit");
 
 // Validate form
-fpaisedit.Validate = function() {
+fmonedaedit.Validate = function() {
 	if (!this.ValidateRequired)
 		return true; // Ignore validation
 	var $ = jQuery, fobj = this.GetForm(), $fobj = $(fobj);
@@ -881,12 +994,15 @@ fpaisedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_nombre");
+			elm = this.GetElements("x" + infix + "_tasa_cambio");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $pais->nombre->FldCaption(), $pais->nombre->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $moneda->tasa_cambio->FldCaption(), $moneda->tasa_cambio->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_tasa_cambio");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($moneda->tasa_cambio->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $pais->estado->FldCaption(), $pais->estado->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $moneda->estado->FldCaption(), $moneda->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -908,7 +1024,7 @@ fpaisedit.Validate = function() {
 }
 
 // Form_CustomValidate event
-fpaisedit.Form_CustomValidate = 
+fmonedaedit.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -917,14 +1033,15 @@ fpaisedit.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fpaisedit.ValidateRequired = true;
+fmonedaedit.ValidateRequired = true;
 <?php } else { ?>
-fpaisedit.ValidateRequired = false; 
+fmonedaedit.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fmonedaedit.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -935,40 +1052,108 @@ fpaisedit.ValidateRequired = false;
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $pais_edit->ShowPageHeader(); ?>
+<?php $moneda_edit->ShowPageHeader(); ?>
 <?php
-$pais_edit->ShowMessage();
+$moneda_edit->ShowMessage();
 ?>
-<form name="fpaisedit" id="fpaisedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($pais_edit->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $pais_edit->Token ?>">
+<form name="fmonedaedit" id="fmonedaedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($moneda_edit->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $moneda_edit->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="pais">
+<input type="hidden" name="t" value="moneda">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($pais->nombre->Visible) { // nombre ?>
+<?php if ($moneda->nombre->Visible) { // nombre ?>
 	<div id="r_nombre" class="form-group">
-		<label id="elh_pais_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $pais->nombre->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $pais->nombre->CellAttributes() ?>>
-<span id="el_pais_nombre">
-<input type="text" data-field="x_nombre" name="x_nombre" id="x_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($pais->nombre->PlaceHolder) ?>" value="<?php echo $pais->nombre->EditValue ?>"<?php echo $pais->nombre->EditAttributes() ?>>
+		<label id="elh_moneda_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $moneda->nombre->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $moneda->nombre->CellAttributes() ?>>
+<span id="el_moneda_nombre">
+<input type="text" data-field="x_nombre" name="x_nombre" id="x_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($moneda->nombre->PlaceHolder) ?>" value="<?php echo $moneda->nombre->EditValue ?>"<?php echo $moneda->nombre->EditAttributes() ?>>
 </span>
-<?php echo $pais->nombre->CustomMsg ?></div></div>
+<?php echo $moneda->nombre->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($pais->estado->Visible) { // estado ?>
-	<div id="r_estado" class="form-group">
-		<label id="elh_pais_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $pais->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $pais->estado->CellAttributes() ?>>
-<span id="el_pais_estado">
-<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $pais->estado->EditAttributes() ?>>
+<?php if ($moneda->simbolo->Visible) { // simbolo ?>
+	<div id="r_simbolo" class="form-group">
+		<label id="elh_moneda_simbolo" for="x_simbolo" class="col-sm-2 control-label ewLabel"><?php echo $moneda->simbolo->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $moneda->simbolo->CellAttributes() ?>>
+<span id="el_moneda_simbolo">
+<input type="text" data-field="x_simbolo" name="x_simbolo" id="x_simbolo" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($moneda->simbolo->PlaceHolder) ?>" value="<?php echo $moneda->simbolo->EditValue ?>"<?php echo $moneda->simbolo->EditAttributes() ?>>
+</span>
+<?php echo $moneda->simbolo->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($moneda->idpais->Visible) { // idpais ?>
+	<div id="r_idpais" class="form-group">
+		<label id="elh_moneda_idpais" for="x_idpais" class="col-sm-2 control-label ewLabel"><?php echo $moneda->idpais->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $moneda->idpais->CellAttributes() ?>>
+<?php if ($moneda->idpais->getSessionValue() <> "") { ?>
+<span id="el_moneda_idpais">
+<span<?php echo $moneda->idpais->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $moneda->idpais->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_idpais" name="x_idpais" value="<?php echo ew_HtmlEncode($moneda->idpais->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el_moneda_idpais">
+<select data-field="x_idpais" id="x_idpais" name="x_idpais"<?php echo $moneda->idpais->EditAttributes() ?>>
 <?php
-if (is_array($pais->estado->EditValue)) {
-	$arwrk = $pais->estado->EditValue;
+if (is_array($moneda->idpais->EditValue)) {
+	$arwrk = $moneda->idpais->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($pais->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($moneda->idpais->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$moneda->Lookup_Selecting($moneda->idpais, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x_idpais" id="s_x_idpais" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idpais` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php echo $moneda->idpais->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($moneda->tasa_cambio->Visible) { // tasa_cambio ?>
+	<div id="r_tasa_cambio" class="form-group">
+		<label id="elh_moneda_tasa_cambio" for="x_tasa_cambio" class="col-sm-2 control-label ewLabel"><?php echo $moneda->tasa_cambio->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $moneda->tasa_cambio->CellAttributes() ?>>
+<span id="el_moneda_tasa_cambio">
+<input type="text" data-field="x_tasa_cambio" name="x_tasa_cambio" id="x_tasa_cambio" size="30" placeholder="<?php echo ew_HtmlEncode($moneda->tasa_cambio->PlaceHolder) ?>" value="<?php echo $moneda->tasa_cambio->EditValue ?>"<?php echo $moneda->tasa_cambio->EditAttributes() ?>>
+</span>
+<?php echo $moneda->tasa_cambio->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($moneda->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_moneda_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $moneda->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $moneda->estado->CellAttributes() ?>>
+<span id="el_moneda_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $moneda->estado->EditAttributes() ?>>
+<?php
+if (is_array($moneda->estado->EditValue)) {
+	$arwrk = $moneda->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($moneda->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -980,27 +1165,11 @@ if (is_array($pais->estado->EditValue)) {
 ?>
 </select>
 </span>
-<?php echo $pais->estado->CustomMsg ?></div></div>
+<?php echo $moneda->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
-<input type="hidden" data-field="x_idpais" name="x_idpais" id="x_idpais" value="<?php echo ew_HtmlEncode($pais->idpais->CurrentValue) ?>">
-<?php
-	if (in_array("departamento", explode(",", $pais->getCurrentDetailTable())) && $departamento->DetailEdit) {
-?>
-<?php if ($pais->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("departamento", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "departamentogrid.php" ?>
-<?php } ?>
-<?php
-	if (in_array("moneda", explode(",", $pais->getCurrentDetailTable())) && $moneda->DetailEdit) {
-?>
-<?php if ($pais->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("moneda", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "monedagrid.php" ?>
-<?php } ?>
+<input type="hidden" data-field="x_idmoneda" name="x_idmoneda" id="x_idmoneda" value="<?php echo ew_HtmlEncode($moneda->idmoneda->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>
@@ -1008,10 +1177,10 @@ if (is_array($pais->estado->EditValue)) {
 </div>
 </form>
 <script type="text/javascript">
-fpaisedit.Init();
+fmonedaedit.Init();
 </script>
 <?php
-$pais_edit->ShowPageFooter();
+$moneda_edit->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1023,5 +1192,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$pais_edit->Page_Terminate();
+$moneda_edit->Page_Terminate();
 ?>

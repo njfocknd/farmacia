@@ -78,7 +78,7 @@ class ccuenta_edit extends ccuenta {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -418,9 +418,6 @@ class ccuenta_edit extends ccuenta {
 
 		// Load from form
 		global $objForm;
-		if (!$this->idcuenta->FldIsDetailKey) {
-			$this->idcuenta->setFormValue($objForm->GetValue("x_idcuenta"));
-		}
 		if (!$this->idbanco->FldIsDetailKey) {
 			$this->idbanco->setFormValue($objForm->GetValue("x_idbanco"));
 		}
@@ -436,22 +433,11 @@ class ccuenta_edit extends ccuenta {
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
-		if (!$this->saldo->FldIsDetailKey) {
-			$this->saldo->setFormValue($objForm->GetValue("x_saldo"));
-		}
-		if (!$this->debito->FldIsDetailKey) {
-			$this->debito->setFormValue($objForm->GetValue("x_debito"));
-		}
-		if (!$this->credito->FldIsDetailKey) {
-			$this->credito->setFormValue($objForm->GetValue("x_credito"));
-		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->fecha_insercio->FldIsDetailKey) {
-			$this->fecha_insercio->setFormValue($objForm->GetValue("x_fecha_insercio"));
-			$this->fecha_insercio->CurrentValue = ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7);
-		}
+		if (!$this->idcuenta->FldIsDetailKey)
+			$this->idcuenta->setFormValue($objForm->GetValue("x_idcuenta"));
 	}
 
 	// Restore form values
@@ -464,12 +450,7 @@ class ccuenta_edit extends ccuenta {
 		$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
 		$this->numero->CurrentValue = $this->numero->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
-		$this->saldo->CurrentValue = $this->saldo->FormValue;
-		$this->debito->CurrentValue = $this->debito->FormValue;
-		$this->credito->CurrentValue = $this->credito->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
-		$this->fecha_insercio->CurrentValue = $this->fecha_insercio->FormValue;
-		$this->fecha_insercio->CurrentValue = ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7);
 	}
 
 	// Load row based on key values
@@ -511,7 +492,7 @@ class ccuenta_edit extends ccuenta {
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->estado->setDbValue($rs->fields('estado'));
-		$this->fecha_insercio->setDbValue($rs->fields('fecha_insercio'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -528,7 +509,7 @@ class ccuenta_edit extends ccuenta {
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
 		$this->estado->DbValue = $row['estado'];
-		$this->fecha_insercio->DbValue = $row['fecha_insercio'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -537,20 +518,8 @@ class ccuenta_edit extends ccuenta {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Convert decimal values if posted back
-
-		if ($this->saldo->FormValue == $this->saldo->CurrentValue && is_numeric(ew_StrToFloat($this->saldo->CurrentValue)))
-			$this->saldo->CurrentValue = ew_StrToFloat($this->saldo->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
-			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
-			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
-
 		// Call Row_Rendering event
+
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
@@ -564,7 +533,7 @@ class ccuenta_edit extends ccuenta {
 		// debito
 		// credito
 		// estado
-		// fecha_insercio
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -573,15 +542,88 @@ class ccuenta_edit extends ccuenta {
 			$this->idcuenta->ViewCustomAttributes = "";
 
 			// idbanco
-			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			if (strval($this->idbanco->CurrentValue) <> "") {
+				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+				}
+			} else {
+				$this->idbanco->ViewValue = NULL;
+			}
 			$this->idbanco->ViewCustomAttributes = "";
 
 			// idsucursal
-			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			if (strval($this->idsucursal->CurrentValue) <> "") {
+				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+				}
+			} else {
+				$this->idsucursal->ViewValue = NULL;
+			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
 			// idmoneda
-			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			if (strval($this->idmoneda->CurrentValue) <> "") {
+				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idmoneda->ViewValue = $rswrk->fields('DispFld');
+					$this->idmoneda->ViewValue .= ew_ValueSeparator(1,$this->idmoneda) . $rswrk->fields('Disp2Fld');
+					$rswrk->Close();
+				} else {
+					$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+				}
+			} else {
+				$this->idmoneda->ViewValue = NULL;
+			}
 			$this->idmoneda->ViewCustomAttributes = "";
 
 			// numero
@@ -621,15 +663,10 @@ class ccuenta_edit extends ccuenta {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// fecha_insercio
-			$this->fecha_insercio->ViewValue = $this->fecha_insercio->CurrentValue;
-			$this->fecha_insercio->ViewValue = ew_FormatDateTime($this->fecha_insercio->ViewValue, 7);
-			$this->fecha_insercio->ViewCustomAttributes = "";
-
-			// idcuenta
-			$this->idcuenta->LinkCustomAttributes = "";
-			$this->idcuenta->HrefValue = "";
-			$this->idcuenta->TooltipValue = "";
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idbanco
 			$this->idbanco->LinkCustomAttributes = "";
@@ -656,61 +693,122 @@ class ccuenta_edit extends ccuenta {
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
 
-			// saldo
-			$this->saldo->LinkCustomAttributes = "";
-			$this->saldo->HrefValue = "";
-			$this->saldo->TooltipValue = "";
-
-			// debito
-			$this->debito->LinkCustomAttributes = "";
-			$this->debito->HrefValue = "";
-			$this->debito->TooltipValue = "";
-
-			// credito
-			$this->credito->LinkCustomAttributes = "";
-			$this->credito->HrefValue = "";
-			$this->credito->TooltipValue = "";
-
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
-
-			// fecha_insercio
-			$this->fecha_insercio->LinkCustomAttributes = "";
-			$this->fecha_insercio->HrefValue = "";
-			$this->fecha_insercio->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
-
-			// idcuenta
-			$this->idcuenta->EditAttrs["class"] = "form-control";
-			$this->idcuenta->EditCustomAttributes = "";
-			$this->idcuenta->EditValue = $this->idcuenta->CurrentValue;
-			$this->idcuenta->ViewCustomAttributes = "";
 
 			// idbanco
 			$this->idbanco->EditAttrs["class"] = "form-control";
 			$this->idbanco->EditCustomAttributes = "";
 			if ($this->idbanco->getSessionValue() <> "") {
 				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
-			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			if (strval($this->idbanco->CurrentValue) <> "") {
+				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+				}
+			} else {
+				$this->idbanco->ViewValue = NULL;
+			}
 			$this->idbanco->ViewCustomAttributes = "";
 			} else {
-			$this->idbanco->EditValue = ew_HtmlEncode($this->idbanco->CurrentValue);
-			$this->idbanco->PlaceHolder = ew_RemoveHtml($this->idbanco->FldCaption());
+			if (trim(strval($this->idbanco->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `banco`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idbanco->EditValue = $arwrk;
 			}
 
 			// idsucursal
 			$this->idsucursal->EditAttrs["class"] = "form-control";
 			$this->idsucursal->EditCustomAttributes = "";
-			$this->idsucursal->EditValue = ew_HtmlEncode($this->idsucursal->CurrentValue);
-			$this->idsucursal->PlaceHolder = ew_RemoveHtml($this->idsucursal->FldCaption());
+			if (trim(strval($this->idsucursal->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `sucursal`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idsucursal->EditValue = $arwrk;
 
 			// idmoneda
 			$this->idmoneda->EditAttrs["class"] = "form-control";
 			$this->idmoneda->EditCustomAttributes = "";
-			$this->idmoneda->EditValue = ew_HtmlEncode($this->idmoneda->CurrentValue);
-			$this->idmoneda->PlaceHolder = ew_RemoveHtml($this->idmoneda->FldCaption());
+			if (trim(strval($this->idmoneda->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `moneda`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idmoneda->EditValue = $arwrk;
 
 			// numero
 			$this->numero->EditAttrs["class"] = "form-control";
@@ -724,46 +822,18 @@ class ccuenta_edit extends ccuenta {
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
-			// saldo
-			$this->saldo->EditAttrs["class"] = "form-control";
-			$this->saldo->EditCustomAttributes = "";
-			$this->saldo->EditValue = ew_HtmlEncode($this->saldo->CurrentValue);
-			$this->saldo->PlaceHolder = ew_RemoveHtml($this->saldo->FldCaption());
-			if (strval($this->saldo->EditValue) <> "" && is_numeric($this->saldo->EditValue)) $this->saldo->EditValue = ew_FormatNumber($this->saldo->EditValue, -2, -1, -2, 0);
-
-			// debito
-			$this->debito->EditAttrs["class"] = "form-control";
-			$this->debito->EditCustomAttributes = "";
-			$this->debito->EditValue = ew_HtmlEncode($this->debito->CurrentValue);
-			$this->debito->PlaceHolder = ew_RemoveHtml($this->debito->FldCaption());
-			if (strval($this->debito->EditValue) <> "" && is_numeric($this->debito->EditValue)) $this->debito->EditValue = ew_FormatNumber($this->debito->EditValue, -2, -1, -2, 0);
-
-			// credito
-			$this->credito->EditAttrs["class"] = "form-control";
-			$this->credito->EditCustomAttributes = "";
-			$this->credito->EditValue = ew_HtmlEncode($this->credito->CurrentValue);
-			$this->credito->PlaceHolder = ew_RemoveHtml($this->credito->FldCaption());
-			if (strval($this->credito->EditValue) <> "" && is_numeric($this->credito->EditValue)) $this->credito->EditValue = ew_FormatNumber($this->credito->EditValue, -2, -1, -2, 0);
-
 			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
 			$arwrk = array();
 			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
-			// fecha_insercio
-			$this->fecha_insercio->EditAttrs["class"] = "form-control";
-			$this->fecha_insercio->EditCustomAttributes = "";
-			$this->fecha_insercio->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercio->CurrentValue, 7));
-			$this->fecha_insercio->PlaceHolder = ew_RemoveHtml($this->fecha_insercio->FldCaption());
-
 			// Edit refer script
-			// idcuenta
-
-			$this->idcuenta->HrefValue = "";
-
 			// idbanco
+
 			$this->idbanco->HrefValue = "";
 
 			// idsucursal
@@ -778,20 +848,8 @@ class ccuenta_edit extends ccuenta {
 			// nombre
 			$this->nombre->HrefValue = "";
 
-			// saldo
-			$this->saldo->HrefValue = "";
-
-			// debito
-			$this->debito->HrefValue = "";
-
-			// credito
-			$this->credito->HrefValue = "";
-
 			// estado
 			$this->estado->HrefValue = "";
-
-			// fecha_insercio
-			$this->fecha_insercio->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -814,53 +872,17 @@ class ccuenta_edit extends ccuenta {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->idcuenta->FldIsDetailKey && !is_null($this->idcuenta->FormValue) && $this->idcuenta->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idcuenta->FldCaption(), $this->idcuenta->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idcuenta->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idcuenta->FldErrMsg());
-		}
 		if (!$this->idbanco->FldIsDetailKey && !is_null($this->idbanco->FormValue) && $this->idbanco->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idbanco->FldCaption(), $this->idbanco->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idbanco->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idbanco->FldErrMsg());
 		}
 		if (!$this->idsucursal->FldIsDetailKey && !is_null($this->idsucursal->FormValue) && $this->idsucursal->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idsucursal->FldCaption(), $this->idsucursal->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idsucursal->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idsucursal->FldErrMsg());
-		}
 		if (!$this->idmoneda->FldIsDetailKey && !is_null($this->idmoneda->FormValue) && $this->idmoneda->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idmoneda->FldCaption(), $this->idmoneda->ReqErrMsg));
 		}
-		if (!ew_CheckInteger($this->idmoneda->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idmoneda->FldErrMsg());
-		}
-		if (!$this->saldo->FldIsDetailKey && !is_null($this->saldo->FormValue) && $this->saldo->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->saldo->FldCaption(), $this->saldo->ReqErrMsg));
-		}
-		if (!ew_CheckNumber($this->saldo->FormValue)) {
-			ew_AddMessage($gsFormError, $this->saldo->FldErrMsg());
-		}
-		if (!$this->debito->FldIsDetailKey && !is_null($this->debito->FormValue) && $this->debito->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->debito->FldCaption(), $this->debito->ReqErrMsg));
-		}
-		if (!ew_CheckNumber($this->debito->FormValue)) {
-			ew_AddMessage($gsFormError, $this->debito->FldErrMsg());
-		}
-		if (!$this->credito->FldIsDetailKey && !is_null($this->credito->FormValue) && $this->credito->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->credito->FldCaption(), $this->credito->ReqErrMsg));
-		}
-		if (!ew_CheckNumber($this->credito->FormValue)) {
-			ew_AddMessage($gsFormError, $this->credito->FldErrMsg());
-		}
-		if ($this->estado->FormValue == "") {
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-		if (!ew_CheckEuroDate($this->fecha_insercio->FormValue)) {
-			ew_AddMessage($gsFormError, $this->fecha_insercio->FldErrMsg());
 		}
 
 		// Return validate result
@@ -895,9 +917,7 @@ class ccuenta_edit extends ccuenta {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// idcuenta
 			// idbanco
-
 			$this->idbanco->SetDbValueDef($rsnew, $this->idbanco->CurrentValue, 0, $this->idbanco->ReadOnly);
 
 			// idsucursal
@@ -912,20 +932,8 @@ class ccuenta_edit extends ccuenta {
 			// nombre
 			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, $this->nombre->ReadOnly);
 
-			// saldo
-			$this->saldo->SetDbValueDef($rsnew, $this->saldo->CurrentValue, 0, $this->saldo->ReadOnly);
-
-			// debito
-			$this->debito->SetDbValueDef($rsnew, $this->debito->CurrentValue, 0, $this->debito->ReadOnly);
-
-			// credito
-			$this->credito->SetDbValueDef($rsnew, $this->credito->CurrentValue, 0, $this->credito->ReadOnly);
-
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
-
-			// fecha_insercio
-			$this->fecha_insercio->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7), NULL, $this->fecha_insercio->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1124,54 +1132,18 @@ fcuentaedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_idcuenta");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idcuenta->FldCaption(), $cuenta->idcuenta->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idcuenta");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idcuenta->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idbanco");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idbanco->FldCaption(), $cuenta->idbanco->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idbanco");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idbanco->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idsucursal");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idsucursal->FldCaption(), $cuenta->idsucursal->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idsucursal");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idsucursal->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idmoneda");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idmoneda->FldCaption(), $cuenta->idmoneda->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idmoneda");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->idmoneda->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_saldo");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->saldo->FldCaption(), $cuenta->saldo->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_saldo");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->saldo->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_debito");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->debito->FldCaption(), $cuenta->debito->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_debito");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->debito->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_credito");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->credito->FldCaption(), $cuenta->credito->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_credito");
-			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->credito->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->estado->FldCaption(), $cuenta->estado->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_fecha_insercio");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->fecha_insercio->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1208,8 +1180,11 @@ fcuentaedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fcuentaedit.Lists["x_idbanco"] = {"LinkField":"x_idbanco","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentaedit.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuentaedit.Lists["x_idmoneda"] = {"LinkField":"x_idmoneda","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","x_simbolo","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -1231,18 +1206,6 @@ $cuenta_edit->ShowMessage();
 <input type="hidden" name="t" value="cuenta">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
-	<div id="r_idcuenta" class="form-group">
-		<label id="elh_cuenta_idcuenta" for="x_idcuenta" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->idcuenta->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->idcuenta->CellAttributes() ?>>
-<span id="el_cuenta_idcuenta">
-<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->idcuenta->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idcuenta" name="x_idcuenta" id="x_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->CurrentValue) ?>">
-<?php echo $cuenta->idcuenta->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($cuenta->idbanco->Visible) { // idbanco ?>
 	<div id="r_idbanco" class="form-group">
 		<label id="elh_cuenta_idbanco" for="x_idbanco" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->idbanco->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -1255,7 +1218,37 @@ $cuenta_edit->ShowMessage();
 <input type="hidden" id="x_idbanco" name="x_idbanco" value="<?php echo ew_HtmlEncode($cuenta->idbanco->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el_cuenta_idbanco">
-<input type="text" data-field="x_idbanco" name="x_idbanco" id="x_idbanco" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idbanco->PlaceHolder) ?>" value="<?php echo $cuenta->idbanco->EditValue ?>"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<select data-field="x_idbanco" id="x_idbanco" name="x_idbanco"<?php echo $cuenta->idbanco->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idbanco->EditValue)) {
+	$arwrk = $cuenta->idbanco->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idbanco->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$cuenta->Lookup_Selecting($cuenta->idbanco, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x_idbanco" id="s_x_idbanco" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbanco` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <?php echo $cuenta->idbanco->CustomMsg ?></div></div>
@@ -1266,7 +1259,37 @@ $cuenta_edit->ShowMessage();
 		<label id="elh_cuenta_idsucursal" for="x_idsucursal" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->idsucursal->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $cuenta->idsucursal->CellAttributes() ?>>
 <span id="el_cuenta_idsucursal">
-<input type="text" data-field="x_idsucursal" name="x_idsucursal" id="x_idsucursal" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idsucursal->PlaceHolder) ?>" value="<?php echo $cuenta->idsucursal->EditValue ?>"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<select data-field="x_idsucursal" id="x_idsucursal" name="x_idsucursal"<?php echo $cuenta->idsucursal->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idsucursal->EditValue)) {
+	$arwrk = $cuenta->idsucursal->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idsucursal->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$cuenta->Lookup_Selecting($cuenta->idsucursal, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x_idsucursal" id="s_x_idsucursal" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idsucursal` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $cuenta->idsucursal->CustomMsg ?></div></div>
 	</div>
@@ -1276,7 +1299,40 @@ $cuenta_edit->ShowMessage();
 		<label id="elh_cuenta_idmoneda" for="x_idmoneda" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->idmoneda->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $cuenta->idmoneda->CellAttributes() ?>>
 <span id="el_cuenta_idmoneda">
-<input type="text" data-field="x_idmoneda" name="x_idmoneda" id="x_idmoneda" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->idmoneda->PlaceHolder) ?>" value="<?php echo $cuenta->idmoneda->EditValue ?>"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<select data-field="x_idmoneda" id="x_idmoneda" name="x_idmoneda"<?php echo $cuenta->idmoneda->EditAttributes() ?>>
+<?php
+if (is_array($cuenta->idmoneda->EditValue)) {
+	$arwrk = $cuenta->idmoneda->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cuenta->idmoneda->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$cuenta->idmoneda) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$cuenta->Lookup_Selecting($cuenta->idmoneda, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x_idmoneda" id="s_x_idmoneda" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idmoneda` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $cuenta->idmoneda->CustomMsg ?></div></div>
 	</div>
@@ -1301,77 +1357,35 @@ $cuenta_edit->ShowMessage();
 <?php echo $cuenta->nombre->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($cuenta->saldo->Visible) { // saldo ?>
-	<div id="r_saldo" class="form-group">
-		<label id="elh_cuenta_saldo" for="x_saldo" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->saldo->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->saldo->CellAttributes() ?>>
-<span id="el_cuenta_saldo">
-<input type="text" data-field="x_saldo" name="x_saldo" id="x_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
-</span>
-<?php echo $cuenta->saldo->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($cuenta->debito->Visible) { // debito ?>
-	<div id="r_debito" class="form-group">
-		<label id="elh_cuenta_debito" for="x_debito" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->debito->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->debito->CellAttributes() ?>>
-<span id="el_cuenta_debito">
-<input type="text" data-field="x_debito" name="x_debito" id="x_debito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->debito->PlaceHolder) ?>" value="<?php echo $cuenta->debito->EditValue ?>"<?php echo $cuenta->debito->EditAttributes() ?>>
-</span>
-<?php echo $cuenta->debito->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($cuenta->credito->Visible) { // credito ?>
-	<div id="r_credito" class="form-group">
-		<label id="elh_cuenta_credito" for="x_credito" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->credito->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->credito->CellAttributes() ?>>
-<span id="el_cuenta_credito">
-<input type="text" data-field="x_credito" name="x_credito" id="x_credito" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->credito->PlaceHolder) ?>" value="<?php echo $cuenta->credito->EditValue ?>"<?php echo $cuenta->credito->EditAttributes() ?>>
-</span>
-<?php echo $cuenta->credito->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($cuenta->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
-		<label id="elh_cuenta_estado" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_cuenta_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $cuenta->estado->CellAttributes() ?>>
 <span id="el_cuenta_estado">
-<div id="tp_x_estado" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_estado" id="x_estado" value="{value}"<?php echo $cuenta->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $cuenta->estado->EditAttributes() ?>>
 <?php
-$arwrk = $cuenta->estado->EditValue;
-if (is_array($arwrk)) {
+if (is_array($cuenta->estado->EditValue)) {
+	$arwrk = $cuenta->estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cuenta->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		$selwrk = (strval($cuenta->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
 ?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_estado" name="x_estado" id="x_estado_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cuenta->estado->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
 <?php
 	}
 }
 ?>
-</div>
+</select>
 </span>
 <?php echo $cuenta->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
-	<div id="r_fecha_insercio" class="form-group">
-		<label id="elh_cuenta_fecha_insercio" for="x_fecha_insercio" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->fecha_insercio->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->fecha_insercio->CellAttributes() ?>>
-<span id="el_cuenta_fecha_insercio">
-<input type="text" data-field="x_fecha_insercio" name="x_fecha_insercio" id="x_fecha_insercio" placeholder="<?php echo ew_HtmlEncode($cuenta->fecha_insercio->PlaceHolder) ?>" value="<?php echo $cuenta->fecha_insercio->EditValue ?>"<?php echo $cuenta->fecha_insercio->EditAttributes() ?>>
-</span>
-<?php echo $cuenta->fecha_insercio->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 </div>
+<input type="hidden" data-field="x_idcuenta" name="x_idcuenta" id="x_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->CurrentValue) ?>">
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>

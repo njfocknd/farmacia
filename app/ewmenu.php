@@ -4,7 +4,6 @@
 
 // Generate all menu items
 $RootMenu->IsRoot = TRUE;
-$RootMenu->AddMenuItem(64, "mi_cuenta", $Language->MenuPhrase("64", "MenuText"), "cuentalist.php?cmd=resetall", -1, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(62, "mci_Documentos", $Language->MenuPhrase("62", "MenuText"), "", -1, "", TRUE, FALSE, TRUE);
 $RootMenu->AddMenuItem(23, "mi_documento_interno", $Language->MenuPhrase("23", "MenuText"), "documento_internolist.php", 62, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(20, "mi_documento_ingreso", $Language->MenuPhrase("20", "MenuText"), "documento_ingresolist.php", 62, "", TRUE, FALSE);
@@ -13,6 +12,7 @@ $RootMenu->AddMenuItem(10, "mci_Cate1logos", $Language->MenuPhrase("10", "MenuTe
 $RootMenu->AddMenuItem(6, "mi_pais", $Language->MenuPhrase("6", "MenuText"), "paislist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(1, "mi_departamento", $Language->MenuPhrase("1", "MenuText"), "departamentolist.php?cmd=resetall", 6, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(5, "mi_municipio", $Language->MenuPhrase("5", "MenuText"), "municipiolist.php?cmd=resetall", 1, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(65, "mi_moneda", $Language->MenuPhrase("65", "MenuText"), "monedalist.php?cmd=resetall", 6, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(2, "mi_empresa", $Language->MenuPhrase("2", "MenuText"), "empresalist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(9, "mi_sucursal", $Language->MenuPhrase("9", "MenuText"), "sucursallist.php?cmd=resetall", 2, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(14, "mi_producto_sucursal", $Language->MenuPhrase("14", "MenuText"), "producto_sucursallist.php?cmd=resetall", 9, "", TRUE, FALSE);
@@ -27,6 +27,7 @@ $RootMenu->AddMenuItem(12, "mi_tipo_bodega", $Language->MenuPhrase("12", "MenuTe
 $RootMenu->AddMenuItem(18, "mi_tipo_documento", $Language->MenuPhrase("18", "MenuText"), "tipo_documentolist.php", 10, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(17, "mi_serie_documento", $Language->MenuPhrase("17", "MenuText"), "serie_documentolist.php", 18, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(63, "mi_banco", $Language->MenuPhrase("63", "MenuText"), "bancolist.php", 10, "", TRUE, FALSE);
+$RootMenu->AddMenuItem(64, "mi_cuenta", $Language->MenuPhrase("64", "MenuText"), "cuentalist.php?cmd=resetall", 63, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(29, "mi_persona", $Language->MenuPhrase("29", "MenuText"), "personalist.php", -1, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(25, "mi_cliente", $Language->MenuPhrase("25", "MenuText"), "clientelist.php?cmd=resetall", 29, "", TRUE, FALSE);
 $RootMenu->AddMenuItem(30, "mi_proveedor", $Language->MenuPhrase("30", "MenuText"), "proveedorlist.php?cmd=resetall", 29, "", TRUE, FALSE);

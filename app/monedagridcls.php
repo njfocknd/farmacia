@@ -1,13 +1,13 @@
-<?php include_once $EW_RELATIVE_PATH . "cuentainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "monedainfo.php" ?>
 <?php
 
 //
 // Page class
 //
 
-$cuenta_grid = NULL; // Initialize page object first
+$moneda_grid = NULL; // Initialize page object first
 
-class ccuenta_grid extends ccuenta {
+class cmoneda_grid extends cmoneda {
 
 	// Page ID
 	var $PageID = 'grid';
@@ -16,13 +16,13 @@ class ccuenta_grid extends ccuenta {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'cuenta';
+	var $TableName = 'moneda';
 
 	// Page object name
-	var $PageObjName = 'cuenta_grid';
+	var $PageObjName = 'moneda_grid';
 
 	// Grid form hidden field names
-	var $FormName = 'fcuentagrid';
+	var $FormName = 'fmonedagrid';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -76,7 +76,7 @@ class ccuenta_grid extends ccuenta {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = TRUE;
+		$hidden = FALSE;
 		$html = "";
 
 		// Message
@@ -199,12 +199,12 @@ class ccuenta_grid extends ccuenta {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (cuenta)
-		if (!isset($GLOBALS["cuenta"]) || get_class($GLOBALS["cuenta"]) == "ccuenta") {
-			$GLOBALS["cuenta"] = &$this;
+		// Table object (moneda)
+		if (!isset($GLOBALS["moneda"]) || get_class($GLOBALS["moneda"]) == "cmoneda") {
+			$GLOBALS["moneda"] = &$this;
 
 //			$GLOBALS["MasterTable"] = &$GLOBALS["Table"];
-//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["cuenta"];
+//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["moneda"];
 
 		}
 
@@ -214,7 +214,7 @@ class ccuenta_grid extends ccuenta {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'cuenta', TRUE);
+			define("EW_TABLE_NAME", 'moneda', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -287,13 +287,13 @@ class ccuenta_grid extends ccuenta {
 		global $conn, $gsExportFile, $gTmpImages;
 
 		// Export
-		global $EW_EXPORT, $cuenta;
+		global $EW_EXPORT, $moneda;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($cuenta);
+				$doc = new $class($moneda);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -422,17 +422,17 @@ class ccuenta_grid extends ccuenta {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "banco") {
-			global $banco;
-			$rsmaster = $banco->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "pais") {
+			global $pais;
+			$rsmaster = $pais->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("bancolist.php"); // Return to master page
+				$this->Page_Terminate("paislist.php"); // Return to master page
 			} else {
-				$banco->LoadListRowValues($rsmaster);
-				$banco->RowType = EW_ROWTYPE_MASTER; // Master row
-				$banco->RenderListRow();
+				$pais->LoadListRowValues($rsmaster);
+				$pais->RowType = EW_ROWTYPE_MASTER; // Master row
+				$pais->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -453,6 +453,7 @@ class ccuenta_grid extends ccuenta {
 
 	//  Exit inline mode
 	function ClearInlineMode() {
+		$this->tasa_cambio->FormValue = ""; // Clear form value
 		$this->LastAction = $this->CurrentAction; // Save last action
 		$this->CurrentAction = ""; // Clear action
 		$_SESSION[EW_SESSION_INLINE_MODE] = ""; // Clear inline mode
@@ -593,8 +594,8 @@ class ccuenta_grid extends ccuenta {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idcuenta->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idcuenta->FormValue))
+			$this->idmoneda->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idmoneda->FormValue))
 				return FALSE;
 		}
 		return TRUE;
@@ -651,7 +652,7 @@ class ccuenta_grid extends ccuenta {
 				}
 				if ($bGridInsert) {
 					if ($sKey <> "") $sKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-					$sKey .= $this->idcuenta->CurrentValue;
+					$sKey .= $this->idmoneda->CurrentValue;
 
 					// Add filter for this record
 					$sFilter = $this->KeyFilter();
@@ -690,15 +691,13 @@ class ccuenta_grid extends ccuenta {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
-		if ($objForm->HasValue("x_idbanco") && $objForm->HasValue("o_idbanco") && $this->idbanco->CurrentValue <> $this->idbanco->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_idsucursal") && $objForm->HasValue("o_idsucursal") && $this->idsucursal->CurrentValue <> $this->idsucursal->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_idmoneda") && $objForm->HasValue("o_idmoneda") && $this->idmoneda->CurrentValue <> $this->idmoneda->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_numero") && $objForm->HasValue("o_numero") && $this->numero->CurrentValue <> $this->numero->OldValue)
-			return FALSE;
 		if ($objForm->HasValue("x_nombre") && $objForm->HasValue("o_nombre") && $this->nombre->CurrentValue <> $this->nombre->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_simbolo") && $objForm->HasValue("o_simbolo") && $this->simbolo->CurrentValue <> $this->simbolo->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_idpais") && $objForm->HasValue("o_idpais") && $this->idpais->CurrentValue <> $this->idpais->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_tasa_cambio") && $objForm->HasValue("o_tasa_cambio") && $this->tasa_cambio->CurrentValue <> $this->tasa_cambio->OldValue)
 			return FALSE;
 		return TRUE;
 	}
@@ -807,7 +806,7 @@ class ccuenta_grid extends ccuenta {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->idbanco->setSessionValue("");
+				$this->idpais->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -893,7 +892,7 @@ class ccuenta_grid extends ccuenta {
 			}
 		}
 		if ($this->CurrentMode == "edit" && is_numeric($this->RowIndex)) {
-			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idcuenta->CurrentValue . "\">";
+			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idmoneda->CurrentValue . "\">";
 		}
 		$this->RenderListOptionsExt();
 	}
@@ -902,7 +901,7 @@ class ccuenta_grid extends ccuenta {
 	function SetRecordKey(&$key, $rs) {
 		$key = "";
 		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs->fields('idcuenta');
+		$key .= $rs->fields('idmoneda');
 	}
 
 	// Set up other options
@@ -984,16 +983,14 @@ class ccuenta_grid extends ccuenta {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->idbanco->CurrentValue = 1;
-		$this->idbanco->OldValue = $this->idbanco->CurrentValue;
-		$this->idsucursal->CurrentValue = 1;
-		$this->idsucursal->OldValue = $this->idsucursal->CurrentValue;
-		$this->idmoneda->CurrentValue = 1;
-		$this->idmoneda->OldValue = $this->idmoneda->CurrentValue;
-		$this->numero->CurrentValue = NULL;
-		$this->numero->OldValue = $this->numero->CurrentValue;
 		$this->nombre->CurrentValue = NULL;
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
+		$this->simbolo->CurrentValue = NULL;
+		$this->simbolo->OldValue = $this->simbolo->CurrentValue;
+		$this->idpais->CurrentValue = NULL;
+		$this->idpais->OldValue = $this->idpais->CurrentValue;
+		$this->tasa_cambio->CurrentValue = 0.00;
+		$this->tasa_cambio->OldValue = $this->tasa_cambio->CurrentValue;
 	}
 
 	// Load form values
@@ -1002,40 +999,35 @@ class ccuenta_grid extends ccuenta {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
-		if (!$this->idbanco->FldIsDetailKey) {
-			$this->idbanco->setFormValue($objForm->GetValue("x_idbanco"));
-		}
-		$this->idbanco->setOldValue($objForm->GetValue("o_idbanco"));
-		if (!$this->idsucursal->FldIsDetailKey) {
-			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
-		}
-		$this->idsucursal->setOldValue($objForm->GetValue("o_idsucursal"));
-		if (!$this->idmoneda->FldIsDetailKey) {
-			$this->idmoneda->setFormValue($objForm->GetValue("x_idmoneda"));
-		}
-		$this->idmoneda->setOldValue($objForm->GetValue("o_idmoneda"));
-		if (!$this->numero->FldIsDetailKey) {
-			$this->numero->setFormValue($objForm->GetValue("x_numero"));
-		}
-		$this->numero->setOldValue($objForm->GetValue("o_numero"));
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
 		}
 		$this->nombre->setOldValue($objForm->GetValue("o_nombre"));
-		if (!$this->idcuenta->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idcuenta->setFormValue($objForm->GetValue("x_idcuenta"));
+		if (!$this->simbolo->FldIsDetailKey) {
+			$this->simbolo->setFormValue($objForm->GetValue("x_simbolo"));
+		}
+		$this->simbolo->setOldValue($objForm->GetValue("o_simbolo"));
+		if (!$this->idpais->FldIsDetailKey) {
+			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
+		}
+		$this->idpais->setOldValue($objForm->GetValue("o_idpais"));
+		if (!$this->tasa_cambio->FldIsDetailKey) {
+			$this->tasa_cambio->setFormValue($objForm->GetValue("x_tasa_cambio"));
+		}
+		$this->tasa_cambio->setOldValue($objForm->GetValue("o_tasa_cambio"));
+		if (!$this->idmoneda->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->idmoneda->setFormValue($objForm->GetValue("x_idmoneda"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idcuenta->CurrentValue = $this->idcuenta->FormValue;
-		$this->idbanco->CurrentValue = $this->idbanco->FormValue;
-		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
-		$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
-		$this->numero->CurrentValue = $this->numero->FormValue;
+			$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
+		$this->simbolo->CurrentValue = $this->simbolo->FormValue;
+		$this->idpais->CurrentValue = $this->idpais->FormValue;
+		$this->tasa_cambio->CurrentValue = $this->tasa_cambio->FormValue;
 	}
 
 	// Load recordset
@@ -1084,15 +1076,11 @@ class ccuenta_grid extends ccuenta {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
-		$this->idbanco->setDbValue($rs->fields('idbanco'));
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
-		$this->numero->setDbValue($rs->fields('numero'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->saldo->setDbValue($rs->fields('saldo'));
-		$this->debito->setDbValue($rs->fields('debito'));
-		$this->credito->setDbValue($rs->fields('credito'));
+		$this->simbolo->setDbValue($rs->fields('simbolo'));
+		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->tasa_cambio->setDbValue($rs->fields('tasa_cambio'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -1101,15 +1089,11 @@ class ccuenta_grid extends ccuenta {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idcuenta->DbValue = $row['idcuenta'];
-		$this->idbanco->DbValue = $row['idbanco'];
-		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idmoneda->DbValue = $row['idmoneda'];
-		$this->numero->DbValue = $row['numero'];
 		$this->nombre->DbValue = $row['nombre'];
-		$this->saldo->DbValue = $row['saldo'];
-		$this->debito->DbValue = $row['debito'];
-		$this->credito->DbValue = $row['credito'];
+		$this->simbolo->DbValue = $row['simbolo'];
+		$this->idpais->DbValue = $row['idpais'];
+		$this->tasa_cambio->DbValue = $row['tasa_cambio'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -1123,7 +1107,7 @@ class ccuenta_grid extends ccuenta {
 		$cnt = count($arKeys);
 		if ($cnt >= 1) {
 			if (strval($arKeys[0]) <> "")
-				$this->idcuenta->CurrentValue = strval($arKeys[0]); // idcuenta
+				$this->idmoneda->CurrentValue = strval($arKeys[0]); // idmoneda
 			else
 				$bValidKey = FALSE;
 		} else {
@@ -1148,133 +1132,68 @@ class ccuenta_grid extends ccuenta {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->tasa_cambio->FormValue == $this->tasa_cambio->CurrentValue && is_numeric(ew_StrToFloat($this->tasa_cambio->CurrentValue)))
+			$this->tasa_cambio->CurrentValue = ew_StrToFloat($this->tasa_cambio->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idcuenta
-		// idbanco
-		// idsucursal
 		// idmoneda
-		// numero
 		// nombre
-		// saldo
-		// debito
-		// credito
+		// simbolo
+		// idpais
+		// tasa_cambio
 		// estado
 		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idcuenta
-			$this->idcuenta->ViewValue = $this->idcuenta->CurrentValue;
-			$this->idcuenta->ViewCustomAttributes = "";
-
-			// idbanco
-			if (strval($this->idbanco->CurrentValue) <> "") {
-				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
-				}
-			} else {
-				$this->idbanco->ViewValue = NULL;
-			}
-			$this->idbanco->ViewCustomAttributes = "";
-
-			// idsucursal
-			if (strval($this->idsucursal->CurrentValue) <> "") {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-				}
-			} else {
-				$this->idsucursal->ViewValue = NULL;
-			}
-			$this->idsucursal->ViewCustomAttributes = "";
-
 			// idmoneda
-			if (strval($this->idmoneda->CurrentValue) <> "") {
-				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmoneda->ViewValue = $rswrk->fields('DispFld');
-					$this->idmoneda->ViewValue .= ew_ValueSeparator(1,$this->idmoneda) . $rswrk->fields('Disp2Fld');
-					$rswrk->Close();
-				} else {
-					$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
-				}
-			} else {
-				$this->idmoneda->ViewValue = NULL;
-			}
+			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
 			$this->idmoneda->ViewCustomAttributes = "";
-
-			// numero
-			$this->numero->ViewValue = $this->numero->CurrentValue;
-			$this->numero->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->ViewValue = $this->nombre->CurrentValue;
 			$this->nombre->ViewCustomAttributes = "";
 
-			// saldo
-			$this->saldo->ViewValue = $this->saldo->CurrentValue;
-			$this->saldo->ViewCustomAttributes = "";
+			// simbolo
+			$this->simbolo->ViewValue = $this->simbolo->CurrentValue;
+			$this->simbolo->ViewCustomAttributes = "";
 
-			// debito
-			$this->debito->ViewValue = $this->debito->CurrentValue;
-			$this->debito->ViewCustomAttributes = "";
+			// idpais
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
 
-			// credito
-			$this->credito->ViewValue = $this->credito->CurrentValue;
-			$this->credito->ViewCustomAttributes = "";
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->ViewValue = $this->tasa_cambio->CurrentValue;
+			$this->tasa_cambio->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1298,314 +1217,215 @@ class ccuenta_grid extends ccuenta {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// idbanco
-			$this->idbanco->LinkCustomAttributes = "";
-			$this->idbanco->HrefValue = "";
-			$this->idbanco->TooltipValue = "";
-
-			// idsucursal
-			$this->idsucursal->LinkCustomAttributes = "";
-			$this->idsucursal->HrefValue = "";
-			$this->idsucursal->TooltipValue = "";
-
-			// idmoneda
-			$this->idmoneda->LinkCustomAttributes = "";
-			$this->idmoneda->HrefValue = "";
-			$this->idmoneda->TooltipValue = "";
-
-			// numero
-			$this->numero->LinkCustomAttributes = "";
-			$this->numero->HrefValue = "";
-			$this->numero->TooltipValue = "";
-
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// simbolo
+			$this->simbolo->LinkCustomAttributes = "";
+			$this->simbolo->HrefValue = "";
+			$this->simbolo->TooltipValue = "";
+
+			// idpais
+			$this->idpais->LinkCustomAttributes = "";
+			$this->idpais->HrefValue = "";
+			$this->idpais->TooltipValue = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->LinkCustomAttributes = "";
+			$this->tasa_cambio->HrefValue = "";
+			$this->tasa_cambio->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
-			// idbanco
-			$this->idbanco->EditAttrs["class"] = "form-control";
-			$this->idbanco->EditCustomAttributes = "";
-			if ($this->idbanco->getSessionValue() <> "") {
-				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
-				$this->idbanco->OldValue = $this->idbanco->CurrentValue;
-			if (strval($this->idbanco->CurrentValue) <> "") {
-				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
-				}
-			} else {
-				$this->idbanco->ViewValue = NULL;
-			}
-			$this->idbanco->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idbanco->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `banco`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idbanco->EditValue = $arwrk;
-			}
-
-			// idsucursal
-			$this->idsucursal->EditAttrs["class"] = "form-control";
-			$this->idsucursal->EditCustomAttributes = "";
-			if (trim(strval($this->idsucursal->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `sucursal`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idsucursal->EditValue = $arwrk;
-
-			// idmoneda
-			$this->idmoneda->EditAttrs["class"] = "form-control";
-			$this->idmoneda->EditCustomAttributes = "";
-			if (trim(strval($this->idmoneda->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `moneda`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idmoneda->EditValue = $arwrk;
-
-			// numero
-			$this->numero->EditAttrs["class"] = "form-control";
-			$this->numero->EditCustomAttributes = "";
-			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
-			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
+			// simbolo
+			$this->simbolo->EditAttrs["class"] = "form-control";
+			$this->simbolo->EditCustomAttributes = "";
+			$this->simbolo->EditValue = ew_HtmlEncode($this->simbolo->CurrentValue);
+			$this->simbolo->PlaceHolder = ew_RemoveHtml($this->simbolo->FldCaption());
+
+			// idpais
+			$this->idpais->EditAttrs["class"] = "form-control";
+			$this->idpais->EditCustomAttributes = "";
+			if ($this->idpais->getSessionValue() <> "") {
+				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+				$this->idpais->OldValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
+			}
+
+			// tasa_cambio
+			$this->tasa_cambio->EditAttrs["class"] = "form-control";
+			$this->tasa_cambio->EditCustomAttributes = "";
+			$this->tasa_cambio->EditValue = ew_HtmlEncode($this->tasa_cambio->CurrentValue);
+			$this->tasa_cambio->PlaceHolder = ew_RemoveHtml($this->tasa_cambio->FldCaption());
+			if (strval($this->tasa_cambio->EditValue) <> "" && is_numeric($this->tasa_cambio->EditValue)) {
+			$this->tasa_cambio->EditValue = ew_FormatNumber($this->tasa_cambio->EditValue, -2, -1, -2, 0);
+			$this->tasa_cambio->OldValue = $this->tasa_cambio->EditValue;
+			}
+
 			// Edit refer script
-			// idbanco
-
-			$this->idbanco->HrefValue = "";
-
-			// idsucursal
-			$this->idsucursal->HrefValue = "";
-
-			// idmoneda
-			$this->idmoneda->HrefValue = "";
-
-			// numero
-			$this->numero->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
+
+			// simbolo
+			$this->simbolo->HrefValue = "";
+
+			// idpais
+			$this->idpais->HrefValue = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idbanco
-			$this->idbanco->EditAttrs["class"] = "form-control";
-			$this->idbanco->EditCustomAttributes = "";
-			if ($this->idbanco->getSessionValue() <> "") {
-				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
-				$this->idbanco->OldValue = $this->idbanco->CurrentValue;
-			if (strval($this->idbanco->CurrentValue) <> "") {
-				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
-				}
-			} else {
-				$this->idbanco->ViewValue = NULL;
-			}
-			$this->idbanco->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idbanco->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `banco`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idbanco->EditValue = $arwrk;
-			}
-
-			// idsucursal
-			$this->idsucursal->EditAttrs["class"] = "form-control";
-			$this->idsucursal->EditCustomAttributes = "";
-			if (trim(strval($this->idsucursal->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `sucursal`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idsucursal->EditValue = $arwrk;
-
-			// idmoneda
-			$this->idmoneda->EditAttrs["class"] = "form-control";
-			$this->idmoneda->EditCustomAttributes = "";
-			if (trim(strval($this->idmoneda->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `moneda`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idmoneda->EditValue = $arwrk;
-
-			// numero
-			$this->numero->EditAttrs["class"] = "form-control";
-			$this->numero->EditCustomAttributes = "";
-			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
-			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
-
 			// nombre
 			$this->nombre->EditAttrs["class"] = "form-control";
 			$this->nombre->EditCustomAttributes = "";
 			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
+			// simbolo
+			$this->simbolo->EditAttrs["class"] = "form-control";
+			$this->simbolo->EditCustomAttributes = "";
+			$this->simbolo->EditValue = ew_HtmlEncode($this->simbolo->CurrentValue);
+			$this->simbolo->PlaceHolder = ew_RemoveHtml($this->simbolo->FldCaption());
+
+			// idpais
+			$this->idpais->EditAttrs["class"] = "form-control";
+			$this->idpais->EditCustomAttributes = "";
+			if ($this->idpais->getSessionValue() <> "") {
+				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
+				$this->idpais->OldValue = $this->idpais->CurrentValue;
+			if (strval($this->idpais->CurrentValue) <> "") {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idpais->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idpais->ViewValue = $this->idpais->CurrentValue;
+				}
+			} else {
+				$this->idpais->ViewValue = NULL;
+			}
+			$this->idpais->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idpais->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idpais->EditValue = $arwrk;
+			}
+
+			// tasa_cambio
+			$this->tasa_cambio->EditAttrs["class"] = "form-control";
+			$this->tasa_cambio->EditCustomAttributes = "";
+			$this->tasa_cambio->EditValue = ew_HtmlEncode($this->tasa_cambio->CurrentValue);
+			$this->tasa_cambio->PlaceHolder = ew_RemoveHtml($this->tasa_cambio->FldCaption());
+			if (strval($this->tasa_cambio->EditValue) <> "" && is_numeric($this->tasa_cambio->EditValue)) {
+			$this->tasa_cambio->EditValue = ew_FormatNumber($this->tasa_cambio->EditValue, -2, -1, -2, 0);
+			$this->tasa_cambio->OldValue = $this->tasa_cambio->EditValue;
+			}
+
 			// Edit refer script
-			// idbanco
-
-			$this->idbanco->HrefValue = "";
-
-			// idsucursal
-			$this->idsucursal->HrefValue = "";
-
-			// idmoneda
-			$this->idmoneda->HrefValue = "";
-
-			// numero
-			$this->numero->HrefValue = "";
-
 			// nombre
+
 			$this->nombre->HrefValue = "";
+
+			// simbolo
+			$this->simbolo->HrefValue = "";
+
+			// idpais
+			$this->idpais->HrefValue = "";
+
+			// tasa_cambio
+			$this->tasa_cambio->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1625,14 +1445,11 @@ class ccuenta_grid extends ccuenta {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->idbanco->FldIsDetailKey && !is_null($this->idbanco->FormValue) && $this->idbanco->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idbanco->FldCaption(), $this->idbanco->ReqErrMsg));
+		if (!$this->tasa_cambio->FldIsDetailKey && !is_null($this->tasa_cambio->FormValue) && $this->tasa_cambio->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->tasa_cambio->FldCaption(), $this->tasa_cambio->ReqErrMsg));
 		}
-		if (!$this->idsucursal->FldIsDetailKey && !is_null($this->idsucursal->FormValue) && $this->idsucursal->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idsucursal->FldCaption(), $this->idsucursal->ReqErrMsg));
-		}
-		if (!$this->idmoneda->FldIsDetailKey && !is_null($this->idmoneda->FormValue) && $this->idmoneda->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idmoneda->FldCaption(), $this->idmoneda->ReqErrMsg));
+		if (!ew_CheckNumber($this->tasa_cambio->FormValue)) {
+			ew_AddMessage($gsFormError, $this->tasa_cambio->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1687,7 +1504,7 @@ class ccuenta_grid extends ccuenta {
 			foreach ($rsold as $row) {
 				$sThisKey = "";
 				if ($sThisKey <> "") $sThisKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-				$sThisKey .= $row['idcuenta'];
+				$sThisKey .= $row['idmoneda'];
 				$conn->raiseErrorFn = 'ew_ErrorFn';
 				$DeleteRows = $this->Delete($row); // Delete
 				$conn->raiseErrorFn = '';
@@ -1742,20 +1559,17 @@ class ccuenta_grid extends ccuenta {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// idbanco
-			$this->idbanco->SetDbValueDef($rsnew, $this->idbanco->CurrentValue, 0, $this->idbanco->ReadOnly);
-
-			// idsucursal
-			$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, $this->idsucursal->ReadOnly);
-
-			// idmoneda
-			$this->idmoneda->SetDbValueDef($rsnew, $this->idmoneda->CurrentValue, 0, $this->idmoneda->ReadOnly);
-
-			// numero
-			$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, NULL, $this->numero->ReadOnly);
-
 			// nombre
 			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, $this->nombre->ReadOnly);
+
+			// simbolo
+			$this->simbolo->SetDbValueDef($rsnew, $this->simbolo->CurrentValue, NULL, $this->simbolo->ReadOnly);
+
+			// idpais
+			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, NULL, $this->idpais->ReadOnly);
+
+			// tasa_cambio
+			$this->tasa_cambio->SetDbValueDef($rsnew, $this->tasa_cambio->CurrentValue, 0, $this->tasa_cambio->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1794,8 +1608,8 @@ class ccuenta_grid extends ccuenta {
 		global $conn, $Language, $Security;
 
 		// Set up foreign key field value from Session
-			if ($this->getCurrentMasterTable() == "banco") {
-				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
+			if ($this->getCurrentMasterTable() == "pais") {
+				$this->idpais->CurrentValue = $this->idpais->getSessionValue();
 			}
 
 		// Load db values from rsold
@@ -1804,20 +1618,17 @@ class ccuenta_grid extends ccuenta {
 		}
 		$rsnew = array();
 
-		// idbanco
-		$this->idbanco->SetDbValueDef($rsnew, $this->idbanco->CurrentValue, 0, strval($this->idbanco->CurrentValue) == "");
-
-		// idsucursal
-		$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, strval($this->idsucursal->CurrentValue) == "");
-
-		// idmoneda
-		$this->idmoneda->SetDbValueDef($rsnew, $this->idmoneda->CurrentValue, 0, strval($this->idmoneda->CurrentValue) == "");
-
-		// numero
-		$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, NULL, FALSE);
-
 		// nombre
 		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, FALSE);
+
+		// simbolo
+		$this->simbolo->SetDbValueDef($rsnew, $this->simbolo->CurrentValue, NULL, FALSE);
+
+		// idpais
+		$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, NULL, FALSE);
+
+		// tasa_cambio
+		$this->tasa_cambio->SetDbValueDef($rsnew, $this->tasa_cambio->CurrentValue, 0, strval($this->tasa_cambio->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1843,8 +1654,8 @@ class ccuenta_grid extends ccuenta {
 
 		// Get insert id if necessary
 		if ($AddRow) {
-			$this->idcuenta->setDbValue($conn->Insert_ID());
-			$rsnew['idcuenta'] = $this->idcuenta->DbValue;
+			$this->idmoneda->setDbValue($conn->Insert_ID());
+			$rsnew['idmoneda'] = $this->idmoneda->DbValue;
 		}
 		if ($AddRow) {
 
@@ -1860,9 +1671,9 @@ class ccuenta_grid extends ccuenta {
 
 		// Hide foreign keys
 		$sMasterTblVar = $this->getCurrentMasterTable();
-		if ($sMasterTblVar == "banco") {
-			$this->idbanco->Visible = FALSE;
-			if ($GLOBALS["banco"]->EventCancelled) $this->EventCancelled = TRUE;
+		if ($sMasterTblVar == "pais") {
+			$this->idpais->Visible = FALSE;
+			if ($GLOBALS["pais"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
