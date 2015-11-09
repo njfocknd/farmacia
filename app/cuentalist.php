@@ -8,6 +8,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "cuentainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bancoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cuenta_transacciongridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -250,7 +251,7 @@ class ccuenta_list extends ccuenta {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "cuentaadd.php";
+		$this->AddUrl = "cuentaadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -325,6 +326,14 @@ class ccuenta_list extends ccuenta {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'cuenta_transaccion'
+			if (@$_POST["grid"] == "fcuenta_transacciongrid") {
+				if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
+				$GLOBALS["cuenta_transaccion_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -773,9 +782,10 @@ class ccuenta_list extends ccuenta {
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->idbanco); // idbanco
 			$this->UpdateSort($this->idsucursal); // idsucursal
-			$this->UpdateSort($this->idmoneda); // idmoneda
 			$this->UpdateSort($this->numero); // numero
 			$this->UpdateSort($this->nombre); // nombre
+			$this->UpdateSort($this->idmoneda); // idmoneda
+			$this->UpdateSort($this->saldo); // saldo
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -818,9 +828,10 @@ class ccuenta_list extends ccuenta {
 				$this->setSessionOrderBy($sOrderBy);
 				$this->idbanco->setSort("");
 				$this->idsucursal->setSort("");
-				$this->idmoneda->setSort("");
 				$this->numero->setSort("");
 				$this->nombre->setSort("");
+				$this->idmoneda->setSort("");
+				$this->saldo->setSort("");
 			}
 
 			// Reset start position
@@ -850,6 +861,23 @@ class ccuenta_list extends ccuenta {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
+
+		// "detail_cuenta_transaccion"
+		$item = &$this->ListOptions->Add("detail_cuenta_transaccion");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssStyle = "white-space: nowrap;";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = FALSE;
+			$item->ShowInButtonGroup = FALSE;
+		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -894,6 +922,57 @@ class ccuenta_list extends ccuenta {
 		} else {
 			$oListOpt->Body = "";
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_cuenta_transaccion"
+		$oListOpt = &$this->ListOptions->Items["detail_cuenta_transaccion"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("cuenta_transaccion", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("cuenta_transaccionlist.php?" . EW_TABLE_SHOW_MASTER . "=cuenta&fk_idcuenta=" . strval($this->idcuenta->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["cuenta_transaccion_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=cuenta_transaccion")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "cuenta_transaccion";
+			}
+			if ($GLOBALS["cuenta_transaccion_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=cuenta_transaccion")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "cuenta_transaccion";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -914,6 +993,30 @@ class ccuenta_list extends ccuenta {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_cuenta_transaccion");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=cuenta_transaccion") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["cuenta_transaccion"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["cuenta_transaccion"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "cuenta_transaccion";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
+			$item->Visible = ($DetailTableLink <> "");
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1134,9 +1237,9 @@ class ccuenta_list extends ccuenta {
 		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
 		$this->idbanco->setDbValue($rs->fields('idbanco'));
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
 		$this->numero->setDbValue($rs->fields('numero'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
 		$this->saldo->setDbValue($rs->fields('saldo'));
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
@@ -1151,9 +1254,9 @@ class ccuenta_list extends ccuenta {
 		$this->idcuenta->DbValue = $row['idcuenta'];
 		$this->idbanco->DbValue = $row['idbanco'];
 		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->idmoneda->DbValue = $row['idmoneda'];
 		$this->numero->DbValue = $row['numero'];
 		$this->nombre->DbValue = $row['nombre'];
+		$this->idmoneda->DbValue = $row['idmoneda'];
 		$this->saldo->DbValue = $row['saldo'];
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
@@ -1196,6 +1299,10 @@ class ccuenta_list extends ccuenta {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
+		// Convert decimal values if posted back
+		if ($this->saldo->FormValue == $this->saldo->CurrentValue && is_numeric(ew_StrToFloat($this->saldo->CurrentValue)))
+			$this->saldo->CurrentValue = ew_StrToFloat($this->saldo->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -1203,9 +1310,9 @@ class ccuenta_list extends ccuenta {
 		// idcuenta
 		// idbanco
 		// idsucursal
-		// idmoneda
 		// numero
 		// nombre
+		// idmoneda
 		// saldo
 		// debito
 		// credito
@@ -1274,6 +1381,14 @@ class ccuenta_list extends ccuenta {
 			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
+			// numero
+			$this->numero->ViewValue = $this->numero->CurrentValue;
+			$this->numero->ViewCustomAttributes = "";
+
+			// nombre
+			$this->nombre->ViewValue = $this->nombre->CurrentValue;
+			$this->nombre->ViewCustomAttributes = "";
+
 			// idmoneda
 			if (strval($this->idmoneda->CurrentValue) <> "") {
 				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
@@ -1303,16 +1418,9 @@ class ccuenta_list extends ccuenta {
 			}
 			$this->idmoneda->ViewCustomAttributes = "";
 
-			// numero
-			$this->numero->ViewValue = $this->numero->CurrentValue;
-			$this->numero->ViewCustomAttributes = "";
-
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
-
 			// saldo
 			$this->saldo->ViewValue = $this->saldo->CurrentValue;
+			$this->saldo->ViewValue = ew_FormatNumber($this->saldo->ViewValue, 2, -2, -2, -2);
 			$this->saldo->ViewCustomAttributes = "";
 
 			// debito
@@ -1355,11 +1463,6 @@ class ccuenta_list extends ccuenta {
 			$this->idsucursal->HrefValue = "";
 			$this->idsucursal->TooltipValue = "";
 
-			// idmoneda
-			$this->idmoneda->LinkCustomAttributes = "";
-			$this->idmoneda->HrefValue = "";
-			$this->idmoneda->TooltipValue = "";
-
 			// numero
 			$this->numero->LinkCustomAttributes = "";
 			$this->numero->HrefValue = "";
@@ -1369,6 +1472,16 @@ class ccuenta_list extends ccuenta {
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// idmoneda
+			$this->idmoneda->LinkCustomAttributes = "";
+			$this->idmoneda->HrefValue = "";
+			$this->idmoneda->TooltipValue = "";
+
+			// saldo
+			$this->saldo->LinkCustomAttributes = "";
+			$this->saldo->HrefValue = "";
+			$this->saldo->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1726,15 +1839,6 @@ $cuenta_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
-	<?php if ($cuenta->SortUrl($cuenta->idmoneda) == "") { ?>
-		<th data-name="idmoneda"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda"><div class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idmoneda"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idmoneda) ?>',1);"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idmoneda->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idmoneda->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($cuenta->numero->Visible) { // numero ?>
 	<?php if ($cuenta->SortUrl($cuenta->numero) == "") { ?>
 		<th data-name="numero"><div id="elh_cuenta_numero" class="cuenta_numero"><div class="ewTableHeaderCaption"><?php echo $cuenta->numero->FldCaption() ?></div></div></th>
@@ -1750,6 +1854,24 @@ $cuenta_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="nombre"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->nombre) ?>',1);"><div id="elh_cuenta_nombre" class="cuenta_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
+	<?php if ($cuenta->SortUrl($cuenta->idmoneda) == "") { ?>
+		<th data-name="idmoneda"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda"><div class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idmoneda"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idmoneda) ?>',1);"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idmoneda->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idmoneda->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->saldo->Visible) { // saldo ?>
+	<?php if ($cuenta->SortUrl($cuenta->saldo) == "") { ?>
+		<th data-name="saldo"><div id="elh_cuenta_saldo" class="cuenta_saldo"><div class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="saldo"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->saldo) ?>',1);"><div id="elh_cuenta_saldo" class="cuenta_saldo">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->saldo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->saldo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1830,12 +1952,6 @@ $cuenta_list->ListOptions->Render("body", "left", $cuenta_list->RowCnt);
 <?php echo $cuenta->idsucursal->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
-		<td data-name="idmoneda"<?php echo $cuenta->idmoneda->CellAttributes() ?>>
-<span<?php echo $cuenta->idmoneda->ViewAttributes() ?>>
-<?php echo $cuenta->idmoneda->ListViewValue() ?></span>
-</td>
-	<?php } ?>
 	<?php if ($cuenta->numero->Visible) { // numero ?>
 		<td data-name="numero"<?php echo $cuenta->numero->CellAttributes() ?>>
 <span<?php echo $cuenta->numero->ViewAttributes() ?>>
@@ -1846,6 +1962,18 @@ $cuenta_list->ListOptions->Render("body", "left", $cuenta_list->RowCnt);
 		<td data-name="nombre"<?php echo $cuenta->nombre->CellAttributes() ?>>
 <span<?php echo $cuenta->nombre->ViewAttributes() ?>>
 <?php echo $cuenta->nombre->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
+		<td data-name="idmoneda"<?php echo $cuenta->idmoneda->CellAttributes() ?>>
+<span<?php echo $cuenta->idmoneda->ViewAttributes() ?>>
+<?php echo $cuenta->idmoneda->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->saldo->Visible) { // saldo ?>
+		<td data-name="saldo"<?php echo $cuenta->saldo->CellAttributes() ?>>
+<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
+<?php echo $cuenta->saldo->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

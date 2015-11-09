@@ -6,9 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cuenta_transaccioninfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "cuentainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "bancoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "cuenta_transacciongridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -16,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$cuenta_view = NULL; // Initialize page object first
+$cuenta_transaccion_view = NULL; // Initialize page object first
 
-class ccuenta_view extends ccuenta {
+class ccuenta_transaccion_view extends ccuenta_transaccion {
 
 	// Page ID
 	var $PageID = 'view';
@@ -27,10 +26,10 @@ class ccuenta_view extends ccuenta {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'cuenta';
+	var $TableName = 'cuenta_transaccion';
 
 	// Page object name
-	var $PageObjName = 'cuenta_view';
+	var $PageObjName = 'cuenta_transaccion_view';
 
 	// Page name
 	function PageName() {
@@ -229,15 +228,15 @@ class ccuenta_view extends ccuenta {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (cuenta)
-		if (!isset($GLOBALS["cuenta"]) || get_class($GLOBALS["cuenta"]) == "ccuenta") {
-			$GLOBALS["cuenta"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["cuenta"];
+		// Table object (cuenta_transaccion)
+		if (!isset($GLOBALS["cuenta_transaccion"]) || get_class($GLOBALS["cuenta_transaccion"]) == "ccuenta_transaccion") {
+			$GLOBALS["cuenta_transaccion"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["cuenta_transaccion"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["idcuenta"] <> "") {
-			$this->RecKey["idcuenta"] = $_GET["idcuenta"];
-			$KeyUrl .= "&amp;idcuenta=" . urlencode($this->RecKey["idcuenta"]);
+		if (@$_GET["idcuenta_transaccion"] <> "") {
+			$this->RecKey["idcuenta_transaccion"] = $_GET["idcuenta_transaccion"];
+			$KeyUrl .= "&amp;idcuenta_transaccion=" . urlencode($this->RecKey["idcuenta_transaccion"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -247,8 +246,8 @@ class ccuenta_view extends ccuenta {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (banco)
-		if (!isset($GLOBALS['banco'])) $GLOBALS['banco'] = new cbanco();
+		// Table object (cuenta)
+		if (!isset($GLOBALS['cuenta'])) $GLOBALS['cuenta'] = new ccuenta();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -256,7 +255,7 @@ class ccuenta_view extends ccuenta {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'cuenta', TRUE);
+			define("EW_TABLE_NAME", 'cuenta_transaccion', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -284,7 +283,7 @@ class ccuenta_view extends ccuenta {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idcuenta->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idcuenta_transaccion->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -301,14 +300,6 @@ class ccuenta_view extends ccuenta {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'cuenta_transaccion'
-			if (@$_POST["grid"] == "fcuenta_transacciongrid") {
-				if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
-				$GLOBALS["cuenta_transaccion_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -338,13 +329,13 @@ class ccuenta_view extends ccuenta {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $cuenta;
+		global $EW_EXPORT, $cuenta_transaccion;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($cuenta);
+				$doc = new $class($cuenta_transaccion);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -398,11 +389,11 @@ class ccuenta_view extends ccuenta {
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["idcuenta"] <> "") {
-				$this->idcuenta->setQueryStringValue($_GET["idcuenta"]);
-				$this->RecKey["idcuenta"] = $this->idcuenta->QueryStringValue;
+			if (@$_GET["idcuenta_transaccion"] <> "") {
+				$this->idcuenta_transaccion->setQueryStringValue($_GET["idcuenta_transaccion"]);
+				$this->RecKey["idcuenta_transaccion"] = $this->idcuenta_transaccion->QueryStringValue;
 			} else {
-				$sReturnUrl = "cuentalist.php"; // Return to list
+				$sReturnUrl = "cuenta_transaccionlist.php"; // Return to list
 			}
 
 			// Get action
@@ -412,11 +403,11 @@ class ccuenta_view extends ccuenta {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "cuentalist.php"; // No matching record, return to list
+						$sReturnUrl = "cuenta_transaccionlist.php"; // No matching record, return to list
 					}
 			}
 		} else {
-			$sReturnUrl = "cuentalist.php"; // Not page request, return to list
+			$sReturnUrl = "cuenta_transaccionlist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -425,9 +416,6 @@ class ccuenta_view extends ccuenta {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
-
-		// Set up detail parameters
-		$this->SetUpDetailParms();
 	}
 
 	// Set up other options
@@ -445,85 +433,6 @@ class ccuenta_view extends ccuenta {
 		$item = &$option->Add("edit");
 		$item->Body = "<a class=\"ewAction ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("ViewPageEditLink") . "</a>";
 		$item->Visible = ($this->EditUrl <> "");
-
-		// Show detail edit/copy
-		if ($this->getCurrentDetailTable() <> "") {
-
-			// Detail Edit
-			$item = &$option->Add("detailedit");
-			$item->Body = "<a class=\"ewAction ewDetailEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable())) . "\">" . $Language->Phrase("MasterDetailEditLink") . "</a>";
-			$item->Visible = (TRUE);
-		}
-		$option = &$options["detail"];
-		$DetailTableLink = "";
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_cuenta_transaccion"
-		$item = &$option->Add("detail_cuenta_transaccion");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("cuenta_transaccion", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("cuenta_transaccionlist.php?" . EW_TABLE_SHOW_MASTER . "=cuenta&fk_idcuenta=" . strval($this->idcuenta->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["cuenta_transaccion_grid"] && $GLOBALS["cuenta_transaccion_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=cuenta_transaccion")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "cuenta_transaccion";
-		}
-		if ($GLOBALS["cuenta_transaccion_grid"] && $GLOBALS["cuenta_transaccion_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=cuenta_transaccion")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "cuenta_transaccion";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "cuenta_transaccion";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$option->Add("details");
-			$oListOpt->Body = $body;
-		}
-
-		// Set up detail default
-		$option = &$options["detail"];
-		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
-		$option->UseImageAndText = TRUE;
-		$ar = explode(",", $DetailTableLink);
-		$cnt = count($ar);
-		$option->UseDropDownButton = ($cnt > 1);
-		$option->UseButtonGroup = TRUE;
-		$item = &$option->Add($option->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
 
 		// Set up action default
 		$option = &$options["action"];
@@ -601,15 +510,14 @@ class ccuenta_view extends ccuenta {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
+		$this->idcuenta_transaccion->setDbValue($rs->fields('idcuenta_transaccion'));
 		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
-		$this->idbanco->setDbValue($rs->fields('idbanco'));
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->numero->setDbValue($rs->fields('numero'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
-		$this->saldo->setDbValue($rs->fields('saldo'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->descripcion->setDbValue($rs->fields('descripcion'));
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
+		$this->id_referencia->setDbValue($rs->fields('id_referencia'));
+		$this->tabla_referencia->setDbValue($rs->fields('tabla_referencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -618,15 +526,14 @@ class ccuenta_view extends ccuenta {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
+		$this->idcuenta_transaccion->DbValue = $row['idcuenta_transaccion'];
 		$this->idcuenta->DbValue = $row['idcuenta'];
-		$this->idbanco->DbValue = $row['idbanco'];
-		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->numero->DbValue = $row['numero'];
-		$this->nombre->DbValue = $row['nombre'];
-		$this->idmoneda->DbValue = $row['idmoneda'];
-		$this->saldo->DbValue = $row['saldo'];
+		$this->fecha->DbValue = $row['fecha'];
+		$this->descripcion->DbValue = $row['descripcion'];
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
+		$this->id_referencia->DbValue = $row['id_referencia'];
+		$this->tabla_referencia->DbValue = $row['tabla_referencia'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -645,10 +552,6 @@ class ccuenta_view extends ccuenta {
 		$this->SetupOtherOptions();
 
 		// Convert decimal values if posted back
-		if ($this->saldo->FormValue == $this->saldo->CurrentValue && is_numeric(ew_StrToFloat($this->saldo->CurrentValue)))
-			$this->saldo->CurrentValue = ew_StrToFloat($this->saldo->CurrentValue);
-
-		// Convert decimal values if posted back
 		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
 			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
 
@@ -660,129 +563,79 @@ class ccuenta_view extends ccuenta {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
+		// idcuenta_transaccion
 		// idcuenta
-		// idbanco
-		// idsucursal
-		// numero
-		// nombre
-		// idmoneda
-		// saldo
+		// fecha
+		// descripcion
 		// debito
 		// credito
+		// id_referencia
+		// tabla_referencia
 		// estado
 		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
+			// idcuenta_transaccion
+			$this->idcuenta_transaccion->ViewValue = $this->idcuenta_transaccion->CurrentValue;
+			$this->idcuenta_transaccion->ViewCustomAttributes = "";
+
 			// idcuenta
-			$this->idcuenta->ViewValue = $this->idcuenta->CurrentValue;
+			if (strval($this->idcuenta->CurrentValue) <> "") {
+				$sFilterWrk = "`idcuenta`" . ew_SearchString("=", $this->idcuenta->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcuenta`, `numero` AS `DispFld`, `nombre` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cuenta`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcuenta, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `numero`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idcuenta->ViewValue = $rswrk->fields('DispFld');
+					$this->idcuenta->ViewValue .= ew_ValueSeparator(1,$this->idcuenta) . $rswrk->fields('Disp2Fld');
+					$rswrk->Close();
+				} else {
+					$this->idcuenta->ViewValue = $this->idcuenta->CurrentValue;
+				}
+			} else {
+				$this->idcuenta->ViewValue = NULL;
+			}
 			$this->idcuenta->ViewCustomAttributes = "";
 
-			// idbanco
-			if (strval($this->idbanco->CurrentValue) <> "") {
-				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
-				}
-			} else {
-				$this->idbanco->ViewValue = NULL;
-			}
-			$this->idbanco->ViewCustomAttributes = "";
-
-			// idsucursal
-			if (strval($this->idsucursal->CurrentValue) <> "") {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-				}
-			} else {
-				$this->idsucursal->ViewValue = NULL;
-			}
-			$this->idsucursal->ViewCustomAttributes = "";
-
-			// numero
-			$this->numero->ViewValue = $this->numero->CurrentValue;
-			$this->numero->ViewCustomAttributes = "";
-
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
-
-			// idmoneda
-			if (strval($this->idmoneda->CurrentValue) <> "") {
-				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmoneda`, `nombre` AS `DispFld`, `simbolo` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmoneda->ViewValue = $rswrk->fields('DispFld');
-					$this->idmoneda->ViewValue .= ew_ValueSeparator(1,$this->idmoneda) . $rswrk->fields('Disp2Fld');
-					$rswrk->Close();
-				} else {
-					$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
-				}
-			} else {
-				$this->idmoneda->ViewValue = NULL;
-			}
-			$this->idmoneda->ViewCustomAttributes = "";
-
-			// saldo
-			$this->saldo->ViewValue = $this->saldo->CurrentValue;
-			$this->saldo->ViewValue = ew_FormatNumber($this->saldo->ViewValue, 2, -2, -2, -2);
-			$this->saldo->ViewCustomAttributes = "";
+			// descripcion
+			$this->descripcion->ViewValue = $this->descripcion->CurrentValue;
+			$this->descripcion->ViewCustomAttributes = "";
 
 			// debito
 			$this->debito->ViewValue = $this->debito->CurrentValue;
+			$this->debito->ViewValue = ew_FormatNumber($this->debito->ViewValue, 2, -2, -2, -2);
 			$this->debito->ViewCustomAttributes = "";
 
 			// credito
 			$this->credito->ViewValue = $this->credito->CurrentValue;
+			$this->credito->ViewValue = ew_FormatNumber($this->credito->ViewValue, 2, -2, -2, -2);
 			$this->credito->ViewCustomAttributes = "";
+
+			// id_referencia
+			$this->id_referencia->ViewValue = $this->id_referencia->CurrentValue;
+			$this->id_referencia->ViewCustomAttributes = "";
+
+			// tabla_referencia
+			$this->tabla_referencia->ViewValue = $this->tabla_referencia->CurrentValue;
+			$this->tabla_referencia->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -806,40 +659,25 @@ class ccuenta_view extends ccuenta {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// idcuenta_transaccion
+			$this->idcuenta_transaccion->LinkCustomAttributes = "";
+			$this->idcuenta_transaccion->HrefValue = "";
+			$this->idcuenta_transaccion->TooltipValue = "";
+
 			// idcuenta
 			$this->idcuenta->LinkCustomAttributes = "";
 			$this->idcuenta->HrefValue = "";
 			$this->idcuenta->TooltipValue = "";
 
-			// idbanco
-			$this->idbanco->LinkCustomAttributes = "";
-			$this->idbanco->HrefValue = "";
-			$this->idbanco->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
 
-			// idsucursal
-			$this->idsucursal->LinkCustomAttributes = "";
-			$this->idsucursal->HrefValue = "";
-			$this->idsucursal->TooltipValue = "";
-
-			// numero
-			$this->numero->LinkCustomAttributes = "";
-			$this->numero->HrefValue = "";
-			$this->numero->TooltipValue = "";
-
-			// nombre
-			$this->nombre->LinkCustomAttributes = "";
-			$this->nombre->HrefValue = "";
-			$this->nombre->TooltipValue = "";
-
-			// idmoneda
-			$this->idmoneda->LinkCustomAttributes = "";
-			$this->idmoneda->HrefValue = "";
-			$this->idmoneda->TooltipValue = "";
-
-			// saldo
-			$this->saldo->LinkCustomAttributes = "";
-			$this->saldo->HrefValue = "";
-			$this->saldo->TooltipValue = "";
+			// descripcion
+			$this->descripcion->LinkCustomAttributes = "";
+			$this->descripcion->HrefValue = "";
+			$this->descripcion->TooltipValue = "";
 
 			// debito
 			$this->debito->LinkCustomAttributes = "";
@@ -850,6 +688,16 @@ class ccuenta_view extends ccuenta {
 			$this->credito->LinkCustomAttributes = "";
 			$this->credito->HrefValue = "";
 			$this->credito->TooltipValue = "";
+
+			// id_referencia
+			$this->id_referencia->LinkCustomAttributes = "";
+			$this->id_referencia->HrefValue = "";
+			$this->id_referencia->TooltipValue = "";
+
+			// tabla_referencia
+			$this->tabla_referencia->LinkCustomAttributes = "";
+			$this->tabla_referencia->HrefValue = "";
+			$this->tabla_referencia->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -879,13 +727,13 @@ class ccuenta_view extends ccuenta {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "banco") {
+			if ($sMasterTblVar == "cuenta") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_idbanco"] <> "") {
-					$GLOBALS["banco"]->idbanco->setQueryStringValue($_GET["fk_idbanco"]);
-					$this->idbanco->setQueryStringValue($GLOBALS["banco"]->idbanco->QueryStringValue);
-					$this->idbanco->setSessionValue($this->idbanco->QueryStringValue);
-					if (!is_numeric($GLOBALS["banco"]->idbanco->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idcuenta"] <> "") {
+					$GLOBALS["cuenta"]->idcuenta->setQueryStringValue($_GET["fk_idcuenta"]);
+					$this->idcuenta->setQueryStringValue($GLOBALS["cuenta"]->idcuenta->QueryStringValue);
+					$this->idcuenta->setSessionValue($this->idcuenta->QueryStringValue);
+					if (!is_numeric($GLOBALS["cuenta"]->idcuenta->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -902,48 +750,19 @@ class ccuenta_view extends ccuenta {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "banco") {
-				if ($this->idbanco->QueryStringValue == "") $this->idbanco->setSessionValue("");
+			if ($sMasterTblVar <> "cuenta") {
+				if ($this->idcuenta->QueryStringValue == "") $this->idcuenta->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("cuenta_transaccion", $DetailTblVar)) {
-				if (!isset($GLOBALS["cuenta_transaccion_grid"]))
-					$GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
-				if ($GLOBALS["cuenta_transaccion_grid"]->DetailView) {
-					$GLOBALS["cuenta_transaccion_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["cuenta_transaccion_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["cuenta_transaccion_grid"]->setStartRecordNumber(1);
-					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->FldIsDetailKey = TRUE;
-					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->CurrentValue = $this->idcuenta->CurrentValue;
-					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->setSessionValue($GLOBALS["cuenta_transaccion_grid"]->idcuenta->CurrentValue);
-				}
-			}
-		}
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "cuentalist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "cuenta_transaccionlist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -1039,33 +858,33 @@ class ccuenta_view extends ccuenta {
 <?php
 
 // Create page object
-if (!isset($cuenta_view)) $cuenta_view = new ccuenta_view();
+if (!isset($cuenta_transaccion_view)) $cuenta_transaccion_view = new ccuenta_transaccion_view();
 
 // Page init
-$cuenta_view->Page_Init();
+$cuenta_transaccion_view->Page_Init();
 
 // Page main
-$cuenta_view->Page_Main();
+$cuenta_transaccion_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$cuenta_view->Page_Render();
+$cuenta_transaccion_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var cuenta_view = new ew_Page("cuenta_view");
-cuenta_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = cuenta_view.PageID; // For backward compatibility
+var cuenta_transaccion_view = new ew_Page("cuenta_transaccion_view");
+cuenta_transaccion_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = cuenta_transaccion_view.PageID; // For backward compatibility
 
 // Form object
-var fcuentaview = new ew_Form("fcuentaview");
+var fcuenta_transaccionview = new ew_Form("fcuenta_transaccionview");
 
 // Form_CustomValidate event
-fcuentaview.Form_CustomValidate = 
+fcuenta_transaccionview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1074,15 +893,13 @@ fcuentaview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fcuentaview.ValidateRequired = true;
+fcuenta_transaccionview.ValidateRequired = true;
 <?php } else { ?>
-fcuentaview.ValidateRequired = false; 
+fcuenta_transaccionview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fcuentaview.Lists["x_idbanco"] = {"LinkField":"x_idbanco","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fcuentaview.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fcuentaview.Lists["x_idmoneda"] = {"LinkField":"x_idmoneda","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","x_simbolo","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fcuenta_transaccionview.Lists["x_idcuenta"] = {"LinkField":"x_idcuenta","Ajax":true,"AutoFill":false,"DisplayFields":["x_numero","x_nombre","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1092,160 +909,141 @@ fcuentaview.Lists["x_idmoneda"] = {"LinkField":"x_idmoneda","Ajax":true,"AutoFil
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php $cuenta_view->ExportOptions->Render("body") ?>
+<?php $cuenta_transaccion_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($cuenta_view->OtherOptions as &$option)
+	foreach ($cuenta_transaccion_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $cuenta_view->ShowPageHeader(); ?>
+<?php $cuenta_transaccion_view->ShowPageHeader(); ?>
 <?php
-$cuenta_view->ShowMessage();
+$cuenta_transaccion_view->ShowMessage();
 ?>
-<form name="fcuentaview" id="fcuentaview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($cuenta_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cuenta_view->Token ?>">
+<form name="fcuenta_transaccionview" id="fcuenta_transaccionview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($cuenta_transaccion_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cuenta_transaccion_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="cuenta">
+<input type="hidden" name="t" value="cuenta_transaccion">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
+<?php if ($cuenta_transaccion->idcuenta_transaccion->Visible) { // idcuenta_transaccion ?>
+	<tr id="r_idcuenta_transaccion">
+		<td><span id="elh_cuenta_transaccion_idcuenta_transaccion"><?php echo $cuenta_transaccion->idcuenta_transaccion->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->idcuenta_transaccion->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_idcuenta_transaccion" class="form-group">
+<span<?php echo $cuenta_transaccion->idcuenta_transaccion->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->idcuenta_transaccion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cuenta_transaccion->idcuenta->Visible) { // idcuenta ?>
 	<tr id="r_idcuenta">
-		<td><span id="elh_cuenta_idcuenta"><?php echo $cuenta->idcuenta->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->idcuenta->CellAttributes() ?>>
-<span id="el_cuenta_idcuenta" class="form-group">
-<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
-<?php echo $cuenta->idcuenta->ViewValue ?></span>
+		<td><span id="elh_cuenta_transaccion_idcuenta"><?php echo $cuenta_transaccion->idcuenta->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->idcuenta->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_idcuenta" class="form-group">
+<span<?php echo $cuenta_transaccion->idcuenta->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->idcuenta->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->idbanco->Visible) { // idbanco ?>
-	<tr id="r_idbanco">
-		<td><span id="elh_cuenta_idbanco"><?php echo $cuenta->idbanco->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->idbanco->CellAttributes() ?>>
-<span id="el_cuenta_idbanco" class="form-group">
-<span<?php echo $cuenta->idbanco->ViewAttributes() ?>>
-<?php echo $cuenta->idbanco->ViewValue ?></span>
+<?php if ($cuenta_transaccion->fecha->Visible) { // fecha ?>
+	<tr id="r_fecha">
+		<td><span id="elh_cuenta_transaccion_fecha"><?php echo $cuenta_transaccion->fecha->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->fecha->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_fecha" class="form-group">
+<span<?php echo $cuenta_transaccion->fecha->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->fecha->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->idsucursal->Visible) { // idsucursal ?>
-	<tr id="r_idsucursal">
-		<td><span id="elh_cuenta_idsucursal"><?php echo $cuenta->idsucursal->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->idsucursal->CellAttributes() ?>>
-<span id="el_cuenta_idsucursal" class="form-group">
-<span<?php echo $cuenta->idsucursal->ViewAttributes() ?>>
-<?php echo $cuenta->idsucursal->ViewValue ?></span>
+<?php if ($cuenta_transaccion->descripcion->Visible) { // descripcion ?>
+	<tr id="r_descripcion">
+		<td><span id="elh_cuenta_transaccion_descripcion"><?php echo $cuenta_transaccion->descripcion->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->descripcion->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_descripcion" class="form-group">
+<span<?php echo $cuenta_transaccion->descripcion->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->descripcion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->numero->Visible) { // numero ?>
-	<tr id="r_numero">
-		<td><span id="elh_cuenta_numero"><?php echo $cuenta->numero->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->numero->CellAttributes() ?>>
-<span id="el_cuenta_numero" class="form-group">
-<span<?php echo $cuenta->numero->ViewAttributes() ?>>
-<?php echo $cuenta->numero->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cuenta->nombre->Visible) { // nombre ?>
-	<tr id="r_nombre">
-		<td><span id="elh_cuenta_nombre"><?php echo $cuenta->nombre->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->nombre->CellAttributes() ?>>
-<span id="el_cuenta_nombre" class="form-group">
-<span<?php echo $cuenta->nombre->ViewAttributes() ?>>
-<?php echo $cuenta->nombre->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
-	<tr id="r_idmoneda">
-		<td><span id="elh_cuenta_idmoneda"><?php echo $cuenta->idmoneda->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->idmoneda->CellAttributes() ?>>
-<span id="el_cuenta_idmoneda" class="form-group">
-<span<?php echo $cuenta->idmoneda->ViewAttributes() ?>>
-<?php echo $cuenta->idmoneda->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cuenta->saldo->Visible) { // saldo ?>
-	<tr id="r_saldo">
-		<td><span id="elh_cuenta_saldo"><?php echo $cuenta->saldo->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->saldo->CellAttributes() ?>>
-<span id="el_cuenta_saldo" class="form-group">
-<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
-<?php echo $cuenta->saldo->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cuenta->debito->Visible) { // debito ?>
+<?php if ($cuenta_transaccion->debito->Visible) { // debito ?>
 	<tr id="r_debito">
-		<td><span id="elh_cuenta_debito"><?php echo $cuenta->debito->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->debito->CellAttributes() ?>>
-<span id="el_cuenta_debito" class="form-group">
-<span<?php echo $cuenta->debito->ViewAttributes() ?>>
-<?php echo $cuenta->debito->ViewValue ?></span>
+		<td><span id="elh_cuenta_transaccion_debito"><?php echo $cuenta_transaccion->debito->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->debito->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_debito" class="form-group">
+<span<?php echo $cuenta_transaccion->debito->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->debito->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->credito->Visible) { // credito ?>
+<?php if ($cuenta_transaccion->credito->Visible) { // credito ?>
 	<tr id="r_credito">
-		<td><span id="elh_cuenta_credito"><?php echo $cuenta->credito->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->credito->CellAttributes() ?>>
-<span id="el_cuenta_credito" class="form-group">
-<span<?php echo $cuenta->credito->ViewAttributes() ?>>
-<?php echo $cuenta->credito->ViewValue ?></span>
+		<td><span id="elh_cuenta_transaccion_credito"><?php echo $cuenta_transaccion->credito->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->credito->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_credito" class="form-group">
+<span<?php echo $cuenta_transaccion->credito->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->credito->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->estado->Visible) { // estado ?>
+<?php if ($cuenta_transaccion->id_referencia->Visible) { // id_referencia ?>
+	<tr id="r_id_referencia">
+		<td><span id="elh_cuenta_transaccion_id_referencia"><?php echo $cuenta_transaccion->id_referencia->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->id_referencia->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_id_referencia" class="form-group">
+<span<?php echo $cuenta_transaccion->id_referencia->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->id_referencia->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cuenta_transaccion->tabla_referencia->Visible) { // tabla_referencia ?>
+	<tr id="r_tabla_referencia">
+		<td><span id="elh_cuenta_transaccion_tabla_referencia"><?php echo $cuenta_transaccion->tabla_referencia->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->tabla_referencia->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_tabla_referencia" class="form-group">
+<span<?php echo $cuenta_transaccion->tabla_referencia->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->tabla_referencia->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cuenta_transaccion->estado->Visible) { // estado ?>
 	<tr id="r_estado">
-		<td><span id="elh_cuenta_estado"><?php echo $cuenta->estado->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->estado->CellAttributes() ?>>
-<span id="el_cuenta_estado" class="form-group">
-<span<?php echo $cuenta->estado->ViewAttributes() ?>>
-<?php echo $cuenta->estado->ViewValue ?></span>
+		<td><span id="elh_cuenta_transaccion_estado"><?php echo $cuenta_transaccion->estado->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->estado->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_estado" class="form-group">
+<span<?php echo $cuenta_transaccion->estado->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cuenta->fecha_insercion->Visible) { // fecha_insercion ?>
+<?php if ($cuenta_transaccion->fecha_insercion->Visible) { // fecha_insercion ?>
 	<tr id="r_fecha_insercion">
-		<td><span id="elh_cuenta_fecha_insercion"><?php echo $cuenta->fecha_insercion->FldCaption() ?></span></td>
-		<td<?php echo $cuenta->fecha_insercion->CellAttributes() ?>>
-<span id="el_cuenta_fecha_insercion" class="form-group">
-<span<?php echo $cuenta->fecha_insercion->ViewAttributes() ?>>
-<?php echo $cuenta->fecha_insercion->ViewValue ?></span>
+		<td><span id="elh_cuenta_transaccion_fecha_insercion"><?php echo $cuenta_transaccion->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $cuenta_transaccion->fecha_insercion->CellAttributes() ?>>
+<span id="el_cuenta_transaccion_fecha_insercion" class="form-group">
+<span<?php echo $cuenta_transaccion->fecha_insercion->ViewAttributes() ?>>
+<?php echo $cuenta_transaccion->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
-<?php
-	if (in_array("cuenta_transaccion", explode(",", $cuenta->getCurrentDetailTable())) && $cuenta_transaccion->DetailView) {
-?>
-<?php if ($cuenta->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("cuenta_transaccion", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "cuenta_transacciongrid.php" ?>
-<?php } ?>
 </form>
 <script type="text/javascript">
-fcuentaview.Init();
+fcuenta_transaccionview.Init();
 </script>
 <?php
-$cuenta_view->ShowPageFooter();
+$cuenta_transaccion_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1257,5 +1055,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$cuenta_view->Page_Terminate();
+$cuenta_transaccion_view->Page_Terminate();
 ?>

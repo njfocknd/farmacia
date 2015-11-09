@@ -473,6 +473,8 @@
 </menu>
 <menu id="64"><phrase id="menutext" value="Cuenta"/>
 </menu>
+<menu id="66"><phrase id="menutext" value="cuenta transaccion"/>
+</menu>
 <menu id="29"><phrase id="menutext" value="Personas"/>
 </menu>
 <menu id="25"><phrase id="menutext" value="Cliente"/>
@@ -1179,6 +1181,32 @@
 <field id="idpais"><phrase id="fldcaption" value="País"/>
 </field>
 <field id="tasa_cambio"><phrase id="fldcaption" value="Tasa de Cambio"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+</table>
+<table id="cuenta_transaccion"><phrase id="tblcaption" value="Transacción"/>
+<field id="idcuenta_transaccion"><phrase id="fldcaption" value="idcuenta transaccion"/>
+</field>
+<field id="idcuenta"><phrase id="fldcaption" value="Cuenta"/>
+</field>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
+</field>
+<field id="descripcion"><phrase id="fldcaption" value="Descripción"/>
+</field>
+<field id="debito"><phrase id="fldcaption" value="Monto Débito"/>
+</field>
+<field id="credito"><phrase id="fldcaption" value="Monto Crédito"/>
+</field>
+<field id="id_referencia"><phrase id="fldcaption" value="ID Referencia"/>
+</field>
+<field id="tabla_referencia"><phrase id="fldcaption" value="Tabla Referencia"/>
 </field>
 <field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>

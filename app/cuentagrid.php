@@ -55,6 +55,12 @@ fcuentagrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idmoneda");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->idmoneda->FldCaption(), $cuenta->idmoneda->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_saldo");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuenta->saldo->FldCaption(), $cuenta->saldo->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_saldo");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($cuenta->saldo->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -72,9 +78,10 @@ fcuentagrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
 	if (ew_ValueChanged(fobj, infix, "idbanco", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idsucursal", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "idmoneda", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "numero", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "idmoneda", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "saldo", false)) return false;
 	return true;
 }
 
@@ -182,15 +189,6 @@ $cuenta_grid->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
-	<?php if ($cuenta->SortUrl($cuenta->idmoneda) == "") { ?>
-		<th data-name="idmoneda"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda"><div class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idmoneda"><div><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idmoneda->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idmoneda->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($cuenta->numero->Visible) { // numero ?>
 	<?php if ($cuenta->SortUrl($cuenta->numero) == "") { ?>
 		<th data-name="numero"><div id="elh_cuenta_numero" class="cuenta_numero"><div class="ewTableHeaderCaption"><?php echo $cuenta->numero->FldCaption() ?></div></div></th>
@@ -206,6 +204,24 @@ $cuenta_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="nombre"><div><div id="elh_cuenta_nombre" class="cuenta_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->nombre->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
+	<?php if ($cuenta->SortUrl($cuenta->idmoneda) == "") { ?>
+		<th data-name="idmoneda"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda"><div class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idmoneda"><div><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idmoneda->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idmoneda->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->saldo->Visible) { // saldo ?>
+	<?php if ($cuenta->SortUrl($cuenta->saldo) == "") { ?>
+		<th data-name="saldo"><div id="elh_cuenta_saldo" class="cuenta_saldo"><div class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="saldo"><div><div id="elh_cuenta_saldo" class="cuenta_saldo">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->saldo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->saldo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -507,6 +523,48 @@ if (@$emptywrk) $cuenta->idsucursal->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($cuenta->numero->Visible) { // numero ?>
+		<td data-name="numero"<?php echo $cuenta->numero->CellAttributes() ?>>
+<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_numero" class="form-group cuenta_numero">
+<input type="text" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_numero" name="o<?php echo $cuenta_grid->RowIndex ?>_numero" id="o<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->OldValue) ?>">
+<?php } ?>
+<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_numero" class="form-group cuenta_numero">
+<input type="text" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $cuenta->numero->ViewAttributes() ?>>
+<?php echo $cuenta->numero->ListViewValue() ?></span>
+<input type="hidden" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->FormValue) ?>">
+<input type="hidden" data-field="x_numero" name="o<?php echo $cuenta_grid->RowIndex ?>_numero" id="o<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->nombre->Visible) { // nombre ?>
+		<td data-name="nombre"<?php echo $cuenta->nombre->CellAttributes() ?>>
+<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_nombre" class="form-group cuenta_nombre">
+<input type="text" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
+<?php } ?>
+<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_nombre" class="form-group cuenta_nombre">
+<input type="text" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $cuenta->nombre->ViewAttributes() ?>>
+<?php echo $cuenta->nombre->ListViewValue() ?></span>
+<input type="hidden" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->FormValue) ?>">
+<input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 	<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
 		<td data-name="idmoneda"<?php echo $cuenta->idmoneda->CellAttributes() ?>>
 <?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -596,45 +654,24 @@ if (@$emptywrk) $cuenta->idmoneda->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($cuenta->numero->Visible) { // numero ?>
-		<td data-name="numero"<?php echo $cuenta->numero->CellAttributes() ?>>
+	<?php if ($cuenta->saldo->Visible) { // saldo ?>
+		<td data-name="saldo"<?php echo $cuenta->saldo->CellAttributes() ?>>
 <?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_numero" class="form-group cuenta_numero">
-<input type="text" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_saldo" class="form-group cuenta_saldo">
+<input type="text" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
 </span>
-<input type="hidden" data-field="x_numero" name="o<?php echo $cuenta_grid->RowIndex ?>_numero" id="o<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->OldValue) ?>">
+<input type="hidden" data-field="x_saldo" name="o<?php echo $cuenta_grid->RowIndex ?>_saldo" id="o<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->OldValue) ?>">
 <?php } ?>
 <?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_numero" class="form-group cuenta_numero">
-<input type="text" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_saldo" class="form-group cuenta_saldo">
+<input type="text" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->numero->ViewAttributes() ?>>
-<?php echo $cuenta->numero->ListViewValue() ?></span>
-<input type="hidden" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->FormValue) ?>">
-<input type="hidden" data-field="x_numero" name="o<?php echo $cuenta_grid->RowIndex ?>_numero" id="o<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($cuenta->nombre->Visible) { // nombre ?>
-		<td data-name="nombre"<?php echo $cuenta->nombre->CellAttributes() ?>>
-<?php if ($cuenta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_nombre" class="form-group cuenta_nombre">
-<input type="text" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cuenta_grid->RowCnt ?>_cuenta_nombre" class="form-group cuenta_nombre">
-<input type="text" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($cuenta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cuenta->nombre->ViewAttributes() ?>>
-<?php echo $cuenta->nombre->ListViewValue() ?></span>
-<input type="hidden" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->FormValue) ?>">
-<input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
+<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
+<?php echo $cuenta->saldo->ListViewValue() ?></span>
+<input type="hidden" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->FormValue) ?>">
+<input type="hidden" data-field="x_saldo" name="o<?php echo $cuenta_grid->RowIndex ?>_saldo" id="o<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->OldValue) ?>">
 <?php } ?>
 </td>
 	<?php } ?>
@@ -782,6 +819,38 @@ if (@$emptywrk) $cuenta->idsucursal->OldValue = "";
 <input type="hidden" data-field="x_idsucursal" name="o<?php echo $cuenta_grid->RowIndex ?>_idsucursal" id="o<?php echo $cuenta_grid->RowIndex ?>_idsucursal" value="<?php echo ew_HtmlEncode($cuenta->idsucursal->OldValue) ?>">
 </td>
 	<?php } ?>
+	<?php if ($cuenta->numero->Visible) { // numero ?>
+		<td>
+<?php if ($cuenta->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_cuenta_numero" class="form-group cuenta_numero">
+<input type="text" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_cuenta_numero" class="form-group cuenta_numero">
+<span<?php echo $cuenta->numero->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $cuenta->numero->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_numero" name="o<?php echo $cuenta_grid->RowIndex ?>_numero" id="o<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($cuenta->nombre->Visible) { // nombre ?>
+		<td>
+<?php if ($cuenta->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_cuenta_nombre" class="form-group cuenta_nombre">
+<input type="text" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_cuenta_nombre" class="form-group cuenta_nombre">
+<span<?php echo $cuenta->nombre->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $cuenta->nombre->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
+</td>
+	<?php } ?>
 	<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
 		<td>
 <?php if ($cuenta->CurrentAction <> "F") { ?>
@@ -832,36 +901,20 @@ if (@$emptywrk) $cuenta->idmoneda->OldValue = "";
 <input type="hidden" data-field="x_idmoneda" name="o<?php echo $cuenta_grid->RowIndex ?>_idmoneda" id="o<?php echo $cuenta_grid->RowIndex ?>_idmoneda" value="<?php echo ew_HtmlEncode($cuenta->idmoneda->OldValue) ?>">
 </td>
 	<?php } ?>
-	<?php if ($cuenta->numero->Visible) { // numero ?>
+	<?php if ($cuenta->saldo->Visible) { // saldo ?>
 		<td>
 <?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_numero" class="form-group cuenta_numero">
-<input type="text" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+<span id="el$rowindex$_cuenta_saldo" class="form-group cuenta_saldo">
+<input type="text" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" size="30" placeholder="<?php echo ew_HtmlEncode($cuenta->saldo->PlaceHolder) ?>" value="<?php echo $cuenta->saldo->EditValue ?>"<?php echo $cuenta->saldo->EditAttributes() ?>>
 </span>
 <?php } else { ?>
-<span id="el$rowindex$_cuenta_numero" class="form-group cuenta_numero">
-<span<?php echo $cuenta->numero->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->numero->ViewValue ?></p></span>
+<span id="el$rowindex$_cuenta_saldo" class="form-group cuenta_saldo">
+<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $cuenta->saldo->ViewValue ?></p></span>
 </span>
-<input type="hidden" data-field="x_numero" name="x<?php echo $cuenta_grid->RowIndex ?>_numero" id="x<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->FormValue) ?>">
+<input type="hidden" data-field="x_saldo" name="x<?php echo $cuenta_grid->RowIndex ?>_saldo" id="x<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->FormValue) ?>">
 <?php } ?>
-<input type="hidden" data-field="x_numero" name="o<?php echo $cuenta_grid->RowIndex ?>_numero" id="o<?php echo $cuenta_grid->RowIndex ?>_numero" value="<?php echo ew_HtmlEncode($cuenta->numero->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cuenta->nombre->Visible) { // nombre ?>
-		<td>
-<?php if ($cuenta->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cuenta_nombre" class="form-group cuenta_nombre">
-<input type="text" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cuenta_nombre" class="form-group cuenta_nombre">
-<span<?php echo $cuenta->nombre->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cuenta->nombre->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_nombre" name="x<?php echo $cuenta_grid->RowIndex ?>_nombre" id="x<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_nombre" name="o<?php echo $cuenta_grid->RowIndex ?>_nombre" id="o<?php echo $cuenta_grid->RowIndex ?>_nombre" value="<?php echo ew_HtmlEncode($cuenta->nombre->OldValue) ?>">
+<input type="hidden" data-field="x_saldo" name="o<?php echo $cuenta_grid->RowIndex ?>_saldo" id="o<?php echo $cuenta_grid->RowIndex ?>_saldo" value="<?php echo ew_HtmlEncode($cuenta->saldo->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

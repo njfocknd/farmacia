@@ -8,6 +8,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "cuentainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bancoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cuenta_transacciongridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -245,6 +246,14 @@ class ccuenta_edit extends ccuenta {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'cuenta_transaccion'
+			if (@$_POST["grid"] == "fcuenta_transacciongrid") {
+				if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
+				$GLOBALS["cuenta_transaccion_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -327,6 +336,9 @@ class ccuenta_edit extends ccuenta {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
+
+			// Set up detail parameters
+			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
@@ -350,17 +362,26 @@ class ccuenta_edit extends ccuenta {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("cuentalist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
+						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -424,14 +445,14 @@ class ccuenta_edit extends ccuenta {
 		if (!$this->idsucursal->FldIsDetailKey) {
 			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
 		}
-		if (!$this->idmoneda->FldIsDetailKey) {
-			$this->idmoneda->setFormValue($objForm->GetValue("x_idmoneda"));
-		}
 		if (!$this->numero->FldIsDetailKey) {
 			$this->numero->setFormValue($objForm->GetValue("x_numero"));
 		}
 		if (!$this->nombre->FldIsDetailKey) {
 			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
+		}
+		if (!$this->idmoneda->FldIsDetailKey) {
+			$this->idmoneda->setFormValue($objForm->GetValue("x_idmoneda"));
 		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
@@ -447,9 +468,9 @@ class ccuenta_edit extends ccuenta {
 		$this->idcuenta->CurrentValue = $this->idcuenta->FormValue;
 		$this->idbanco->CurrentValue = $this->idbanco->FormValue;
 		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
-		$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
 		$this->numero->CurrentValue = $this->numero->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
+		$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
@@ -485,9 +506,9 @@ class ccuenta_edit extends ccuenta {
 		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
 		$this->idbanco->setDbValue($rs->fields('idbanco'));
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
 		$this->numero->setDbValue($rs->fields('numero'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
 		$this->saldo->setDbValue($rs->fields('saldo'));
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
@@ -502,9 +523,9 @@ class ccuenta_edit extends ccuenta {
 		$this->idcuenta->DbValue = $row['idcuenta'];
 		$this->idbanco->DbValue = $row['idbanco'];
 		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->idmoneda->DbValue = $row['idmoneda'];
 		$this->numero->DbValue = $row['numero'];
 		$this->nombre->DbValue = $row['nombre'];
+		$this->idmoneda->DbValue = $row['idmoneda'];
 		$this->saldo->DbValue = $row['saldo'];
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
@@ -526,9 +547,9 @@ class ccuenta_edit extends ccuenta {
 		// idcuenta
 		// idbanco
 		// idsucursal
-		// idmoneda
 		// numero
 		// nombre
+		// idmoneda
 		// saldo
 		// debito
 		// credito
@@ -597,6 +618,14 @@ class ccuenta_edit extends ccuenta {
 			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
+			// numero
+			$this->numero->ViewValue = $this->numero->CurrentValue;
+			$this->numero->ViewCustomAttributes = "";
+
+			// nombre
+			$this->nombre->ViewValue = $this->nombre->CurrentValue;
+			$this->nombre->ViewCustomAttributes = "";
+
 			// idmoneda
 			if (strval($this->idmoneda->CurrentValue) <> "") {
 				$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
@@ -626,16 +655,9 @@ class ccuenta_edit extends ccuenta {
 			}
 			$this->idmoneda->ViewCustomAttributes = "";
 
-			// numero
-			$this->numero->ViewValue = $this->numero->CurrentValue;
-			$this->numero->ViewCustomAttributes = "";
-
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
-
 			// saldo
 			$this->saldo->ViewValue = $this->saldo->CurrentValue;
+			$this->saldo->ViewValue = ew_FormatNumber($this->saldo->ViewValue, 2, -2, -2, -2);
 			$this->saldo->ViewCustomAttributes = "";
 
 			// debito
@@ -678,11 +700,6 @@ class ccuenta_edit extends ccuenta {
 			$this->idsucursal->HrefValue = "";
 			$this->idsucursal->TooltipValue = "";
 
-			// idmoneda
-			$this->idmoneda->LinkCustomAttributes = "";
-			$this->idmoneda->HrefValue = "";
-			$this->idmoneda->TooltipValue = "";
-
 			// numero
 			$this->numero->LinkCustomAttributes = "";
 			$this->numero->HrefValue = "";
@@ -692,6 +709,11 @@ class ccuenta_edit extends ccuenta {
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// idmoneda
+			$this->idmoneda->LinkCustomAttributes = "";
+			$this->idmoneda->HrefValue = "";
+			$this->idmoneda->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -783,6 +805,18 @@ class ccuenta_edit extends ccuenta {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idsucursal->EditValue = $arwrk;
 
+			// numero
+			$this->numero->EditAttrs["class"] = "form-control";
+			$this->numero->EditCustomAttributes = "";
+			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
+			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
+
+			// nombre
+			$this->nombre->EditAttrs["class"] = "form-control";
+			$this->nombre->EditCustomAttributes = "";
+			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
+			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
+
 			// idmoneda
 			$this->idmoneda->EditAttrs["class"] = "form-control";
 			$this->idmoneda->EditCustomAttributes = "";
@@ -810,18 +844,6 @@ class ccuenta_edit extends ccuenta {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idmoneda->EditValue = $arwrk;
 
-			// numero
-			$this->numero->EditAttrs["class"] = "form-control";
-			$this->numero->EditCustomAttributes = "";
-			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
-			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
-
-			// nombre
-			$this->nombre->EditAttrs["class"] = "form-control";
-			$this->nombre->EditCustomAttributes = "";
-			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
-			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
-
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
 			$this->estado->EditCustomAttributes = "";
@@ -839,14 +861,14 @@ class ccuenta_edit extends ccuenta {
 			// idsucursal
 			$this->idsucursal->HrefValue = "";
 
-			// idmoneda
-			$this->idmoneda->HrefValue = "";
-
 			// numero
 			$this->numero->HrefValue = "";
 
 			// nombre
 			$this->nombre->HrefValue = "";
+
+			// idmoneda
+			$this->idmoneda->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -885,6 +907,13 @@ class ccuenta_edit extends ccuenta {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("cuenta_transaccion", $DetailTblVar) && $GLOBALS["cuenta_transaccion"]->DetailEdit) {
+			if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid(); // get detail page object
+			$GLOBALS["cuenta_transaccion_grid"]->ValidateGridForm();
+		}
+
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
 
@@ -912,6 +941,10 @@ class ccuenta_edit extends ccuenta {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
+			// Begin transaction
+			if ($this->getCurrentDetailTable() <> "")
+				$conn->BeginTrans();
+
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
@@ -923,14 +956,14 @@ class ccuenta_edit extends ccuenta {
 			// idsucursal
 			$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, $this->idsucursal->ReadOnly);
 
-			// idmoneda
-			$this->idmoneda->SetDbValueDef($rsnew, $this->idmoneda->CurrentValue, 0, $this->idmoneda->ReadOnly);
-
 			// numero
 			$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, NULL, $this->numero->ReadOnly);
 
 			// nombre
 			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, $this->nombre->ReadOnly);
+
+			// idmoneda
+			$this->idmoneda->SetDbValueDef($rsnew, $this->idmoneda->CurrentValue, 0, $this->idmoneda->ReadOnly);
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
@@ -945,6 +978,24 @@ class ccuenta_edit extends ccuenta {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
+				}
+
+				// Update detail records
+				if ($EditRow) {
+					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+					if (in_array("cuenta_transaccion", $DetailTblVar) && $GLOBALS["cuenta_transaccion"]->DetailEdit) {
+						if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid(); // Get detail page object
+						$EditRow = $GLOBALS["cuenta_transaccion_grid"]->GridUpdate();
+					}
+				}
+
+				// Commit/Rollback transaction
+				if ($this->getCurrentDetailTable() <> "") {
+					if ($EditRow) {
+						$conn->CommitTrans(); // Commit transaction
+					} else {
+						$conn->RollbackTrans(); // Rollback transaction
+					}
 				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -1008,6 +1059,36 @@ class ccuenta_edit extends ccuenta {
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("cuenta_transaccion", $DetailTblVar)) {
+				if (!isset($GLOBALS["cuenta_transaccion_grid"]))
+					$GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
+				if ($GLOBALS["cuenta_transaccion_grid"]->DetailEdit) {
+					$GLOBALS["cuenta_transaccion_grid"]->CurrentMode = "edit";
+					$GLOBALS["cuenta_transaccion_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["cuenta_transaccion_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["cuenta_transaccion_grid"]->setStartRecordNumber(1);
+					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->FldIsDetailKey = TRUE;
+					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->CurrentValue = $this->idcuenta->CurrentValue;
+					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->setSessionValue($GLOBALS["cuenta_transaccion_grid"]->idcuenta->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -1294,6 +1375,26 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 <?php echo $cuenta->idsucursal->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($cuenta->numero->Visible) { // numero ?>
+	<div id="r_numero" class="form-group">
+		<label id="elh_cuenta_numero" for="x_numero" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->numero->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cuenta->numero->CellAttributes() ?>>
+<span id="el_cuenta_numero">
+<input type="text" data-field="x_numero" name="x_numero" id="x_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
+</span>
+<?php echo $cuenta->numero->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cuenta->nombre->Visible) { // nombre ?>
+	<div id="r_nombre" class="form-group">
+		<label id="elh_cuenta_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->nombre->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cuenta->nombre->CellAttributes() ?>>
+<span id="el_cuenta_nombre">
+<input type="text" data-field="x_nombre" name="x_nombre" id="x_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
+</span>
+<?php echo $cuenta->nombre->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 <?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
 	<div id="r_idmoneda" class="form-group">
 		<label id="elh_cuenta_idmoneda" for="x_idmoneda" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->idmoneda->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -1337,26 +1438,6 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 <?php echo $cuenta->idmoneda->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($cuenta->numero->Visible) { // numero ?>
-	<div id="r_numero" class="form-group">
-		<label id="elh_cuenta_numero" for="x_numero" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->numero->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->numero->CellAttributes() ?>>
-<span id="el_cuenta_numero">
-<input type="text" data-field="x_numero" name="x_numero" id="x_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->numero->PlaceHolder) ?>" value="<?php echo $cuenta->numero->EditValue ?>"<?php echo $cuenta->numero->EditAttributes() ?>>
-</span>
-<?php echo $cuenta->numero->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($cuenta->nombre->Visible) { // nombre ?>
-	<div id="r_nombre" class="form-group">
-		<label id="elh_cuenta_nombre" for="x_nombre" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->nombre->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $cuenta->nombre->CellAttributes() ?>>
-<span id="el_cuenta_nombre">
-<input type="text" data-field="x_nombre" name="x_nombre" id="x_nombre" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cuenta->nombre->PlaceHolder) ?>" value="<?php echo $cuenta->nombre->EditValue ?>"<?php echo $cuenta->nombre->EditAttributes() ?>>
-</span>
-<?php echo $cuenta->nombre->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($cuenta->estado->Visible) { // estado ?>
 	<div id="r_estado" class="form-group">
 		<label id="elh_cuenta_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $cuenta->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -1386,6 +1467,14 @@ if (is_array($cuenta->estado->EditValue)) {
 <?php } ?>
 </div>
 <input type="hidden" data-field="x_idcuenta" name="x_idcuenta" id="x_idcuenta" value="<?php echo ew_HtmlEncode($cuenta->idcuenta->CurrentValue) ?>">
+<?php
+	if (in_array("cuenta_transaccion", explode(",", $cuenta->getCurrentDetailTable())) && $cuenta_transaccion->DetailEdit) {
+?>
+<?php if ($cuenta->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("cuenta_transaccion", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "cuenta_transacciongrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>
