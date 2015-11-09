@@ -79,7 +79,7 @@ class cproducto_sucursal_search extends cproducto_sucursal {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

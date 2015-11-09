@@ -10,7 +10,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "documento_debitogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -113,7 +113,7 @@ class csucursal_view extends csucursal {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -320,10 +320,10 @@ class csucursal_view extends csucursal {
 				exit();
 			}
 
-			// Process auto fill for detail table 'documento'
-			if (@$_POST["grid"] == "fdocumentogrid") {
-				if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
-				$GLOBALS["documento_grid"]->Page_Init();
+			// Process auto fill for detail table 'documento_debito'
+			if (@$_POST["grid"] == "fdocumento_debitogrid") {
+				if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
+				$GLOBALS["documento_debito_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -534,20 +534,20 @@ class csucursal_view extends csucursal {
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
-		// "detail_documento"
-		$item = &$option->Add("detail_documento");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("documento", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("documentolist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
+		// "detail_documento_debito"
+		$item = &$option->Add("detail_documento_debito");
+		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("documento_debito", "TblCaption");
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("documento_debitolist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
 		$links = "";
-		if ($GLOBALS["documento_grid"] && $GLOBALS["documento_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=documento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+		if ($GLOBALS["documento_debito_grid"] && $GLOBALS["documento_debito_grid"]->DetailView) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=documento_debito")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
 			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "documento";
+			$DetailViewTblVar .= "documento_debito";
 		}
-		if ($GLOBALS["documento_grid"] && $GLOBALS["documento_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=documento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+		if ($GLOBALS["documento_debito_grid"] && $GLOBALS["documento_debito_grid"]->DetailEdit) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=documento_debito")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
 			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "documento";
+			$DetailEditTblVar .= "documento_debito";
 		}
 		if ($links <> "") {
 			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
@@ -558,7 +558,7 @@ class csucursal_view extends csucursal {
 		$item->Visible = TRUE;
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "documento";
+			$DetailTableLink .= "documento_debito";
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
@@ -959,18 +959,18 @@ class csucursal_view extends csucursal {
 					$GLOBALS["producto_sucursal_grid"]->idsucursal->setSessionValue($GLOBALS["producto_sucursal_grid"]->idsucursal->CurrentValue);
 				}
 			}
-			if (in_array("documento", $DetailTblVar)) {
-				if (!isset($GLOBALS["documento_grid"]))
-					$GLOBALS["documento_grid"] = new cdocumento_grid;
-				if ($GLOBALS["documento_grid"]->DetailView) {
-					$GLOBALS["documento_grid"]->CurrentMode = "view";
+			if (in_array("documento_debito", $DetailTblVar)) {
+				if (!isset($GLOBALS["documento_debito_grid"]))
+					$GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
+				if ($GLOBALS["documento_debito_grid"]->DetailView) {
+					$GLOBALS["documento_debito_grid"]->CurrentMode = "view";
 
 					// Save current master table to detail table
-					$GLOBALS["documento_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["documento_grid"]->setStartRecordNumber(1);
-					$GLOBALS["documento_grid"]->idsucursal->FldIsDetailKey = TRUE;
-					$GLOBALS["documento_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
-					$GLOBALS["documento_grid"]->idsucursal->setSessionValue($GLOBALS["documento_grid"]->idsucursal->CurrentValue);
+					$GLOBALS["documento_debito_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["documento_debito_grid"]->setStartRecordNumber(1);
+					$GLOBALS["documento_debito_grid"]->idsucursal->FldIsDetailKey = TRUE;
+					$GLOBALS["documento_debito_grid"]->idsucursal->CurrentValue = $this->idsucursal->CurrentValue;
+					$GLOBALS["documento_debito_grid"]->idsucursal->setSessionValue($GLOBALS["documento_debito_grid"]->idsucursal->CurrentValue);
 				}
 			}
 		}
@@ -1252,12 +1252,12 @@ $sucursal_view->ShowMessage();
 <?php include_once "producto_sucursalgrid.php" ?>
 <?php } ?>
 <?php
-	if (in_array("documento", explode(",", $sucursal->getCurrentDetailTable())) && $documento->DetailView) {
+	if (in_array("documento_debito", explode(",", $sucursal->getCurrentDetailTable())) && $documento_debito->DetailView) {
 ?>
 <?php if ($sucursal->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento", "TblCaption") ?></h4>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento_debito", "TblCaption") ?></h4>
 <?php } ?>
-<?php include_once "documentogrid.php" ?>
+<?php include_once "documento_debitogrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">

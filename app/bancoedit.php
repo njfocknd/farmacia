@@ -78,7 +78,7 @@ class cbanco_edit extends cbanco {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

@@ -113,7 +113,7 @@ class cproducto_view extends cproducto {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

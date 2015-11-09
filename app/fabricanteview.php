@@ -110,7 +110,7 @@ class cfabricante_view extends cfabricante {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

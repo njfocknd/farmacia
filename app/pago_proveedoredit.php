@@ -78,7 +78,7 @@ class cpago_proveedor_edit extends cpago_proveedor {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

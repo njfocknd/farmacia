@@ -10,7 +10,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "documento_debitogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -121,7 +121,7 @@ class csucursal_list extends csucursal {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -345,10 +345,10 @@ class csucursal_list extends csucursal {
 				exit();
 			}
 
-			// Process auto fill for detail table 'documento'
-			if (@$_POST["grid"] == "fdocumentogrid") {
-				if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
-				$GLOBALS["documento_grid"]->Page_Init();
+			// Process auto fill for detail table 'documento_debito'
+			if (@$_POST["grid"] == "fdocumento_debitogrid") {
+				if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
+				$GLOBALS["documento_debito_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -894,13 +894,13 @@ class csucursal_list extends csucursal {
 		$item->ShowInButtonGroup = FALSE;
 		if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
 
-		// "detail_documento"
-		$item = &$this->ListOptions->Add("detail_documento");
+		// "detail_documento_debito"
+		$item = &$this->ListOptions->Add("detail_documento_debito");
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE && !$this->ShowMultipleDetails;
 		$item->OnLeft = FALSE;
 		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
+		if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
 
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
@@ -1008,21 +1008,21 @@ class csucursal_list extends csucursal {
 			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
 		}
 
-		// "detail_documento"
-		$oListOpt = &$this->ListOptions->Items["detail_documento"];
+		// "detail_documento_debito"
+		$oListOpt = &$this->ListOptions->Items["detail_documento_debito"];
 		if (TRUE) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("documento", "TblCaption");
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("documentolist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("documento_debito", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("documento_debitolist.php?" . EW_TABLE_SHOW_MASTER . "=sucursal&fk_idsucursal=" . strval($this->idsucursal->CurrentValue) . "") . "\">" . $body . "</a>";
 			$links = "";
-			if ($GLOBALS["documento_grid"]->DetailView) {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=documento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($GLOBALS["documento_debito_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=documento_debito")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
 				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "documento";
+				$DetailViewTblVar .= "documento_debito";
 			}
-			if ($GLOBALS["documento_grid"]->DetailEdit) {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=documento")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($GLOBALS["documento_debito_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=documento_debito")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
 				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "documento";
+				$DetailEditTblVar .= "documento_debito";
 			}
 			if ($links <> "") {
 				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
@@ -1091,12 +1091,12 @@ class csucursal_list extends csucursal {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "producto_sucursal";
 		}
-		$item = &$option->Add("detailadd_documento");
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=documento") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["documento"]->TableCaption() . "</a>";
-		$item->Visible = ($GLOBALS["documento"]->DetailAdd);
+		$item = &$option->Add("detailadd_documento_debito");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=documento_debito") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["documento_debito"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["documento_debito"]->DetailAdd);
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "documento";
+			$DetailTableLink .= "documento_debito";
 		}
 
 		// Add multiple details

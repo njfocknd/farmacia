@@ -118,7 +118,7 @@ class ctipo_bodega_list extends ctipo_bodega {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

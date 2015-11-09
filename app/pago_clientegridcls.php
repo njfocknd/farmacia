@@ -76,7 +76,7 @@ class cpago_cliente_grid extends cpago_cliente {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

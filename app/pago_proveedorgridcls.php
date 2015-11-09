@@ -76,7 +76,7 @@ class cpago_proveedor_grid extends cpago_proveedor {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

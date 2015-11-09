@@ -78,7 +78,7 @@ class cempresa_edit extends cempresa {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

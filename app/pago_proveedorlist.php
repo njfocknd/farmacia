@@ -118,7 +118,7 @@ class cpago_proveedor_list extends cpago_proveedor {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

@@ -79,7 +79,7 @@ class cpersona_add extends cpersona {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

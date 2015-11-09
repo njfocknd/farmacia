@@ -78,7 +78,7 @@ class cdepartamento_search extends cdepartamento {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

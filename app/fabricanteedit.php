@@ -78,7 +78,7 @@ class cfabricante_edit extends cfabricante {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

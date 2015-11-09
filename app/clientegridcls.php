@@ -76,7 +76,7 @@ class ccliente_grid extends ccliente {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

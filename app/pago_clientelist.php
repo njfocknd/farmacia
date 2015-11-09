@@ -118,7 +118,7 @@ class cpago_cliente_list extends cpago_cliente {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

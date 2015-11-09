@@ -76,7 +76,7 @@ class cproducto_sucursal_grid extends cproducto_sucursal {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

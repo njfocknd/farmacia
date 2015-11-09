@@ -110,7 +110,7 @@ class cproducto_historial_view extends cproducto_historial {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

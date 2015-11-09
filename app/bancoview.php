@@ -110,7 +110,7 @@ class cbanco_view extends cbanco {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

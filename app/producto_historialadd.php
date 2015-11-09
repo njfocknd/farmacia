@@ -78,7 +78,7 @@ class cproducto_historial_add extends cproducto_historial {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -405,7 +405,7 @@ class cproducto_historial_add extends cproducto_historial {
 		$this->unidades_ingreso->CurrentValue = 0;
 		$this->unidades_salida->CurrentValue = 0;
 		$this->idrelacion->CurrentValue = 1;
-		$this->tabla_relacion->CurrentValue = "detalle_documento";
+		$this->tabla_relacion->CurrentValue = "detalle_documento_debito";
 	}
 
 	// Load form values

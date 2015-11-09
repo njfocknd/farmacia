@@ -80,7 +80,7 @@ class cbodega_add extends cbodega {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

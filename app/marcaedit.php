@@ -79,7 +79,7 @@ class cmarca_edit extends cmarca {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

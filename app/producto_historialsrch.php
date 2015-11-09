@@ -78,7 +78,7 @@ class cproducto_historial_search extends cproducto_historial {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

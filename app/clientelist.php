@@ -119,7 +119,7 @@ class ccliente_list extends ccliente {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

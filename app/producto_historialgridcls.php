@@ -76,7 +76,7 @@ class cproducto_historial_grid extends cproducto_historial {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -1004,7 +1004,7 @@ class cproducto_historial_grid extends cproducto_historial {
 		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 		$this->idrelacion->CurrentValue = 1;
 		$this->idrelacion->OldValue = $this->idrelacion->CurrentValue;
-		$this->tabla_relacion->CurrentValue = "detalle_documento";
+		$this->tabla_relacion->CurrentValue = "detalle_documento_debito";
 		$this->tabla_relacion->OldValue = $this->tabla_relacion->CurrentValue;
 	}
 

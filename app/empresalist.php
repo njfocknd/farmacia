@@ -118,7 +118,7 @@ class cempresa_list extends cempresa {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

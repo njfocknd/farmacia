@@ -118,7 +118,7 @@ class cmoneda_list extends cmoneda {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

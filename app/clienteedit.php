@@ -79,7 +79,7 @@ class ccliente_edit extends ccliente {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

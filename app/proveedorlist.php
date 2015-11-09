@@ -119,7 +119,7 @@ class cproveedor_list extends cproveedor {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

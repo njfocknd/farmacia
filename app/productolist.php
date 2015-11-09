@@ -121,7 +121,7 @@ class cproducto_list extends cproducto {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

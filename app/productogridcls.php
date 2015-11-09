@@ -76,7 +76,7 @@ class cproducto_grid extends cproducto {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

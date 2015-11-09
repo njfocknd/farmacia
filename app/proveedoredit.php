@@ -79,7 +79,7 @@ class cproveedor_edit extends cproveedor {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

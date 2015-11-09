@@ -121,7 +121,7 @@ class cproducto_bodega_list extends cproducto_bodega {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

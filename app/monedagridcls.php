@@ -76,7 +76,7 @@ class cmoneda_grid extends cmoneda {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

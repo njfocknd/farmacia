@@ -81,7 +81,7 @@ class cproducto_edit extends cproducto {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

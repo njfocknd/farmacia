@@ -78,7 +78,7 @@ class cregistro_sanitario_add extends cregistro_sanitario {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

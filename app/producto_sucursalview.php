@@ -112,7 +112,7 @@ class cproducto_sucursal_view extends cproducto_sucursal {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

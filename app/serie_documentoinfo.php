@@ -104,8 +104,8 @@ class cserie_documento extends cTable {
 
 		// Detail url
 		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "documento") {
-			$sDetailUrl = $GLOBALS["documento"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+		if ($this->getCurrentDetailTable() == "documento_debito") {
+			$sDetailUrl = $GLOBALS["documento_debito"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idserie_documento=" . urlencode($this->idserie_documento->CurrentValue);
 		}
 		if ($sDetailUrl == "") {

@@ -76,7 +76,7 @@ class csucursal_grid extends csucursal {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -278,10 +278,10 @@ class csucursal_grid extends csucursal {
 				exit();
 			}
 
-			// Process auto fill for detail table 'documento'
-			if (@$_POST["grid"] == "fdocumentogrid") {
-				if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
-				$GLOBALS["documento_grid"]->Page_Init();
+			// Process auto fill for detail table 'documento_debito'
+			if (@$_POST["grid"] == "fdocumento_debitogrid") {
+				if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
+				$GLOBALS["documento_debito_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}

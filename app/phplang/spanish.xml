@@ -417,17 +417,17 @@
 <phrase id="footertext" value="Nexthor 2015. Proyecto Seminario"/>
 <menu id="62"><phrase id="menutext" value="Documentos"/>
 </menu>
-<menu id="23"><phrase id="menutext" value="Documento Interno"/>
+<menu id="23"><phrase id="menutext" value="Documento Movimiento"/>
 </menu>
-<menu id="22"><phrase id="menutext" value="Detalle de Documento Interno"/>
+<menu id="22"><phrase id="menutext" value="Detalle de Documento Movimiento"/>
 </menu>
-<menu id="20"><phrase id="menutext" value="Documento Ingreso"/>
+<menu id="20"><phrase id="menutext" value="Documento Credito"/>
 </menu>
-<menu id="21"><phrase id="menutext" value="Detalle Documento Ingreso"/>
+<menu id="21"><phrase id="menutext" value="Detalle Documento Credito"/>
 </menu>
-<menu id="16"><phrase id="menutext" value="Documento"/>
+<menu id="16"><phrase id="menutext" value="Documento Debito"/>
 </menu>
-<menu id="19"><phrase id="menutext" value="Detalle Documento"/>
+<menu id="19"><phrase id="menutext" value="Detalle Documento Debito"/>
 </menu>
 <menu id="24"><phrase id="menutext" value="aplicacion movimiento"/>
 </menu>
@@ -687,7 +687,7 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 </table>
-<table id="producto_historial"><phrase id="tblcaption" value="Documento"/>
+<table id="producto_historial"><phrase id="tblcaption" value="Documento Debito"/>
 <field id="idproducto_historial"><phrase id="fldcaption" value="idproducto historial"/>
 </field>
 <field id="idproducto"><phrase id="fldcaption" value="Producto"/>
@@ -715,8 +715,8 @@
 <field id="tabla_relacion"><phrase id="fldcaption" value="tabla relacion"/>
 </field>
 </table>
-<table id="documento"><phrase id="tblcaption" value="Documento"/>
-<field id="iddocumento"><phrase id="fldcaption" value="iddocumento"/>
+<table id="documento_debito"><phrase id="tblcaption" value="Documento Debito"/>
+<field id="iddocumento_debito"><phrase id="fldcaption" value="iddocumento_debito"/>
 </field>
 <field id="idtipo_documento"><phrase id="fldcaption" value="Tipo de Documento"/>
 </field>
@@ -793,10 +793,10 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 </table>
-<table id="detalle_documento"><phrase id="tblcaption" value="Detalle de Documento"/>
-<field id="iddetalle_documento"><phrase id="fldcaption" value="iddetalle documento"/>
+<table id="detalle_documento_debito"><phrase id="tblcaption" value="Detalle de Documento"/>
+<field id="iddetalle_documento_debito"><phrase id="fldcaption" value="iddetalle documento"/>
 </field>
-<field id="iddocumento"><phrase id="fldcaption" value="Documento"/>
+<field id="iddocumento_debito"><phrase id="fldcaption" value="Documento Debito"/>
 </field>
 <field id="idproducto"><phrase id="fldcaption" value="Producto"/>
 </field>
@@ -817,8 +817,8 @@
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
 </field>
 </table>
-<table id="documento_ingreso"><phrase id="tblcaption" value="Documento Ingreso"/>
-<field id="iddocumento_ingreso"><phrase id="fldcaption" value="iddocumento ingreso"/>
+<table id="documento_credito"><phrase id="tblcaption" value="Documento Credito"/>
+<field id="iddocumento_credito"><phrase id="fldcaption" value="iddocumento ingreso"/>
 </field>
 <field id="idtipo_documento"><phrase id="fldcaption" value="Tipo de Documento"/>
 </field>
@@ -851,10 +851,10 @@
 <field id="idproveedor"><phrase id="fldcaption" value="idproveedor"/>
 </field>
 </table>
-<table id="detalle_documento_ingreso"><phrase id="tblcaption" value="Detalle de Documento de Ingreso"/>
-<field id="iddetalle_documento_ingreso"><phrase id="fldcaption" value="iddetalle documento ingreso"/>
+<table id="detalle_documento_credito"><phrase id="tblcaption" value="Detalle de Documento de Ingreso"/>
+<field id="iddetalle_documento_credito"><phrase id="fldcaption" value="iddetalle documento ingreso"/>
 </field>
-<field id="iddocumento_ingreso"><phrase id="fldcaption" value="Documento Ingreso"/>
+<field id="iddocumento_credito"><phrase id="fldcaption" value="Documento Credito"/>
 </field>
 <field id="idproducto"><phrase id="fldcaption" value="Producto"/>
 </field>
@@ -875,10 +875,10 @@
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Ingreso"/>
 </field>
 </table>
-<table id="detalle_documento_interno"><phrase id="tblcaption" value="Detalle de Documento Interno"/>
-<field id="iddetalle_documento_interno"><phrase id="fldcaption" value="iddetalle documento interno"/>
+<table id="detalle_documento_movimiento"><phrase id="tblcaption" value="Detalle de Documento Movimiento"/>
+<field id="iddetalle_documento_movimiento"><phrase id="fldcaption" value="iddetalle documento interno"/>
 </field>
-<field id="iddocumento_interno"><phrase id="fldcaption" value="Documento Interno"/>
+<field id="iddocumento_movimiento"><phrase id="fldcaption" value="Documento Movimiento"/>
 </field>
 <field id="idproducto"><phrase id="fldcaption" value="Producto"/>
 </field>
@@ -901,8 +901,8 @@
 <field id="precio"><phrase id="fldcaption" value="precio"/>
 </field>
 </table>
-<table id="documento_interno"><phrase id="tblcaption" value="Documento Interno"/>
-<field id="iddocumento_interno"><phrase id="fldcaption" value="iddocumento interno"/>
+<table id="documento_movimiento"><phrase id="tblcaption" value="Documento Movimiento"/>
+<field id="iddocumento_movimiento"><phrase id="fldcaption" value="iddocumento interno"/>
 </field>
 <field id="idtipo_documento"><phrase id="fldcaption" value="Tipo Documento"/>
 </field>

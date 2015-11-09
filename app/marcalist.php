@@ -119,7 +119,7 @@ class cmarca_list extends cmarca {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

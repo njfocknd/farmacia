@@ -111,7 +111,7 @@ class cdepartamento_view extends cdepartamento {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

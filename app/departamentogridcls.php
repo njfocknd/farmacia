@@ -76,7 +76,7 @@ class cdepartamento_grid extends cdepartamento {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

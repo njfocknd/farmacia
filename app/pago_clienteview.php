@@ -110,7 +110,7 @@ class cpago_cliente_view extends cpago_cliente {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

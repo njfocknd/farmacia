@@ -79,7 +79,7 @@ class cdepartamento_add extends cdepartamento {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

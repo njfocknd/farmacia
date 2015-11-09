@@ -78,7 +78,7 @@ class cmoneda_add extends cmoneda {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

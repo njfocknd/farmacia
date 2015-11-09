@@ -164,8 +164,8 @@ class csucursal extends cTable {
 			$sDetailUrl = $GLOBALS["producto_sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
 		}
-		if ($this->getCurrentDetailTable() == "documento") {
-			$sDetailUrl = $GLOBALS["documento"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+		if ($this->getCurrentDetailTable() == "documento_debito") {
+			$sDetailUrl = $GLOBALS["documento_debito"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idsucursal=" . urlencode($this->idsucursal->CurrentValue);
 		}
 		if ($sDetailUrl == "") {

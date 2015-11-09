@@ -7,7 +7,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "tipo_documentoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "documentogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "documento_debitogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -78,7 +78,7 @@ class ctipo_documento_edit extends ctipo_documento {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
@@ -243,10 +243,10 @@ class ctipo_documento_edit extends ctipo_documento {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'documento'
-			if (@$_POST["grid"] == "fdocumentogrid") {
-				if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid;
-				$GLOBALS["documento_grid"]->Page_Init();
+			// Process auto fill for detail table 'documento_debito'
+			if (@$_POST["grid"] == "fdocumento_debitogrid") {
+				if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
+				$GLOBALS["documento_debito_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -600,9 +600,9 @@ class ctipo_documento_edit extends ctipo_documento {
 
 		// Validate detail grid
 		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("documento", $DetailTblVar) && $GLOBALS["documento"]->DetailEdit) {
-			if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid(); // get detail page object
-			$GLOBALS["documento_grid"]->ValidateGridForm();
+		if (in_array("documento_debito", $DetailTblVar) && $GLOBALS["documento_debito"]->DetailEdit) {
+			if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid(); // get detail page object
+			$GLOBALS["documento_debito_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -662,9 +662,9 @@ class ctipo_documento_edit extends ctipo_documento {
 				// Update detail records
 				if ($EditRow) {
 					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-					if (in_array("documento", $DetailTblVar) && $GLOBALS["documento"]->DetailEdit) {
-						if (!isset($GLOBALS["documento_grid"])) $GLOBALS["documento_grid"] = new cdocumento_grid(); // Get detail page object
-						$EditRow = $GLOBALS["documento_grid"]->GridUpdate();
+					if (in_array("documento_debito", $DetailTblVar) && $GLOBALS["documento_debito"]->DetailEdit) {
+						if (!isset($GLOBALS["documento_debito_grid"])) $GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid(); // Get detail page object
+						$EditRow = $GLOBALS["documento_debito_grid"]->GridUpdate();
 					}
 				}
 
@@ -709,19 +709,19 @@ class ctipo_documento_edit extends ctipo_documento {
 		}
 		if ($sDetailTblVar <> "") {
 			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("documento", $DetailTblVar)) {
-				if (!isset($GLOBALS["documento_grid"]))
-					$GLOBALS["documento_grid"] = new cdocumento_grid;
-				if ($GLOBALS["documento_grid"]->DetailEdit) {
-					$GLOBALS["documento_grid"]->CurrentMode = "edit";
-					$GLOBALS["documento_grid"]->CurrentAction = "gridedit";
+			if (in_array("documento_debito", $DetailTblVar)) {
+				if (!isset($GLOBALS["documento_debito_grid"]))
+					$GLOBALS["documento_debito_grid"] = new cdocumento_debito_grid;
+				if ($GLOBALS["documento_debito_grid"]->DetailEdit) {
+					$GLOBALS["documento_debito_grid"]->CurrentMode = "edit";
+					$GLOBALS["documento_debito_grid"]->CurrentAction = "gridedit";
 
 					// Save current master table to detail table
-					$GLOBALS["documento_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["documento_grid"]->setStartRecordNumber(1);
-					$GLOBALS["documento_grid"]->idtipo_documento->FldIsDetailKey = TRUE;
-					$GLOBALS["documento_grid"]->idtipo_documento->CurrentValue = $this->idtipo_documento->CurrentValue;
-					$GLOBALS["documento_grid"]->idtipo_documento->setSessionValue($GLOBALS["documento_grid"]->idtipo_documento->CurrentValue);
+					$GLOBALS["documento_debito_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["documento_debito_grid"]->setStartRecordNumber(1);
+					$GLOBALS["documento_debito_grid"]->idtipo_documento->FldIsDetailKey = TRUE;
+					$GLOBALS["documento_debito_grid"]->idtipo_documento->CurrentValue = $this->idtipo_documento->CurrentValue;
+					$GLOBALS["documento_debito_grid"]->idtipo_documento->setSessionValue($GLOBALS["documento_debito_grid"]->idtipo_documento->CurrentValue);
 				}
 			}
 		}
@@ -954,12 +954,12 @@ if (is_array($tipo_documento->estado->EditValue)) {
 </div>
 <input type="hidden" data-field="x_idtipo_documento" name="x_idtipo_documento" id="x_idtipo_documento" value="<?php echo ew_HtmlEncode($tipo_documento->idtipo_documento->CurrentValue) ?>">
 <?php
-	if (in_array("documento", explode(",", $tipo_documento->getCurrentDetailTable())) && $documento->DetailEdit) {
+	if (in_array("documento_debito", explode(",", $tipo_documento->getCurrentDetailTable())) && $documento_debito->DetailEdit) {
 ?>
 <?php if ($tipo_documento->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento", "TblCaption") ?></h4>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("documento_debito", "TblCaption") ?></h4>
 <?php } ?>
-<?php include_once "documentogrid.php" ?>
+<?php include_once "documento_debitogrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

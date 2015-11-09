@@ -110,7 +110,7 @@ class cempresa_view extends cempresa {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

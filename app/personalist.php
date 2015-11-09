@@ -119,7 +119,7 @@ class cpersona_list extends cpersona {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message

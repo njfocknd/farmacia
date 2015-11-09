@@ -76,7 +76,7 @@ class cmunicipio_grid extends cmunicipio {
 
 	// Show message
 	function ShowMessage() {
-		$hidden = FALSE;
+		$hidden = TRUE;
 		$html = "";
 
 		// Message
