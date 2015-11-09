@@ -1,24 +1,23 @@
 <?php
 
 // Global variable for table object
-$persona = NULL;
+$cuenta = NULL;
 
 //
-// Table class for persona
+// Table class for cuenta
 //
-class cpersona extends cTable {
-	var $idpersona;
-	var $tipo_persona;
+class ccuenta extends cTable {
+	var $idcuenta;
+	var $idbanco;
+	var $idsucursal;
+	var $idmoneda;
+	var $numero;
 	var $nombre;
-	var $apellido;
-	var $direccion;
-	var $cui;
-	var $idpais;
-	var $fecha_nacimiento;
-	var $_email;
-	var $sexo;
+	var $saldo;
+	var $debito;
+	var $credito;
 	var $estado;
-	var $fecha_insercion;
+	var $fecha_insercio;
 
 	//
 	// Table class constructor
@@ -28,8 +27,8 @@ class cpersona extends cTable {
 
 		// Language object
 		if (!isset($Language)) $Language = new cLanguage();
-		$this->TableVar = 'persona';
-		$this->TableName = 'persona';
+		$this->TableVar = 'cuenta';
+		$this->TableName = 'cuenta';
 		$this->TableType = 'TABLE';
 		$this->ExportAll = TRUE;
 		$this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
@@ -44,58 +43,57 @@ class cpersona extends cTable {
 		$this->UserIDAllowSecurity = 0; // User ID Allow
 		$this->BasicSearch = new cBasicSearch($this->TableVar);
 
-		// idpersona
-		$this->idpersona = new cField('persona', 'persona', 'x_idpersona', 'idpersona', '`idpersona`', '`idpersona`', 3, -1, FALSE, '`idpersona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idpersona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idpersona'] = &$this->idpersona;
+		// idcuenta
+		$this->idcuenta = new cField('cuenta', 'cuenta', 'x_idcuenta', 'idcuenta', '`idcuenta`', '`idcuenta`', 3, -1, FALSE, '`idcuenta`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idcuenta->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idcuenta'] = &$this->idcuenta;
 
-		// tipo_persona
-		$this->tipo_persona = new cField('persona', 'persona', 'x_tipo_persona', 'tipo_persona', '`tipo_persona`', '`tipo_persona`', 202, -1, FALSE, '`tipo_persona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['tipo_persona'] = &$this->tipo_persona;
+		// idbanco
+		$this->idbanco = new cField('cuenta', 'cuenta', 'x_idbanco', 'idbanco', '`idbanco`', '`idbanco`', 3, -1, FALSE, '`idbanco`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idbanco->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idbanco'] = &$this->idbanco;
+
+		// idsucursal
+		$this->idsucursal = new cField('cuenta', 'cuenta', 'x_idsucursal', 'idsucursal', '`idsucursal`', '`idsucursal`', 3, -1, FALSE, '`idsucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idsucursal->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idsucursal'] = &$this->idsucursal;
+
+		// idmoneda
+		$this->idmoneda = new cField('cuenta', 'cuenta', 'x_idmoneda', 'idmoneda', '`idmoneda`', '`idmoneda`', 3, -1, FALSE, '`idmoneda`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idmoneda->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idmoneda'] = &$this->idmoneda;
+
+		// numero
+		$this->numero = new cField('cuenta', 'cuenta', 'x_numero', 'numero', '`numero`', '`numero`', 200, -1, FALSE, '`numero`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['numero'] = &$this->numero;
 
 		// nombre
-		$this->nombre = new cField('persona', 'persona', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->nombre = new cField('cuenta', 'cuenta', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['nombre'] = &$this->nombre;
 
-		// apellido
-		$this->apellido = new cField('persona', 'persona', 'x_apellido', 'apellido', '`apellido`', '`apellido`', 200, -1, FALSE, '`apellido`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['apellido'] = &$this->apellido;
+		// saldo
+		$this->saldo = new cField('cuenta', 'cuenta', 'x_saldo', 'saldo', '`saldo`', '`saldo`', 131, -1, FALSE, '`saldo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->saldo->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['saldo'] = &$this->saldo;
 
-		// direccion
-		$this->direccion = new cField('persona', 'persona', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['direccion'] = &$this->direccion;
+		// debito
+		$this->debito = new cField('cuenta', 'cuenta', 'x_debito', 'debito', '`debito`', '`debito`', 131, -1, FALSE, '`debito`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->debito->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['debito'] = &$this->debito;
 
-		// cui
-		$this->cui = new cField('persona', 'persona', 'x_cui', 'cui', '`cui`', '`cui`', 200, -1, FALSE, '`cui`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['cui'] = &$this->cui;
-
-		// idpais
-		$this->idpais = new cField('persona', 'persona', 'x_idpais', 'idpais', '`idpais`', '`idpais`', 3, -1, FALSE, '`idpais`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idpais->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idpais'] = &$this->idpais;
-
-		// fecha_nacimiento
-		$this->fecha_nacimiento = new cField('persona', 'persona', 'x_fecha_nacimiento', 'fecha_nacimiento', '`fecha_nacimiento`', 'DATE_FORMAT(`fecha_nacimiento`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha_nacimiento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fecha_nacimiento->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
-		$this->fields['fecha_nacimiento'] = &$this->fecha_nacimiento;
-
-		// email
-		$this->_email = new cField('persona', 'persona', 'x__email', 'email', '`email`', '`email`', 200, -1, FALSE, '`email`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->_email->FldDefaultErrMsg = $Language->Phrase("IncorrectEmail");
-		$this->fields['email'] = &$this->_email;
-
-		// sexo
-		$this->sexo = new cField('persona', 'persona', 'x_sexo', 'sexo', '`sexo`', '`sexo`', 202, -1, FALSE, '`sexo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['sexo'] = &$this->sexo;
+		// credito
+		$this->credito = new cField('cuenta', 'cuenta', 'x_credito', 'credito', '`credito`', '`credito`', 131, -1, FALSE, '`credito`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->credito->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['credito'] = &$this->credito;
 
 		// estado
-		$this->estado = new cField('persona', 'persona', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->estado = new cField('cuenta', 'cuenta', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
 
-		// fecha_insercion
-		$this->fecha_insercion = new cField('persona', 'persona', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
-		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
+		// fecha_insercio
+		$this->fecha_insercio = new cField('cuenta', 'cuenta', 'x_fecha_insercio', 'fecha_insercio', '`fecha_insercio`', 'DATE_FORMAT(`fecha_insercio`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercio`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercio->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_insercio'] = &$this->fecha_insercio;
 	}
 
 	// Single column sort
@@ -115,39 +113,58 @@ class cpersona extends cTable {
 		}
 	}
 
-	// Current detail table name
-	function getCurrentDetailTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
 	}
 
-	function setCurrentDetailTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
 	}
 
-	// Get detail url
-	function GetDetailUrl() {
+	// Session master WHERE clause
+	function GetMasterFilter() {
 
-		// Detail url
-		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "cliente") {
-			$sDetailUrl = $GLOBALS["cliente"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idpersona=" . urlencode($this->idpersona->CurrentValue);
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "banco") {
+			if ($this->idbanco->getSessionValue() <> "")
+				$sMasterFilter .= "`idbanco`=" . ew_QuotedValue($this->idbanco->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
 		}
-		if ($this->getCurrentDetailTable() == "proveedor") {
-			$sDetailUrl = $GLOBALS["proveedor"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idpersona=" . urlencode($this->idpersona->CurrentValue);
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "banco") {
+			if ($this->idbanco->getSessionValue() <> "")
+				$sDetailFilter .= "`idbanco`=" . ew_QuotedValue($this->idbanco->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
 		}
-		if ($sDetailUrl == "") {
-			$sDetailUrl = "personalist.php";
-		}
-		return $sDetailUrl;
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_banco() {
+		return "`idbanco`=@idbanco@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_banco() {
+		return "`idbanco`=@idbanco@";
 	}
 
 	// Table level SQL
 	var $_SqlFrom = "";
 
 	function getSqlFrom() { // From
-		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`persona`";
+		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`cuenta`";
 	}
 
 	function SqlFrom() { // For backward compatibility
@@ -370,7 +387,7 @@ class cpersona extends cTable {
 	}
 
 	// Update Table
-	var $UpdateTable = "`persona`";
+	var $UpdateTable = "`cuenta`";
 
 	// INSERT statement
 	function InsertSQL(&$rs) {
@@ -423,8 +440,8 @@ class cpersona extends cTable {
 	function DeleteSQL(&$rs, $where = "") {
 		$sql = "DELETE FROM " . $this->UpdateTable . " WHERE ";
 		if ($rs) {
-			if (array_key_exists('idpersona', $rs))
-				ew_AddFilter($where, ew_QuotedName('idpersona') . '=' . ew_QuotedValue($rs['idpersona'], $this->idpersona->FldDataType));
+			if (array_key_exists('idcuenta', $rs))
+				ew_AddFilter($where, ew_QuotedName('idcuenta') . '=' . ew_QuotedValue($rs['idcuenta'], $this->idcuenta->FldDataType));
 		}
 		$filter = $this->CurrentFilter;
 		ew_AddFilter($filter, $where);
@@ -443,15 +460,15 @@ class cpersona extends cTable {
 
 	// Key filter WHERE clause
 	function SqlKeyFilter() {
-		return "`idpersona` = @idpersona@";
+		return "`idcuenta` = @idcuenta@";
 	}
 
 	// Key filter
 	function KeyFilter() {
 		$sKeyFilter = $this->SqlKeyFilter();
-		if (!is_numeric($this->idpersona->CurrentValue))
+		if (!is_numeric($this->idcuenta->CurrentValue))
 			$sKeyFilter = "0=1"; // Invalid key
-		$sKeyFilter = str_replace("@idpersona@", ew_AdjustSql($this->idpersona->CurrentValue), $sKeyFilter); // Replace key value
+		$sKeyFilter = str_replace("@idcuenta@", ew_AdjustSql($this->idcuenta->CurrentValue), $sKeyFilter); // Replace key value
 		return $sKeyFilter;
 	}
 
@@ -465,7 +482,7 @@ class cpersona extends cTable {
 		if (@$_SESSION[$name] <> "") {
 			return $_SESSION[$name];
 		} else {
-			return "personalist.php";
+			return "cuentalist.php";
 		}
 	}
 
@@ -475,31 +492,28 @@ class cpersona extends cTable {
 
 	// List URL
 	function GetListUrl() {
-		return "personalist.php";
+		return "cuentalist.php";
 	}
 
 	// View URL
 	function GetViewUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("personaview.php", $this->UrlParm($parm));
+			return $this->KeyUrl("cuentaview.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("personaview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("cuentaview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Add URL
 	function GetAddUrl($parm = "") {
 		if ($parm <> "")
-			return "personaadd.php?" . $this->UrlParm($parm);
+			return "cuentaadd.php?" . $this->UrlParm($parm);
 		else
-			return "personaadd.php";
+			return "cuentaadd.php";
 	}
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("personaedit.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("personaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("cuentaedit.php", $this->UrlParm($parm));
 	}
 
 	// Inline edit URL
@@ -509,10 +523,7 @@ class cpersona extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("personaadd.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("personaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("cuentaadd.php", $this->UrlParm($parm));
 	}
 
 	// Inline copy URL
@@ -522,15 +533,15 @@ class cpersona extends cTable {
 
 	// Delete URL
 	function GetDeleteUrl() {
-		return $this->KeyUrl("personadelete.php", $this->UrlParm());
+		return $this->KeyUrl("cuentadelete.php", $this->UrlParm());
 	}
 
 	// Add key value to URL
 	function KeyUrl($url, $parm = "") {
 		$sUrl = $url . "?";
 		if ($parm <> "") $sUrl .= $parm . "&";
-		if (!is_null($this->idpersona->CurrentValue)) {
-			$sUrl .= "idpersona=" . urlencode($this->idpersona->CurrentValue);
+		if (!is_null($this->idcuenta->CurrentValue)) {
+			$sUrl .= "idcuenta=" . urlencode($this->idcuenta->CurrentValue);
 		} else {
 			return "javascript:alert(ewLanguage.Phrase('InvalidRecord'));";
 		}
@@ -562,7 +573,7 @@ class cpersona extends cTable {
 			$arKeys = ew_StripSlashes($_GET["key_m"]);
 			$cnt = count($arKeys);
 		} elseif (isset($_GET)) {
-			$arKeys[] = @$_GET["idpersona"]; // idpersona
+			$arKeys[] = @$_GET["idcuenta"]; // idcuenta
 
 			//return $arKeys; // Do not return yet, so the values will also be checked by the following code
 		}
@@ -583,7 +594,7 @@ class cpersona extends cTable {
 		$sKeyFilter = "";
 		foreach ($arKeys as $key) {
 			if ($sKeyFilter <> "") $sKeyFilter .= " OR ";
-			$this->idpersona->CurrentValue = $key;
+			$this->idcuenta->CurrentValue = $key;
 			$sKeyFilter .= "(" . $this->KeyFilter() . ")";
 		}
 		return $sKeyFilter;
@@ -604,18 +615,17 @@ class cpersona extends cTable {
 
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
-		$this->idpersona->setDbValue($rs->fields('idpersona'));
-		$this->tipo_persona->setDbValue($rs->fields('tipo_persona'));
+		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
+		$this->idbanco->setDbValue($rs->fields('idbanco'));
+		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
+		$this->numero->setDbValue($rs->fields('numero'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->apellido->setDbValue($rs->fields('apellido'));
-		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->cui->setDbValue($rs->fields('cui'));
-		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->fecha_nacimiento->setDbValue($rs->fields('fecha_nacimiento'));
-		$this->_email->setDbValue($rs->fields('email'));
-		$this->sexo->setDbValue($rs->fields('sexo'));
+		$this->saldo->setDbValue($rs->fields('saldo'));
+		$this->debito->setDbValue($rs->fields('debito'));
+		$this->credito->setDbValue($rs->fields('credito'));
 		$this->estado->setDbValue($rs->fields('estado'));
-		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->fecha_insercio->setDbValue($rs->fields('fecha_insercio'));
 	}
 
 	// Render list row values
@@ -626,110 +636,53 @@ class cpersona extends cTable {
 		$this->Row_Rendering();
 
    // Common render codes
-		// idpersona
-		// tipo_persona
+		// idcuenta
+		// idbanco
+		// idsucursal
+		// idmoneda
+		// numero
 		// nombre
-		// apellido
-		// direccion
-		// cui
-		// idpais
-		// fecha_nacimiento
-		// email
-		// sexo
+		// saldo
+		// debito
+		// credito
 		// estado
-		// fecha_insercion
-		// idpersona
+		// fecha_insercio
+		// idcuenta
 
-		$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-		$this->idpersona->ViewCustomAttributes = "";
+		$this->idcuenta->ViewValue = $this->idcuenta->CurrentValue;
+		$this->idcuenta->ViewCustomAttributes = "";
 
-		// tipo_persona
-		if (strval($this->tipo_persona->CurrentValue) <> "") {
-			switch ($this->tipo_persona->CurrentValue) {
-				case $this->tipo_persona->FldTagValue(1):
-					$this->tipo_persona->ViewValue = $this->tipo_persona->FldTagCaption(1) <> "" ? $this->tipo_persona->FldTagCaption(1) : $this->tipo_persona->CurrentValue;
-					break;
-				case $this->tipo_persona->FldTagValue(2):
-					$this->tipo_persona->ViewValue = $this->tipo_persona->FldTagCaption(2) <> "" ? $this->tipo_persona->FldTagCaption(2) : $this->tipo_persona->CurrentValue;
-					break;
-				default:
-					$this->tipo_persona->ViewValue = $this->tipo_persona->CurrentValue;
-			}
-		} else {
-			$this->tipo_persona->ViewValue = NULL;
-		}
-		$this->tipo_persona->ViewCustomAttributes = "";
+		// idbanco
+		$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+		$this->idbanco->ViewCustomAttributes = "";
+
+		// idsucursal
+		$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+		$this->idsucursal->ViewCustomAttributes = "";
+
+		// idmoneda
+		$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+		$this->idmoneda->ViewCustomAttributes = "";
+
+		// numero
+		$this->numero->ViewValue = $this->numero->CurrentValue;
+		$this->numero->ViewCustomAttributes = "";
 
 		// nombre
 		$this->nombre->ViewValue = $this->nombre->CurrentValue;
 		$this->nombre->ViewCustomAttributes = "";
 
-		// apellido
-		$this->apellido->ViewValue = $this->apellido->CurrentValue;
-		$this->apellido->ViewCustomAttributes = "";
+		// saldo
+		$this->saldo->ViewValue = $this->saldo->CurrentValue;
+		$this->saldo->ViewCustomAttributes = "";
 
-		// direccion
-		$this->direccion->ViewValue = $this->direccion->CurrentValue;
-		$this->direccion->ViewCustomAttributes = "";
+		// debito
+		$this->debito->ViewValue = $this->debito->CurrentValue;
+		$this->debito->ViewCustomAttributes = "";
 
-		// cui
-		$this->cui->ViewValue = $this->cui->CurrentValue;
-		$this->cui->ViewCustomAttributes = "";
-
-		// idpais
-		if (strval($this->idpais->CurrentValue) <> "") {
-			$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idpais->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idpais->ViewValue = $this->idpais->CurrentValue;
-			}
-		} else {
-			$this->idpais->ViewValue = NULL;
-		}
-		$this->idpais->ViewCustomAttributes = "";
-
-		// fecha_nacimiento
-		$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
-		$this->fecha_nacimiento->ViewValue = ew_FormatDateTime($this->fecha_nacimiento->ViewValue, 7);
-		$this->fecha_nacimiento->ViewCustomAttributes = "";
-
-		// email
-		$this->_email->ViewValue = $this->_email->CurrentValue;
-		$this->_email->ViewCustomAttributes = "";
-
-		// sexo
-		if (strval($this->sexo->CurrentValue) <> "") {
-			switch ($this->sexo->CurrentValue) {
-				case $this->sexo->FldTagValue(1):
-					$this->sexo->ViewValue = $this->sexo->FldTagCaption(1) <> "" ? $this->sexo->FldTagCaption(1) : $this->sexo->CurrentValue;
-					break;
-				case $this->sexo->FldTagValue(2):
-					$this->sexo->ViewValue = $this->sexo->FldTagCaption(2) <> "" ? $this->sexo->FldTagCaption(2) : $this->sexo->CurrentValue;
-					break;
-				default:
-					$this->sexo->ViewValue = $this->sexo->CurrentValue;
-			}
-		} else {
-			$this->sexo->ViewValue = NULL;
-		}
-		$this->sexo->ViewCustomAttributes = "";
+		// credito
+		$this->credito->ViewValue = $this->credito->CurrentValue;
+		$this->credito->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -748,70 +701,65 @@ class cpersona extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
-		// fecha_insercion
-		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
-		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
-		$this->fecha_insercion->ViewCustomAttributes = "";
+		// fecha_insercio
+		$this->fecha_insercio->ViewValue = $this->fecha_insercio->CurrentValue;
+		$this->fecha_insercio->ViewValue = ew_FormatDateTime($this->fecha_insercio->ViewValue, 7);
+		$this->fecha_insercio->ViewCustomAttributes = "";
 
-		// idpersona
-		$this->idpersona->LinkCustomAttributes = "";
-		$this->idpersona->HrefValue = "";
-		$this->idpersona->TooltipValue = "";
+		// idcuenta
+		$this->idcuenta->LinkCustomAttributes = "";
+		$this->idcuenta->HrefValue = "";
+		$this->idcuenta->TooltipValue = "";
 
-		// tipo_persona
-		$this->tipo_persona->LinkCustomAttributes = "";
-		$this->tipo_persona->HrefValue = "";
-		$this->tipo_persona->TooltipValue = "";
+		// idbanco
+		$this->idbanco->LinkCustomAttributes = "";
+		$this->idbanco->HrefValue = "";
+		$this->idbanco->TooltipValue = "";
+
+		// idsucursal
+		$this->idsucursal->LinkCustomAttributes = "";
+		$this->idsucursal->HrefValue = "";
+		$this->idsucursal->TooltipValue = "";
+
+		// idmoneda
+		$this->idmoneda->LinkCustomAttributes = "";
+		$this->idmoneda->HrefValue = "";
+		$this->idmoneda->TooltipValue = "";
+
+		// numero
+		$this->numero->LinkCustomAttributes = "";
+		$this->numero->HrefValue = "";
+		$this->numero->TooltipValue = "";
 
 		// nombre
 		$this->nombre->LinkCustomAttributes = "";
 		$this->nombre->HrefValue = "";
 		$this->nombre->TooltipValue = "";
 
-		// apellido
-		$this->apellido->LinkCustomAttributes = "";
-		$this->apellido->HrefValue = "";
-		$this->apellido->TooltipValue = "";
+		// saldo
+		$this->saldo->LinkCustomAttributes = "";
+		$this->saldo->HrefValue = "";
+		$this->saldo->TooltipValue = "";
 
-		// direccion
-		$this->direccion->LinkCustomAttributes = "";
-		$this->direccion->HrefValue = "";
-		$this->direccion->TooltipValue = "";
+		// debito
+		$this->debito->LinkCustomAttributes = "";
+		$this->debito->HrefValue = "";
+		$this->debito->TooltipValue = "";
 
-		// cui
-		$this->cui->LinkCustomAttributes = "";
-		$this->cui->HrefValue = "";
-		$this->cui->TooltipValue = "";
-
-		// idpais
-		$this->idpais->LinkCustomAttributes = "";
-		$this->idpais->HrefValue = "";
-		$this->idpais->TooltipValue = "";
-
-		// fecha_nacimiento
-		$this->fecha_nacimiento->LinkCustomAttributes = "";
-		$this->fecha_nacimiento->HrefValue = "";
-		$this->fecha_nacimiento->TooltipValue = "";
-
-		// email
-		$this->_email->LinkCustomAttributes = "";
-		$this->_email->HrefValue = "";
-		$this->_email->TooltipValue = "";
-
-		// sexo
-		$this->sexo->LinkCustomAttributes = "";
-		$this->sexo->HrefValue = "";
-		$this->sexo->TooltipValue = "";
+		// credito
+		$this->credito->LinkCustomAttributes = "";
+		$this->credito->HrefValue = "";
+		$this->credito->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
 		$this->estado->HrefValue = "";
 		$this->estado->TooltipValue = "";
 
-		// fecha_insercion
-		$this->fecha_insercion->LinkCustomAttributes = "";
-		$this->fecha_insercion->HrefValue = "";
-		$this->fecha_insercion->TooltipValue = "";
+		// fecha_insercio
+		$this->fecha_insercio->LinkCustomAttributes = "";
+		$this->fecha_insercio->HrefValue = "";
+		$this->fecha_insercio->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -824,20 +772,41 @@ class cpersona extends cTable {
 		// Call Row Rendering event
 		$this->Row_Rendering();
 
-		// idpersona
-		$this->idpersona->EditAttrs["class"] = "form-control";
-		$this->idpersona->EditCustomAttributes = "";
-		$this->idpersona->EditValue = $this->idpersona->CurrentValue;
-		$this->idpersona->ViewCustomAttributes = "";
+		// idcuenta
+		$this->idcuenta->EditAttrs["class"] = "form-control";
+		$this->idcuenta->EditCustomAttributes = "";
+		$this->idcuenta->EditValue = $this->idcuenta->CurrentValue;
+		$this->idcuenta->ViewCustomAttributes = "";
 
-		// tipo_persona
-		$this->tipo_persona->EditAttrs["class"] = "form-control";
-		$this->tipo_persona->EditCustomAttributes = "";
-		$arwrk = array();
-		$arwrk[] = array($this->tipo_persona->FldTagValue(1), $this->tipo_persona->FldTagCaption(1) <> "" ? $this->tipo_persona->FldTagCaption(1) : $this->tipo_persona->FldTagValue(1));
-		$arwrk[] = array($this->tipo_persona->FldTagValue(2), $this->tipo_persona->FldTagCaption(2) <> "" ? $this->tipo_persona->FldTagCaption(2) : $this->tipo_persona->FldTagValue(2));
-		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-		$this->tipo_persona->EditValue = $arwrk;
+		// idbanco
+		$this->idbanco->EditAttrs["class"] = "form-control";
+		$this->idbanco->EditCustomAttributes = "";
+		if ($this->idbanco->getSessionValue() <> "") {
+			$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
+		$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+		$this->idbanco->ViewCustomAttributes = "";
+		} else {
+		$this->idbanco->EditValue = ew_HtmlEncode($this->idbanco->CurrentValue);
+		$this->idbanco->PlaceHolder = ew_RemoveHtml($this->idbanco->FldCaption());
+		}
+
+		// idsucursal
+		$this->idsucursal->EditAttrs["class"] = "form-control";
+		$this->idsucursal->EditCustomAttributes = "";
+		$this->idsucursal->EditValue = ew_HtmlEncode($this->idsucursal->CurrentValue);
+		$this->idsucursal->PlaceHolder = ew_RemoveHtml($this->idsucursal->FldCaption());
+
+		// idmoneda
+		$this->idmoneda->EditAttrs["class"] = "form-control";
+		$this->idmoneda->EditCustomAttributes = "";
+		$this->idmoneda->EditValue = ew_HtmlEncode($this->idmoneda->CurrentValue);
+		$this->idmoneda->PlaceHolder = ew_RemoveHtml($this->idmoneda->FldCaption());
+
+		// numero
+		$this->numero->EditAttrs["class"] = "form-control";
+		$this->numero->EditCustomAttributes = "";
+		$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
+		$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
 
 		// nombre
 		$this->nombre->EditAttrs["class"] = "form-control";
@@ -845,63 +814,39 @@ class cpersona extends cTable {
 		$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
 		$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
 
-		// apellido
-		$this->apellido->EditAttrs["class"] = "form-control";
-		$this->apellido->EditCustomAttributes = "";
-		$this->apellido->EditValue = ew_HtmlEncode($this->apellido->CurrentValue);
-		$this->apellido->PlaceHolder = ew_RemoveHtml($this->apellido->FldCaption());
+		// saldo
+		$this->saldo->EditAttrs["class"] = "form-control";
+		$this->saldo->EditCustomAttributes = "";
+		$this->saldo->EditValue = ew_HtmlEncode($this->saldo->CurrentValue);
+		$this->saldo->PlaceHolder = ew_RemoveHtml($this->saldo->FldCaption());
+		if (strval($this->saldo->EditValue) <> "" && is_numeric($this->saldo->EditValue)) $this->saldo->EditValue = ew_FormatNumber($this->saldo->EditValue, -2, -1, -2, 0);
 
-		// direccion
-		$this->direccion->EditAttrs["class"] = "form-control";
-		$this->direccion->EditCustomAttributes = "";
-		$this->direccion->EditValue = ew_HtmlEncode($this->direccion->CurrentValue);
-		$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
+		// debito
+		$this->debito->EditAttrs["class"] = "form-control";
+		$this->debito->EditCustomAttributes = "";
+		$this->debito->EditValue = ew_HtmlEncode($this->debito->CurrentValue);
+		$this->debito->PlaceHolder = ew_RemoveHtml($this->debito->FldCaption());
+		if (strval($this->debito->EditValue) <> "" && is_numeric($this->debito->EditValue)) $this->debito->EditValue = ew_FormatNumber($this->debito->EditValue, -2, -1, -2, 0);
 
-		// cui
-		$this->cui->EditAttrs["class"] = "form-control";
-		$this->cui->EditCustomAttributes = "";
-		$this->cui->EditValue = ew_HtmlEncode($this->cui->CurrentValue);
-		$this->cui->PlaceHolder = ew_RemoveHtml($this->cui->FldCaption());
-
-		// idpais
-		$this->idpais->EditAttrs["class"] = "form-control";
-		$this->idpais->EditCustomAttributes = "";
-
-		// fecha_nacimiento
-		$this->fecha_nacimiento->EditAttrs["class"] = "form-control";
-		$this->fecha_nacimiento->EditCustomAttributes = "";
-		$this->fecha_nacimiento->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_nacimiento->CurrentValue, 7));
-		$this->fecha_nacimiento->PlaceHolder = ew_RemoveHtml($this->fecha_nacimiento->FldCaption());
-
-		// email
-		$this->_email->EditAttrs["class"] = "form-control";
-		$this->_email->EditCustomAttributes = "";
-		$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
-		$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
-
-		// sexo
-		$this->sexo->EditAttrs["class"] = "form-control";
-		$this->sexo->EditCustomAttributes = "";
-		$arwrk = array();
-		$arwrk[] = array($this->sexo->FldTagValue(1), $this->sexo->FldTagCaption(1) <> "" ? $this->sexo->FldTagCaption(1) : $this->sexo->FldTagValue(1));
-		$arwrk[] = array($this->sexo->FldTagValue(2), $this->sexo->FldTagCaption(2) <> "" ? $this->sexo->FldTagCaption(2) : $this->sexo->FldTagValue(2));
-		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-		$this->sexo->EditValue = $arwrk;
+		// credito
+		$this->credito->EditAttrs["class"] = "form-control";
+		$this->credito->EditCustomAttributes = "";
+		$this->credito->EditValue = ew_HtmlEncode($this->credito->CurrentValue);
+		$this->credito->PlaceHolder = ew_RemoveHtml($this->credito->FldCaption());
+		if (strval($this->credito->EditValue) <> "" && is_numeric($this->credito->EditValue)) $this->credito->EditValue = ew_FormatNumber($this->credito->EditValue, -2, -1, -2, 0);
 
 		// estado
-		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
 		$arwrk = array();
 		$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
 		$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
-		// fecha_insercion
-		$this->fecha_insercion->EditAttrs["class"] = "form-control";
-		$this->fecha_insercion->EditCustomAttributes = "";
-		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
-		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+		// fecha_insercio
+		$this->fecha_insercio->EditAttrs["class"] = "form-control";
+		$this->fecha_insercio->EditCustomAttributes = "";
+		$this->fecha_insercio->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercio->CurrentValue, 7));
+		$this->fecha_insercio->PlaceHolder = ew_RemoveHtml($this->fecha_insercio->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -927,31 +872,29 @@ class cpersona extends cTable {
 			if ($Doc->Horizontal) { // Horizontal format, write header
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
-					if ($this->idpersona->Exportable) $Doc->ExportCaption($this->idpersona);
-					if ($this->tipo_persona->Exportable) $Doc->ExportCaption($this->tipo_persona);
+					if ($this->idcuenta->Exportable) $Doc->ExportCaption($this->idcuenta);
+					if ($this->idbanco->Exportable) $Doc->ExportCaption($this->idbanco);
+					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
+					if ($this->idmoneda->Exportable) $Doc->ExportCaption($this->idmoneda);
+					if ($this->numero->Exportable) $Doc->ExportCaption($this->numero);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->apellido->Exportable) $Doc->ExportCaption($this->apellido);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->cui->Exportable) $Doc->ExportCaption($this->cui);
-					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
-					if ($this->fecha_nacimiento->Exportable) $Doc->ExportCaption($this->fecha_nacimiento);
-					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
-					if ($this->sexo->Exportable) $Doc->ExportCaption($this->sexo);
+					if ($this->saldo->Exportable) $Doc->ExportCaption($this->saldo);
+					if ($this->debito->Exportable) $Doc->ExportCaption($this->debito);
+					if ($this->credito->Exportable) $Doc->ExportCaption($this->credito);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
-					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->fecha_insercio->Exportable) $Doc->ExportCaption($this->fecha_insercio);
 				} else {
-					if ($this->idpersona->Exportable) $Doc->ExportCaption($this->idpersona);
-					if ($this->tipo_persona->Exportable) $Doc->ExportCaption($this->tipo_persona);
+					if ($this->idcuenta->Exportable) $Doc->ExportCaption($this->idcuenta);
+					if ($this->idbanco->Exportable) $Doc->ExportCaption($this->idbanco);
+					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
+					if ($this->idmoneda->Exportable) $Doc->ExportCaption($this->idmoneda);
+					if ($this->numero->Exportable) $Doc->ExportCaption($this->numero);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
-					if ($this->apellido->Exportable) $Doc->ExportCaption($this->apellido);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->cui->Exportable) $Doc->ExportCaption($this->cui);
-					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
-					if ($this->fecha_nacimiento->Exportable) $Doc->ExportCaption($this->fecha_nacimiento);
-					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
-					if ($this->sexo->Exportable) $Doc->ExportCaption($this->sexo);
+					if ($this->saldo->Exportable) $Doc->ExportCaption($this->saldo);
+					if ($this->debito->Exportable) $Doc->ExportCaption($this->debito);
+					if ($this->credito->Exportable) $Doc->ExportCaption($this->credito);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
-					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->fecha_insercio->Exportable) $Doc->ExportCaption($this->fecha_insercio);
 				}
 				$Doc->EndExportRow();
 			}
@@ -983,31 +926,29 @@ class cpersona extends cTable {
 				if (!$Doc->ExportCustom) {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
-						if ($this->idpersona->Exportable) $Doc->ExportField($this->idpersona);
-						if ($this->tipo_persona->Exportable) $Doc->ExportField($this->tipo_persona);
+						if ($this->idcuenta->Exportable) $Doc->ExportField($this->idcuenta);
+						if ($this->idbanco->Exportable) $Doc->ExportField($this->idbanco);
+						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
+						if ($this->idmoneda->Exportable) $Doc->ExportField($this->idmoneda);
+						if ($this->numero->Exportable) $Doc->ExportField($this->numero);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->apellido->Exportable) $Doc->ExportField($this->apellido);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->cui->Exportable) $Doc->ExportField($this->cui);
-						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
-						if ($this->fecha_nacimiento->Exportable) $Doc->ExportField($this->fecha_nacimiento);
-						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
-						if ($this->sexo->Exportable) $Doc->ExportField($this->sexo);
+						if ($this->saldo->Exportable) $Doc->ExportField($this->saldo);
+						if ($this->debito->Exportable) $Doc->ExportField($this->debito);
+						if ($this->credito->Exportable) $Doc->ExportField($this->credito);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
-						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->fecha_insercio->Exportable) $Doc->ExportField($this->fecha_insercio);
 					} else {
-						if ($this->idpersona->Exportable) $Doc->ExportField($this->idpersona);
-						if ($this->tipo_persona->Exportable) $Doc->ExportField($this->tipo_persona);
+						if ($this->idcuenta->Exportable) $Doc->ExportField($this->idcuenta);
+						if ($this->idbanco->Exportable) $Doc->ExportField($this->idbanco);
+						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
+						if ($this->idmoneda->Exportable) $Doc->ExportField($this->idmoneda);
+						if ($this->numero->Exportable) $Doc->ExportField($this->numero);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
-						if ($this->apellido->Exportable) $Doc->ExportField($this->apellido);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->cui->Exportable) $Doc->ExportField($this->cui);
-						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
-						if ($this->fecha_nacimiento->Exportable) $Doc->ExportField($this->fecha_nacimiento);
-						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
-						if ($this->sexo->Exportable) $Doc->ExportField($this->sexo);
+						if ($this->saldo->Exportable) $Doc->ExportField($this->saldo);
+						if ($this->debito->Exportable) $Doc->ExportField($this->debito);
+						if ($this->credito->Exportable) $Doc->ExportField($this->credito);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
-						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->fecha_insercio->Exportable) $Doc->ExportField($this->fecha_insercio);
 					}
 					$Doc->EndExportRow();
 				}

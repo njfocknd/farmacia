@@ -415,15 +415,11 @@
 	</global>
 	<project><phrase id="bodytitle" value="Farmacia"/>
 <phrase id="footertext" value="Nexthor 2015. Proyecto Seminario"/>
-<menu id="24"><phrase id="menutext" value="aplicacion movimiento"/>
+<menu id="64"><phrase id="menutext" value="cuenta"/>
 </menu>
-<menu id="26"><phrase id="menutext" value="movimiento"/>
+<menu id="65"><phrase id="menutext" value="moneda"/>
 </menu>
-<menu id="27"><phrase id="menutext" value="pago cliente"/>
-</menu>
-<menu id="28"><phrase id="menutext" value="pago proveedor"/>
-</menu>
-<menu id="30"><phrase id="menutext" value="proveedor"/>
+<menu id="62"><phrase id="menutext" value="Documentos"/>
 </menu>
 <menu id="23"><phrase id="menutext" value="Documento Interno"/>
 </menu>
@@ -436,6 +432,10 @@
 <menu id="16"><phrase id="menutext" value="Documento"/>
 </menu>
 <menu id="19"><phrase id="menutext" value="Detalle Documento"/>
+</menu>
+<menu id="24"><phrase id="menutext" value="aplicacion movimiento"/>
+</menu>
+<menu id="26"><phrase id="menutext" value="movimiento"/>
 </menu>
 <menu id="10"><phrase id="menutext" value="Catálogos"/>
 </menu>
@@ -471,9 +471,19 @@
 </menu>
 <menu id="17"><phrase id="menutext" value="Serie de Documento"/>
 </menu>
+<menu id="63"><phrase id="menutext" value="banco"/>
+</menu>
 <menu id="29"><phrase id="menutext" value="Personas"/>
 </menu>
 <menu id="25"><phrase id="menutext" value="Cliente"/>
+</menu>
+<menu id="30"><phrase id="menutext" value="proveedor"/>
+</menu>
+<menu id="60"><phrase id="menutext" value="Pagos"/>
+</menu>
+<menu id="27"><phrase id="menutext" value="Pagos de Clientes"/>
+</menu>
+<menu id="28"><phrase id="menutext" value="Pagos a Proveedores"/>
 </menu>
 <table id="departamento"><phrase id="tblcaption" value="Departamento"/>
 <field id="iddepartamento"><phrase id="fldcaption" value="iddepartamento"/>
@@ -1003,44 +1013,44 @@
 <field id="monto_aplicado"><phrase id="fldcaption" value="monto aplicado"/>
 </field>
 </table>
-<table id="pago_cliente"><phrase id="tblcaption" value="pago cliente"/>
+<table id="pago_cliente"><phrase id="tblcaption" value="Pago de Clientes"/>
 <field id="idpago_cliente"><phrase id="fldcaption" value="idpago cliente"/>
 </field>
-<field id="idcliente"><phrase id="fldcaption" value="idcliente"/>
+<field id="idcliente"><phrase id="fldcaption" value="Cliente"/>
 </field>
-<field id="monto"><phrase id="fldcaption" value="monto"/>
+<field id="monto"><phrase id="fldcaption" value="Monto"/>
 </field>
-<field id="fecha"><phrase id="fldcaption" value="fecha"/>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="fecha_insercion"><phrase id="fldcaption" value="fecha insercion"/>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
 </field>
-<field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
+<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
 </field>
 </table>
-<table id="pago_proveedor"><phrase id="tblcaption" value="pago proveedor"/>
+<table id="pago_proveedor"><phrase id="tblcaption" value="Pagos a Proveedor"/>
 <field id="idpago_proveedor"><phrase id="fldcaption" value="idpago proveedor"/>
 </field>
-<field id="idproveedor"><phrase id="fldcaption" value="idproveedor"/>
+<field id="idproveedor"><phrase id="fldcaption" value="Proveedor"/>
 </field>
-<field id="monto"><phrase id="fldcaption" value="monto"/>
+<field id="monto"><phrase id="fldcaption" value="Monto"/>
 </field>
-<field id="fecha"><phrase id="fldcaption" value="fecha"/>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
 </field>
-<field id="estado"><phrase id="fldcaption" value="estado"/>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
 <phrase id="fldtagvalue1" value="Activo"/>
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="fecha_insercion"><phrase id="fldcaption" value="fecha insercion"/>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
-<field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
+<field id="idsucursal"><phrase id="fldcaption" value="Sucursal"/>
 </field>
 </table>
 <table id="persona"><phrase id="tblcaption" value="Persona"/>
@@ -1081,26 +1091,102 @@
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
 </field>
 </table>
-<table id="proveedor"><phrase id="tblcaption" value="proveedor"/>
+<table id="proveedor"><phrase id="tblcaption" value="Pagos de Clientes"/>
 <field id="idproveedor"><phrase id="fldcaption" value="idproveedor"/>
 </field>
-<field id="idpersona"><phrase id="fldcaption" value="idpersona"/>
+<field id="idpersona"><phrase id="fldcaption" value="Persona"/>
 </field>
-<field id="codigo"><phrase id="fldcaption" value="codigo"/>
+<field id="codigo"><phrase id="fldcaption" value="Código"/>
 </field>
-<field id="nit"><phrase id="fldcaption" value="nit"/>
+<field id="nit"><phrase id="fldcaption" value="Nit"/>
 </field>
-<field id="nombre_factura"><phrase id="fldcaption" value="nombre factura"/>
+<field id="nombre_factura"><phrase id="fldcaption" value="Nombre Facturación"/>
 </field>
-<field id="direccion_factura"><phrase id="fldcaption" value="direccion factura"/>
+<field id="direccion_factura"><phrase id="fldcaption" value="Dirección Facturación"/>
+</field>
+<field id="debito"><phrase id="fldcaption" value="Monto Débito"/>
+</field>
+<field id="credito"><phrase id="fldcaption" value="Monto Crédito"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
+</field>
+<field id="_email"><phrase id="fldcaption" value="Email"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+</table>
+<table id="banco"><phrase id="tblcaption" value="Banco"/>
+<field id="idbanco"><phrase id="fldcaption" value="idbanco"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="Nombre"/>
+</field>
+<field id="acronimo"><phrase id="fldcaption" value="Acrónimo"/>
+</field>
+<field id="telefono"><phrase id="fldcaption" value="Teléfono"/>
+</field>
+<field id="url"><phrase id="fldcaption" value="Dirección Web"/>
+</field>
+<field id="idpais"><phrase id="fldcaption" value="País"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+</table>
+<table id="cuenta"><phrase id="tblcaption" value="Cuenta"/>
+<field id="idcuenta"><phrase id="fldcaption" value="idcuenta"/>
+</field>
+<field id="idbanco"><phrase id="fldcaption" value="idbanco"/>
+</field>
+<field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
+</field>
+<field id="idmoneda"><phrase id="fldcaption" value="idmoneda"/>
+</field>
+<field id="numero"><phrase id="fldcaption" value="numero"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+</field>
+<field id="saldo"><phrase id="fldcaption" value="saldo"/>
 </field>
 <field id="debito"><phrase id="fldcaption" value="debito"/>
 </field>
 <field id="credito"><phrase id="fldcaption" value="credito"/>
 </field>
-<field id="fecha_ingreso"><phrase id="fldcaption" value="fecha ingreso"/>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="_email"><phrase id="fldcaption" value="email"/>
+<field id="fecha_insercio"><phrase id="fldcaption" value="fecha insercio"/>
+</field>
+</table>
+<table id="moneda"><phrase id="tblcaption" value="moneda"/>
+<field id="idmoneda"><phrase id="fldcaption" value="idmoneda"/>
+</field>
+<field id="nombre"><phrase id="fldcaption" value="nombre"/>
+</field>
+<field id="simbolo"><phrase id="fldcaption" value="simbolo"/>
+</field>
+<field id="idpais"><phrase id="fldcaption" value="idpais"/>
+</field>
+<field id="tasa_cambio"><phrase id="fldcaption" value="tasa cambio"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="fecha insercion"/>
 </field>
 </table>
 </project>

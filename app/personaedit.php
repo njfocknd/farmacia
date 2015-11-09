@@ -8,6 +8,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "clientegridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "proveedorgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -247,6 +248,14 @@ class cpersona_edit extends cpersona {
 			if (@$_POST["grid"] == "fclientegrid") {
 				if (!isset($GLOBALS["cliente_grid"])) $GLOBALS["cliente_grid"] = new ccliente_grid;
 				$GLOBALS["cliente_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'proveedor'
+			if (@$_POST["grid"] == "fproveedorgrid") {
+				if (!isset($GLOBALS["proveedor_grid"])) $GLOBALS["proveedor_grid"] = new cproveedor_grid;
+				$GLOBALS["proveedor_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -929,6 +938,10 @@ class cpersona_edit extends cpersona {
 			if (!isset($GLOBALS["cliente_grid"])) $GLOBALS["cliente_grid"] = new ccliente_grid(); // get detail page object
 			$GLOBALS["cliente_grid"]->ValidateGridForm();
 		}
+		if (in_array("proveedor", $DetailTblVar) && $GLOBALS["proveedor"]->DetailEdit) {
+			if (!isset($GLOBALS["proveedor_grid"])) $GLOBALS["proveedor_grid"] = new cproveedor_grid(); // get detail page object
+			$GLOBALS["proveedor_grid"]->ValidateGridForm();
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -1018,6 +1031,10 @@ class cpersona_edit extends cpersona {
 						if (!isset($GLOBALS["cliente_grid"])) $GLOBALS["cliente_grid"] = new ccliente_grid(); // Get detail page object
 						$EditRow = $GLOBALS["cliente_grid"]->GridUpdate();
 					}
+					if (in_array("proveedor", $DetailTblVar) && $GLOBALS["proveedor"]->DetailEdit) {
+						if (!isset($GLOBALS["proveedor_grid"])) $GLOBALS["proveedor_grid"] = new cproveedor_grid(); // Get detail page object
+						$EditRow = $GLOBALS["proveedor_grid"]->GridUpdate();
+					}
 				}
 
 				// Commit/Rollback transaction
@@ -1074,6 +1091,21 @@ class cpersona_edit extends cpersona {
 					$GLOBALS["cliente_grid"]->idpersona->FldIsDetailKey = TRUE;
 					$GLOBALS["cliente_grid"]->idpersona->CurrentValue = $this->idpersona->CurrentValue;
 					$GLOBALS["cliente_grid"]->idpersona->setSessionValue($GLOBALS["cliente_grid"]->idpersona->CurrentValue);
+				}
+			}
+			if (in_array("proveedor", $DetailTblVar)) {
+				if (!isset($GLOBALS["proveedor_grid"]))
+					$GLOBALS["proveedor_grid"] = new cproveedor_grid;
+				if ($GLOBALS["proveedor_grid"]->DetailEdit) {
+					$GLOBALS["proveedor_grid"]->CurrentMode = "edit";
+					$GLOBALS["proveedor_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["proveedor_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["proveedor_grid"]->setStartRecordNumber(1);
+					$GLOBALS["proveedor_grid"]->idpersona->FldIsDetailKey = TRUE;
+					$GLOBALS["proveedor_grid"]->idpersona->CurrentValue = $this->idpersona->CurrentValue;
+					$GLOBALS["proveedor_grid"]->idpersona->setSessionValue($GLOBALS["proveedor_grid"]->idpersona->CurrentValue);
 				}
 			}
 		}
@@ -1488,6 +1520,14 @@ if (is_array($persona->estado->EditValue)) {
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("cliente", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "clientegrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("proveedor", explode(",", $persona->getCurrentDetailTable())) && $proveedor->DetailEdit) {
+?>
+<?php if ($persona->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("proveedor", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "proveedorgrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

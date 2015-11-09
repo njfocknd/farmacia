@@ -6,9 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "pago_clientegridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cuentainfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "bancoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -16,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$cliente_list = NULL; // Initialize page object first
+$cuenta_list = NULL; // Initialize page object first
 
-class ccliente_list extends ccliente {
+class ccuenta_list extends ccuenta {
 
 	// Page ID
 	var $PageID = 'list';
@@ -27,13 +26,13 @@ class ccliente_list extends ccliente {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'cliente';
+	var $TableName = 'cuenta';
 
 	// Page object name
-	var $PageObjName = 'cliente_list';
+	var $PageObjName = 'cuenta_list';
 
 	// Grid form hidden field names
-	var $FormName = 'fclientelist';
+	var $FormName = 'fcuentalist';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -237,10 +236,10 @@ class ccliente_list extends ccliente {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (cliente)
-		if (!isset($GLOBALS["cliente"]) || get_class($GLOBALS["cliente"]) == "ccliente") {
-			$GLOBALS["cliente"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["cliente"];
+		// Table object (cuenta)
+		if (!isset($GLOBALS["cuenta"]) || get_class($GLOBALS["cuenta"]) == "ccuenta") {
+			$GLOBALS["cuenta"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["cuenta"];
 		}
 
 		// Initialize URLs
@@ -251,15 +250,15 @@ class ccliente_list extends ccliente {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "clienteadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
+		$this->AddUrl = "cuentaadd.php";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
-		$this->MultiDeleteUrl = "clientedelete.php";
-		$this->MultiUpdateUrl = "clienteupdate.php";
+		$this->MultiDeleteUrl = "cuentadelete.php";
+		$this->MultiUpdateUrl = "cuentaupdate.php";
 
-		// Table object (persona)
-		if (!isset($GLOBALS['persona'])) $GLOBALS['persona'] = new cpersona();
+		// Table object (banco)
+		if (!isset($GLOBALS['banco'])) $GLOBALS['banco'] = new cbanco();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -267,7 +266,7 @@ class ccliente_list extends ccliente {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'cliente', TRUE);
+			define("EW_TABLE_NAME", 'cuenta', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -326,14 +325,6 @@ class ccliente_list extends ccliente {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'pago_cliente'
-			if (@$_POST["grid"] == "fpago_clientegrid") {
-				if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
-				$GLOBALS["pago_cliente_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -370,13 +361,13 @@ class ccliente_list extends ccliente {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $cliente;
+		global $EW_EXPORT, $cuenta;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($cliente);
+				$doc = new $class($cuenta);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -553,17 +544,17 @@ class ccliente_list extends ccliente {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "persona") {
-			global $persona;
-			$rsmaster = $persona->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "banco") {
+			global $banco;
+			$rsmaster = $banco->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("personalist.php"); // Return to master page
+				$this->Page_Terminate("bancolist.php"); // Return to master page
 			} else {
-				$persona->LoadListRowValues($rsmaster);
-				$persona->RowType = EW_ROWTYPE_MASTER; // Master row
-				$persona->RenderListRow();
+				$banco->LoadListRowValues($rsmaster);
+				$banco->RowType = EW_ROWTYPE_MASTER; // Master row
+				$banco->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -616,8 +607,8 @@ class ccliente_list extends ccliente {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idcliente->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idcliente->FormValue))
+			$this->idcuenta->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idcuenta->FormValue))
 				return FALSE;
 		}
 		return TRUE;
@@ -626,11 +617,8 @@ class ccliente_list extends ccliente {
 	// Return basic search SQL
 	function BasicSearchSQL($arKeywords, $type) {
 		$sWhere = "";
-		$this->BuildBasicSearchSQL($sWhere, $this->codigo, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->nit, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->nombre_factura, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->direccion_factura, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->_email, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->numero, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->nombre, $arKeywords, $type);
 		return $sWhere;
 	}
 
@@ -783,10 +771,17 @@ class ccliente_list extends ccliente {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idpersona); // idpersona
-			$this->UpdateSort($this->nit); // nit
-			$this->UpdateSort($this->nombre_factura); // nombre_factura
-			$this->UpdateSort($this->direccion_factura); // direccion_factura
+			$this->UpdateSort($this->idcuenta); // idcuenta
+			$this->UpdateSort($this->idbanco); // idbanco
+			$this->UpdateSort($this->idsucursal); // idsucursal
+			$this->UpdateSort($this->idmoneda); // idmoneda
+			$this->UpdateSort($this->numero); // numero
+			$this->UpdateSort($this->nombre); // nombre
+			$this->UpdateSort($this->saldo); // saldo
+			$this->UpdateSort($this->debito); // debito
+			$this->UpdateSort($this->credito); // credito
+			$this->UpdateSort($this->estado); // estado
+			$this->UpdateSort($this->fecha_insercio); // fecha_insercio
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -820,17 +815,24 @@ class ccliente_list extends ccliente {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->idpersona->setSessionValue("");
+				$this->idbanco->setSessionValue("");
 			}
 
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idpersona->setSort("");
-				$this->nit->setSort("");
-				$this->nombre_factura->setSort("");
-				$this->direccion_factura->setSort("");
+				$this->idcuenta->setSort("");
+				$this->idbanco->setSort("");
+				$this->idsucursal->setSort("");
+				$this->idmoneda->setSort("");
+				$this->numero->setSort("");
+				$this->nombre->setSort("");
+				$this->saldo->setSort("");
+				$this->debito->setSort("");
+				$this->credito->setSort("");
+				$this->estado->setSort("");
+				$this->fecha_insercio->setSort("");
 			}
 
 			// Reset start position
@@ -860,23 +862,6 @@ class ccliente_list extends ccliente {
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = TRUE;
 		$item->OnLeft = FALSE;
-
-		// "detail_pago_cliente"
-		$item = &$this->ListOptions->Add("detail_pago_cliente");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = TRUE && !$this->ShowMultipleDetails;
-		$item->OnLeft = FALSE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$this->ListOptions->Add("details");
-			$item->CssStyle = "white-space: nowrap;";
-			$item->Visible = $this->ShowMultipleDetails;
-			$item->OnLeft = FALSE;
-			$item->ShowInButtonGroup = FALSE;
-		}
 
 		// "checkbox"
 		$item = &$this->ListOptions->Add("checkbox");
@@ -921,61 +906,10 @@ class ccliente_list extends ccliente {
 		} else {
 			$oListOpt->Body = "";
 		}
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_pago_cliente"
-		$oListOpt = &$this->ListOptions->Items["detail_pago_cliente"];
-		if (TRUE) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("pago_cliente", "TblCaption");
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("pago_clientelist.php?" . EW_TABLE_SHOW_MASTER . "=cliente&fk_idcliente=" . strval($this->idcliente->CurrentValue) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["pago_cliente_grid"]->DetailView) {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=pago_cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "pago_cliente";
-			}
-			if ($GLOBALS["pago_cliente_grid"]->DetailEdit) {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=pago_cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "pago_cliente";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$this->ListOptions->Items["details"];
-			$oListOpt->Body = $body;
-		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
-		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->idcliente->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
+		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->idcuenta->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
 		$this->RenderListOptionsExt();
 
 		// Call ListOptions_Rendered event
@@ -992,30 +926,6 @@ class ccliente_list extends ccliente {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "");
-		$option = $options["detail"];
-		$DetailTableLink = "";
-		$item = &$option->Add("detailadd_pago_cliente");
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=pago_cliente") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["pago_cliente"]->TableCaption() . "</a>";
-		$item->Visible = ($GLOBALS["pago_cliente"]->DetailAdd);
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "pago_cliente";
-		}
-
-		// Add multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$option->Add("detailsadd");
-			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink) . "\">" . $Language->Phrase("AddMasterDetailLink") . "</a>";
-			$item->Visible = ($DetailTableLink <> "");
-
-			// Hide single master/detail items
-			$ar = explode(",", $DetailTableLink);
-			$cnt = count($ar);
-			for ($i = 0; $i < $cnt; $i++) {
-				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
-					$item->Visible = FALSE;
-			}
-		}
 		$option = $options["action"];
 
 		// Set up options default
@@ -1042,7 +952,7 @@ class ccliente_list extends ccliente {
 
 				// Add custom action
 				$item = &$option->Add("custom_" . $action);
-				$item->Body = "<a class=\"ewAction ewCustomAction\" href=\"\" onclick=\"ew_SubmitSelected(document.fclientelist, '" . ew_CurrentUrl() . "', null, '" . $action . "');return false;\">" . $name . "</a>";
+				$item->Body = "<a class=\"ewAction ewCustomAction\" href=\"\" onclick=\"ew_SubmitSelected(document.fcuentalist, '" . ew_CurrentUrl() . "', null, '" . $action . "');return false;\">" . $name . "</a>";
 			}
 
 			// Hide grid edit, multi-delete and multi-update
@@ -1112,7 +1022,7 @@ class ccliente_list extends ccliente {
 		// Search button
 		$item = &$this->SearchOptions->Add("searchtoggle");
 		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
-		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fclientelistsrch\">" . $Language->Phrase("SearchBtn") . "</button>";
+		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fcuentalistsrch\">" . $Language->Phrase("SearchBtn") . "</button>";
 		$item->Visible = TRUE;
 
 		// Show all button
@@ -1233,34 +1143,34 @@ class ccliente_list extends ccliente {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idcliente->setDbValue($rs->fields('idcliente'));
-		$this->idpersona->setDbValue($rs->fields('idpersona'));
-		$this->codigo->setDbValue($rs->fields('codigo'));
-		$this->nit->setDbValue($rs->fields('nit'));
-		$this->nombre_factura->setDbValue($rs->fields('nombre_factura'));
-		$this->direccion_factura->setDbValue($rs->fields('direccion_factura'));
+		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
+		$this->idbanco->setDbValue($rs->fields('idbanco'));
+		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
+		$this->numero->setDbValue($rs->fields('numero'));
+		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->saldo->setDbValue($rs->fields('saldo'));
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
-		$this->_email->setDbValue($rs->fields('email'));
-		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercio->setDbValue($rs->fields('fecha_insercio'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idcliente->DbValue = $row['idcliente'];
-		$this->idpersona->DbValue = $row['idpersona'];
-		$this->codigo->DbValue = $row['codigo'];
-		$this->nit->DbValue = $row['nit'];
-		$this->nombre_factura->DbValue = $row['nombre_factura'];
-		$this->direccion_factura->DbValue = $row['direccion_factura'];
+		$this->idcuenta->DbValue = $row['idcuenta'];
+		$this->idbanco->DbValue = $row['idbanco'];
+		$this->idsucursal->DbValue = $row['idsucursal'];
+		$this->idmoneda->DbValue = $row['idmoneda'];
+		$this->numero->DbValue = $row['numero'];
+		$this->nombre->DbValue = $row['nombre'];
+		$this->saldo->DbValue = $row['saldo'];
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
-		$this->_email->DbValue = $row['email'];
-		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercio->DbValue = $row['fecha_insercio'];
 	}
 
 	// Load old record
@@ -1268,8 +1178,8 @@ class ccliente_list extends ccliente {
 
 		// Load key values from Session
 		$bValidKey = TRUE;
-		if (strval($this->getKey("idcliente")) <> "")
-			$this->idcliente->CurrentValue = $this->getKey("idcliente"); // idcliente
+		if (strval($this->getKey("idcuenta")) <> "")
+			$this->idcuenta->CurrentValue = $this->getKey("idcuenta"); // idcuenta
 		else
 			$bValidKey = FALSE;
 
@@ -1298,72 +1208,63 @@ class ccliente_list extends ccliente {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
+		// Convert decimal values if posted back
+		if ($this->saldo->FormValue == $this->saldo->CurrentValue && is_numeric(ew_StrToFloat($this->saldo->CurrentValue)))
+			$this->saldo->CurrentValue = ew_StrToFloat($this->saldo->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
+			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
+			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idcliente
-		// idpersona
-		// codigo
-		// nit
-		// nombre_factura
-		// direccion_factura
+		// idcuenta
+		// idbanco
+		// idsucursal
+		// idmoneda
+		// numero
+		// nombre
+		// saldo
 		// debito
 		// credito
-		// email
-		// fecha_insercion
 		// estado
+		// fecha_insercio
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idcliente
-			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
-			$this->idcliente->ViewCustomAttributes = "";
+			// idcuenta
+			$this->idcuenta->ViewValue = $this->idcuenta->CurrentValue;
+			$this->idcuenta->ViewCustomAttributes = "";
 
-			// idpersona
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// idbanco
+			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			$this->idbanco->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-				}
-			} else {
-				$this->idpersona->ViewValue = NULL;
-			}
-			$this->idpersona->ViewCustomAttributes = "";
+			// idsucursal
+			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			$this->idsucursal->ViewCustomAttributes = "";
 
-			// codigo
-			$this->codigo->ViewValue = $this->codigo->CurrentValue;
-			$this->codigo->ViewCustomAttributes = "";
+			// idmoneda
+			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			$this->idmoneda->ViewCustomAttributes = "";
 
-			// nit
-			$this->nit->ViewValue = $this->nit->CurrentValue;
-			$this->nit->ViewCustomAttributes = "";
+			// numero
+			$this->numero->ViewValue = $this->numero->CurrentValue;
+			$this->numero->ViewCustomAttributes = "";
 
-			// nombre_factura
-			$this->nombre_factura->ViewValue = $this->nombre_factura->CurrentValue;
-			$this->nombre_factura->ViewCustomAttributes = "";
+			// nombre
+			$this->nombre->ViewValue = $this->nombre->CurrentValue;
+			$this->nombre->ViewCustomAttributes = "";
 
-			// direccion_factura
-			$this->direccion_factura->ViewValue = $this->direccion_factura->CurrentValue;
-			$this->direccion_factura->ViewCustomAttributes = "";
+			// saldo
+			$this->saldo->ViewValue = $this->saldo->CurrentValue;
+			$this->saldo->ViewCustomAttributes = "";
 
 			// debito
 			$this->debito->ViewValue = $this->debito->CurrentValue;
@@ -1372,15 +1273,6 @@ class ccliente_list extends ccliente {
 			// credito
 			$this->credito->ViewValue = $this->credito->CurrentValue;
 			$this->credito->ViewCustomAttributes = "";
-
-			// email
-			$this->_email->ViewValue = $this->_email->CurrentValue;
-			$this->_email->ViewCustomAttributes = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
-			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
-			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1399,25 +1291,65 @@ class ccliente_list extends ccliente {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpersona
-			$this->idpersona->LinkCustomAttributes = "";
-			$this->idpersona->HrefValue = "";
-			$this->idpersona->TooltipValue = "";
+			// fecha_insercio
+			$this->fecha_insercio->ViewValue = $this->fecha_insercio->CurrentValue;
+			$this->fecha_insercio->ViewValue = ew_FormatDateTime($this->fecha_insercio->ViewValue, 7);
+			$this->fecha_insercio->ViewCustomAttributes = "";
 
-			// nit
-			$this->nit->LinkCustomAttributes = "";
-			$this->nit->HrefValue = "";
-			$this->nit->TooltipValue = "";
+			// idcuenta
+			$this->idcuenta->LinkCustomAttributes = "";
+			$this->idcuenta->HrefValue = "";
+			$this->idcuenta->TooltipValue = "";
 
-			// nombre_factura
-			$this->nombre_factura->LinkCustomAttributes = "";
-			$this->nombre_factura->HrefValue = "";
-			$this->nombre_factura->TooltipValue = "";
+			// idbanco
+			$this->idbanco->LinkCustomAttributes = "";
+			$this->idbanco->HrefValue = "";
+			$this->idbanco->TooltipValue = "";
 
-			// direccion_factura
-			$this->direccion_factura->LinkCustomAttributes = "";
-			$this->direccion_factura->HrefValue = "";
-			$this->direccion_factura->TooltipValue = "";
+			// idsucursal
+			$this->idsucursal->LinkCustomAttributes = "";
+			$this->idsucursal->HrefValue = "";
+			$this->idsucursal->TooltipValue = "";
+
+			// idmoneda
+			$this->idmoneda->LinkCustomAttributes = "";
+			$this->idmoneda->HrefValue = "";
+			$this->idmoneda->TooltipValue = "";
+
+			// numero
+			$this->numero->LinkCustomAttributes = "";
+			$this->numero->HrefValue = "";
+			$this->numero->TooltipValue = "";
+
+			// nombre
+			$this->nombre->LinkCustomAttributes = "";
+			$this->nombre->HrefValue = "";
+			$this->nombre->TooltipValue = "";
+
+			// saldo
+			$this->saldo->LinkCustomAttributes = "";
+			$this->saldo->HrefValue = "";
+			$this->saldo->TooltipValue = "";
+
+			// debito
+			$this->debito->LinkCustomAttributes = "";
+			$this->debito->HrefValue = "";
+			$this->debito->TooltipValue = "";
+
+			// credito
+			$this->credito->LinkCustomAttributes = "";
+			$this->credito->HrefValue = "";
+			$this->credito->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
+
+			// fecha_insercio
+			$this->fecha_insercio->LinkCustomAttributes = "";
+			$this->fecha_insercio->HrefValue = "";
+			$this->fecha_insercio->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1437,13 +1369,13 @@ class ccliente_list extends ccliente {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "persona") {
+			if ($sMasterTblVar == "banco") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_idpersona"] <> "") {
-					$GLOBALS["persona"]->idpersona->setQueryStringValue($_GET["fk_idpersona"]);
-					$this->idpersona->setQueryStringValue($GLOBALS["persona"]->idpersona->QueryStringValue);
-					$this->idpersona->setSessionValue($this->idpersona->QueryStringValue);
-					if (!is_numeric($GLOBALS["persona"]->idpersona->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idbanco"] <> "") {
+					$GLOBALS["banco"]->idbanco->setQueryStringValue($_GET["fk_idbanco"]);
+					$this->idbanco->setQueryStringValue($GLOBALS["banco"]->idbanco->QueryStringValue);
+					$this->idbanco->setSessionValue($this->idbanco->QueryStringValue);
+					if (!is_numeric($GLOBALS["banco"]->idbanco->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -1459,8 +1391,8 @@ class ccliente_list extends ccliente {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "persona") {
-				if ($this->idpersona->QueryStringValue == "") $this->idpersona->setSessionValue("");
+			if ($sMasterTblVar <> "banco") {
+				if ($this->idbanco->QueryStringValue == "") $this->idbanco->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -1600,34 +1532,34 @@ class ccliente_list extends ccliente {
 <?php
 
 // Create page object
-if (!isset($cliente_list)) $cliente_list = new ccliente_list();
+if (!isset($cuenta_list)) $cuenta_list = new ccuenta_list();
 
 // Page init
-$cliente_list->Page_Init();
+$cuenta_list->Page_Init();
 
 // Page main
-$cliente_list->Page_Main();
+$cuenta_list->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$cliente_list->Page_Render();
+$cuenta_list->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var cliente_list = new ew_Page("cliente_list");
-cliente_list.PageID = "list"; // Page ID
-var EW_PAGE_ID = cliente_list.PageID; // For backward compatibility
+var cuenta_list = new ew_Page("cuenta_list");
+cuenta_list.PageID = "list"; // Page ID
+var EW_PAGE_ID = cuenta_list.PageID; // For backward compatibility
 
 // Form object
-var fclientelist = new ew_Form("fclientelist");
-fclientelist.FormKeyCountName = '<?php echo $cliente_list->FormKeyCountName ?>';
+var fcuentalist = new ew_Form("fcuentalist");
+fcuentalist.FormKeyCountName = '<?php echo $cuenta_list->FormKeyCountName ?>';
 
 // Form_CustomValidate event
-fclientelist.Form_CustomValidate = 
+fcuentalist.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1636,16 +1568,15 @@ fclientelist.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fclientelist.ValidateRequired = true;
+fcuentalist.ValidateRequired = true;
 <?php } else { ?>
-fclientelist.ValidateRequired = false; 
+fcuentalist.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fclientelist.Lists["x_idpersona"] = {"LinkField":"x_idpersona","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","x_apellido",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-
 // Form object for search
-var fclientelistsrch = new ew_Form("fclientelistsrch");
+
+var fcuentalistsrch = new ew_Form("fcuentalistsrch");
 </script>
 <script type="text/javascript">
 
@@ -1653,26 +1584,26 @@ var fclientelistsrch = new ew_Form("fclientelistsrch");
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php if ($cliente_list->TotalRecs > 0 && $cliente->getCurrentMasterTable() == "" && $cliente_list->ExportOptions->Visible()) { ?>
-<?php $cliente_list->ExportOptions->Render("body") ?>
+<?php if ($cuenta_list->TotalRecs > 0 && $cuenta->getCurrentMasterTable() == "" && $cuenta_list->ExportOptions->Visible()) { ?>
+<?php $cuenta_list->ExportOptions->Render("body") ?>
 <?php } ?>
-<?php if ($cliente_list->SearchOptions->Visible()) { ?>
-<?php $cliente_list->SearchOptions->Render("body") ?>
+<?php if ($cuenta_list->SearchOptions->Visible()) { ?>
+<?php $cuenta_list->SearchOptions->Render("body") ?>
 <?php } ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php if (($cliente->Export == "") || (EW_EXPORT_MASTER_RECORD && $cliente->Export == "print")) { ?>
+<?php if (($cuenta->Export == "") || (EW_EXPORT_MASTER_RECORD && $cuenta->Export == "print")) { ?>
 <?php
-$gsMasterReturnUrl = "personalist.php";
-if ($cliente_list->DbMasterFilter <> "" && $cliente->getCurrentMasterTable() == "persona") {
-	if ($cliente_list->MasterRecordExists) {
-		if ($cliente->getCurrentMasterTable() == $cliente->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+$gsMasterReturnUrl = "bancolist.php";
+if ($cuenta_list->DbMasterFilter <> "" && $cuenta->getCurrentMasterTable() == "banco") {
+	if ($cuenta_list->MasterRecordExists) {
+		if ($cuenta->getCurrentMasterTable() == $cuenta->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
 ?>
-<?php if ($cliente_list->ExportOptions->Visible()) { ?>
-<div class="ewListExportOptions"><?php $cliente_list->ExportOptions->Render("body") ?></div>
+<?php if ($cuenta_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $cuenta_list->ExportOptions->Render("body") ?></div>
 <?php } ?>
-<?php include_once $EW_RELATIVE_PATH . "personamaster.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "bancomaster.php" ?>
 <?php
 	}
 }
@@ -1681,46 +1612,46 @@ if ($cliente_list->DbMasterFilter <> "" && $cliente->getCurrentMasterTable() == 
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
-		$cliente_list->TotalRecs = $cliente->SelectRecordCount();
+		$cuenta_list->TotalRecs = $cuenta->SelectRecordCount();
 	} else {
-		if ($cliente_list->Recordset = $cliente_list->LoadRecordset())
-			$cliente_list->TotalRecs = $cliente_list->Recordset->RecordCount();
+		if ($cuenta_list->Recordset = $cuenta_list->LoadRecordset())
+			$cuenta_list->TotalRecs = $cuenta_list->Recordset->RecordCount();
 	}
-	$cliente_list->StartRec = 1;
-	if ($cliente_list->DisplayRecs <= 0 || ($cliente->Export <> "" && $cliente->ExportAll)) // Display all records
-		$cliente_list->DisplayRecs = $cliente_list->TotalRecs;
-	if (!($cliente->Export <> "" && $cliente->ExportAll))
-		$cliente_list->SetUpStartRec(); // Set up start record position
+	$cuenta_list->StartRec = 1;
+	if ($cuenta_list->DisplayRecs <= 0 || ($cuenta->Export <> "" && $cuenta->ExportAll)) // Display all records
+		$cuenta_list->DisplayRecs = $cuenta_list->TotalRecs;
+	if (!($cuenta->Export <> "" && $cuenta->ExportAll))
+		$cuenta_list->SetUpStartRec(); // Set up start record position
 	if ($bSelectLimit)
-		$cliente_list->Recordset = $cliente_list->LoadRecordset($cliente_list->StartRec-1, $cliente_list->DisplayRecs);
+		$cuenta_list->Recordset = $cuenta_list->LoadRecordset($cuenta_list->StartRec-1, $cuenta_list->DisplayRecs);
 
 	// Set no record found message
-	if ($cliente->CurrentAction == "" && $cliente_list->TotalRecs == 0) {
-		if ($cliente_list->SearchWhere == "0=101")
-			$cliente_list->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
+	if ($cuenta->CurrentAction == "" && $cuenta_list->TotalRecs == 0) {
+		if ($cuenta_list->SearchWhere == "0=101")
+			$cuenta_list->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else
-			$cliente_list->setWarningMessage($Language->Phrase("NoRecord"));
+			$cuenta_list->setWarningMessage($Language->Phrase("NoRecord"));
 	}
-$cliente_list->RenderOtherOptions();
+$cuenta_list->RenderOtherOptions();
 ?>
-<?php if ($cliente->Export == "" && $cliente->CurrentAction == "") { ?>
-<form name="fclientelistsrch" id="fclientelistsrch" class="form-inline ewForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($cliente_list->SearchWhere <> "") ? " in" : " in"; ?>
-<div id="fclientelistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
+<?php if ($cuenta->Export == "" && $cuenta->CurrentAction == "") { ?>
+<form name="fcuentalistsrch" id="fcuentalistsrch" class="form-inline ewForm" action="<?php echo ew_CurrentPage() ?>">
+<?php $SearchPanelClass = ($cuenta_list->SearchWhere <> "") ? " in" : " in"; ?>
+<div id="fcuentalistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
 <input type="hidden" name="cmd" value="search">
-<input type="hidden" name="t" value="cliente">
+<input type="hidden" name="t" value="cuenta">
 	<div class="ewBasicSearch">
 <div id="xsr_1" class="ewRow">
 	<div class="ewQuickSearch input-group">
-	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($cliente_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
-	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($cliente_list->BasicSearch->getType()) ?>">
+	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($cuenta_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
+	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($cuenta_list->BasicSearch->getType()) ?>">
 	<div class="input-group-btn">
-		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $cliente_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
+		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $cuenta_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
 		<ul class="dropdown-menu pull-right" role="menu">
-			<li<?php if ($cliente_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
-			<li<?php if ($cliente_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
-			<li<?php if ($cliente_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
-			<li<?php if ($cliente_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
+			<li<?php if ($cuenta_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
+			<li<?php if ($cuenta_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
+			<li<?php if ($cuenta_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
+			<li<?php if ($cuenta_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
 		</ul>
 	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("QuickSearchBtn") ?></button>
 	</div>
@@ -1730,172 +1661,277 @@ $cliente_list->RenderOtherOptions();
 </div>
 </form>
 <?php } ?>
-<?php $cliente_list->ShowPageHeader(); ?>
+<?php $cuenta_list->ShowPageHeader(); ?>
 <?php
-$cliente_list->ShowMessage();
+$cuenta_list->ShowMessage();
 ?>
-<?php if ($cliente_list->TotalRecs > 0 || $cliente->CurrentAction <> "") { ?>
+<?php if ($cuenta_list->TotalRecs > 0 || $cuenta->CurrentAction <> "") { ?>
 <div class="ewGrid">
-<form name="fclientelist" id="fclientelist" class="form-inline ewForm ewListForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($cliente_list->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cliente_list->Token ?>">
+<form name="fcuentalist" id="fcuentalist" class="form-inline ewForm ewListForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($cuenta_list->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cuenta_list->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="cliente">
-<div id="gmp_cliente" class="<?php if (ew_IsResponsiveLayout()) { echo "table-responsive "; } ?>ewGridMiddlePanel">
-<?php if ($cliente_list->TotalRecs > 0) { ?>
-<table id="tbl_clientelist" class="table ewTable">
-<?php echo $cliente->TableCustomInnerHtml ?>
+<input type="hidden" name="t" value="cuenta">
+<div id="gmp_cuenta" class="<?php if (ew_IsResponsiveLayout()) { echo "table-responsive "; } ?>ewGridMiddlePanel">
+<?php if ($cuenta_list->TotalRecs > 0) { ?>
+<table id="tbl_cuentalist" class="table ewTable">
+<?php echo $cuenta->TableCustomInnerHtml ?>
 <thead><!-- Table header -->
 	<tr class="ewTableHeader">
 <?php
 
 // Render list options
-$cliente_list->RenderListOptions();
+$cuenta_list->RenderListOptions();
 
 // Render list options (header, left)
-$cliente_list->ListOptions->Render("header", "left");
+$cuenta_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($cliente->idpersona->Visible) { // idpersona ?>
-	<?php if ($cliente->SortUrl($cliente->idpersona) == "") { ?>
-		<th data-name="idpersona"><div id="elh_cliente_idpersona" class="cliente_idpersona"><div class="ewTableHeaderCaption"><?php echo $cliente->idpersona->FldCaption() ?></div></div></th>
+<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
+	<?php if ($cuenta->SortUrl($cuenta->idcuenta) == "") { ?>
+		<th data-name="idcuenta"><div id="elh_cuenta_idcuenta" class="cuenta_idcuenta"><div class="ewTableHeaderCaption"><?php echo $cuenta->idcuenta->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="idpersona"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cliente->SortUrl($cliente->idpersona) ?>',1);"><div id="elh_cliente_idpersona" class="cliente_idpersona">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->idpersona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cliente->idpersona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->idpersona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idcuenta"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idcuenta) ?>',1);"><div id="elh_cuenta_idcuenta" class="cuenta_idcuenta">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idcuenta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idcuenta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idcuenta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($cliente->nit->Visible) { // nit ?>
-	<?php if ($cliente->SortUrl($cliente->nit) == "") { ?>
-		<th data-name="nit"><div id="elh_cliente_nit" class="cliente_nit"><div class="ewTableHeaderCaption"><?php echo $cliente->nit->FldCaption() ?></div></div></th>
+<?php if ($cuenta->idbanco->Visible) { // idbanco ?>
+	<?php if ($cuenta->SortUrl($cuenta->idbanco) == "") { ?>
+		<th data-name="idbanco"><div id="elh_cuenta_idbanco" class="cuenta_idbanco"><div class="ewTableHeaderCaption"><?php echo $cuenta->idbanco->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="nit"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cliente->SortUrl($cliente->nit) ?>',1);"><div id="elh_cliente_nit" class="cliente_nit">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->nit->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cliente->nit->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->nit->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idbanco"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idbanco) ?>',1);"><div id="elh_cuenta_idbanco" class="cuenta_idbanco">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idbanco->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idbanco->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idbanco->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($cliente->nombre_factura->Visible) { // nombre_factura ?>
-	<?php if ($cliente->SortUrl($cliente->nombre_factura) == "") { ?>
-		<th data-name="nombre_factura"><div id="elh_cliente_nombre_factura" class="cliente_nombre_factura"><div class="ewTableHeaderCaption"><?php echo $cliente->nombre_factura->FldCaption() ?></div></div></th>
+<?php if ($cuenta->idsucursal->Visible) { // idsucursal ?>
+	<?php if ($cuenta->SortUrl($cuenta->idsucursal) == "") { ?>
+		<th data-name="idsucursal"><div id="elh_cuenta_idsucursal" class="cuenta_idsucursal"><div class="ewTableHeaderCaption"><?php echo $cuenta->idsucursal->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="nombre_factura"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cliente->SortUrl($cliente->nombre_factura) ?>',1);"><div id="elh_cliente_nombre_factura" class="cliente_nombre_factura">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->nombre_factura->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cliente->nombre_factura->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->nombre_factura->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idsucursal"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idsucursal) ?>',1);"><div id="elh_cuenta_idsucursal" class="cuenta_idsucursal">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idsucursal->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idsucursal->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idsucursal->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($cliente->direccion_factura->Visible) { // direccion_factura ?>
-	<?php if ($cliente->SortUrl($cliente->direccion_factura) == "") { ?>
-		<th data-name="direccion_factura"><div id="elh_cliente_direccion_factura" class="cliente_direccion_factura"><div class="ewTableHeaderCaption"><?php echo $cliente->direccion_factura->FldCaption() ?></div></div></th>
+<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
+	<?php if ($cuenta->SortUrl($cuenta->idmoneda) == "") { ?>
+		<th data-name="idmoneda"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda"><div class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="direccion_factura"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cliente->SortUrl($cliente->direccion_factura) ?>',1);"><div id="elh_cliente_direccion_factura" class="cliente_direccion_factura">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->direccion_factura->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cliente->direccion_factura->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->direccion_factura->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idmoneda"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->idmoneda) ?>',1);"><div id="elh_cuenta_idmoneda" class="cuenta_idmoneda">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->idmoneda->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->idmoneda->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->idmoneda->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->numero->Visible) { // numero ?>
+	<?php if ($cuenta->SortUrl($cuenta->numero) == "") { ?>
+		<th data-name="numero"><div id="elh_cuenta_numero" class="cuenta_numero"><div class="ewTableHeaderCaption"><?php echo $cuenta->numero->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="numero"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->numero) ?>',1);"><div id="elh_cuenta_numero" class="cuenta_numero">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->numero->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->numero->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->numero->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->nombre->Visible) { // nombre ?>
+	<?php if ($cuenta->SortUrl($cuenta->nombre) == "") { ?>
+		<th data-name="nombre"><div id="elh_cuenta_nombre" class="cuenta_nombre"><div class="ewTableHeaderCaption"><?php echo $cuenta->nombre->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="nombre"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->nombre) ?>',1);"><div id="elh_cuenta_nombre" class="cuenta_nombre">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->saldo->Visible) { // saldo ?>
+	<?php if ($cuenta->SortUrl($cuenta->saldo) == "") { ?>
+		<th data-name="saldo"><div id="elh_cuenta_saldo" class="cuenta_saldo"><div class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="saldo"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->saldo) ?>',1);"><div id="elh_cuenta_saldo" class="cuenta_saldo">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->saldo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->saldo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->saldo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->debito->Visible) { // debito ?>
+	<?php if ($cuenta->SortUrl($cuenta->debito) == "") { ?>
+		<th data-name="debito"><div id="elh_cuenta_debito" class="cuenta_debito"><div class="ewTableHeaderCaption"><?php echo $cuenta->debito->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="debito"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->debito) ?>',1);"><div id="elh_cuenta_debito" class="cuenta_debito">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->debito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->debito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->debito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->credito->Visible) { // credito ?>
+	<?php if ($cuenta->SortUrl($cuenta->credito) == "") { ?>
+		<th data-name="credito"><div id="elh_cuenta_credito" class="cuenta_credito"><div class="ewTableHeaderCaption"><?php echo $cuenta->credito->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="credito"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->credito) ?>',1);"><div id="elh_cuenta_credito" class="cuenta_credito">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->credito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->credito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->credito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->estado->Visible) { // estado ?>
+	<?php if ($cuenta->SortUrl($cuenta->estado) == "") { ?>
+		<th data-name="estado"><div id="elh_cuenta_estado" class="cuenta_estado"><div class="ewTableHeaderCaption"><?php echo $cuenta->estado->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->estado) ?>',1);"><div id="elh_cuenta_estado" class="cuenta_estado">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
+	<?php if ($cuenta->SortUrl($cuenta->fecha_insercio) == "") { ?>
+		<th data-name="fecha_insercio"><div id="elh_cuenta_fecha_insercio" class="cuenta_fecha_insercio"><div class="ewTableHeaderCaption"><?php echo $cuenta->fecha_insercio->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercio"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuenta->SortUrl($cuenta->fecha_insercio) ?>',1);"><div id="elh_cuenta_fecha_insercio" class="cuenta_fecha_insercio">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuenta->fecha_insercio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cuenta->fecha_insercio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuenta->fecha_insercio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
 <?php
 
 // Render list options (header, right)
-$cliente_list->ListOptions->Render("header", "right");
+$cuenta_list->ListOptions->Render("header", "right");
 ?>
 	</tr>
 </thead>
 <tbody>
 <?php
-if ($cliente->ExportAll && $cliente->Export <> "") {
-	$cliente_list->StopRec = $cliente_list->TotalRecs;
+if ($cuenta->ExportAll && $cuenta->Export <> "") {
+	$cuenta_list->StopRec = $cuenta_list->TotalRecs;
 } else {
 
 	// Set the last record to display
-	if ($cliente_list->TotalRecs > $cliente_list->StartRec + $cliente_list->DisplayRecs - 1)
-		$cliente_list->StopRec = $cliente_list->StartRec + $cliente_list->DisplayRecs - 1;
+	if ($cuenta_list->TotalRecs > $cuenta_list->StartRec + $cuenta_list->DisplayRecs - 1)
+		$cuenta_list->StopRec = $cuenta_list->StartRec + $cuenta_list->DisplayRecs - 1;
 	else
-		$cliente_list->StopRec = $cliente_list->TotalRecs;
+		$cuenta_list->StopRec = $cuenta_list->TotalRecs;
 }
-$cliente_list->RecCnt = $cliente_list->StartRec - 1;
-if ($cliente_list->Recordset && !$cliente_list->Recordset->EOF) {
-	$cliente_list->Recordset->MoveFirst();
+$cuenta_list->RecCnt = $cuenta_list->StartRec - 1;
+if ($cuenta_list->Recordset && !$cuenta_list->Recordset->EOF) {
+	$cuenta_list->Recordset->MoveFirst();
 	$bSelectLimit = EW_SELECT_LIMIT;
-	if (!$bSelectLimit && $cliente_list->StartRec > 1)
-		$cliente_list->Recordset->Move($cliente_list->StartRec - 1);
-} elseif (!$cliente->AllowAddDeleteRow && $cliente_list->StopRec == 0) {
-	$cliente_list->StopRec = $cliente->GridAddRowCount;
+	if (!$bSelectLimit && $cuenta_list->StartRec > 1)
+		$cuenta_list->Recordset->Move($cuenta_list->StartRec - 1);
+} elseif (!$cuenta->AllowAddDeleteRow && $cuenta_list->StopRec == 0) {
+	$cuenta_list->StopRec = $cuenta->GridAddRowCount;
 }
 
 // Initialize aggregate
-$cliente->RowType = EW_ROWTYPE_AGGREGATEINIT;
-$cliente->ResetAttrs();
-$cliente_list->RenderRow();
-while ($cliente_list->RecCnt < $cliente_list->StopRec) {
-	$cliente_list->RecCnt++;
-	if (intval($cliente_list->RecCnt) >= intval($cliente_list->StartRec)) {
-		$cliente_list->RowCnt++;
+$cuenta->RowType = EW_ROWTYPE_AGGREGATEINIT;
+$cuenta->ResetAttrs();
+$cuenta_list->RenderRow();
+while ($cuenta_list->RecCnt < $cuenta_list->StopRec) {
+	$cuenta_list->RecCnt++;
+	if (intval($cuenta_list->RecCnt) >= intval($cuenta_list->StartRec)) {
+		$cuenta_list->RowCnt++;
 
 		// Set up key count
-		$cliente_list->KeyCount = $cliente_list->RowIndex;
+		$cuenta_list->KeyCount = $cuenta_list->RowIndex;
 
 		// Init row class and style
-		$cliente->ResetAttrs();
-		$cliente->CssClass = "";
-		if ($cliente->CurrentAction == "gridadd") {
+		$cuenta->ResetAttrs();
+		$cuenta->CssClass = "";
+		if ($cuenta->CurrentAction == "gridadd") {
 		} else {
-			$cliente_list->LoadRowValues($cliente_list->Recordset); // Load row values
+			$cuenta_list->LoadRowValues($cuenta_list->Recordset); // Load row values
 		}
-		$cliente->RowType = EW_ROWTYPE_VIEW; // Render view
+		$cuenta->RowType = EW_ROWTYPE_VIEW; // Render view
 
 		// Set up row id / data-rowindex
-		$cliente->RowAttrs = array_merge($cliente->RowAttrs, array('data-rowindex'=>$cliente_list->RowCnt, 'id'=>'r' . $cliente_list->RowCnt . '_cliente', 'data-rowtype'=>$cliente->RowType));
+		$cuenta->RowAttrs = array_merge($cuenta->RowAttrs, array('data-rowindex'=>$cuenta_list->RowCnt, 'id'=>'r' . $cuenta_list->RowCnt . '_cuenta', 'data-rowtype'=>$cuenta->RowType));
 
 		// Render row
-		$cliente_list->RenderRow();
+		$cuenta_list->RenderRow();
 
 		// Render list options
-		$cliente_list->RenderListOptions();
+		$cuenta_list->RenderListOptions();
 ?>
-	<tr<?php echo $cliente->RowAttributes() ?>>
+	<tr<?php echo $cuenta->RowAttributes() ?>>
 <?php
 
 // Render list options (body, left)
-$cliente_list->ListOptions->Render("body", "left", $cliente_list->RowCnt);
+$cuenta_list->ListOptions->Render("body", "left", $cuenta_list->RowCnt);
 ?>
-	<?php if ($cliente->idpersona->Visible) { // idpersona ?>
-		<td data-name="idpersona"<?php echo $cliente->idpersona->CellAttributes() ?>>
-<span<?php echo $cliente->idpersona->ViewAttributes() ?>>
-<?php echo $cliente->idpersona->ListViewValue() ?></span>
-<a id="<?php echo $cliente_list->PageObjName . "_row_" . $cliente_list->RowCnt ?>"></a></td>
+	<?php if ($cuenta->idcuenta->Visible) { // idcuenta ?>
+		<td data-name="idcuenta"<?php echo $cuenta->idcuenta->CellAttributes() ?>>
+<span<?php echo $cuenta->idcuenta->ViewAttributes() ?>>
+<?php echo $cuenta->idcuenta->ListViewValue() ?></span>
+<a id="<?php echo $cuenta_list->PageObjName . "_row_" . $cuenta_list->RowCnt ?>"></a></td>
 	<?php } ?>
-	<?php if ($cliente->nit->Visible) { // nit ?>
-		<td data-name="nit"<?php echo $cliente->nit->CellAttributes() ?>>
-<span<?php echo $cliente->nit->ViewAttributes() ?>>
-<?php echo $cliente->nit->ListViewValue() ?></span>
+	<?php if ($cuenta->idbanco->Visible) { // idbanco ?>
+		<td data-name="idbanco"<?php echo $cuenta->idbanco->CellAttributes() ?>>
+<span<?php echo $cuenta->idbanco->ViewAttributes() ?>>
+<?php echo $cuenta->idbanco->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($cliente->nombre_factura->Visible) { // nombre_factura ?>
-		<td data-name="nombre_factura"<?php echo $cliente->nombre_factura->CellAttributes() ?>>
-<span<?php echo $cliente->nombre_factura->ViewAttributes() ?>>
-<?php echo $cliente->nombre_factura->ListViewValue() ?></span>
+	<?php if ($cuenta->idsucursal->Visible) { // idsucursal ?>
+		<td data-name="idsucursal"<?php echo $cuenta->idsucursal->CellAttributes() ?>>
+<span<?php echo $cuenta->idsucursal->ViewAttributes() ?>>
+<?php echo $cuenta->idsucursal->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($cliente->direccion_factura->Visible) { // direccion_factura ?>
-		<td data-name="direccion_factura"<?php echo $cliente->direccion_factura->CellAttributes() ?>>
-<span<?php echo $cliente->direccion_factura->ViewAttributes() ?>>
-<?php echo $cliente->direccion_factura->ListViewValue() ?></span>
+	<?php if ($cuenta->idmoneda->Visible) { // idmoneda ?>
+		<td data-name="idmoneda"<?php echo $cuenta->idmoneda->CellAttributes() ?>>
+<span<?php echo $cuenta->idmoneda->ViewAttributes() ?>>
+<?php echo $cuenta->idmoneda->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->numero->Visible) { // numero ?>
+		<td data-name="numero"<?php echo $cuenta->numero->CellAttributes() ?>>
+<span<?php echo $cuenta->numero->ViewAttributes() ?>>
+<?php echo $cuenta->numero->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->nombre->Visible) { // nombre ?>
+		<td data-name="nombre"<?php echo $cuenta->nombre->CellAttributes() ?>>
+<span<?php echo $cuenta->nombre->ViewAttributes() ?>>
+<?php echo $cuenta->nombre->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->saldo->Visible) { // saldo ?>
+		<td data-name="saldo"<?php echo $cuenta->saldo->CellAttributes() ?>>
+<span<?php echo $cuenta->saldo->ViewAttributes() ?>>
+<?php echo $cuenta->saldo->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->debito->Visible) { // debito ?>
+		<td data-name="debito"<?php echo $cuenta->debito->CellAttributes() ?>>
+<span<?php echo $cuenta->debito->ViewAttributes() ?>>
+<?php echo $cuenta->debito->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->credito->Visible) { // credito ?>
+		<td data-name="credito"<?php echo $cuenta->credito->CellAttributes() ?>>
+<span<?php echo $cuenta->credito->ViewAttributes() ?>>
+<?php echo $cuenta->credito->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->estado->Visible) { // estado ?>
+		<td data-name="estado"<?php echo $cuenta->estado->CellAttributes() ?>>
+<span<?php echo $cuenta->estado->ViewAttributes() ?>>
+<?php echo $cuenta->estado->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($cuenta->fecha_insercio->Visible) { // fecha_insercio ?>
+		<td data-name="fecha_insercio"<?php echo $cuenta->fecha_insercio->CellAttributes() ?>>
+<span<?php echo $cuenta->fecha_insercio->ViewAttributes() ?>>
+<?php echo $cuenta->fecha_insercio->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php
 
 // Render list options (body, right)
-$cliente_list->ListOptions->Render("body", "right", $cliente_list->RowCnt);
+$cuenta_list->ListOptions->Render("body", "right", $cuenta_list->RowCnt);
 ?>
 	</tr>
 <?php
 	}
-	if ($cliente->CurrentAction <> "gridadd")
-		$cliente_list->Recordset->MoveNext();
+	if ($cuenta->CurrentAction <> "gridadd")
+		$cuenta_list->Recordset->MoveNext();
 }
 ?>
 </tbody>
 </table>
 <?php } ?>
-<?php if ($cliente->CurrentAction == "") { ?>
+<?php if ($cuenta->CurrentAction == "") { ?>
 <input type="hidden" name="a_list" id="a_list" value="">
 <?php } ?>
 </div>
@@ -1903,60 +1939,60 @@ $cliente_list->ListOptions->Render("body", "right", $cliente_list->RowCnt);
 <?php
 
 // Close recordset
-if ($cliente_list->Recordset)
-	$cliente_list->Recordset->Close();
+if ($cuenta_list->Recordset)
+	$cuenta_list->Recordset->Close();
 ?>
 <div class="ewGridLowerPanel">
-<?php if ($cliente->CurrentAction <> "gridadd" && $cliente->CurrentAction <> "gridedit") { ?>
+<?php if ($cuenta->CurrentAction <> "gridadd" && $cuenta->CurrentAction <> "gridedit") { ?>
 <form name="ewPagerForm" class="ewForm form-inline ewPagerForm" action="<?php echo ew_CurrentPage() ?>">
-<?php if (!isset($cliente_list->Pager)) $cliente_list->Pager = new cPrevNextPager($cliente_list->StartRec, $cliente_list->DisplayRecs, $cliente_list->TotalRecs) ?>
-<?php if ($cliente_list->Pager->RecordCount > 0) { ?>
+<?php if (!isset($cuenta_list->Pager)) $cuenta_list->Pager = new cPrevNextPager($cuenta_list->StartRec, $cuenta_list->DisplayRecs, $cuenta_list->TotalRecs) ?>
+<?php if ($cuenta_list->Pager->RecordCount > 0) { ?>
 <div class="ewPager">
 <span><?php echo $Language->Phrase("Page") ?>&nbsp;</span>
 <div class="ewPrevNext"><div class="input-group">
 <div class="input-group-btn">
 <!--first page button-->
-	<?php if ($cliente_list->Pager->FirstButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerFirst") ?>" href="<?php echo $cliente_list->PageUrl() ?>start=<?php echo $cliente_list->Pager->FirstButton->Start ?>"><span class="icon-first ewIcon"></span></a>
+	<?php if ($cuenta_list->Pager->FirstButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerFirst") ?>" href="<?php echo $cuenta_list->PageUrl() ?>start=<?php echo $cuenta_list->Pager->FirstButton->Start ?>"><span class="icon-first ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerFirst") ?>"><span class="icon-first ewIcon"></span></a>
 	<?php } ?>
 <!--previous page button-->
-	<?php if ($cliente_list->Pager->PrevButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerPrevious") ?>" href="<?php echo $cliente_list->PageUrl() ?>start=<?php echo $cliente_list->Pager->PrevButton->Start ?>"><span class="icon-prev ewIcon"></span></a>
+	<?php if ($cuenta_list->Pager->PrevButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerPrevious") ?>" href="<?php echo $cuenta_list->PageUrl() ?>start=<?php echo $cuenta_list->Pager->PrevButton->Start ?>"><span class="icon-prev ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerPrevious") ?>"><span class="icon-prev ewIcon"></span></a>
 	<?php } ?>
 </div>
 <!--current page number-->
-	<input class="form-control input-sm" type="text" name="<?php echo EW_TABLE_PAGE_NO ?>" value="<?php echo $cliente_list->Pager->CurrentPage ?>">
+	<input class="form-control input-sm" type="text" name="<?php echo EW_TABLE_PAGE_NO ?>" value="<?php echo $cuenta_list->Pager->CurrentPage ?>">
 <div class="input-group-btn">
 <!--next page button-->
-	<?php if ($cliente_list->Pager->NextButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerNext") ?>" href="<?php echo $cliente_list->PageUrl() ?>start=<?php echo $cliente_list->Pager->NextButton->Start ?>"><span class="icon-next ewIcon"></span></a>
+	<?php if ($cuenta_list->Pager->NextButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerNext") ?>" href="<?php echo $cuenta_list->PageUrl() ?>start=<?php echo $cuenta_list->Pager->NextButton->Start ?>"><span class="icon-next ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerNext") ?>"><span class="icon-next ewIcon"></span></a>
 	<?php } ?>
 <!--last page button-->
-	<?php if ($cliente_list->Pager->LastButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerLast") ?>" href="<?php echo $cliente_list->PageUrl() ?>start=<?php echo $cliente_list->Pager->LastButton->Start ?>"><span class="icon-last ewIcon"></span></a>
+	<?php if ($cuenta_list->Pager->LastButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerLast") ?>" href="<?php echo $cuenta_list->PageUrl() ?>start=<?php echo $cuenta_list->Pager->LastButton->Start ?>"><span class="icon-last ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerLast") ?>"><span class="icon-last ewIcon"></span></a>
 	<?php } ?>
 </div>
 </div>
 </div>
-<span>&nbsp;<?php echo $Language->Phrase("of") ?>&nbsp;<?php echo $cliente_list->Pager->PageCount ?></span>
+<span>&nbsp;<?php echo $Language->Phrase("of") ?>&nbsp;<?php echo $cuenta_list->Pager->PageCount ?></span>
 </div>
 <div class="ewPager ewRec">
-	<span><?php echo $Language->Phrase("Record") ?>&nbsp;<?php echo $cliente_list->Pager->FromIndex ?>&nbsp;<?php echo $Language->Phrase("To") ?>&nbsp;<?php echo $cliente_list->Pager->ToIndex ?>&nbsp;<?php echo $Language->Phrase("Of") ?>&nbsp;<?php echo $cliente_list->Pager->RecordCount ?></span>
+	<span><?php echo $Language->Phrase("Record") ?>&nbsp;<?php echo $cuenta_list->Pager->FromIndex ?>&nbsp;<?php echo $Language->Phrase("To") ?>&nbsp;<?php echo $cuenta_list->Pager->ToIndex ?>&nbsp;<?php echo $Language->Phrase("Of") ?>&nbsp;<?php echo $cuenta_list->Pager->RecordCount ?></span>
 </div>
 <?php } ?>
 </form>
 <?php } ?>
 <div class="ewListOtherOptions">
 <?php
-	foreach ($cliente_list->OtherOptions as &$option)
+	foreach ($cuenta_list->OtherOptions as &$option)
 		$option->Render("body", "bottom");
 ?>
 </div>
@@ -1964,10 +2000,10 @@ if ($cliente_list->Recordset)
 </div>
 </div>
 <?php } ?>
-<?php if ($cliente_list->TotalRecs == 0 && $cliente->CurrentAction == "") { // Show other options ?>
+<?php if ($cuenta_list->TotalRecs == 0 && $cuenta->CurrentAction == "") { // Show other options ?>
 <div class="ewListOtherOptions">
 <?php
-	foreach ($cliente_list->OtherOptions as &$option) {
+	foreach ($cuenta_list->OtherOptions as &$option) {
 		$option->ButtonClass = "";
 		$option->Render("body", "");
 	}
@@ -1976,11 +2012,11 @@ if ($cliente_list->Recordset)
 <div class="clearfix"></div>
 <?php } ?>
 <script type="text/javascript">
-fclientelistsrch.Init();
-fclientelist.Init();
+fcuentalistsrch.Init();
+fcuentalist.Init();
 </script>
 <?php
-$cliente_list->ShowPageFooter();
+$cuenta_list->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1992,5 +2028,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$cliente_list->Page_Terminate();
+$cuenta_list->Page_Terminate();
 ?>

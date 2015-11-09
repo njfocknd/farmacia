@@ -158,6 +158,30 @@ class ccliente extends cTable {
 		return "`idpersona`=@idpersona@";
 	}
 
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "pago_cliente") {
+			$sDetailUrl = $GLOBALS["pago_cliente"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idcliente=" . urlencode($this->idcliente->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "clientelist.php";
+		}
+		return $sDetailUrl;
+	}
+
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -511,7 +535,10 @@ class ccliente extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		return $this->KeyUrl("clienteedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("clienteedit.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("clienteedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline edit URL
@@ -521,7 +548,10 @@ class ccliente extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		return $this->KeyUrl("clienteadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			return $this->KeyUrl("clienteadd.php", $this->UrlParm($parm));
+		else
+			return $this->KeyUrl("clienteadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Inline copy URL

@@ -1,13 +1,13 @@
-<?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "proveedorinfo.php" ?>
 <?php
 
 //
 // Page class
 //
 
-$cliente_grid = NULL; // Initialize page object first
+$proveedor_grid = NULL; // Initialize page object first
 
-class ccliente_grid extends ccliente {
+class cproveedor_grid extends cproveedor {
 
 	// Page ID
 	var $PageID = 'grid';
@@ -16,13 +16,13 @@ class ccliente_grid extends ccliente {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'cliente';
+	var $TableName = 'proveedor';
 
 	// Page object name
-	var $PageObjName = 'cliente_grid';
+	var $PageObjName = 'proveedor_grid';
 
 	// Grid form hidden field names
-	var $FormName = 'fclientegrid';
+	var $FormName = 'fproveedorgrid';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -199,12 +199,12 @@ class ccliente_grid extends ccliente {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (cliente)
-		if (!isset($GLOBALS["cliente"]) || get_class($GLOBALS["cliente"]) == "ccliente") {
-			$GLOBALS["cliente"] = &$this;
+		// Table object (proveedor)
+		if (!isset($GLOBALS["proveedor"]) || get_class($GLOBALS["proveedor"]) == "cproveedor") {
+			$GLOBALS["proveedor"] = &$this;
 
 //			$GLOBALS["MasterTable"] = &$GLOBALS["Table"];
-//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["cliente"];
+//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["proveedor"];
 
 		}
 
@@ -214,7 +214,7 @@ class ccliente_grid extends ccliente {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'cliente', TRUE);
+			define("EW_TABLE_NAME", 'proveedor', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -262,10 +262,10 @@ class ccliente_grid extends ccliente {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'pago_cliente'
-			if (@$_POST["grid"] == "fpago_clientegrid") {
-				if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
-				$GLOBALS["pago_cliente_grid"]->Page_Init();
+			// Process auto fill for detail table 'pago_proveedor'
+			if (@$_POST["grid"] == "fpago_proveedorgrid") {
+				if (!isset($GLOBALS["pago_proveedor_grid"])) $GLOBALS["pago_proveedor_grid"] = new cpago_proveedor_grid;
+				$GLOBALS["pago_proveedor_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -295,13 +295,13 @@ class ccliente_grid extends ccliente {
 		global $conn, $gsExportFile, $gTmpImages;
 
 		// Export
-		global $EW_EXPORT, $cliente;
+		global $EW_EXPORT, $proveedor;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($cliente);
+				$doc = new $class($proveedor);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -601,8 +601,8 @@ class ccliente_grid extends ccliente {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idcliente->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idcliente->FormValue))
+			$this->idproveedor->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idproveedor->FormValue))
 				return FALSE;
 		}
 		return TRUE;
@@ -659,7 +659,7 @@ class ccliente_grid extends ccliente {
 				}
 				if ($bGridInsert) {
 					if ($sKey <> "") $sKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-					$sKey .= $this->idcliente->CurrentValue;
+					$sKey .= $this->idproveedor->CurrentValue;
 
 					// Add filter for this record
 					$sFilter = $this->KeyFilter();
@@ -698,13 +698,13 @@ class ccliente_grid extends ccliente {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
-		if ($objForm->HasValue("x_idpersona") && $objForm->HasValue("o_idpersona") && $this->idpersona->CurrentValue <> $this->idpersona->OldValue)
-			return FALSE;
 		if ($objForm->HasValue("x_nit") && $objForm->HasValue("o_nit") && $this->nit->CurrentValue <> $this->nit->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_nombre_factura") && $objForm->HasValue("o_nombre_factura") && $this->nombre_factura->CurrentValue <> $this->nombre_factura->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_direccion_factura") && $objForm->HasValue("o_direccion_factura") && $this->direccion_factura->CurrentValue <> $this->direccion_factura->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x__email") && $objForm->HasValue("o__email") && $this->_email->CurrentValue <> $this->_email->OldValue)
 			return FALSE;
 		return TRUE;
 	}
@@ -899,7 +899,7 @@ class ccliente_grid extends ccliente {
 			}
 		}
 		if ($this->CurrentMode == "edit" && is_numeric($this->RowIndex)) {
-			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idcliente->CurrentValue . "\">";
+			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idproveedor->CurrentValue . "\">";
 		}
 		$this->RenderListOptionsExt();
 	}
@@ -908,7 +908,7 @@ class ccliente_grid extends ccliente {
 	function SetRecordKey(&$key, $rs) {
 		$key = "";
 		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs->fields('idcliente');
+		$key .= $rs->fields('idproveedor');
 	}
 
 	// Set up other options
@@ -990,14 +990,14 @@ class ccliente_grid extends ccliente {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->idpersona->CurrentValue = 1;
-		$this->idpersona->OldValue = $this->idpersona->CurrentValue;
 		$this->nit->CurrentValue = NULL;
 		$this->nit->OldValue = $this->nit->CurrentValue;
 		$this->nombre_factura->CurrentValue = NULL;
 		$this->nombre_factura->OldValue = $this->nombre_factura->CurrentValue;
 		$this->direccion_factura->CurrentValue = NULL;
 		$this->direccion_factura->OldValue = $this->direccion_factura->CurrentValue;
+		$this->_email->CurrentValue = NULL;
+		$this->_email->OldValue = $this->_email->CurrentValue;
 	}
 
 	// Load form values
@@ -1006,10 +1006,6 @@ class ccliente_grid extends ccliente {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
-		if (!$this->idpersona->FldIsDetailKey) {
-			$this->idpersona->setFormValue($objForm->GetValue("x_idpersona"));
-		}
-		$this->idpersona->setOldValue($objForm->GetValue("o_idpersona"));
 		if (!$this->nit->FldIsDetailKey) {
 			$this->nit->setFormValue($objForm->GetValue("x_nit"));
 		}
@@ -1022,19 +1018,23 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->setFormValue($objForm->GetValue("x_direccion_factura"));
 		}
 		$this->direccion_factura->setOldValue($objForm->GetValue("o_direccion_factura"));
-		if (!$this->idcliente->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
+		if (!$this->_email->FldIsDetailKey) {
+			$this->_email->setFormValue($objForm->GetValue("x__email"));
+		}
+		$this->_email->setOldValue($objForm->GetValue("o__email"));
+		if (!$this->idproveedor->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->idproveedor->setFormValue($objForm->GetValue("x_idproveedor"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idcliente->CurrentValue = $this->idcliente->FormValue;
-		$this->idpersona->CurrentValue = $this->idpersona->FormValue;
+			$this->idproveedor->CurrentValue = $this->idproveedor->FormValue;
 		$this->nit->CurrentValue = $this->nit->FormValue;
 		$this->nombre_factura->CurrentValue = $this->nombre_factura->FormValue;
 		$this->direccion_factura->CurrentValue = $this->direccion_factura->FormValue;
+		$this->_email->CurrentValue = $this->_email->FormValue;
 	}
 
 	// Load recordset
@@ -1083,7 +1083,7 @@ class ccliente_grid extends ccliente {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idcliente->setDbValue($rs->fields('idcliente'));
+		$this->idproveedor->setDbValue($rs->fields('idproveedor'));
 		$this->idpersona->setDbValue($rs->fields('idpersona'));
 		$this->codigo->setDbValue($rs->fields('codigo'));
 		$this->nit->setDbValue($rs->fields('nit'));
@@ -1091,8 +1091,8 @@ class ccliente_grid extends ccliente {
 		$this->direccion_factura->setDbValue($rs->fields('direccion_factura'));
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
-		$this->_email->setDbValue($rs->fields('email'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->_email->setDbValue($rs->fields('email'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
 
@@ -1100,7 +1100,7 @@ class ccliente_grid extends ccliente {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idcliente->DbValue = $row['idcliente'];
+		$this->idproveedor->DbValue = $row['idproveedor'];
 		$this->idpersona->DbValue = $row['idpersona'];
 		$this->codigo->DbValue = $row['codigo'];
 		$this->nit->DbValue = $row['nit'];
@@ -1108,8 +1108,8 @@ class ccliente_grid extends ccliente {
 		$this->direccion_factura->DbValue = $row['direccion_factura'];
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
-		$this->_email->DbValue = $row['email'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->_email->DbValue = $row['email'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1122,7 +1122,7 @@ class ccliente_grid extends ccliente {
 		$cnt = count($arKeys);
 		if ($cnt >= 1) {
 			if (strval($arKeys[0]) <> "")
-				$this->idcliente->CurrentValue = strval($arKeys[0]); // idcliente
+				$this->idproveedor->CurrentValue = strval($arKeys[0]); // idproveedor
 			else
 				$bValidKey = FALSE;
 		} else {
@@ -1152,7 +1152,7 @@ class ccliente_grid extends ccliente {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idcliente
+		// idproveedor
 		// idpersona
 		// codigo
 		// nit
@@ -1160,20 +1160,20 @@ class ccliente_grid extends ccliente {
 		// direccion_factura
 		// debito
 		// credito
-		// email
 		// fecha_insercion
+		// email
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idcliente
-			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
-			$this->idcliente->ViewCustomAttributes = "";
+			// idproveedor
+			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			$this->idproveedor->ViewCustomAttributes = "";
 
 			// idpersona
 			if (strval($this->idpersona->CurrentValue) <> "") {
 				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
+			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, `apellido` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -1189,7 +1189,7 @@ class ccliente_grid extends ccliente {
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
+					$this->idpersona->ViewValue .= ew_ValueSeparator(1,$this->idpersona) . $rswrk->fields('Disp2Fld');
 					$rswrk->Close();
 				} else {
 					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
@@ -1223,14 +1223,14 @@ class ccliente_grid extends ccliente {
 			$this->credito->ViewValue = $this->credito->CurrentValue;
 			$this->credito->ViewCustomAttributes = "";
 
-			// email
-			$this->_email->ViewValue = $this->_email->CurrentValue;
-			$this->_email->ViewCustomAttributes = "";
-
 			// fecha_insercion
 			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// email
+			$this->_email->ViewValue = $this->_email->CurrentValue;
+			$this->_email->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1249,11 +1249,6 @@ class ccliente_grid extends ccliente {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpersona
-			$this->idpersona->LinkCustomAttributes = "";
-			$this->idpersona->HrefValue = "";
-			$this->idpersona->TooltipValue = "";
-
 			// nit
 			$this->nit->LinkCustomAttributes = "";
 			$this->nit->HrefValue = "";
@@ -1268,67 +1263,13 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->LinkCustomAttributes = "";
 			$this->direccion_factura->HrefValue = "";
 			$this->direccion_factura->TooltipValue = "";
+
+			// email
+			$this->_email->LinkCustomAttributes = "";
+			$this->_email->HrefValue = "";
+			$this->_email->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
-			// idpersona
-			$this->idpersona->EditAttrs["class"] = "form-control";
-			$this->idpersona->EditCustomAttributes = "";
-			if ($this->idpersona->getSessionValue() <> "") {
-				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
-				$this->idpersona->OldValue = $this->idpersona->CurrentValue;
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-				}
-			} else {
-				$this->idpersona->ViewValue = NULL;
-			}
-			$this->idpersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idpersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idpersona->EditValue = $arwrk;
-			}
-
 			// nit
 			$this->nit->EditAttrs["class"] = "form-control";
 			$this->nit->EditCustomAttributes = "";
@@ -1347,12 +1288,15 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
 			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
 
+			// email
+			$this->_email->EditAttrs["class"] = "form-control";
+			$this->_email->EditCustomAttributes = "";
+			$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
+			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
+
 			// Edit refer script
-			// idpersona
-
-			$this->idpersona->HrefValue = "";
-
 			// nit
+
 			$this->nit->HrefValue = "";
 
 			// nombre_factura
@@ -1360,67 +1304,11 @@ class ccliente_grid extends ccliente {
 
 			// direccion_factura
 			$this->direccion_factura->HrefValue = "";
+
+			// email
+			$this->_email->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idpersona
-			$this->idpersona->EditAttrs["class"] = "form-control";
-			$this->idpersona->EditCustomAttributes = "";
-			if ($this->idpersona->getSessionValue() <> "") {
-				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
-				$this->idpersona->OldValue = $this->idpersona->CurrentValue;
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-				}
-			} else {
-				$this->idpersona->ViewValue = NULL;
-			}
-			$this->idpersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idpersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idpersona->EditValue = $arwrk;
-			}
-
 			// nit
 			$this->nit->EditAttrs["class"] = "form-control";
 			$this->nit->EditCustomAttributes = "";
@@ -1439,12 +1327,15 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
 			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
 
+			// email
+			$this->_email->EditAttrs["class"] = "form-control";
+			$this->_email->EditCustomAttributes = "";
+			$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
+			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
+
 			// Edit refer script
-			// idpersona
-
-			$this->idpersona->HrefValue = "";
-
 			// nit
+
 			$this->nit->HrefValue = "";
 
 			// nombre_factura
@@ -1452,6 +1343,9 @@ class ccliente_grid extends ccliente {
 
 			// direccion_factura
 			$this->direccion_factura->HrefValue = "";
+
+			// email
+			$this->_email->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1471,8 +1365,8 @@ class ccliente_grid extends ccliente {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->idpersona->FldIsDetailKey && !is_null($this->idpersona->FormValue) && $this->idpersona->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idpersona->FldCaption(), $this->idpersona->ReqErrMsg));
+		if (!ew_CheckEmail($this->_email->FormValue)) {
+			ew_AddMessage($gsFormError, $this->_email->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1527,7 +1421,7 @@ class ccliente_grid extends ccliente {
 			foreach ($rsold as $row) {
 				$sThisKey = "";
 				if ($sThisKey <> "") $sThisKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-				$sThisKey .= $row['idcliente'];
+				$sThisKey .= $row['idproveedor'];
 				$conn->raiseErrorFn = 'ew_ErrorFn';
 				$DeleteRows = $this->Delete($row); // Delete
 				$conn->raiseErrorFn = '';
@@ -1582,9 +1476,6 @@ class ccliente_grid extends ccliente {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// idpersona
-			$this->idpersona->SetDbValueDef($rsnew, $this->idpersona->CurrentValue, 0, $this->idpersona->ReadOnly);
-
 			// nit
 			$this->nit->SetDbValueDef($rsnew, $this->nit->CurrentValue, NULL, $this->nit->ReadOnly);
 
@@ -1593,6 +1484,9 @@ class ccliente_grid extends ccliente {
 
 			// direccion_factura
 			$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, $this->direccion_factura->ReadOnly);
+
+			// email
+			$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, NULL, $this->_email->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1641,9 +1535,6 @@ class ccliente_grid extends ccliente {
 		}
 		$rsnew = array();
 
-		// idpersona
-		$this->idpersona->SetDbValueDef($rsnew, $this->idpersona->CurrentValue, 0, strval($this->idpersona->CurrentValue) == "");
-
 		// nit
 		$this->nit->SetDbValueDef($rsnew, $this->nit->CurrentValue, NULL, FALSE);
 
@@ -1652,6 +1543,14 @@ class ccliente_grid extends ccliente {
 
 		// direccion_factura
 		$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, FALSE);
+
+		// email
+		$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, NULL, FALSE);
+
+		// idpersona
+		if ($this->idpersona->getSessionValue() <> "") {
+			$rsnew['idpersona'] = $this->idpersona->getSessionValue();
+		}
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1677,8 +1576,8 @@ class ccliente_grid extends ccliente {
 
 		// Get insert id if necessary
 		if ($AddRow) {
-			$this->idcliente->setDbValue($conn->Insert_ID());
-			$rsnew['idcliente'] = $this->idcliente->DbValue;
+			$this->idproveedor->setDbValue($conn->Insert_ID());
+			$rsnew['idproveedor'] = $this->idproveedor->DbValue;
 		}
 		if ($AddRow) {
 

@@ -1,13 +1,13 @@
-<?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cuentainfo.php" ?>
 <?php
 
 //
 // Page class
 //
 
-$cliente_grid = NULL; // Initialize page object first
+$cuenta_grid = NULL; // Initialize page object first
 
-class ccliente_grid extends ccliente {
+class ccuenta_grid extends ccuenta {
 
 	// Page ID
 	var $PageID = 'grid';
@@ -16,13 +16,13 @@ class ccliente_grid extends ccliente {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'cliente';
+	var $TableName = 'cuenta';
 
 	// Page object name
-	var $PageObjName = 'cliente_grid';
+	var $PageObjName = 'cuenta_grid';
 
 	// Grid form hidden field names
-	var $FormName = 'fclientegrid';
+	var $FormName = 'fcuentagrid';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -199,12 +199,12 @@ class ccliente_grid extends ccliente {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (cliente)
-		if (!isset($GLOBALS["cliente"]) || get_class($GLOBALS["cliente"]) == "ccliente") {
-			$GLOBALS["cliente"] = &$this;
+		// Table object (cuenta)
+		if (!isset($GLOBALS["cuenta"]) || get_class($GLOBALS["cuenta"]) == "ccuenta") {
+			$GLOBALS["cuenta"] = &$this;
 
 //			$GLOBALS["MasterTable"] = &$GLOBALS["Table"];
-//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["cliente"];
+//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["cuenta"];
 
 		}
 
@@ -214,7 +214,7 @@ class ccliente_grid extends ccliente {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'cliente', TRUE);
+			define("EW_TABLE_NAME", 'cuenta', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -261,14 +261,6 @@ class ccliente_grid extends ccliente {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'pago_cliente'
-			if (@$_POST["grid"] == "fpago_clientegrid") {
-				if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
-				$GLOBALS["pago_cliente_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -295,13 +287,13 @@ class ccliente_grid extends ccliente {
 		global $conn, $gsExportFile, $gTmpImages;
 
 		// Export
-		global $EW_EXPORT, $cliente;
+		global $EW_EXPORT, $cuenta;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($cliente);
+				$doc = new $class($cuenta);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -430,17 +422,17 @@ class ccliente_grid extends ccliente {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "persona") {
-			global $persona;
-			$rsmaster = $persona->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "banco") {
+			global $banco;
+			$rsmaster = $banco->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("personalist.php"); // Return to master page
+				$this->Page_Terminate("bancolist.php"); // Return to master page
 			} else {
-				$persona->LoadListRowValues($rsmaster);
-				$persona->RowType = EW_ROWTYPE_MASTER; // Master row
-				$persona->RenderListRow();
+				$banco->LoadListRowValues($rsmaster);
+				$banco->RowType = EW_ROWTYPE_MASTER; // Master row
+				$banco->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -461,6 +453,9 @@ class ccliente_grid extends ccliente {
 
 	//  Exit inline mode
 	function ClearInlineMode() {
+		$this->saldo->FormValue = ""; // Clear form value
+		$this->debito->FormValue = ""; // Clear form value
+		$this->credito->FormValue = ""; // Clear form value
 		$this->LastAction = $this->CurrentAction; // Save last action
 		$this->CurrentAction = ""; // Clear action
 		$_SESSION[EW_SESSION_INLINE_MODE] = ""; // Clear inline mode
@@ -601,8 +596,8 @@ class ccliente_grid extends ccliente {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idcliente->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idcliente->FormValue))
+			$this->idcuenta->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idcuenta->FormValue))
 				return FALSE;
 		}
 		return TRUE;
@@ -659,7 +654,7 @@ class ccliente_grid extends ccliente {
 				}
 				if ($bGridInsert) {
 					if ($sKey <> "") $sKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-					$sKey .= $this->idcliente->CurrentValue;
+					$sKey .= $this->idcuenta->CurrentValue;
 
 					// Add filter for this record
 					$sFilter = $this->KeyFilter();
@@ -698,13 +693,27 @@ class ccliente_grid extends ccliente {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
-		if ($objForm->HasValue("x_idpersona") && $objForm->HasValue("o_idpersona") && $this->idpersona->CurrentValue <> $this->idpersona->OldValue)
+		if ($objForm->HasValue("x_idcuenta") && $objForm->HasValue("o_idcuenta") && $this->idcuenta->CurrentValue <> $this->idcuenta->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_nit") && $objForm->HasValue("o_nit") && $this->nit->CurrentValue <> $this->nit->OldValue)
+		if ($objForm->HasValue("x_idbanco") && $objForm->HasValue("o_idbanco") && $this->idbanco->CurrentValue <> $this->idbanco->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_nombre_factura") && $objForm->HasValue("o_nombre_factura") && $this->nombre_factura->CurrentValue <> $this->nombre_factura->OldValue)
+		if ($objForm->HasValue("x_idsucursal") && $objForm->HasValue("o_idsucursal") && $this->idsucursal->CurrentValue <> $this->idsucursal->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_direccion_factura") && $objForm->HasValue("o_direccion_factura") && $this->direccion_factura->CurrentValue <> $this->direccion_factura->OldValue)
+		if ($objForm->HasValue("x_idmoneda") && $objForm->HasValue("o_idmoneda") && $this->idmoneda->CurrentValue <> $this->idmoneda->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_numero") && $objForm->HasValue("o_numero") && $this->numero->CurrentValue <> $this->numero->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_nombre") && $objForm->HasValue("o_nombre") && $this->nombre->CurrentValue <> $this->nombre->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_saldo") && $objForm->HasValue("o_saldo") && $this->saldo->CurrentValue <> $this->saldo->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_debito") && $objForm->HasValue("o_debito") && $this->debito->CurrentValue <> $this->debito->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_credito") && $objForm->HasValue("o_credito") && $this->credito->CurrentValue <> $this->credito->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_fecha_insercio") && $objForm->HasValue("o_fecha_insercio") && $this->fecha_insercio->CurrentValue <> $this->fecha_insercio->OldValue)
 			return FALSE;
 		return TRUE;
 	}
@@ -813,7 +822,7 @@ class ccliente_grid extends ccliente {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->idpersona->setSessionValue("");
+				$this->idbanco->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -899,7 +908,7 @@ class ccliente_grid extends ccliente {
 			}
 		}
 		if ($this->CurrentMode == "edit" && is_numeric($this->RowIndex)) {
-			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idcliente->CurrentValue . "\">";
+			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idcuenta->CurrentValue . "\">";
 		}
 		$this->RenderListOptionsExt();
 	}
@@ -908,7 +917,7 @@ class ccliente_grid extends ccliente {
 	function SetRecordKey(&$key, $rs) {
 		$key = "";
 		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs->fields('idcliente');
+		$key .= $rs->fields('idcuenta');
 	}
 
 	// Set up other options
@@ -990,14 +999,28 @@ class ccliente_grid extends ccliente {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->idpersona->CurrentValue = 1;
-		$this->idpersona->OldValue = $this->idpersona->CurrentValue;
-		$this->nit->CurrentValue = NULL;
-		$this->nit->OldValue = $this->nit->CurrentValue;
-		$this->nombre_factura->CurrentValue = NULL;
-		$this->nombre_factura->OldValue = $this->nombre_factura->CurrentValue;
-		$this->direccion_factura->CurrentValue = NULL;
-		$this->direccion_factura->OldValue = $this->direccion_factura->CurrentValue;
+		$this->idcuenta->CurrentValue = NULL;
+		$this->idcuenta->OldValue = $this->idcuenta->CurrentValue;
+		$this->idbanco->CurrentValue = 1;
+		$this->idbanco->OldValue = $this->idbanco->CurrentValue;
+		$this->idsucursal->CurrentValue = 1;
+		$this->idsucursal->OldValue = $this->idsucursal->CurrentValue;
+		$this->idmoneda->CurrentValue = NULL;
+		$this->idmoneda->OldValue = $this->idmoneda->CurrentValue;
+		$this->numero->CurrentValue = NULL;
+		$this->numero->OldValue = $this->numero->CurrentValue;
+		$this->nombre->CurrentValue = NULL;
+		$this->nombre->OldValue = $this->nombre->CurrentValue;
+		$this->saldo->CurrentValue = 0.00;
+		$this->saldo->OldValue = $this->saldo->CurrentValue;
+		$this->debito->CurrentValue = 0.00;
+		$this->debito->OldValue = $this->debito->CurrentValue;
+		$this->credito->CurrentValue = 0.00;
+		$this->credito->OldValue = $this->credito->CurrentValue;
+		$this->estado->CurrentValue = "Activo";
+		$this->estado->OldValue = $this->estado->CurrentValue;
+		$this->fecha_insercio->CurrentValue = NULL;
+		$this->fecha_insercio->OldValue = $this->fecha_insercio->CurrentValue;
 	}
 
 	// Load form values
@@ -1006,35 +1029,68 @@ class ccliente_grid extends ccliente {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
-		if (!$this->idpersona->FldIsDetailKey) {
-			$this->idpersona->setFormValue($objForm->GetValue("x_idpersona"));
+		if (!$this->idcuenta->FldIsDetailKey) {
+			$this->idcuenta->setFormValue($objForm->GetValue("x_idcuenta"));
 		}
-		$this->idpersona->setOldValue($objForm->GetValue("o_idpersona"));
-		if (!$this->nit->FldIsDetailKey) {
-			$this->nit->setFormValue($objForm->GetValue("x_nit"));
+		$this->idcuenta->setOldValue($objForm->GetValue("o_idcuenta"));
+		if (!$this->idbanco->FldIsDetailKey) {
+			$this->idbanco->setFormValue($objForm->GetValue("x_idbanco"));
 		}
-		$this->nit->setOldValue($objForm->GetValue("o_nit"));
-		if (!$this->nombre_factura->FldIsDetailKey) {
-			$this->nombre_factura->setFormValue($objForm->GetValue("x_nombre_factura"));
+		$this->idbanco->setOldValue($objForm->GetValue("o_idbanco"));
+		if (!$this->idsucursal->FldIsDetailKey) {
+			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
 		}
-		$this->nombre_factura->setOldValue($objForm->GetValue("o_nombre_factura"));
-		if (!$this->direccion_factura->FldIsDetailKey) {
-			$this->direccion_factura->setFormValue($objForm->GetValue("x_direccion_factura"));
+		$this->idsucursal->setOldValue($objForm->GetValue("o_idsucursal"));
+		if (!$this->idmoneda->FldIsDetailKey) {
+			$this->idmoneda->setFormValue($objForm->GetValue("x_idmoneda"));
 		}
-		$this->direccion_factura->setOldValue($objForm->GetValue("o_direccion_factura"));
-		if (!$this->idcliente->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
+		$this->idmoneda->setOldValue($objForm->GetValue("o_idmoneda"));
+		if (!$this->numero->FldIsDetailKey) {
+			$this->numero->setFormValue($objForm->GetValue("x_numero"));
+		}
+		$this->numero->setOldValue($objForm->GetValue("o_numero"));
+		if (!$this->nombre->FldIsDetailKey) {
+			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
+		}
+		$this->nombre->setOldValue($objForm->GetValue("o_nombre"));
+		if (!$this->saldo->FldIsDetailKey) {
+			$this->saldo->setFormValue($objForm->GetValue("x_saldo"));
+		}
+		$this->saldo->setOldValue($objForm->GetValue("o_saldo"));
+		if (!$this->debito->FldIsDetailKey) {
+			$this->debito->setFormValue($objForm->GetValue("x_debito"));
+		}
+		$this->debito->setOldValue($objForm->GetValue("o_debito"));
+		if (!$this->credito->FldIsDetailKey) {
+			$this->credito->setFormValue($objForm->GetValue("x_credito"));
+		}
+		$this->credito->setOldValue($objForm->GetValue("o_credito"));
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
+		}
+		$this->estado->setOldValue($objForm->GetValue("o_estado"));
+		if (!$this->fecha_insercio->FldIsDetailKey) {
+			$this->fecha_insercio->setFormValue($objForm->GetValue("x_fecha_insercio"));
+			$this->fecha_insercio->CurrentValue = ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7);
+		}
+		$this->fecha_insercio->setOldValue($objForm->GetValue("o_fecha_insercio"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
-		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idcliente->CurrentValue = $this->idcliente->FormValue;
-		$this->idpersona->CurrentValue = $this->idpersona->FormValue;
-		$this->nit->CurrentValue = $this->nit->FormValue;
-		$this->nombre_factura->CurrentValue = $this->nombre_factura->FormValue;
-		$this->direccion_factura->CurrentValue = $this->direccion_factura->FormValue;
+		$this->idcuenta->CurrentValue = $this->idcuenta->FormValue;
+		$this->idbanco->CurrentValue = $this->idbanco->FormValue;
+		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
+		$this->idmoneda->CurrentValue = $this->idmoneda->FormValue;
+		$this->numero->CurrentValue = $this->numero->FormValue;
+		$this->nombre->CurrentValue = $this->nombre->FormValue;
+		$this->saldo->CurrentValue = $this->saldo->FormValue;
+		$this->debito->CurrentValue = $this->debito->FormValue;
+		$this->credito->CurrentValue = $this->credito->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
+		$this->fecha_insercio->CurrentValue = $this->fecha_insercio->FormValue;
+		$this->fecha_insercio->CurrentValue = ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7);
 	}
 
 	// Load recordset
@@ -1083,34 +1139,34 @@ class ccliente_grid extends ccliente {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idcliente->setDbValue($rs->fields('idcliente'));
-		$this->idpersona->setDbValue($rs->fields('idpersona'));
-		$this->codigo->setDbValue($rs->fields('codigo'));
-		$this->nit->setDbValue($rs->fields('nit'));
-		$this->nombre_factura->setDbValue($rs->fields('nombre_factura'));
-		$this->direccion_factura->setDbValue($rs->fields('direccion_factura'));
+		$this->idcuenta->setDbValue($rs->fields('idcuenta'));
+		$this->idbanco->setDbValue($rs->fields('idbanco'));
+		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
+		$this->numero->setDbValue($rs->fields('numero'));
+		$this->nombre->setDbValue($rs->fields('nombre'));
+		$this->saldo->setDbValue($rs->fields('saldo'));
 		$this->debito->setDbValue($rs->fields('debito'));
 		$this->credito->setDbValue($rs->fields('credito'));
-		$this->_email->setDbValue($rs->fields('email'));
-		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercio->setDbValue($rs->fields('fecha_insercio'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idcliente->DbValue = $row['idcliente'];
-		$this->idpersona->DbValue = $row['idpersona'];
-		$this->codigo->DbValue = $row['codigo'];
-		$this->nit->DbValue = $row['nit'];
-		$this->nombre_factura->DbValue = $row['nombre_factura'];
-		$this->direccion_factura->DbValue = $row['direccion_factura'];
+		$this->idcuenta->DbValue = $row['idcuenta'];
+		$this->idbanco->DbValue = $row['idbanco'];
+		$this->idsucursal->DbValue = $row['idsucursal'];
+		$this->idmoneda->DbValue = $row['idmoneda'];
+		$this->numero->DbValue = $row['numero'];
+		$this->nombre->DbValue = $row['nombre'];
+		$this->saldo->DbValue = $row['saldo'];
 		$this->debito->DbValue = $row['debito'];
 		$this->credito->DbValue = $row['credito'];
-		$this->_email->DbValue = $row['email'];
-		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercio->DbValue = $row['fecha_insercio'];
 	}
 
 	// Load old record
@@ -1122,7 +1178,7 @@ class ccliente_grid extends ccliente {
 		$cnt = count($arKeys);
 		if ($cnt >= 1) {
 			if (strval($arKeys[0]) <> "")
-				$this->idcliente->CurrentValue = strval($arKeys[0]); // idcliente
+				$this->idcuenta->CurrentValue = strval($arKeys[0]); // idcuenta
 			else
 				$bValidKey = FALSE;
 		} else {
@@ -1147,73 +1203,64 @@ class ccliente_grid extends ccliente {
 		global $gsLanguage;
 
 		// Initialize URLs
-		// Call Row_Rendering event
+		// Convert decimal values if posted back
 
+		if ($this->saldo->FormValue == $this->saldo->CurrentValue && is_numeric(ew_StrToFloat($this->saldo->CurrentValue)))
+			$this->saldo->CurrentValue = ew_StrToFloat($this->saldo->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
+			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
+			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
+
+		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idcliente
-		// idpersona
-		// codigo
-		// nit
-		// nombre_factura
-		// direccion_factura
+		// idcuenta
+		// idbanco
+		// idsucursal
+		// idmoneda
+		// numero
+		// nombre
+		// saldo
 		// debito
 		// credito
-		// email
-		// fecha_insercion
 		// estado
+		// fecha_insercio
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idcliente
-			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
-			$this->idcliente->ViewCustomAttributes = "";
+			// idcuenta
+			$this->idcuenta->ViewValue = $this->idcuenta->CurrentValue;
+			$this->idcuenta->ViewCustomAttributes = "";
 
-			// idpersona
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// idbanco
+			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			$this->idbanco->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-				}
-			} else {
-				$this->idpersona->ViewValue = NULL;
-			}
-			$this->idpersona->ViewCustomAttributes = "";
+			// idsucursal
+			$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+			$this->idsucursal->ViewCustomAttributes = "";
 
-			// codigo
-			$this->codigo->ViewValue = $this->codigo->CurrentValue;
-			$this->codigo->ViewCustomAttributes = "";
+			// idmoneda
+			$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			$this->idmoneda->ViewCustomAttributes = "";
 
-			// nit
-			$this->nit->ViewValue = $this->nit->CurrentValue;
-			$this->nit->ViewCustomAttributes = "";
+			// numero
+			$this->numero->ViewValue = $this->numero->CurrentValue;
+			$this->numero->ViewCustomAttributes = "";
 
-			// nombre_factura
-			$this->nombre_factura->ViewValue = $this->nombre_factura->CurrentValue;
-			$this->nombre_factura->ViewCustomAttributes = "";
+			// nombre
+			$this->nombre->ViewValue = $this->nombre->CurrentValue;
+			$this->nombre->ViewCustomAttributes = "";
 
-			// direccion_factura
-			$this->direccion_factura->ViewValue = $this->direccion_factura->CurrentValue;
-			$this->direccion_factura->ViewCustomAttributes = "";
+			// saldo
+			$this->saldo->ViewValue = $this->saldo->CurrentValue;
+			$this->saldo->ViewCustomAttributes = "";
 
 			// debito
 			$this->debito->ViewValue = $this->debito->CurrentValue;
@@ -1222,15 +1269,6 @@ class ccliente_grid extends ccliente {
 			// credito
 			$this->credito->ViewValue = $this->credito->CurrentValue;
 			$this->credito->ViewCustomAttributes = "";
-
-			// email
-			$this->_email->ViewValue = $this->_email->CurrentValue;
-			$this->_email->ViewCustomAttributes = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
-			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
-			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1249,209 +1287,309 @@ class ccliente_grid extends ccliente {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// idpersona
-			$this->idpersona->LinkCustomAttributes = "";
-			$this->idpersona->HrefValue = "";
-			$this->idpersona->TooltipValue = "";
+			// fecha_insercio
+			$this->fecha_insercio->ViewValue = $this->fecha_insercio->CurrentValue;
+			$this->fecha_insercio->ViewValue = ew_FormatDateTime($this->fecha_insercio->ViewValue, 7);
+			$this->fecha_insercio->ViewCustomAttributes = "";
 
-			// nit
-			$this->nit->LinkCustomAttributes = "";
-			$this->nit->HrefValue = "";
-			$this->nit->TooltipValue = "";
+			// idcuenta
+			$this->idcuenta->LinkCustomAttributes = "";
+			$this->idcuenta->HrefValue = "";
+			$this->idcuenta->TooltipValue = "";
 
-			// nombre_factura
-			$this->nombre_factura->LinkCustomAttributes = "";
-			$this->nombre_factura->HrefValue = "";
-			$this->nombre_factura->TooltipValue = "";
+			// idbanco
+			$this->idbanco->LinkCustomAttributes = "";
+			$this->idbanco->HrefValue = "";
+			$this->idbanco->TooltipValue = "";
 
-			// direccion_factura
-			$this->direccion_factura->LinkCustomAttributes = "";
-			$this->direccion_factura->HrefValue = "";
-			$this->direccion_factura->TooltipValue = "";
+			// idsucursal
+			$this->idsucursal->LinkCustomAttributes = "";
+			$this->idsucursal->HrefValue = "";
+			$this->idsucursal->TooltipValue = "";
+
+			// idmoneda
+			$this->idmoneda->LinkCustomAttributes = "";
+			$this->idmoneda->HrefValue = "";
+			$this->idmoneda->TooltipValue = "";
+
+			// numero
+			$this->numero->LinkCustomAttributes = "";
+			$this->numero->HrefValue = "";
+			$this->numero->TooltipValue = "";
+
+			// nombre
+			$this->nombre->LinkCustomAttributes = "";
+			$this->nombre->HrefValue = "";
+			$this->nombre->TooltipValue = "";
+
+			// saldo
+			$this->saldo->LinkCustomAttributes = "";
+			$this->saldo->HrefValue = "";
+			$this->saldo->TooltipValue = "";
+
+			// debito
+			$this->debito->LinkCustomAttributes = "";
+			$this->debito->HrefValue = "";
+			$this->debito->TooltipValue = "";
+
+			// credito
+			$this->credito->LinkCustomAttributes = "";
+			$this->credito->HrefValue = "";
+			$this->credito->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
+
+			// fecha_insercio
+			$this->fecha_insercio->LinkCustomAttributes = "";
+			$this->fecha_insercio->HrefValue = "";
+			$this->fecha_insercio->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
-			// idpersona
-			$this->idpersona->EditAttrs["class"] = "form-control";
-			$this->idpersona->EditCustomAttributes = "";
-			if ($this->idpersona->getSessionValue() <> "") {
-				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
-				$this->idpersona->OldValue = $this->idpersona->CurrentValue;
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// idcuenta
+			$this->idcuenta->EditAttrs["class"] = "form-control";
+			$this->idcuenta->EditCustomAttributes = "";
+			$this->idcuenta->EditValue = ew_HtmlEncode($this->idcuenta->CurrentValue);
+			$this->idcuenta->PlaceHolder = ew_RemoveHtml($this->idcuenta->FldCaption());
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-				}
+			// idbanco
+			$this->idbanco->EditAttrs["class"] = "form-control";
+			$this->idbanco->EditCustomAttributes = "";
+			if ($this->idbanco->getSessionValue() <> "") {
+				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
+				$this->idbanco->OldValue = $this->idbanco->CurrentValue;
+			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			$this->idbanco->ViewCustomAttributes = "";
 			} else {
-				$this->idpersona->ViewValue = NULL;
-			}
-			$this->idpersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idpersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->idbanco->EditValue = ew_HtmlEncode($this->idbanco->CurrentValue);
+			$this->idbanco->PlaceHolder = ew_RemoveHtml($this->idbanco->FldCaption());
 			}
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idpersona->EditValue = $arwrk;
+			// idsucursal
+			$this->idsucursal->EditAttrs["class"] = "form-control";
+			$this->idsucursal->EditCustomAttributes = "";
+			$this->idsucursal->EditValue = ew_HtmlEncode($this->idsucursal->CurrentValue);
+			$this->idsucursal->PlaceHolder = ew_RemoveHtml($this->idsucursal->FldCaption());
+
+			// idmoneda
+			$this->idmoneda->EditAttrs["class"] = "form-control";
+			$this->idmoneda->EditCustomAttributes = "";
+			$this->idmoneda->EditValue = ew_HtmlEncode($this->idmoneda->CurrentValue);
+			$this->idmoneda->PlaceHolder = ew_RemoveHtml($this->idmoneda->FldCaption());
+
+			// numero
+			$this->numero->EditAttrs["class"] = "form-control";
+			$this->numero->EditCustomAttributes = "";
+			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
+			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
+
+			// nombre
+			$this->nombre->EditAttrs["class"] = "form-control";
+			$this->nombre->EditCustomAttributes = "";
+			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
+			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
+
+			// saldo
+			$this->saldo->EditAttrs["class"] = "form-control";
+			$this->saldo->EditCustomAttributes = "";
+			$this->saldo->EditValue = ew_HtmlEncode($this->saldo->CurrentValue);
+			$this->saldo->PlaceHolder = ew_RemoveHtml($this->saldo->FldCaption());
+			if (strval($this->saldo->EditValue) <> "" && is_numeric($this->saldo->EditValue)) {
+			$this->saldo->EditValue = ew_FormatNumber($this->saldo->EditValue, -2, -1, -2, 0);
+			$this->saldo->OldValue = $this->saldo->EditValue;
 			}
 
-			// nit
-			$this->nit->EditAttrs["class"] = "form-control";
-			$this->nit->EditCustomAttributes = "";
-			$this->nit->EditValue = ew_HtmlEncode($this->nit->CurrentValue);
-			$this->nit->PlaceHolder = ew_RemoveHtml($this->nit->FldCaption());
+			// debito
+			$this->debito->EditAttrs["class"] = "form-control";
+			$this->debito->EditCustomAttributes = "";
+			$this->debito->EditValue = ew_HtmlEncode($this->debito->CurrentValue);
+			$this->debito->PlaceHolder = ew_RemoveHtml($this->debito->FldCaption());
+			if (strval($this->debito->EditValue) <> "" && is_numeric($this->debito->EditValue)) {
+			$this->debito->EditValue = ew_FormatNumber($this->debito->EditValue, -2, -1, -2, 0);
+			$this->debito->OldValue = $this->debito->EditValue;
+			}
 
-			// nombre_factura
-			$this->nombre_factura->EditAttrs["class"] = "form-control";
-			$this->nombre_factura->EditCustomAttributes = "";
-			$this->nombre_factura->EditValue = ew_HtmlEncode($this->nombre_factura->CurrentValue);
-			$this->nombre_factura->PlaceHolder = ew_RemoveHtml($this->nombre_factura->FldCaption());
+			// credito
+			$this->credito->EditAttrs["class"] = "form-control";
+			$this->credito->EditCustomAttributes = "";
+			$this->credito->EditValue = ew_HtmlEncode($this->credito->CurrentValue);
+			$this->credito->PlaceHolder = ew_RemoveHtml($this->credito->FldCaption());
+			if (strval($this->credito->EditValue) <> "" && is_numeric($this->credito->EditValue)) {
+			$this->credito->EditValue = ew_FormatNumber($this->credito->EditValue, -2, -1, -2, 0);
+			$this->credito->OldValue = $this->credito->EditValue;
+			}
 
-			// direccion_factura
-			$this->direccion_factura->EditAttrs["class"] = "form-control";
-			$this->direccion_factura->EditCustomAttributes = "";
-			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
-			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
+			// estado
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			$this->estado->EditValue = $arwrk;
+
+			// fecha_insercio
+			$this->fecha_insercio->EditAttrs["class"] = "form-control";
+			$this->fecha_insercio->EditCustomAttributes = "";
+			$this->fecha_insercio->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercio->CurrentValue, 7));
+			$this->fecha_insercio->PlaceHolder = ew_RemoveHtml($this->fecha_insercio->FldCaption());
 
 			// Edit refer script
-			// idpersona
+			// idcuenta
 
-			$this->idpersona->HrefValue = "";
+			$this->idcuenta->HrefValue = "";
 
-			// nit
-			$this->nit->HrefValue = "";
+			// idbanco
+			$this->idbanco->HrefValue = "";
 
-			// nombre_factura
-			$this->nombre_factura->HrefValue = "";
+			// idsucursal
+			$this->idsucursal->HrefValue = "";
 
-			// direccion_factura
-			$this->direccion_factura->HrefValue = "";
+			// idmoneda
+			$this->idmoneda->HrefValue = "";
+
+			// numero
+			$this->numero->HrefValue = "";
+
+			// nombre
+			$this->nombre->HrefValue = "";
+
+			// saldo
+			$this->saldo->HrefValue = "";
+
+			// debito
+			$this->debito->HrefValue = "";
+
+			// credito
+			$this->credito->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
+
+			// fecha_insercio
+			$this->fecha_insercio->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idpersona
-			$this->idpersona->EditAttrs["class"] = "form-control";
-			$this->idpersona->EditCustomAttributes = "";
-			if ($this->idpersona->getSessionValue() <> "") {
-				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
-				$this->idpersona->OldValue = $this->idpersona->CurrentValue;
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// idcuenta
+			$this->idcuenta->EditAttrs["class"] = "form-control";
+			$this->idcuenta->EditCustomAttributes = "";
+			$this->idcuenta->EditValue = $this->idcuenta->CurrentValue;
+			$this->idcuenta->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
-				}
+			// idbanco
+			$this->idbanco->EditAttrs["class"] = "form-control";
+			$this->idbanco->EditCustomAttributes = "";
+			if ($this->idbanco->getSessionValue() <> "") {
+				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
+				$this->idbanco->OldValue = $this->idbanco->CurrentValue;
+			$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
+			$this->idbanco->ViewCustomAttributes = "";
 			} else {
-				$this->idpersona->ViewValue = NULL;
-			}
-			$this->idpersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idpersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `persona`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->idbanco->EditValue = ew_HtmlEncode($this->idbanco->CurrentValue);
+			$this->idbanco->PlaceHolder = ew_RemoveHtml($this->idbanco->FldCaption());
 			}
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idpersona->EditValue = $arwrk;
+			// idsucursal
+			$this->idsucursal->EditAttrs["class"] = "form-control";
+			$this->idsucursal->EditCustomAttributes = "";
+			$this->idsucursal->EditValue = ew_HtmlEncode($this->idsucursal->CurrentValue);
+			$this->idsucursal->PlaceHolder = ew_RemoveHtml($this->idsucursal->FldCaption());
+
+			// idmoneda
+			$this->idmoneda->EditAttrs["class"] = "form-control";
+			$this->idmoneda->EditCustomAttributes = "";
+			$this->idmoneda->EditValue = ew_HtmlEncode($this->idmoneda->CurrentValue);
+			$this->idmoneda->PlaceHolder = ew_RemoveHtml($this->idmoneda->FldCaption());
+
+			// numero
+			$this->numero->EditAttrs["class"] = "form-control";
+			$this->numero->EditCustomAttributes = "";
+			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
+			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
+
+			// nombre
+			$this->nombre->EditAttrs["class"] = "form-control";
+			$this->nombre->EditCustomAttributes = "";
+			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
+			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
+
+			// saldo
+			$this->saldo->EditAttrs["class"] = "form-control";
+			$this->saldo->EditCustomAttributes = "";
+			$this->saldo->EditValue = ew_HtmlEncode($this->saldo->CurrentValue);
+			$this->saldo->PlaceHolder = ew_RemoveHtml($this->saldo->FldCaption());
+			if (strval($this->saldo->EditValue) <> "" && is_numeric($this->saldo->EditValue)) {
+			$this->saldo->EditValue = ew_FormatNumber($this->saldo->EditValue, -2, -1, -2, 0);
+			$this->saldo->OldValue = $this->saldo->EditValue;
 			}
 
-			// nit
-			$this->nit->EditAttrs["class"] = "form-control";
-			$this->nit->EditCustomAttributes = "";
-			$this->nit->EditValue = ew_HtmlEncode($this->nit->CurrentValue);
-			$this->nit->PlaceHolder = ew_RemoveHtml($this->nit->FldCaption());
+			// debito
+			$this->debito->EditAttrs["class"] = "form-control";
+			$this->debito->EditCustomAttributes = "";
+			$this->debito->EditValue = ew_HtmlEncode($this->debito->CurrentValue);
+			$this->debito->PlaceHolder = ew_RemoveHtml($this->debito->FldCaption());
+			if (strval($this->debito->EditValue) <> "" && is_numeric($this->debito->EditValue)) {
+			$this->debito->EditValue = ew_FormatNumber($this->debito->EditValue, -2, -1, -2, 0);
+			$this->debito->OldValue = $this->debito->EditValue;
+			}
 
-			// nombre_factura
-			$this->nombre_factura->EditAttrs["class"] = "form-control";
-			$this->nombre_factura->EditCustomAttributes = "";
-			$this->nombre_factura->EditValue = ew_HtmlEncode($this->nombre_factura->CurrentValue);
-			$this->nombre_factura->PlaceHolder = ew_RemoveHtml($this->nombre_factura->FldCaption());
+			// credito
+			$this->credito->EditAttrs["class"] = "form-control";
+			$this->credito->EditCustomAttributes = "";
+			$this->credito->EditValue = ew_HtmlEncode($this->credito->CurrentValue);
+			$this->credito->PlaceHolder = ew_RemoveHtml($this->credito->FldCaption());
+			if (strval($this->credito->EditValue) <> "" && is_numeric($this->credito->EditValue)) {
+			$this->credito->EditValue = ew_FormatNumber($this->credito->EditValue, -2, -1, -2, 0);
+			$this->credito->OldValue = $this->credito->EditValue;
+			}
 
-			// direccion_factura
-			$this->direccion_factura->EditAttrs["class"] = "form-control";
-			$this->direccion_factura->EditCustomAttributes = "";
-			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
-			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
+			// estado
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			$this->estado->EditValue = $arwrk;
+
+			// fecha_insercio
+			$this->fecha_insercio->EditAttrs["class"] = "form-control";
+			$this->fecha_insercio->EditCustomAttributes = "";
+			$this->fecha_insercio->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercio->CurrentValue, 7));
+			$this->fecha_insercio->PlaceHolder = ew_RemoveHtml($this->fecha_insercio->FldCaption());
 
 			// Edit refer script
-			// idpersona
+			// idcuenta
 
-			$this->idpersona->HrefValue = "";
+			$this->idcuenta->HrefValue = "";
 
-			// nit
-			$this->nit->HrefValue = "";
+			// idbanco
+			$this->idbanco->HrefValue = "";
 
-			// nombre_factura
-			$this->nombre_factura->HrefValue = "";
+			// idsucursal
+			$this->idsucursal->HrefValue = "";
 
-			// direccion_factura
-			$this->direccion_factura->HrefValue = "";
+			// idmoneda
+			$this->idmoneda->HrefValue = "";
+
+			// numero
+			$this->numero->HrefValue = "";
+
+			// nombre
+			$this->nombre->HrefValue = "";
+
+			// saldo
+			$this->saldo->HrefValue = "";
+
+			// debito
+			$this->debito->HrefValue = "";
+
+			// credito
+			$this->credito->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
+
+			// fecha_insercio
+			$this->fecha_insercio->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1471,8 +1609,53 @@ class ccliente_grid extends ccliente {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->idpersona->FldIsDetailKey && !is_null($this->idpersona->FormValue) && $this->idpersona->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idpersona->FldCaption(), $this->idpersona->ReqErrMsg));
+		if (!$this->idcuenta->FldIsDetailKey && !is_null($this->idcuenta->FormValue) && $this->idcuenta->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idcuenta->FldCaption(), $this->idcuenta->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idcuenta->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idcuenta->FldErrMsg());
+		}
+		if (!$this->idbanco->FldIsDetailKey && !is_null($this->idbanco->FormValue) && $this->idbanco->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idbanco->FldCaption(), $this->idbanco->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idbanco->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idbanco->FldErrMsg());
+		}
+		if (!$this->idsucursal->FldIsDetailKey && !is_null($this->idsucursal->FormValue) && $this->idsucursal->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idsucursal->FldCaption(), $this->idsucursal->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idsucursal->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idsucursal->FldErrMsg());
+		}
+		if (!$this->idmoneda->FldIsDetailKey && !is_null($this->idmoneda->FormValue) && $this->idmoneda->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idmoneda->FldCaption(), $this->idmoneda->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->idmoneda->FormValue)) {
+			ew_AddMessage($gsFormError, $this->idmoneda->FldErrMsg());
+		}
+		if (!$this->saldo->FldIsDetailKey && !is_null($this->saldo->FormValue) && $this->saldo->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->saldo->FldCaption(), $this->saldo->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->saldo->FormValue)) {
+			ew_AddMessage($gsFormError, $this->saldo->FldErrMsg());
+		}
+		if (!$this->debito->FldIsDetailKey && !is_null($this->debito->FormValue) && $this->debito->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->debito->FldCaption(), $this->debito->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->debito->FormValue)) {
+			ew_AddMessage($gsFormError, $this->debito->FldErrMsg());
+		}
+		if (!$this->credito->FldIsDetailKey && !is_null($this->credito->FormValue) && $this->credito->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->credito->FldCaption(), $this->credito->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->credito->FormValue)) {
+			ew_AddMessage($gsFormError, $this->credito->FldErrMsg());
+		}
+		if ($this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		}
+		if (!ew_CheckEuroDate($this->fecha_insercio->FormValue)) {
+			ew_AddMessage($gsFormError, $this->fecha_insercio->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1527,7 +1710,7 @@ class ccliente_grid extends ccliente {
 			foreach ($rsold as $row) {
 				$sThisKey = "";
 				if ($sThisKey <> "") $sThisKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-				$sThisKey .= $row['idcliente'];
+				$sThisKey .= $row['idcuenta'];
 				$conn->raiseErrorFn = 'ew_ErrorFn';
 				$DeleteRows = $this->Delete($row); // Delete
 				$conn->raiseErrorFn = '';
@@ -1582,17 +1765,37 @@ class ccliente_grid extends ccliente {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// idpersona
-			$this->idpersona->SetDbValueDef($rsnew, $this->idpersona->CurrentValue, 0, $this->idpersona->ReadOnly);
+			// idcuenta
+			// idbanco
 
-			// nit
-			$this->nit->SetDbValueDef($rsnew, $this->nit->CurrentValue, NULL, $this->nit->ReadOnly);
+			$this->idbanco->SetDbValueDef($rsnew, $this->idbanco->CurrentValue, 0, $this->idbanco->ReadOnly);
 
-			// nombre_factura
-			$this->nombre_factura->SetDbValueDef($rsnew, $this->nombre_factura->CurrentValue, NULL, $this->nombre_factura->ReadOnly);
+			// idsucursal
+			$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, $this->idsucursal->ReadOnly);
 
-			// direccion_factura
-			$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, $this->direccion_factura->ReadOnly);
+			// idmoneda
+			$this->idmoneda->SetDbValueDef($rsnew, $this->idmoneda->CurrentValue, 0, $this->idmoneda->ReadOnly);
+
+			// numero
+			$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, NULL, $this->numero->ReadOnly);
+
+			// nombre
+			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, $this->nombre->ReadOnly);
+
+			// saldo
+			$this->saldo->SetDbValueDef($rsnew, $this->saldo->CurrentValue, 0, $this->saldo->ReadOnly);
+
+			// debito
+			$this->debito->SetDbValueDef($rsnew, $this->debito->CurrentValue, 0, $this->debito->ReadOnly);
+
+			// credito
+			$this->credito->SetDbValueDef($rsnew, $this->credito->CurrentValue, 0, $this->credito->ReadOnly);
+
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
+
+			// fecha_insercio
+			$this->fecha_insercio->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7), NULL, $this->fecha_insercio->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1631,8 +1834,8 @@ class ccliente_grid extends ccliente {
 		global $conn, $Language, $Security;
 
 		// Set up foreign key field value from Session
-			if ($this->getCurrentMasterTable() == "persona") {
-				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
+			if ($this->getCurrentMasterTable() == "banco") {
+				$this->idbanco->CurrentValue = $this->idbanco->getSessionValue();
 			}
 
 		// Load db values from rsold
@@ -1641,21 +1844,60 @@ class ccliente_grid extends ccliente {
 		}
 		$rsnew = array();
 
-		// idpersona
-		$this->idpersona->SetDbValueDef($rsnew, $this->idpersona->CurrentValue, 0, strval($this->idpersona->CurrentValue) == "");
+		// idcuenta
+		$this->idcuenta->SetDbValueDef($rsnew, $this->idcuenta->CurrentValue, 0, FALSE);
 
-		// nit
-		$this->nit->SetDbValueDef($rsnew, $this->nit->CurrentValue, NULL, FALSE);
+		// idbanco
+		$this->idbanco->SetDbValueDef($rsnew, $this->idbanco->CurrentValue, 0, strval($this->idbanco->CurrentValue) == "");
 
-		// nombre_factura
-		$this->nombre_factura->SetDbValueDef($rsnew, $this->nombre_factura->CurrentValue, NULL, FALSE);
+		// idsucursal
+		$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, strval($this->idsucursal->CurrentValue) == "");
 
-		// direccion_factura
-		$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, FALSE);
+		// idmoneda
+		$this->idmoneda->SetDbValueDef($rsnew, $this->idmoneda->CurrentValue, 0, FALSE);
+
+		// numero
+		$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, NULL, FALSE);
+
+		// nombre
+		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, NULL, FALSE);
+
+		// saldo
+		$this->saldo->SetDbValueDef($rsnew, $this->saldo->CurrentValue, 0, strval($this->saldo->CurrentValue) == "");
+
+		// debito
+		$this->debito->SetDbValueDef($rsnew, $this->debito->CurrentValue, 0, strval($this->debito->CurrentValue) == "");
+
+		// credito
+		$this->credito->SetDbValueDef($rsnew, $this->credito->CurrentValue, 0, strval($this->credito->CurrentValue) == "");
+
+		// estado
+		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
+
+		// fecha_insercio
+		$this->fecha_insercio->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercio->CurrentValue, 7), NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
 		$bInsertRow = $this->Row_Inserting($rs, $rsnew);
+
+		// Check if key value entered
+		if ($bInsertRow && $this->ValidateKey && strval($rsnew['idcuenta']) == "") {
+			$this->setFailureMessage($Language->Phrase("InvalidKeyValue"));
+			$bInsertRow = FALSE;
+		}
+
+		// Check for duplicate key
+		if ($bInsertRow && $this->ValidateKey) {
+			$sFilter = $this->KeyFilter();
+			$rsChk = $this->LoadRs($sFilter);
+			if ($rsChk && !$rsChk->EOF) {
+				$sKeyErrMsg = str_replace("%f", $sFilter, $Language->Phrase("DupKey"));
+				$this->setFailureMessage($sKeyErrMsg);
+				$rsChk->Close();
+				$bInsertRow = FALSE;
+			}
+		}
 		if ($bInsertRow) {
 			$conn->raiseErrorFn = 'ew_ErrorFn';
 			$AddRow = $this->Insert($rsnew);
@@ -1677,8 +1919,6 @@ class ccliente_grid extends ccliente {
 
 		// Get insert id if necessary
 		if ($AddRow) {
-			$this->idcliente->setDbValue($conn->Insert_ID());
-			$rsnew['idcliente'] = $this->idcliente->DbValue;
 		}
 		if ($AddRow) {
 
@@ -1694,9 +1934,9 @@ class ccliente_grid extends ccliente {
 
 		// Hide foreign keys
 		$sMasterTblVar = $this->getCurrentMasterTable();
-		if ($sMasterTblVar == "persona") {
-			$this->idpersona->Visible = FALSE;
-			if ($GLOBALS["persona"]->EventCancelled) $this->EventCancelled = TRUE;
+		if ($sMasterTblVar == "banco") {
+			$this->idbanco->Visible = FALSE;
+			if ($GLOBALS["banco"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter

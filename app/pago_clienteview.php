@@ -6,9 +6,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "pago_clienteinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "pago_clientegridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -16,9 +15,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$cliente_view = NULL; // Initialize page object first
+$pago_cliente_view = NULL; // Initialize page object first
 
-class ccliente_view extends ccliente {
+class cpago_cliente_view extends cpago_cliente {
 
 	// Page ID
 	var $PageID = 'view';
@@ -27,10 +26,10 @@ class ccliente_view extends ccliente {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'cliente';
+	var $TableName = 'pago_cliente';
 
 	// Page object name
-	var $PageObjName = 'cliente_view';
+	var $PageObjName = 'pago_cliente_view';
 
 	// Page name
 	function PageName() {
@@ -229,15 +228,15 @@ class ccliente_view extends ccliente {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (cliente)
-		if (!isset($GLOBALS["cliente"]) || get_class($GLOBALS["cliente"]) == "ccliente") {
-			$GLOBALS["cliente"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["cliente"];
+		// Table object (pago_cliente)
+		if (!isset($GLOBALS["pago_cliente"]) || get_class($GLOBALS["pago_cliente"]) == "cpago_cliente") {
+			$GLOBALS["pago_cliente"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["pago_cliente"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["idcliente"] <> "") {
-			$this->RecKey["idcliente"] = $_GET["idcliente"];
-			$KeyUrl .= "&amp;idcliente=" . urlencode($this->RecKey["idcliente"]);
+		if (@$_GET["idpago_cliente"] <> "") {
+			$this->RecKey["idpago_cliente"] = $_GET["idpago_cliente"];
+			$KeyUrl .= "&amp;idpago_cliente=" . urlencode($this->RecKey["idpago_cliente"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -247,8 +246,8 @@ class ccliente_view extends ccliente {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (persona)
-		if (!isset($GLOBALS['persona'])) $GLOBALS['persona'] = new cpersona();
+		// Table object (cliente)
+		if (!isset($GLOBALS['cliente'])) $GLOBALS['cliente'] = new ccliente();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -256,7 +255,7 @@ class ccliente_view extends ccliente {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'cliente', TRUE);
+			define("EW_TABLE_NAME", 'pago_cliente', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -284,7 +283,6 @@ class ccliente_view extends ccliente {
 	function Page_Init() {
 		global $gsExport, $gsCustomExport, $gsExportFile, $UserProfile, $Language, $Security, $objForm;
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->idcliente->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -301,14 +299,6 @@ class ccliente_view extends ccliente {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'pago_cliente'
-			if (@$_POST["grid"] == "fpago_clientegrid") {
-				if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
-				$GLOBALS["pago_cliente_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -338,13 +328,13 @@ class ccliente_view extends ccliente {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $cliente;
+		global $EW_EXPORT, $pago_cliente;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($cliente);
+				$doc = new $class($pago_cliente);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -398,11 +388,11 @@ class ccliente_view extends ccliente {
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["idcliente"] <> "") {
-				$this->idcliente->setQueryStringValue($_GET["idcliente"]);
-				$this->RecKey["idcliente"] = $this->idcliente->QueryStringValue;
+			if (@$_GET["idpago_cliente"] <> "") {
+				$this->idpago_cliente->setQueryStringValue($_GET["idpago_cliente"]);
+				$this->RecKey["idpago_cliente"] = $this->idpago_cliente->QueryStringValue;
 			} else {
-				$sReturnUrl = "clientelist.php"; // Return to list
+				$sReturnUrl = "pago_clientelist.php"; // Return to list
 			}
 
 			// Get action
@@ -412,11 +402,11 @@ class ccliente_view extends ccliente {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "clientelist.php"; // No matching record, return to list
+						$sReturnUrl = "pago_clientelist.php"; // No matching record, return to list
 					}
 			}
 		} else {
-			$sReturnUrl = "clientelist.php"; // Not page request, return to list
+			$sReturnUrl = "pago_clientelist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -425,9 +415,6 @@ class ccliente_view extends ccliente {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
-
-		// Set up detail parameters
-		$this->SetUpDetailParms();
 	}
 
 	// Set up other options
@@ -445,85 +432,6 @@ class ccliente_view extends ccliente {
 		$item = &$option->Add("edit");
 		$item->Body = "<a class=\"ewAction ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("ViewPageEditLink") . "</a>";
 		$item->Visible = ($this->EditUrl <> "");
-
-		// Show detail edit/copy
-		if ($this->getCurrentDetailTable() <> "") {
-
-			// Detail Edit
-			$item = &$option->Add("detailedit");
-			$item->Body = "<a class=\"ewAction ewDetailEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable())) . "\">" . $Language->Phrase("MasterDetailEditLink") . "</a>";
-			$item->Visible = (TRUE);
-		}
-		$option = &$options["detail"];
-		$DetailTableLink = "";
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_pago_cliente"
-		$item = &$option->Add("detail_pago_cliente");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("pago_cliente", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("pago_clientelist.php?" . EW_TABLE_SHOW_MASTER . "=cliente&fk_idcliente=" . strval($this->idcliente->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["pago_cliente_grid"] && $GLOBALS["pago_cliente_grid"]->DetailView) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=pago_cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "pago_cliente";
-		}
-		if ($GLOBALS["pago_cliente_grid"] && $GLOBALS["pago_cliente_grid"]->DetailEdit) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=pago_cliente")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "pago_cliente";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = TRUE;
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "pago_cliente";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$option->Add("details");
-			$oListOpt->Body = $body;
-		}
-
-		// Set up detail default
-		$option = &$options["detail"];
-		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
-		$option->UseImageAndText = TRUE;
-		$ar = explode(",", $DetailTableLink);
-		$cnt = count($ar);
-		$option->UseDropDownButton = ($cnt > 1);
-		$option->UseButtonGroup = TRUE;
-		$item = &$option->Add($option->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
 
 		// Set up action default
 		$option = &$options["action"];
@@ -601,34 +509,26 @@ class ccliente_view extends ccliente {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
+		$this->idpago_cliente->setDbValue($rs->fields('idpago_cliente'));
 		$this->idcliente->setDbValue($rs->fields('idcliente'));
-		$this->idpersona->setDbValue($rs->fields('idpersona'));
-		$this->codigo->setDbValue($rs->fields('codigo'));
-		$this->nit->setDbValue($rs->fields('nit'));
-		$this->nombre_factura->setDbValue($rs->fields('nombre_factura'));
-		$this->direccion_factura->setDbValue($rs->fields('direccion_factura'));
-		$this->debito->setDbValue($rs->fields('debito'));
-		$this->credito->setDbValue($rs->fields('credito'));
-		$this->_email->setDbValue($rs->fields('email'));
-		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->monto->setDbValue($rs->fields('monto'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
+		$this->idpago_cliente->DbValue = $row['idpago_cliente'];
 		$this->idcliente->DbValue = $row['idcliente'];
-		$this->idpersona->DbValue = $row['idpersona'];
-		$this->codigo->DbValue = $row['codigo'];
-		$this->nit->DbValue = $row['nit'];
-		$this->nombre_factura->DbValue = $row['nombre_factura'];
-		$this->direccion_factura->DbValue = $row['direccion_factura'];
-		$this->debito->DbValue = $row['debito'];
-		$this->credito->DbValue = $row['credito'];
-		$this->_email->DbValue = $row['email'];
-		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->monto->DbValue = $row['monto'];
+		$this->fecha->DbValue = $row['fecha'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->idsucursal->DbValue = $row['idsucursal'];
 	}
 
 	// Render row values based on field settings
@@ -645,39 +545,31 @@ class ccliente_view extends ccliente {
 		$this->SetupOtherOptions();
 
 		// Convert decimal values if posted back
-		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
-			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
-			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
+		if ($this->monto->FormValue == $this->monto->CurrentValue && is_numeric(ew_StrToFloat($this->monto->CurrentValue)))
+			$this->monto->CurrentValue = ew_StrToFloat($this->monto->CurrentValue);
 
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
+		// idpago_cliente
 		// idcliente
-		// idpersona
-		// codigo
-		// nit
-		// nombre_factura
-		// direccion_factura
-		// debito
-		// credito
-		// email
-		// fecha_insercion
+		// monto
+		// fecha
 		// estado
+		// fecha_insercion
+		// idsucursal
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idcliente
-			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
-			$this->idcliente->ViewCustomAttributes = "";
+			// idpago_cliente
+			$this->idpago_cliente->ViewValue = $this->idpago_cliente->CurrentValue;
+			$this->idpago_cliente->ViewCustomAttributes = "";
 
-			// idpersona
-			if (strval($this->idpersona->CurrentValue) <> "") {
-				$sFilterWrk = "`idpersona`" . ew_SearchString("=", $this->idpersona->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpersona`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, `apellido` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `persona`";
+			// idcliente
+			if (strval($this->idcliente->CurrentValue) <> "") {
+				$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcliente`, `codigo` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -688,53 +580,31 @@ class ccliente_view extends ccliente {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpersona, $sWhereWrk);
+			$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `codigo`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpersona->ViewValue = $rswrk->fields('DispFld');
-					$this->idpersona->ViewValue .= ew_ValueSeparator(2,$this->idpersona) . $rswrk->fields('Disp3Fld');
+					$this->idcliente->ViewValue = $rswrk->fields('DispFld');
+					$this->idcliente->ViewValue .= ew_ValueSeparator(1,$this->idcliente) . $rswrk->fields('Disp2Fld');
 					$rswrk->Close();
 				} else {
-					$this->idpersona->ViewValue = $this->idpersona->CurrentValue;
+					$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
 				}
 			} else {
-				$this->idpersona->ViewValue = NULL;
+				$this->idcliente->ViewValue = NULL;
 			}
-			$this->idpersona->ViewCustomAttributes = "";
+			$this->idcliente->ViewCustomAttributes = "";
 
-			// codigo
-			$this->codigo->ViewValue = $this->codigo->CurrentValue;
-			$this->codigo->ViewCustomAttributes = "";
+			// monto
+			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, 0, -1);
+			$this->monto->ViewCustomAttributes = "";
 
-			// nit
-			$this->nit->ViewValue = $this->nit->CurrentValue;
-			$this->nit->ViewCustomAttributes = "";
-
-			// nombre_factura
-			$this->nombre_factura->ViewValue = $this->nombre_factura->CurrentValue;
-			$this->nombre_factura->ViewCustomAttributes = "";
-
-			// direccion_factura
-			$this->direccion_factura->ViewValue = $this->direccion_factura->CurrentValue;
-			$this->direccion_factura->ViewCustomAttributes = "";
-
-			// debito
-			$this->debito->ViewValue = $this->debito->CurrentValue;
-			$this->debito->ViewCustomAttributes = "";
-
-			// credito
-			$this->credito->ViewValue = $this->credito->CurrentValue;
-			$this->credito->ViewCustomAttributes = "";
-
-			// email
-			$this->_email->ViewValue = $this->_email->CurrentValue;
-			$this->_email->ViewCustomAttributes = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
-			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
-			$this->fecha_insercion->ViewCustomAttributes = "";
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -753,60 +623,68 @@ class ccliente_view extends ccliente {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// idsucursal
+			if (strval($this->idsucursal->CurrentValue) <> "") {
+				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
+				}
+			} else {
+				$this->idsucursal->ViewValue = NULL;
+			}
+			$this->idsucursal->ViewCustomAttributes = "";
+
 			// idcliente
 			$this->idcliente->LinkCustomAttributes = "";
 			$this->idcliente->HrefValue = "";
 			$this->idcliente->TooltipValue = "";
 
-			// idpersona
-			$this->idpersona->LinkCustomAttributes = "";
-			$this->idpersona->HrefValue = "";
-			$this->idpersona->TooltipValue = "";
+			// monto
+			$this->monto->LinkCustomAttributes = "";
+			$this->monto->HrefValue = "";
+			$this->monto->TooltipValue = "";
 
-			// codigo
-			$this->codigo->LinkCustomAttributes = "";
-			$this->codigo->HrefValue = "";
-			$this->codigo->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
 
-			// nit
-			$this->nit->LinkCustomAttributes = "";
-			$this->nit->HrefValue = "";
-			$this->nit->TooltipValue = "";
-
-			// nombre_factura
-			$this->nombre_factura->LinkCustomAttributes = "";
-			$this->nombre_factura->HrefValue = "";
-			$this->nombre_factura->TooltipValue = "";
-
-			// direccion_factura
-			$this->direccion_factura->LinkCustomAttributes = "";
-			$this->direccion_factura->HrefValue = "";
-			$this->direccion_factura->TooltipValue = "";
-
-			// debito
-			$this->debito->LinkCustomAttributes = "";
-			$this->debito->HrefValue = "";
-			$this->debito->TooltipValue = "";
-
-			// credito
-			$this->credito->LinkCustomAttributes = "";
-			$this->credito->HrefValue = "";
-			$this->credito->TooltipValue = "";
-
-			// email
-			$this->_email->LinkCustomAttributes = "";
-			$this->_email->HrefValue = "";
-			$this->_email->TooltipValue = "";
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
 
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
+			// idsucursal
+			$this->idsucursal->LinkCustomAttributes = "";
+			$this->idsucursal->HrefValue = "";
+			$this->idsucursal->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -826,13 +704,13 @@ class ccliente_view extends ccliente {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "persona") {
+			if ($sMasterTblVar == "cliente") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_idpersona"] <> "") {
-					$GLOBALS["persona"]->idpersona->setQueryStringValue($_GET["fk_idpersona"]);
-					$this->idpersona->setQueryStringValue($GLOBALS["persona"]->idpersona->QueryStringValue);
-					$this->idpersona->setSessionValue($this->idpersona->QueryStringValue);
-					if (!is_numeric($GLOBALS["persona"]->idpersona->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idcliente"] <> "") {
+					$GLOBALS["cliente"]->idcliente->setQueryStringValue($_GET["fk_idcliente"]);
+					$this->idcliente->setQueryStringValue($GLOBALS["cliente"]->idcliente->QueryStringValue);
+					$this->idcliente->setSessionValue($this->idcliente->QueryStringValue);
+					if (!is_numeric($GLOBALS["cliente"]->idcliente->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -849,48 +727,19 @@ class ccliente_view extends ccliente {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "persona") {
-				if ($this->idpersona->QueryStringValue == "") $this->idpersona->setSessionValue("");
+			if ($sMasterTblVar <> "cliente") {
+				if ($this->idcliente->QueryStringValue == "") $this->idcliente->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("pago_cliente", $DetailTblVar)) {
-				if (!isset($GLOBALS["pago_cliente_grid"]))
-					$GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
-				if ($GLOBALS["pago_cliente_grid"]->DetailView) {
-					$GLOBALS["pago_cliente_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["pago_cliente_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["pago_cliente_grid"]->setStartRecordNumber(1);
-					$GLOBALS["pago_cliente_grid"]->idcliente->FldIsDetailKey = TRUE;
-					$GLOBALS["pago_cliente_grid"]->idcliente->CurrentValue = $this->idcliente->CurrentValue;
-					$GLOBALS["pago_cliente_grid"]->idcliente->setSessionValue($GLOBALS["pago_cliente_grid"]->idcliente->CurrentValue);
-				}
-			}
-		}
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "clientelist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "pago_clientelist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -986,33 +835,33 @@ class ccliente_view extends ccliente {
 <?php
 
 // Create page object
-if (!isset($cliente_view)) $cliente_view = new ccliente_view();
+if (!isset($pago_cliente_view)) $pago_cliente_view = new cpago_cliente_view();
 
 // Page init
-$cliente_view->Page_Init();
+$pago_cliente_view->Page_Init();
 
 // Page main
-$cliente_view->Page_Main();
+$pago_cliente_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$cliente_view->Page_Render();
+$pago_cliente_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var cliente_view = new ew_Page("cliente_view");
-cliente_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = cliente_view.PageID; // For backward compatibility
+var pago_cliente_view = new ew_Page("pago_cliente_view");
+pago_cliente_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = pago_cliente_view.PageID; // For backward compatibility
 
 // Form object
-var fclienteview = new ew_Form("fclienteview");
+var fpago_clienteview = new ew_Form("fpago_clienteview");
 
 // Form_CustomValidate event
-fclienteview.Form_CustomValidate = 
+fpago_clienteview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1021,13 +870,14 @@ fclienteview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fclienteview.ValidateRequired = true;
+fpago_clienteview.ValidateRequired = true;
 <?php } else { ?>
-fclienteview.ValidateRequired = false; 
+fpago_clienteview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fclienteview.Lists["x_idpersona"] = {"LinkField":"x_idpersona","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","x_apellido",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fpago_clienteview.Lists["x_idcliente"] = {"LinkField":"x_idcliente","Ajax":true,"AutoFill":false,"DisplayFields":["x_codigo","x_nombre_factura","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fpago_clienteview.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1037,160 +887,97 @@ fclienteview.Lists["x_idpersona"] = {"LinkField":"x_idpersona","Ajax":true,"Auto
 </script>
 <div class="ewToolbar">
 <?php $Breadcrumb->Render(); ?>
-<?php $cliente_view->ExportOptions->Render("body") ?>
+<?php $pago_cliente_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($cliente_view->OtherOptions as &$option)
+	foreach ($pago_cliente_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $cliente_view->ShowPageHeader(); ?>
+<?php $pago_cliente_view->ShowPageHeader(); ?>
 <?php
-$cliente_view->ShowMessage();
+$pago_cliente_view->ShowMessage();
 ?>
-<form name="fclienteview" id="fclienteview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($cliente_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cliente_view->Token ?>">
+<form name="fpago_clienteview" id="fpago_clienteview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($pago_cliente_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $pago_cliente_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="cliente">
+<input type="hidden" name="t" value="pago_cliente">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($cliente->idcliente->Visible) { // idcliente ?>
+<?php if ($pago_cliente->idcliente->Visible) { // idcliente ?>
 	<tr id="r_idcliente">
-		<td><span id="elh_cliente_idcliente"><?php echo $cliente->idcliente->FldCaption() ?></span></td>
-		<td<?php echo $cliente->idcliente->CellAttributes() ?>>
-<span id="el_cliente_idcliente" class="form-group">
-<span<?php echo $cliente->idcliente->ViewAttributes() ?>>
-<?php echo $cliente->idcliente->ViewValue ?></span>
+		<td><span id="elh_pago_cliente_idcliente"><?php echo $pago_cliente->idcliente->FldCaption() ?></span></td>
+		<td<?php echo $pago_cliente->idcliente->CellAttributes() ?>>
+<span id="el_pago_cliente_idcliente" class="form-group">
+<span<?php echo $pago_cliente->idcliente->ViewAttributes() ?>>
+<?php echo $pago_cliente->idcliente->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cliente->idpersona->Visible) { // idpersona ?>
-	<tr id="r_idpersona">
-		<td><span id="elh_cliente_idpersona"><?php echo $cliente->idpersona->FldCaption() ?></span></td>
-		<td<?php echo $cliente->idpersona->CellAttributes() ?>>
-<span id="el_cliente_idpersona" class="form-group">
-<span<?php echo $cliente->idpersona->ViewAttributes() ?>>
-<?php echo $cliente->idpersona->ViewValue ?></span>
+<?php if ($pago_cliente->monto->Visible) { // monto ?>
+	<tr id="r_monto">
+		<td><span id="elh_pago_cliente_monto"><?php echo $pago_cliente->monto->FldCaption() ?></span></td>
+		<td<?php echo $pago_cliente->monto->CellAttributes() ?>>
+<span id="el_pago_cliente_monto" class="form-group">
+<span<?php echo $pago_cliente->monto->ViewAttributes() ?>>
+<?php echo $pago_cliente->monto->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cliente->codigo->Visible) { // codigo ?>
-	<tr id="r_codigo">
-		<td><span id="elh_cliente_codigo"><?php echo $cliente->codigo->FldCaption() ?></span></td>
-		<td<?php echo $cliente->codigo->CellAttributes() ?>>
-<span id="el_cliente_codigo" class="form-group">
-<span<?php echo $cliente->codigo->ViewAttributes() ?>>
-<?php echo $cliente->codigo->ViewValue ?></span>
+<?php if ($pago_cliente->fecha->Visible) { // fecha ?>
+	<tr id="r_fecha">
+		<td><span id="elh_pago_cliente_fecha"><?php echo $pago_cliente->fecha->FldCaption() ?></span></td>
+		<td<?php echo $pago_cliente->fecha->CellAttributes() ?>>
+<span id="el_pago_cliente_fecha" class="form-group">
+<span<?php echo $pago_cliente->fecha->ViewAttributes() ?>>
+<?php echo $pago_cliente->fecha->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($cliente->nit->Visible) { // nit ?>
-	<tr id="r_nit">
-		<td><span id="elh_cliente_nit"><?php echo $cliente->nit->FldCaption() ?></span></td>
-		<td<?php echo $cliente->nit->CellAttributes() ?>>
-<span id="el_cliente_nit" class="form-group">
-<span<?php echo $cliente->nit->ViewAttributes() ?>>
-<?php echo $cliente->nit->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->nombre_factura->Visible) { // nombre_factura ?>
-	<tr id="r_nombre_factura">
-		<td><span id="elh_cliente_nombre_factura"><?php echo $cliente->nombre_factura->FldCaption() ?></span></td>
-		<td<?php echo $cliente->nombre_factura->CellAttributes() ?>>
-<span id="el_cliente_nombre_factura" class="form-group">
-<span<?php echo $cliente->nombre_factura->ViewAttributes() ?>>
-<?php echo $cliente->nombre_factura->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->direccion_factura->Visible) { // direccion_factura ?>
-	<tr id="r_direccion_factura">
-		<td><span id="elh_cliente_direccion_factura"><?php echo $cliente->direccion_factura->FldCaption() ?></span></td>
-		<td<?php echo $cliente->direccion_factura->CellAttributes() ?>>
-<span id="el_cliente_direccion_factura" class="form-group">
-<span<?php echo $cliente->direccion_factura->ViewAttributes() ?>>
-<?php echo $cliente->direccion_factura->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->debito->Visible) { // debito ?>
-	<tr id="r_debito">
-		<td><span id="elh_cliente_debito"><?php echo $cliente->debito->FldCaption() ?></span></td>
-		<td<?php echo $cliente->debito->CellAttributes() ?>>
-<span id="el_cliente_debito" class="form-group">
-<span<?php echo $cliente->debito->ViewAttributes() ?>>
-<?php echo $cliente->debito->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->credito->Visible) { // credito ?>
-	<tr id="r_credito">
-		<td><span id="elh_cliente_credito"><?php echo $cliente->credito->FldCaption() ?></span></td>
-		<td<?php echo $cliente->credito->CellAttributes() ?>>
-<span id="el_cliente_credito" class="form-group">
-<span<?php echo $cliente->credito->ViewAttributes() ?>>
-<?php echo $cliente->credito->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->_email->Visible) { // email ?>
-	<tr id="r__email">
-		<td><span id="elh_cliente__email"><?php echo $cliente->_email->FldCaption() ?></span></td>
-		<td<?php echo $cliente->_email->CellAttributes() ?>>
-<span id="el_cliente__email" class="form-group">
-<span<?php echo $cliente->_email->ViewAttributes() ?>>
-<?php echo $cliente->_email->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->fecha_insercion->Visible) { // fecha_insercion ?>
-	<tr id="r_fecha_insercion">
-		<td><span id="elh_cliente_fecha_insercion"><?php echo $cliente->fecha_insercion->FldCaption() ?></span></td>
-		<td<?php echo $cliente->fecha_insercion->CellAttributes() ?>>
-<span id="el_cliente_fecha_insercion" class="form-group">
-<span<?php echo $cliente->fecha_insercion->ViewAttributes() ?>>
-<?php echo $cliente->fecha_insercion->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($cliente->estado->Visible) { // estado ?>
+<?php if ($pago_cliente->estado->Visible) { // estado ?>
 	<tr id="r_estado">
-		<td><span id="elh_cliente_estado"><?php echo $cliente->estado->FldCaption() ?></span></td>
-		<td<?php echo $cliente->estado->CellAttributes() ?>>
-<span id="el_cliente_estado" class="form-group">
-<span<?php echo $cliente->estado->ViewAttributes() ?>>
-<?php echo $cliente->estado->ViewValue ?></span>
+		<td><span id="elh_pago_cliente_estado"><?php echo $pago_cliente->estado->FldCaption() ?></span></td>
+		<td<?php echo $pago_cliente->estado->CellAttributes() ?>>
+<span id="el_pago_cliente_estado" class="form-group">
+<span<?php echo $pago_cliente->estado->ViewAttributes() ?>>
+<?php echo $pago_cliente->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($pago_cliente->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_pago_cliente_fecha_insercion"><?php echo $pago_cliente->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $pago_cliente->fecha_insercion->CellAttributes() ?>>
+<span id="el_pago_cliente_fecha_insercion" class="form-group">
+<span<?php echo $pago_cliente->fecha_insercion->ViewAttributes() ?>>
+<?php echo $pago_cliente->fecha_insercion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($pago_cliente->idsucursal->Visible) { // idsucursal ?>
+	<tr id="r_idsucursal">
+		<td><span id="elh_pago_cliente_idsucursal"><?php echo $pago_cliente->idsucursal->FldCaption() ?></span></td>
+		<td<?php echo $pago_cliente->idsucursal->CellAttributes() ?>>
+<span id="el_pago_cliente_idsucursal" class="form-group">
+<span<?php echo $pago_cliente->idsucursal->ViewAttributes() ?>>
+<?php echo $pago_cliente->idsucursal->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
-<?php
-	if (in_array("pago_cliente", explode(",", $cliente->getCurrentDetailTable())) && $pago_cliente->DetailView) {
-?>
-<?php if ($cliente->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("pago_cliente", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "pago_clientegrid.php" ?>
-<?php } ?>
 </form>
 <script type="text/javascript">
-fclienteview.Init();
+fpago_clienteview.Init();
 </script>
 <?php
-$cliente_view->ShowPageFooter();
+$pago_cliente_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1202,5 +989,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$cliente_view->Page_Terminate();
+$pago_cliente_view->Page_Terminate();
 ?>

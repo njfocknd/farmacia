@@ -8,6 +8,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "personainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "clientegridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "proveedorgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -330,6 +331,14 @@ class cpersona_list extends cpersona {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'proveedor'
+			if (@$_POST["grid"] == "fproveedorgrid") {
+				if (!isset($GLOBALS["proveedor_grid"])) $GLOBALS["proveedor_grid"] = new cproveedor_grid;
+				$GLOBALS["proveedor_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -482,15 +491,9 @@ class cpersona_list extends cpersona {
 
 			// Get default search criteria
 			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
-			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
 
 			// Get basic search values
 			$this->LoadBasicSearchValues();
-
-			// Get and validate search values for advanced search
-			$this->LoadSearchValues(); // Get search values
-			if (!$this->ValidateSearch())
-				$this->setFailureMessage($gsSearchError);
 
 			// Restore search parms from Session if not searching / reset / export
 			if (($this->Export <> "" || $this->Command <> "search" && $this->Command <> "reset" && $this->Command <> "resetall") && $this->CheckSearchParms())
@@ -505,10 +508,6 @@ class cpersona_list extends cpersona {
 			// Get basic search criteria
 			if ($gsSearchError == "")
 				$sSrchBasic = $this->BasicSearchWhere();
-
-			// Get search criteria for advanced search
-			if ($gsSearchError == "")
-				$sSrchAdvanced = $this->AdvancedSearchWhere();
 		}
 
 		// Restore display records
@@ -528,11 +527,6 @@ class cpersona_list extends cpersona {
 			$this->BasicSearch->LoadDefault();
 			if ($this->BasicSearch->Keyword != "")
 				$sSrchBasic = $this->BasicSearchWhere();
-
-			// Load advanced search from default
-			if ($this->LoadAdvancedSearchDefault()) {
-				$sSrchAdvanced = $this->AdvancedSearchWhere();
-			}
 		}
 
 		// Build search criteria
@@ -609,93 +603,6 @@ class cpersona_list extends cpersona {
 				return FALSE;
 		}
 		return TRUE;
-	}
-
-	// Advanced search WHERE clause based on QueryString
-	function AdvancedSearchWhere($Default = FALSE) {
-		global $Security;
-		$sWhere = "";
-		$this->BuildSearchSql($sWhere, $this->idpersona, $Default, FALSE); // idpersona
-		$this->BuildSearchSql($sWhere, $this->tipo_persona, $Default, FALSE); // tipo_persona
-		$this->BuildSearchSql($sWhere, $this->nombre, $Default, FALSE); // nombre
-		$this->BuildSearchSql($sWhere, $this->apellido, $Default, FALSE); // apellido
-		$this->BuildSearchSql($sWhere, $this->direccion, $Default, FALSE); // direccion
-		$this->BuildSearchSql($sWhere, $this->cui, $Default, FALSE); // cui
-		$this->BuildSearchSql($sWhere, $this->idpais, $Default, FALSE); // idpais
-		$this->BuildSearchSql($sWhere, $this->fecha_nacimiento, $Default, FALSE); // fecha_nacimiento
-		$this->BuildSearchSql($sWhere, $this->_email, $Default, FALSE); // email
-		$this->BuildSearchSql($sWhere, $this->sexo, $Default, FALSE); // sexo
-		$this->BuildSearchSql($sWhere, $this->estado, $Default, FALSE); // estado
-		$this->BuildSearchSql($sWhere, $this->fecha_insercion, $Default, FALSE); // fecha_insercion
-
-		// Set up search parm
-		if (!$Default && $sWhere <> "") {
-			$this->Command = "search";
-		}
-		if (!$Default && $this->Command == "search") {
-			$this->idpersona->AdvancedSearch->Save(); // idpersona
-			$this->tipo_persona->AdvancedSearch->Save(); // tipo_persona
-			$this->nombre->AdvancedSearch->Save(); // nombre
-			$this->apellido->AdvancedSearch->Save(); // apellido
-			$this->direccion->AdvancedSearch->Save(); // direccion
-			$this->cui->AdvancedSearch->Save(); // cui
-			$this->idpais->AdvancedSearch->Save(); // idpais
-			$this->fecha_nacimiento->AdvancedSearch->Save(); // fecha_nacimiento
-			$this->_email->AdvancedSearch->Save(); // email
-			$this->sexo->AdvancedSearch->Save(); // sexo
-			$this->estado->AdvancedSearch->Save(); // estado
-			$this->fecha_insercion->AdvancedSearch->Save(); // fecha_insercion
-		}
-		return $sWhere;
-	}
-
-	// Build search SQL
-	function BuildSearchSql(&$Where, &$Fld, $Default, $MultiValue) {
-		$FldParm = substr($Fld->FldVar, 2);
-		$FldVal = ($Default) ? $Fld->AdvancedSearch->SearchValueDefault : $Fld->AdvancedSearch->SearchValue; // @$_GET["x_$FldParm"]
-		$FldOpr = ($Default) ? $Fld->AdvancedSearch->SearchOperatorDefault : $Fld->AdvancedSearch->SearchOperator; // @$_GET["z_$FldParm"]
-		$FldCond = ($Default) ? $Fld->AdvancedSearch->SearchConditionDefault : $Fld->AdvancedSearch->SearchCondition; // @$_GET["v_$FldParm"]
-		$FldVal2 = ($Default) ? $Fld->AdvancedSearch->SearchValue2Default : $Fld->AdvancedSearch->SearchValue2; // @$_GET["y_$FldParm"]
-		$FldOpr2 = ($Default) ? $Fld->AdvancedSearch->SearchOperator2Default : $Fld->AdvancedSearch->SearchOperator2; // @$_GET["w_$FldParm"]
-		$sWrk = "";
-
-		//$FldVal = ew_StripSlashes($FldVal);
-		if (is_array($FldVal)) $FldVal = implode(",", $FldVal);
-
-		//$FldVal2 = ew_StripSlashes($FldVal2);
-		if (is_array($FldVal2)) $FldVal2 = implode(",", $FldVal2);
-		$FldOpr = strtoupper(trim($FldOpr));
-		if ($FldOpr == "") $FldOpr = "=";
-		$FldOpr2 = strtoupper(trim($FldOpr2));
-		if ($FldOpr2 == "") $FldOpr2 = "=";
-		if (EW_SEARCH_MULTI_VALUE_OPTION == 1 || $FldOpr <> "LIKE" ||
-			($FldOpr2 <> "LIKE" && $FldVal2 <> ""))
-			$MultiValue = FALSE;
-		if ($MultiValue) {
-			$sWrk1 = ($FldVal <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr, $FldVal) : ""; // Field value 1
-			$sWrk2 = ($FldVal2 <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr2, $FldVal2) : ""; // Field value 2
-			$sWrk = $sWrk1; // Build final SQL
-			if ($sWrk2 <> "")
-				$sWrk = ($sWrk <> "") ? "($sWrk) $FldCond ($sWrk2)" : $sWrk2;
-		} else {
-			$FldVal = $this->ConvertSearchValue($Fld, $FldVal);
-			$FldVal2 = $this->ConvertSearchValue($Fld, $FldVal2);
-			$sWrk = ew_GetSearchSql($Fld, $FldVal, $FldOpr, $FldCond, $FldVal2, $FldOpr2);
-		}
-		ew_AddFilter($Where, $sWrk);
-	}
-
-	// Convert search value
-	function ConvertSearchValue(&$Fld, $FldVal) {
-		if ($FldVal == EW_NULL_VALUE || $FldVal == EW_NOT_NULL_VALUE)
-			return $FldVal;
-		$Value = $FldVal;
-		if ($Fld->FldDataType == EW_DATATYPE_BOOLEAN) {
-			if ($FldVal <> "") $Value = ($FldVal == "1" || strtolower(strval($FldVal)) == "y" || strtolower(strval($FldVal)) == "t") ? $Fld->TrueValue : $Fld->FalseValue;
-		} elseif ($Fld->FldDataType == EW_DATATYPE_DATE) {
-			if ($FldVal <> "") $Value = ew_UnFormatDateTime($FldVal, $Fld->FldDateTimeFormat);
-		}
-		return $Value;
 	}
 
 	// Return basic search SQL
@@ -819,30 +726,6 @@ class cpersona_list extends cpersona {
 		// Check basic search
 		if ($this->BasicSearch->IssetSession())
 			return TRUE;
-		if ($this->idpersona->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->tipo_persona->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->nombre->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->apellido->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->direccion->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->cui->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->idpais->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->fecha_nacimiento->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->_email->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->sexo->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->estado->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->fecha_insercion->AdvancedSearch->IssetSession())
-			return TRUE;
 		return FALSE;
 	}
 
@@ -855,9 +738,6 @@ class cpersona_list extends cpersona {
 
 		// Clear basic search parameters
 		$this->ResetBasicSearchParms();
-
-		// Clear advanced search parameters
-		$this->ResetAdvancedSearchParms();
 	}
 
 	// Load advanced search default values
@@ -870,42 +750,12 @@ class cpersona_list extends cpersona {
 		$this->BasicSearch->UnsetSession();
 	}
 
-	// Clear all advanced search parameters
-	function ResetAdvancedSearchParms() {
-		$this->idpersona->AdvancedSearch->UnsetSession();
-		$this->tipo_persona->AdvancedSearch->UnsetSession();
-		$this->nombre->AdvancedSearch->UnsetSession();
-		$this->apellido->AdvancedSearch->UnsetSession();
-		$this->direccion->AdvancedSearch->UnsetSession();
-		$this->cui->AdvancedSearch->UnsetSession();
-		$this->idpais->AdvancedSearch->UnsetSession();
-		$this->fecha_nacimiento->AdvancedSearch->UnsetSession();
-		$this->_email->AdvancedSearch->UnsetSession();
-		$this->sexo->AdvancedSearch->UnsetSession();
-		$this->estado->AdvancedSearch->UnsetSession();
-		$this->fecha_insercion->AdvancedSearch->UnsetSession();
-	}
-
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
 		// Restore basic search values
 		$this->BasicSearch->Load();
-
-		// Restore advanced search values
-		$this->idpersona->AdvancedSearch->Load();
-		$this->tipo_persona->AdvancedSearch->Load();
-		$this->nombre->AdvancedSearch->Load();
-		$this->apellido->AdvancedSearch->Load();
-		$this->direccion->AdvancedSearch->Load();
-		$this->cui->AdvancedSearch->Load();
-		$this->idpais->AdvancedSearch->Load();
-		$this->fecha_nacimiento->AdvancedSearch->Load();
-		$this->_email->AdvancedSearch->Load();
-		$this->sexo->AdvancedSearch->Load();
-		$this->estado->AdvancedSearch->Load();
-		$this->fecha_insercion->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -998,6 +848,14 @@ class cpersona_list extends cpersona {
 		$item->OnLeft = FALSE;
 		$item->ShowInButtonGroup = FALSE;
 		if (!isset($GLOBALS["cliente_grid"])) $GLOBALS["cliente_grid"] = new ccliente_grid;
+
+		// "detail_proveedor"
+		$item = &$this->ListOptions->Add("detail_proveedor");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = TRUE && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["proveedor_grid"])) $GLOBALS["proveedor_grid"] = new cproveedor_grid;
 
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
@@ -1092,6 +950,36 @@ class cpersona_list extends cpersona {
 			$oListOpt->Body = $body;
 			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
 		}
+
+		// "detail_proveedor"
+		$oListOpt = &$this->ListOptions->Items["detail_proveedor"];
+		if (TRUE) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("proveedor", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("proveedorlist.php?" . EW_TABLE_SHOW_MASTER . "=persona&fk_idpersona=" . strval($this->idpersona->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["proveedor_grid"]->DetailView) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=proveedor")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "proveedor";
+			}
+			if ($GLOBALS["proveedor_grid"]->DetailEdit) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=proveedor")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "proveedor";
+			}
+			if ($GLOBALS["proveedor_grid"]->DetailAdd) {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=proveedor")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+				$DetailCopyTblVar .= "proveedor";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
 		if ($this->ShowMultipleDetails) {
 			$body = $Language->Phrase("MultipleMasterDetails");
 			$body = "<div class=\"btn-group\">";
@@ -1143,6 +1031,13 @@ class cpersona_list extends cpersona {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "cliente";
+		}
+		$item = &$option->Add("detailadd_proveedor");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=proveedor") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["proveedor"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["proveedor"]->DetailAdd);
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "proveedor";
 		}
 
 		// Add multiple details
@@ -1328,73 +1223,6 @@ class cpersona_list extends cpersona {
 		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
 		if ($this->BasicSearch->Keyword <> "") $this->Command = "search";
 		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
-	}
-
-	//  Load search values for validation
-	function LoadSearchValues() {
-		global $objForm;
-
-		// Load search values
-		// idpersona
-
-		$this->idpersona->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idpersona"]);
-		if ($this->idpersona->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->idpersona->AdvancedSearch->SearchOperator = @$_GET["z_idpersona"];
-
-		// tipo_persona
-		$this->tipo_persona->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_tipo_persona"]);
-		if ($this->tipo_persona->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->tipo_persona->AdvancedSearch->SearchOperator = @$_GET["z_tipo_persona"];
-
-		// nombre
-		$this->nombre->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_nombre"]);
-		if ($this->nombre->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->nombre->AdvancedSearch->SearchOperator = @$_GET["z_nombre"];
-
-		// apellido
-		$this->apellido->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_apellido"]);
-		if ($this->apellido->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->apellido->AdvancedSearch->SearchOperator = @$_GET["z_apellido"];
-
-		// direccion
-		$this->direccion->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_direccion"]);
-		if ($this->direccion->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->direccion->AdvancedSearch->SearchOperator = @$_GET["z_direccion"];
-
-		// cui
-		$this->cui->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_cui"]);
-		if ($this->cui->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->cui->AdvancedSearch->SearchOperator = @$_GET["z_cui"];
-
-		// idpais
-		$this->idpais->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_idpais"]);
-		if ($this->idpais->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->idpais->AdvancedSearch->SearchOperator = @$_GET["z_idpais"];
-
-		// fecha_nacimiento
-		$this->fecha_nacimiento->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_fecha_nacimiento"]);
-		if ($this->fecha_nacimiento->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->fecha_nacimiento->AdvancedSearch->SearchOperator = @$_GET["z_fecha_nacimiento"];
-
-		// email
-		$this->_email->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x__email"]);
-		if ($this->_email->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->_email->AdvancedSearch->SearchOperator = @$_GET["z__email"];
-
-		// sexo
-		$this->sexo->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_sexo"]);
-		if ($this->sexo->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->sexo->AdvancedSearch->SearchOperator = @$_GET["z_sexo"];
-
-		// estado
-		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_estado"]);
-		if ($this->estado->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->estado->AdvancedSearch->SearchOperator = @$_GET["z_estado"];
-
-		// fecha_insercion
-		$this->fecha_insercion->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_fecha_insercion"]);
-		if ($this->fecha_insercion->AdvancedSearch->SearchValue <> "") $this->Command = "search";
-		$this->fecha_insercion->AdvancedSearch->SearchOperator = @$_GET["z_fecha_insercion"];
 	}
 
 	// Load recordset
@@ -1662,83 +1490,11 @@ class cpersona_list extends cpersona {
 			$this->_email->LinkCustomAttributes = "";
 			$this->_email->HrefValue = "";
 			$this->_email->TooltipValue = "";
-		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
-
-			// tipo_persona
-			$this->tipo_persona->EditAttrs["class"] = "form-control";
-			$this->tipo_persona->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->tipo_persona->FldTagValue(1), $this->tipo_persona->FldTagCaption(1) <> "" ? $this->tipo_persona->FldTagCaption(1) : $this->tipo_persona->FldTagValue(1));
-			$arwrk[] = array($this->tipo_persona->FldTagValue(2), $this->tipo_persona->FldTagCaption(2) <> "" ? $this->tipo_persona->FldTagCaption(2) : $this->tipo_persona->FldTagValue(2));
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-			$this->tipo_persona->EditValue = $arwrk;
-
-			// nombre
-			$this->nombre->EditAttrs["class"] = "form-control";
-			$this->nombre->EditCustomAttributes = "";
-			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->AdvancedSearch->SearchValue);
-			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
-
-			// apellido
-			$this->apellido->EditAttrs["class"] = "form-control";
-			$this->apellido->EditCustomAttributes = "";
-			$this->apellido->EditValue = ew_HtmlEncode($this->apellido->AdvancedSearch->SearchValue);
-			$this->apellido->PlaceHolder = ew_RemoveHtml($this->apellido->FldCaption());
-
-			// email
-			$this->_email->EditAttrs["class"] = "form-control";
-			$this->_email->EditCustomAttributes = "";
-			$this->_email->EditValue = ew_HtmlEncode($this->_email->AdvancedSearch->SearchValue);
-			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
-		}
-		if ($this->RowType == EW_ROWTYPE_ADD ||
-			$this->RowType == EW_ROWTYPE_EDIT ||
-			$this->RowType == EW_ROWTYPE_SEARCH) { // Add / Edit / Search row
-			$this->SetupFieldTitles();
 		}
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
-	}
-
-	// Validate search
-	function ValidateSearch() {
-		global $gsSearchError;
-
-		// Initialize
-		$gsSearchError = "";
-
-		// Check if validation required
-		if (!EW_SERVER_VALIDATE)
-			return TRUE;
-
-		// Return validate result
-		$ValidateSearch = ($gsSearchError == "");
-
-		// Call Form_CustomValidate event
-		$sFormCustomError = "";
-		$ValidateSearch = $ValidateSearch && $this->Form_CustomValidate($sFormCustomError);
-		if ($sFormCustomError <> "") {
-			ew_AddMessage($gsSearchError, $sFormCustomError);
-		}
-		return $ValidateSearch;
-	}
-
-	// Load advanced search
-	function LoadAdvancedSearch() {
-		$this->idpersona->AdvancedSearch->Load();
-		$this->tipo_persona->AdvancedSearch->Load();
-		$this->nombre->AdvancedSearch->Load();
-		$this->apellido->AdvancedSearch->Load();
-		$this->direccion->AdvancedSearch->Load();
-		$this->cui->AdvancedSearch->Load();
-		$this->idpais->AdvancedSearch->Load();
-		$this->fecha_nacimiento->AdvancedSearch->Load();
-		$this->_email->AdvancedSearch->Load();
-		$this->sexo->AdvancedSearch->Load();
-		$this->estado->AdvancedSearch->Load();
-		$this->fecha_insercion->AdvancedSearch->Load();
 	}
 
 	// Set up Breadcrumb
@@ -1919,40 +1675,6 @@ fpersonalist.ValidateRequired = false;
 // Form object for search
 
 var fpersonalistsrch = new ew_Form("fpersonalistsrch");
-
-// Validate function for search
-fpersonalistsrch.Validate = function(fobj) {
-	if (!this.ValidateRequired)
-		return true; // Ignore validation
-	fobj = fobj || this.Form;
-	this.PostAutoSuggest();
-	var infix = "";
-
-	// Set up row object
-	ew_ElementsToRow(fobj);
-
-	// Fire Form_CustomValidate event
-	if (!this.Form_CustomValidate(fobj))
-		return false;
-	return true;
-}
-
-// Form_CustomValidate event
-fpersonalistsrch.Form_CustomValidate = 
- function(fobj) { // DO NOT CHANGE THIS LINE!
-
- 	// Your custom validation code here, return false if invalid. 
- 	return true;
- }
-
-// Use JavaScript validation or not
-<?php if (EW_CLIENT_VALIDATE) { ?>
-fpersonalistsrch.ValidateRequired = true; // Use JavaScript validation
-<?php } else { ?>
-fpersonalistsrch.ValidateRequired = false; // No JavaScript validation
-<?php } ?>
-
-// Dynamic selection lists
 </script>
 <script type="text/javascript">
 
@@ -2001,46 +1723,7 @@ $persona_list->RenderOtherOptions();
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="persona">
 	<div class="ewBasicSearch">
-<?php
-if ($gsSearchError == "")
-	$persona_list->LoadAdvancedSearch(); // Load advanced search
-
-// Render for search
-$persona->RowType = EW_ROWTYPE_SEARCH;
-
-// Render row
-$persona->ResetAttrs();
-$persona_list->RenderRow();
-?>
 <div id="xsr_1" class="ewRow">
-<?php if ($persona->tipo_persona->Visible) { // tipo_persona ?>
-	<div id="xsc_tipo_persona" class="ewCell form-group">
-		<label for="x_tipo_persona" class="ewSearchCaption ewLabel"><?php echo $persona->tipo_persona->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_tipo_persona" id="z_tipo_persona" value="="></span>
-		<span class="ewSearchField">
-<select data-field="x_tipo_persona" id="x_tipo_persona" name="x_tipo_persona"<?php echo $persona->tipo_persona->EditAttributes() ?>>
-<?php
-if (is_array($persona->tipo_persona->EditValue)) {
-	$arwrk = $persona->tipo_persona->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($persona->tipo_persona->AdvancedSearch->SearchValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-?>
-</select>
-</span>
-	</div>
-<?php } ?>
-</div>
-<div id="xsr_2" class="ewRow">
 	<div class="ewQuickSearch input-group">
 	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($persona_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
 	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($persona_list->BasicSearch->getType()) ?>">
