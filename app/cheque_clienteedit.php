@@ -6,13 +6,9 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "pago_clienteinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "clienteinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "boleta_depositoinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "voucher_tarjetainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "tipo_pagoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "cheque_clienteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "pago_clientegridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -20,9 +16,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$pago_cliente_edit = NULL; // Initialize page object first
+$cheque_cliente_edit = NULL; // Initialize page object first
 
-class cpago_cliente_edit extends cpago_cliente {
+class ccheque_cliente_edit extends ccheque_cliente {
 
 	// Page ID
 	var $PageID = 'edit';
@@ -31,10 +27,10 @@ class cpago_cliente_edit extends cpago_cliente {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'pago_cliente';
+	var $TableName = 'cheque_cliente';
 
 	// Page object name
-	var $PageObjName = 'pago_cliente_edit';
+	var $PageObjName = 'cheque_cliente_edit';
 
 	// Page name
 	function PageName() {
@@ -47,7 +43,6 @@ class cpago_cliente_edit extends cpago_cliente {
 		if ($this->UseTokenInUrl) $PageUrl .= "t=" . $this->TableVar . "&"; // Add page token
 		return $PageUrl;
 	}
-	var $AuditTrailOnEdit = TRUE;
 
 	// Message
 	function getMessage() {
@@ -202,29 +197,14 @@ class cpago_cliente_edit extends cpago_cliente {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (pago_cliente)
-		if (!isset($GLOBALS["pago_cliente"]) || get_class($GLOBALS["pago_cliente"]) == "cpago_cliente") {
-			$GLOBALS["pago_cliente"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["pago_cliente"];
+		// Table object (cheque_cliente)
+		if (!isset($GLOBALS["cheque_cliente"]) || get_class($GLOBALS["cheque_cliente"]) == "ccheque_cliente") {
+			$GLOBALS["cheque_cliente"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["cheque_cliente"];
 		}
-
-		// Table object (cliente)
-		if (!isset($GLOBALS['cliente'])) $GLOBALS['cliente'] = new ccliente();
 
 		// Table object (usuario)
 		if (!isset($GLOBALS['usuario'])) $GLOBALS['usuario'] = new cusuario();
-
-		// Table object (boleta_deposito)
-		if (!isset($GLOBALS['boleta_deposito'])) $GLOBALS['boleta_deposito'] = new cboleta_deposito();
-
-		// Table object (voucher_tarjeta)
-		if (!isset($GLOBALS['voucher_tarjeta'])) $GLOBALS['voucher_tarjeta'] = new cvoucher_tarjeta();
-
-		// Table object (tipo_pago)
-		if (!isset($GLOBALS['tipo_pago'])) $GLOBALS['tipo_pago'] = new ctipo_pago();
-
-		// Table object (cheque_cliente)
-		if (!isset($GLOBALS['cheque_cliente'])) $GLOBALS['cheque_cliente'] = new ccheque_cliente();
 
 		// User table object (usuario)
 		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
@@ -235,7 +215,7 @@ class cpago_cliente_edit extends cpago_cliente {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'pago_cliente', TRUE);
+			define("EW_TABLE_NAME", 'cheque_cliente', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -267,7 +247,7 @@ class cpago_cliente_edit extends cpago_cliente {
 		if (!$Security->CanEdit()) {
 			$Security->SaveLastUrl();
 			$this->setFailureMessage($Language->Phrase("NoPermission")); // Set no permission
-			$this->Page_Terminate(ew_GetUrl("pago_clientelist.php"));
+			$this->Page_Terminate(ew_GetUrl("cheque_clientelist.php"));
 		}
 		$Security->UserID_Loading();
 		if ($Security->IsLoggedIn()) $Security->LoadUserID();
@@ -292,6 +272,14 @@ class cpago_cliente_edit extends cpago_cliente {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'pago_cliente'
+			if (@$_POST["grid"] == "fpago_clientegrid") {
+				if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
+				$GLOBALS["pago_cliente_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -321,13 +309,13 @@ class cpago_cliente_edit extends cpago_cliente {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $pago_cliente;
+		global $EW_EXPORT, $cheque_cliente;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($pago_cliente);
+				$doc = new $class($cheque_cliente);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -360,12 +348,9 @@ class cpago_cliente_edit extends cpago_cliente {
 		global $objForm, $Language, $gsFormError;
 
 		// Load key from QueryString
-		if (@$_GET["idpago_cliente"] <> "") {
-			$this->idpago_cliente->setQueryStringValue($_GET["idpago_cliente"]);
+		if (@$_GET["idcheque_cliente"] <> "") {
+			$this->idcheque_cliente->setQueryStringValue($_GET["idcheque_cliente"]);
 		}
-
-		// Set up master detail parameters
-		$this->SetUpMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -374,13 +359,16 @@ class cpago_cliente_edit extends cpago_cliente {
 		if (@$_POST["a_edit"] <> "") {
 			$this->CurrentAction = $_POST["a_edit"]; // Get action code
 			$this->LoadFormValues(); // Get form values
+
+			// Set up detail parameters
+			$this->SetUpDetailParms();
 		} else {
 			$this->CurrentAction = "I"; // Default action is display
 		}
 
 		// Check if valid key
-		if ($this->idpago_cliente->CurrentValue == "")
-			$this->Page_Terminate("pago_clientelist.php"); // Invalid key, return to list
+		if ($this->idcheque_cliente->CurrentValue == "")
+			$this->Page_Terminate("cheque_clientelist.php"); // Invalid key, return to list
 
 		// Validate form if post back
 		if (@$_POST["a_edit"] <> "") {
@@ -395,19 +383,28 @@ class cpago_cliente_edit extends cpago_cliente {
 			case "I": // Get a record to display
 				if (!$this->LoadRow()) { // Load record based on key
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
-					$this->Page_Terminate("pago_clientelist.php"); // No matching record, return to list
+					$this->Page_Terminate("cheque_clientelist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetUpDetailParms();
 				break;
 			Case "U": // Update
 				$this->SendEmail = TRUE; // Send email on update success
 				if ($this->EditRow()) { // Update record based on key
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Update success
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail edit
+						$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					$this->Page_Terminate($sReturnUrl); // Return to caller
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
+
+					// Set up detail parameters
+					$this->SetUpDetailParms();
 				}
 		}
 
@@ -465,6 +462,15 @@ class cpago_cliente_edit extends cpago_cliente {
 
 		// Load from form
 		global $objForm;
+		if (!$this->numero->FldIsDetailKey) {
+			$this->numero->setFormValue($objForm->GetValue("x_numero"));
+		}
+		if (!$this->propietario->FldIsDetailKey) {
+			$this->propietario->setFormValue($objForm->GetValue("x_propietario"));
+		}
+		if (!$this->cuenta->FldIsDetailKey) {
+			$this->cuenta->setFormValue($objForm->GetValue("x_cuenta"));
+		}
 		if (!$this->monto->FldIsDetailKey) {
 			$this->monto->setFormValue($objForm->GetValue("x_monto"));
 		}
@@ -472,21 +478,32 @@ class cpago_cliente_edit extends cpago_cliente {
 			$this->fecha->setFormValue($objForm->GetValue("x_fecha"));
 			$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		}
+		if (!$this->descripcion->FldIsDetailKey) {
+			$this->descripcion->setFormValue($objForm->GetValue("x_descripcion"));
+		}
+		if (!$this->cheque_estado->FldIsDetailKey) {
+			$this->cheque_estado->setFormValue($objForm->GetValue("x_cheque_estado"));
+		}
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->idpago_cliente->FldIsDetailKey)
-			$this->idpago_cliente->setFormValue($objForm->GetValue("x_idpago_cliente"));
+		if (!$this->idcheque_cliente->FldIsDetailKey)
+			$this->idcheque_cliente->setFormValue($objForm->GetValue("x_idcheque_cliente"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		$this->LoadRow();
-		$this->idpago_cliente->CurrentValue = $this->idpago_cliente->FormValue;
+		$this->idcheque_cliente->CurrentValue = $this->idcheque_cliente->FormValue;
+		$this->numero->CurrentValue = $this->numero->FormValue;
+		$this->propietario->CurrentValue = $this->propietario->FormValue;
+		$this->cuenta->CurrentValue = $this->cuenta->FormValue;
 		$this->monto->CurrentValue = $this->monto->FormValue;
 		$this->fecha->CurrentValue = $this->fecha->FormValue;
 		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
+		$this->descripcion->CurrentValue = $this->descripcion->FormValue;
+		$this->cheque_estado->CurrentValue = $this->cheque_estado->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
@@ -519,34 +536,34 @@ class cpago_cliente_edit extends cpago_cliente {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idpago_cliente->setDbValue($rs->fields('idpago_cliente'));
-		$this->idtipo_pago->setDbValue($rs->fields('idtipo_pago'));
-		$this->idcliente->setDbValue($rs->fields('idcliente'));
+		$this->idcheque_cliente->setDbValue($rs->fields('idcheque_cliente'));
+		$this->idbanco->setDbValue($rs->fields('idbanco'));
+		$this->numero->setDbValue($rs->fields('numero'));
+		$this->propietario->setDbValue($rs->fields('propietario'));
+		$this->cuenta->setDbValue($rs->fields('cuenta'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->descripcion->setDbValue($rs->fields('descripcion'));
+		$this->cheque_estado->setDbValue($rs->fields('cheque_estado'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->idboleta_deposito->setDbValue($rs->fields('idboleta_deposito'));
-		$this->idvoucher_tarjeta->setDbValue($rs->fields('idvoucher_tarjeta'));
-		$this->idcheque_cliente->setDbValue($rs->fields('idcheque_cliente'));
 	}
 
 	// Load DbValue from recordset
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idpago_cliente->DbValue = $row['idpago_cliente'];
-		$this->idtipo_pago->DbValue = $row['idtipo_pago'];
-		$this->idcliente->DbValue = $row['idcliente'];
+		$this->idcheque_cliente->DbValue = $row['idcheque_cliente'];
+		$this->idbanco->DbValue = $row['idbanco'];
+		$this->numero->DbValue = $row['numero'];
+		$this->propietario->DbValue = $row['propietario'];
+		$this->cuenta->DbValue = $row['cuenta'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha->DbValue = $row['fecha'];
+		$this->descripcion->DbValue = $row['descripcion'];
+		$this->cheque_estado->DbValue = $row['cheque_estado'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
-		$this->idsucursal->DbValue = $row['idsucursal'];
-		$this->idboleta_deposito->DbValue = $row['idboleta_deposito'];
-		$this->idvoucher_tarjeta->DbValue = $row['idvoucher_tarjeta'];
-		$this->idcheque_cliente->DbValue = $row['idcheque_cliente'];
 	}
 
 	// Render row values based on field settings
@@ -564,28 +581,28 @@ class cpago_cliente_edit extends cpago_cliente {
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idpago_cliente
-		// idtipo_pago
-		// idcliente
+		// idcheque_cliente
+		// idbanco
+		// numero
+		// propietario
+		// cuenta
 		// monto
 		// fecha
+		// descripcion
+		// cheque_estado
 		// estado
 		// fecha_insercion
-		// idsucursal
-		// idboleta_deposito
-		// idvoucher_tarjeta
-		// idcheque_cliente
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idpago_cliente
-			$this->idpago_cliente->ViewValue = $this->idpago_cliente->CurrentValue;
-			$this->idpago_cliente->ViewCustomAttributes = "";
+			// idcheque_cliente
+			$this->idcheque_cliente->ViewValue = $this->idcheque_cliente->CurrentValue;
+			$this->idcheque_cliente->ViewCustomAttributes = "";
 
-			// idtipo_pago
-			if (strval($this->idtipo_pago->CurrentValue) <> "") {
-				$sFilterWrk = "`idtipo_pago`" . ew_SearchString("=", $this->idtipo_pago->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idtipo_pago`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_pago`";
+			// idbanco
+			if (strval($this->idbanco->CurrentValue) <> "") {
+				$sFilterWrk = "`idbanco`" . ew_SearchString("=", $this->idbanco->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idbanco`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `banco`";
 			$sWhereWrk = "";
 			$lookuptblfilter = "`estado` = 'Activo'";
 			if (strval($lookuptblfilter) <> "") {
@@ -596,59 +613,64 @@ class cpago_cliente_edit extends cpago_cliente {
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idtipo_pago, $sWhereWrk);
+			$this->Lookup_Selecting($this->idbanco, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idtipo_pago->ViewValue = $rswrk->fields('DispFld');
+					$this->idbanco->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idtipo_pago->ViewValue = $this->idtipo_pago->CurrentValue;
+					$this->idbanco->ViewValue = $this->idbanco->CurrentValue;
 				}
 			} else {
-				$this->idtipo_pago->ViewValue = NULL;
+				$this->idbanco->ViewValue = NULL;
 			}
-			$this->idtipo_pago->ViewCustomAttributes = "";
+			$this->idbanco->ViewCustomAttributes = "";
 
-			// idcliente
-			if (strval($this->idcliente->CurrentValue) <> "") {
-				$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idcliente`, `codigo` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// numero
+			$this->numero->ViewValue = $this->numero->CurrentValue;
+			$this->numero->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `codigo`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idcliente->ViewValue = $rswrk->fields('DispFld');
-					$this->idcliente->ViewValue .= ew_ValueSeparator(1,$this->idcliente) . $rswrk->fields('Disp2Fld');
-					$rswrk->Close();
-				} else {
-					$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
-				}
-			} else {
-				$this->idcliente->ViewValue = NULL;
-			}
-			$this->idcliente->ViewCustomAttributes = "";
+			// propietario
+			$this->propietario->ViewValue = $this->propietario->CurrentValue;
+			$this->propietario->ViewCustomAttributes = "";
+
+			// cuenta
+			$this->cuenta->ViewValue = $this->cuenta->CurrentValue;
+			$this->cuenta->ViewCustomAttributes = "";
 
 			// monto
 			$this->monto->ViewValue = $this->monto->CurrentValue;
-			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, 0, -1);
 			$this->monto->ViewCustomAttributes = "";
 
 			// fecha
 			$this->fecha->ViewValue = $this->fecha->CurrentValue;
 			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
 			$this->fecha->ViewCustomAttributes = "";
+
+			// descripcion
+			$this->descripcion->ViewValue = $this->descripcion->CurrentValue;
+			$this->descripcion->ViewCustomAttributes = "";
+
+			// cheque_estado
+			if (strval($this->cheque_estado->CurrentValue) <> "") {
+				switch ($this->cheque_estado->CurrentValue) {
+					case $this->cheque_estado->FldTagValue(1):
+						$this->cheque_estado->ViewValue = $this->cheque_estado->FldTagCaption(1) <> "" ? $this->cheque_estado->FldTagCaption(1) : $this->cheque_estado->CurrentValue;
+						break;
+					case $this->cheque_estado->FldTagValue(2):
+						$this->cheque_estado->ViewValue = $this->cheque_estado->FldTagCaption(2) <> "" ? $this->cheque_estado->FldTagCaption(2) : $this->cheque_estado->CurrentValue;
+						break;
+					case $this->cheque_estado->FldTagValue(3):
+						$this->cheque_estado->ViewValue = $this->cheque_estado->FldTagCaption(3) <> "" ? $this->cheque_estado->FldTagCaption(3) : $this->cheque_estado->CurrentValue;
+						break;
+					default:
+						$this->cheque_estado->ViewValue = $this->cheque_estado->CurrentValue;
+				}
+			} else {
+				$this->cheque_estado->ViewValue = NULL;
+			}
+			$this->cheque_estado->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -672,120 +694,20 @@ class cpago_cliente_edit extends cpago_cliente {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// idsucursal
-			if (strval($this->idsucursal->CurrentValue) <> "") {
-				$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// numero
+			$this->numero->LinkCustomAttributes = "";
+			$this->numero->HrefValue = "";
+			$this->numero->TooltipValue = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-				}
-			} else {
-				$this->idsucursal->ViewValue = NULL;
-			}
-			$this->idsucursal->ViewCustomAttributes = "";
+			// propietario
+			$this->propietario->LinkCustomAttributes = "";
+			$this->propietario->HrefValue = "";
+			$this->propietario->TooltipValue = "";
 
-			// idboleta_deposito
-			if (strval($this->idboleta_deposito->CurrentValue) <> "") {
-				$sFilterWrk = "`idboleta_deposito`" . ew_SearchString("=", $this->idboleta_deposito->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idboleta_deposito`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `boleta_deposito`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idboleta_deposito, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `numero`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idboleta_deposito->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idboleta_deposito->ViewValue = $this->idboleta_deposito->CurrentValue;
-				}
-			} else {
-				$this->idboleta_deposito->ViewValue = NULL;
-			}
-			$this->idboleta_deposito->ViewCustomAttributes = "";
-
-			// idvoucher_tarjeta
-			if (strval($this->idvoucher_tarjeta->CurrentValue) <> "") {
-				$sFilterWrk = "`idvoucher_tarjeta`" . ew_SearchString("=", $this->idvoucher_tarjeta->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idvoucher_tarjeta`, `marca` AS `DispFld`, `marca` AS `Disp2Fld`, `ultimos_cuatro_digitos` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `voucher_tarjeta`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idvoucher_tarjeta, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idvoucher_tarjeta->ViewValue = $rswrk->fields('DispFld');
-					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(1,$this->idvoucher_tarjeta) . $rswrk->fields('Disp2Fld');
-					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(2,$this->idvoucher_tarjeta) . $rswrk->fields('Disp3Fld');
-					$rswrk->Close();
-				} else {
-					$this->idvoucher_tarjeta->ViewValue = $this->idvoucher_tarjeta->CurrentValue;
-				}
-			} else {
-				$this->idvoucher_tarjeta->ViewValue = NULL;
-			}
-			$this->idvoucher_tarjeta->ViewCustomAttributes = "";
-
-			// idcheque_cliente
-			if (strval($this->idcheque_cliente->CurrentValue) <> "") {
-				$sFilterWrk = "`idcheque_cliente`" . ew_SearchString("=", $this->idcheque_cliente->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idcheque_cliente`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cheque_cliente`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcheque_cliente, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idcheque_cliente->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idcheque_cliente->ViewValue = $this->idcheque_cliente->CurrentValue;
-				}
-			} else {
-				$this->idcheque_cliente->ViewValue = NULL;
-			}
-			$this->idcheque_cliente->ViewCustomAttributes = "";
+			// cuenta
+			$this->cuenta->LinkCustomAttributes = "";
+			$this->cuenta->HrefValue = "";
+			$this->cuenta->TooltipValue = "";
 
 			// monto
 			$this->monto->LinkCustomAttributes = "";
@@ -797,24 +719,68 @@ class cpago_cliente_edit extends cpago_cliente {
 			$this->fecha->HrefValue = "";
 			$this->fecha->TooltipValue = "";
 
+			// descripcion
+			$this->descripcion->LinkCustomAttributes = "";
+			$this->descripcion->HrefValue = "";
+			$this->descripcion->TooltipValue = "";
+
+			// cheque_estado
+			$this->cheque_estado->LinkCustomAttributes = "";
+			$this->cheque_estado->HrefValue = "";
+			$this->cheque_estado->TooltipValue = "";
+
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
+			// numero
+			$this->numero->EditAttrs["class"] = "form-control";
+			$this->numero->EditCustomAttributes = "";
+			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
+			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
+
+			// propietario
+			$this->propietario->EditAttrs["class"] = "form-control";
+			$this->propietario->EditCustomAttributes = "";
+			$this->propietario->EditValue = ew_HtmlEncode($this->propietario->CurrentValue);
+			$this->propietario->PlaceHolder = ew_RemoveHtml($this->propietario->FldCaption());
+
+			// cuenta
+			$this->cuenta->EditAttrs["class"] = "form-control";
+			$this->cuenta->EditCustomAttributes = "";
+			$this->cuenta->EditValue = ew_HtmlEncode($this->cuenta->CurrentValue);
+			$this->cuenta->PlaceHolder = ew_RemoveHtml($this->cuenta->FldCaption());
+
 			// monto
 			$this->monto->EditAttrs["class"] = "form-control";
 			$this->monto->EditCustomAttributes = "";
 			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
 			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, 0, -1);
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
 
 			// fecha
 			$this->fecha->EditAttrs["class"] = "form-control";
 			$this->fecha->EditCustomAttributes = "";
 			$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
 			$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
+
+			// descripcion
+			$this->descripcion->EditAttrs["class"] = "form-control";
+			$this->descripcion->EditCustomAttributes = "";
+			$this->descripcion->EditValue = ew_HtmlEncode($this->descripcion->CurrentValue);
+			$this->descripcion->PlaceHolder = ew_RemoveHtml($this->descripcion->FldCaption());
+
+			// cheque_estado
+			$this->cheque_estado->EditAttrs["class"] = "form-control";
+			$this->cheque_estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->cheque_estado->FldTagValue(1), $this->cheque_estado->FldTagCaption(1) <> "" ? $this->cheque_estado->FldTagCaption(1) : $this->cheque_estado->FldTagValue(1));
+			$arwrk[] = array($this->cheque_estado->FldTagValue(2), $this->cheque_estado->FldTagCaption(2) <> "" ? $this->cheque_estado->FldTagCaption(2) : $this->cheque_estado->FldTagValue(2));
+			$arwrk[] = array($this->cheque_estado->FldTagValue(3), $this->cheque_estado->FldTagCaption(3) <> "" ? $this->cheque_estado->FldTagCaption(3) : $this->cheque_estado->FldTagValue(3));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->cheque_estado->EditValue = $arwrk;
 
 			// estado
 			$this->estado->EditAttrs["class"] = "form-control";
@@ -826,12 +792,27 @@ class cpago_cliente_edit extends cpago_cliente {
 			$this->estado->EditValue = $arwrk;
 
 			// Edit refer script
-			// monto
+			// numero
 
+			$this->numero->HrefValue = "";
+
+			// propietario
+			$this->propietario->HrefValue = "";
+
+			// cuenta
+			$this->cuenta->HrefValue = "";
+
+			// monto
 			$this->monto->HrefValue = "";
 
 			// fecha
 			$this->fecha->HrefValue = "";
+
+			// descripcion
+			$this->descripcion->HrefValue = "";
+
+			// cheque_estado
+			$this->cheque_estado->HrefValue = "";
 
 			// estado
 			$this->estado->HrefValue = "";
@@ -866,8 +847,18 @@ class cpago_cliente_edit extends cpago_cliente {
 		if (!ew_CheckEuroDate($this->fecha->FormValue)) {
 			ew_AddMessage($gsFormError, $this->fecha->FldErrMsg());
 		}
+		if (!$this->cheque_estado->FldIsDetailKey && !is_null($this->cheque_estado->FormValue) && $this->cheque_estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->cheque_estado->FldCaption(), $this->cheque_estado->ReqErrMsg));
+		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		}
+
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("pago_cliente", $DetailTblVar) && $GLOBALS["pago_cliente"]->DetailEdit) {
+			if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid(); // get detail page object
+			$GLOBALS["pago_cliente_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -897,16 +888,35 @@ class cpago_cliente_edit extends cpago_cliente {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
+			// Begin transaction
+			if ($this->getCurrentDetailTable() <> "")
+				$conn->BeginTrans();
+
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
+
+			// numero
+			$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, NULL, $this->numero->ReadOnly);
+
+			// propietario
+			$this->propietario->SetDbValueDef($rsnew, $this->propietario->CurrentValue, NULL, $this->propietario->ReadOnly);
+
+			// cuenta
+			$this->cuenta->SetDbValueDef($rsnew, $this->cuenta->CurrentValue, NULL, $this->cuenta->ReadOnly);
 
 			// monto
 			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
 
 			// fecha
 			$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, $this->fecha->ReadOnly);
+
+			// descripcion
+			$this->descripcion->SetDbValueDef($rsnew, $this->descripcion->CurrentValue, NULL, $this->descripcion->ReadOnly);
+
+			// cheque_estado
+			$this->cheque_estado->SetDbValueDef($rsnew, $this->cheque_estado->CurrentValue, "", $this->cheque_estado->ReadOnly);
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
@@ -921,6 +931,24 @@ class cpago_cliente_edit extends cpago_cliente {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
+				}
+
+				// Update detail records
+				if ($EditRow) {
+					$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+					if (in_array("pago_cliente", $DetailTblVar) && $GLOBALS["pago_cliente"]->DetailEdit) {
+						if (!isset($GLOBALS["pago_cliente_grid"])) $GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid(); // Get detail page object
+						$EditRow = $GLOBALS["pago_cliente_grid"]->GridUpdate();
+					}
+				}
+
+				// Commit/Rollback transaction
+				if ($this->getCurrentDetailTable() <> "") {
+					if ($EditRow) {
+						$conn->CommitTrans(); // Commit transaction
+					} else {
+						$conn->RollbackTrans(); // Rollback transaction
+					}
 				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -939,169 +967,47 @@ class cpago_cliente_edit extends cpago_cliente {
 		// Call Row_Updated event
 		if ($EditRow)
 			$this->Row_Updated($rsold, $rsnew);
-		if ($EditRow) {
-			$this->WriteAuditTrailOnEdit($rsold, $rsnew);
-		}
 		$rs->Close();
 		return $EditRow;
 	}
 
-	// Set up master/detail based on QueryString
-	function SetUpMasterParms() {
-		$bValidMaster = FALSE;
+	// Set up detail parms based on QueryString
+	function SetUpDetailParms() {
 
 		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "cliente") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idcliente"] <> "") {
-					$GLOBALS["cliente"]->idcliente->setQueryStringValue($_GET["fk_idcliente"]);
-					$this->idcliente->setQueryStringValue($GLOBALS["cliente"]->idcliente->QueryStringValue);
-					$this->idcliente->setSessionValue($this->idcliente->QueryStringValue);
-					if (!is_numeric($GLOBALS["cliente"]->idcliente->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "tipo_pago") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idtipo_pago"] <> "") {
-					$GLOBALS["tipo_pago"]->idtipo_pago->setQueryStringValue($_GET["fk_idtipo_pago"]);
-					$this->idtipo_pago->setQueryStringValue($GLOBALS["tipo_pago"]->idtipo_pago->QueryStringValue);
-					$this->idtipo_pago->setSessionValue($this->idtipo_pago->QueryStringValue);
-					if (!is_numeric($GLOBALS["tipo_pago"]->idtipo_pago->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "boleta_deposito") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idboleta_deposito"] <> "") {
-					$GLOBALS["boleta_deposito"]->idboleta_deposito->setQueryStringValue($_GET["fk_idboleta_deposito"]);
-					$this->idboleta_deposito->setQueryStringValue($GLOBALS["boleta_deposito"]->idboleta_deposito->QueryStringValue);
-					$this->idboleta_deposito->setSessionValue($this->idboleta_deposito->QueryStringValue);
-					if (!is_numeric($GLOBALS["boleta_deposito"]->idboleta_deposito->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "voucher_tarjeta") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idvoucher_tarjeta"] <> "") {
-					$GLOBALS["voucher_tarjeta"]->idvoucher_tarjeta->setQueryStringValue($_GET["fk_idvoucher_tarjeta"]);
-					$this->idvoucher_tarjeta->setQueryStringValue($GLOBALS["voucher_tarjeta"]->idvoucher_tarjeta->QueryStringValue);
-					$this->idvoucher_tarjeta->setSessionValue($this->idvoucher_tarjeta->QueryStringValue);
-					if (!is_numeric($GLOBALS["voucher_tarjeta"]->idvoucher_tarjeta->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-			if ($sMasterTblVar == "cheque_cliente") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_idcheque_cliente"] <> "") {
-					$GLOBALS["cheque_cliente"]->idcheque_cliente->setQueryStringValue($_GET["fk_idcheque_cliente"]);
-					$this->idcheque_cliente->setQueryStringValue($GLOBALS["cheque_cliente"]->idcheque_cliente->QueryStringValue);
-					$this->idcheque_cliente->setSessionValue($this->idcheque_cliente->QueryStringValue);
-					if (!is_numeric($GLOBALS["cheque_cliente"]->idcheque_cliente->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("pago_cliente", $DetailTblVar)) {
+				if (!isset($GLOBALS["pago_cliente_grid"]))
+					$GLOBALS["pago_cliente_grid"] = new cpago_cliente_grid;
+				if ($GLOBALS["pago_cliente_grid"]->DetailEdit) {
+					$GLOBALS["pago_cliente_grid"]->CurrentMode = "edit";
+					$GLOBALS["pago_cliente_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["pago_cliente_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["pago_cliente_grid"]->setStartRecordNumber(1);
+					$GLOBALS["pago_cliente_grid"]->idcheque_cliente->FldIsDetailKey = TRUE;
+					$GLOBALS["pago_cliente_grid"]->idcheque_cliente->CurrentValue = $this->idcheque_cliente->CurrentValue;
+					$GLOBALS["pago_cliente_grid"]->idcheque_cliente->setSessionValue($GLOBALS["pago_cliente_grid"]->idcheque_cliente->CurrentValue);
 				}
 			}
 		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-			$this->setSessionWhere($this->GetDetailFilter());
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "cliente") {
-				if ($this->idcliente->QueryStringValue == "") $this->idcliente->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "tipo_pago") {
-				if ($this->idtipo_pago->QueryStringValue == "") $this->idtipo_pago->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "boleta_deposito") {
-				if ($this->idboleta_deposito->QueryStringValue == "") $this->idboleta_deposito->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "voucher_tarjeta") {
-				if ($this->idvoucher_tarjeta->QueryStringValue == "") $this->idvoucher_tarjeta->setSessionValue("");
-			}
-			if ($sMasterTblVar <> "cheque_cliente") {
-				if ($this->idcheque_cliente->QueryStringValue == "") $this->idcheque_cliente->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "pago_clientelist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "cheque_clientelist.php", "", $this->TableVar, TRUE);
 		$PageId = "edit";
 		$Breadcrumb->Add("edit", $PageId, ew_CurrentUrl());
-	}
-
-	// Write Audit Trail start/end for grid update
-	function WriteAuditTrailDummy($typ) {
-		$table = 'pago_cliente';
-	  $usr = CurrentUserID();
-		ew_WriteAuditTrail("log", ew_StdCurrentDateTime(), ew_ScriptName(), $usr, $typ, $table, "", "", "", "");
-	}
-
-	// Write Audit Trail (edit page)
-	function WriteAuditTrailOnEdit(&$rsold, &$rsnew) {
-		if (!$this->AuditTrailOnEdit) return;
-		$table = 'pago_cliente';
-
-		// Get key value
-		$key = "";
-		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rsold['idpago_cliente'];
-
-		// Write Audit Trail
-		$dt = ew_StdCurrentDateTime();
-		$id = ew_ScriptName();
-	  $usr = CurrentUserID();
-		foreach (array_keys($rsnew) as $fldname) {
-			if ($this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
-				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_DATE) { // DateTime field
-					$modified = (ew_FormatDateTime($rsold[$fldname], 0) <> ew_FormatDateTime($rsnew[$fldname], 0));
-				} else {
-					$modified = !ew_CompareValue($rsold[$fldname], $rsnew[$fldname]);
-				}
-				if ($modified) {
-					if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) { // Memo field
-						if (EW_AUDIT_TRAIL_TO_DATABASE) {
-							$oldvalue = $rsold[$fldname];
-							$newvalue = $rsnew[$fldname];
-						} else {
-							$oldvalue = "[MEMO]";
-							$newvalue = "[MEMO]";
-						}
-					} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) { // XML field
-						$oldvalue = "[XML]";
-						$newvalue = "[XML]";
-					} else {
-						$oldvalue = $rsold[$fldname];
-						$newvalue = $rsnew[$fldname];
-					}
-					ew_WriteAuditTrail("log", $dt, $id, $usr, "U", $table, $fldname, $key, $oldvalue, $newvalue);
-				}
-			}
-		}
 	}
 
 	// Page Load event
@@ -1176,33 +1082,33 @@ class cpago_cliente_edit extends cpago_cliente {
 <?php
 
 // Create page object
-if (!isset($pago_cliente_edit)) $pago_cliente_edit = new cpago_cliente_edit();
+if (!isset($cheque_cliente_edit)) $cheque_cliente_edit = new ccheque_cliente_edit();
 
 // Page init
-$pago_cliente_edit->Page_Init();
+$cheque_cliente_edit->Page_Init();
 
 // Page main
-$pago_cliente_edit->Page_Main();
+$cheque_cliente_edit->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$pago_cliente_edit->Page_Render();
+$cheque_cliente_edit->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
 <script type="text/javascript">
 
 // Page object
-var pago_cliente_edit = new ew_Page("pago_cliente_edit");
-pago_cliente_edit.PageID = "edit"; // Page ID
-var EW_PAGE_ID = pago_cliente_edit.PageID; // For backward compatibility
+var cheque_cliente_edit = new ew_Page("cheque_cliente_edit");
+cheque_cliente_edit.PageID = "edit"; // Page ID
+var EW_PAGE_ID = cheque_cliente_edit.PageID; // For backward compatibility
 
 // Form object
-var fpago_clienteedit = new ew_Form("fpago_clienteedit");
+var fcheque_clienteedit = new ew_Form("fcheque_clienteedit");
 
 // Validate form
-fpago_clienteedit.Validate = function() {
+fcheque_clienteedit.Validate = function() {
 	if (!this.ValidateRequired)
 		return true; // Ignore validation
 	var $ = jQuery, fobj = this.GetForm(), $fobj = $(fobj);
@@ -1219,16 +1125,19 @@ fpago_clienteedit.Validate = function() {
 		$fobj.data("rowindex", infix);
 			elm = this.GetElements("x" + infix + "_monto");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $pago_cliente->monto->FldCaption(), $pago_cliente->monto->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cheque_cliente->monto->FldCaption(), $cheque_cliente->monto->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_monto");
 			if (elm && !ew_CheckNumber(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($pago_cliente->monto->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2($cheque_cliente->monto->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_fecha");
 			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($pago_cliente->fecha->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2($cheque_cliente->fecha->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_cheque_estado");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cheque_cliente->cheque_estado->FldCaption(), $cheque_cliente->cheque_estado->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $pago_cliente->estado->FldCaption(), $pago_cliente->estado->ReqErrMsg)) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cheque_cliente->estado->FldCaption(), $cheque_cliente->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1250,7 +1159,7 @@ fpago_clienteedit.Validate = function() {
 }
 
 // Form_CustomValidate event
-fpago_clienteedit.Form_CustomValidate = 
+fcheque_clienteedit.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1259,9 +1168,9 @@ fpago_clienteedit.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fpago_clienteedit.ValidateRequired = true;
+fcheque_clienteedit.ValidateRequired = true;
 <?php } else { ?>
-fpago_clienteedit.ValidateRequired = false; 
+fcheque_clienteedit.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
@@ -1277,55 +1186,95 @@ fpago_clienteedit.ValidateRequired = false;
 <?php echo $Language->SelectionForm(); ?>
 <div class="clearfix"></div>
 </div>
-<?php $pago_cliente_edit->ShowPageHeader(); ?>
+<?php $cheque_cliente_edit->ShowPageHeader(); ?>
 <?php
-$pago_cliente_edit->ShowMessage();
+$cheque_cliente_edit->ShowMessage();
 ?>
-<form name="fpago_clienteedit" id="fpago_clienteedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($pago_cliente_edit->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $pago_cliente_edit->Token ?>">
+<form name="fcheque_clienteedit" id="fcheque_clienteedit" class="form-horizontal ewForm ewEditForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($cheque_cliente_edit->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $cheque_cliente_edit->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="pago_cliente">
+<input type="hidden" name="t" value="cheque_cliente">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
-<?php if ($pago_cliente->monto->Visible) { // monto ?>
-	<div id="r_monto" class="form-group">
-		<label id="elh_pago_cliente_monto" for="x_monto" class="col-sm-2 control-label ewLabel"><?php echo $pago_cliente->monto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $pago_cliente->monto->CellAttributes() ?>>
-<span id="el_pago_cliente_monto">
-<input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($pago_cliente->monto->PlaceHolder) ?>" value="<?php echo $pago_cliente->monto->EditValue ?>"<?php echo $pago_cliente->monto->EditAttributes() ?>>
+<?php if ($cheque_cliente->numero->Visible) { // numero ?>
+	<div id="r_numero" class="form-group">
+		<label id="elh_cheque_cliente_numero" for="x_numero" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->numero->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->numero->CellAttributes() ?>>
+<span id="el_cheque_cliente_numero">
+<input type="text" data-field="x_numero" name="x_numero" id="x_numero" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cheque_cliente->numero->PlaceHolder) ?>" value="<?php echo $cheque_cliente->numero->EditValue ?>"<?php echo $cheque_cliente->numero->EditAttributes() ?>>
 </span>
-<?php echo $pago_cliente->monto->CustomMsg ?></div></div>
+<?php echo $cheque_cliente->numero->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($pago_cliente->fecha->Visible) { // fecha ?>
+<?php if ($cheque_cliente->propietario->Visible) { // propietario ?>
+	<div id="r_propietario" class="form-group">
+		<label id="elh_cheque_cliente_propietario" for="x_propietario" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->propietario->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->propietario->CellAttributes() ?>>
+<span id="el_cheque_cliente_propietario">
+<input type="text" data-field="x_propietario" name="x_propietario" id="x_propietario" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cheque_cliente->propietario->PlaceHolder) ?>" value="<?php echo $cheque_cliente->propietario->EditValue ?>"<?php echo $cheque_cliente->propietario->EditAttributes() ?>>
+</span>
+<?php echo $cheque_cliente->propietario->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cheque_cliente->cuenta->Visible) { // cuenta ?>
+	<div id="r_cuenta" class="form-group">
+		<label id="elh_cheque_cliente_cuenta" for="x_cuenta" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->cuenta->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->cuenta->CellAttributes() ?>>
+<span id="el_cheque_cliente_cuenta">
+<input type="text" data-field="x_cuenta" name="x_cuenta" id="x_cuenta" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cheque_cliente->cuenta->PlaceHolder) ?>" value="<?php echo $cheque_cliente->cuenta->EditValue ?>"<?php echo $cheque_cliente->cuenta->EditAttributes() ?>>
+</span>
+<?php echo $cheque_cliente->cuenta->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cheque_cliente->monto->Visible) { // monto ?>
+	<div id="r_monto" class="form-group">
+		<label id="elh_cheque_cliente_monto" for="x_monto" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->monto->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->monto->CellAttributes() ?>>
+<span id="el_cheque_cliente_monto">
+<input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($cheque_cliente->monto->PlaceHolder) ?>" value="<?php echo $cheque_cliente->monto->EditValue ?>"<?php echo $cheque_cliente->monto->EditAttributes() ?>>
+</span>
+<?php echo $cheque_cliente->monto->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cheque_cliente->fecha->Visible) { // fecha ?>
 	<div id="r_fecha" class="form-group">
-		<label id="elh_pago_cliente_fecha" for="x_fecha" class="col-sm-2 control-label ewLabel"><?php echo $pago_cliente->fecha->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $pago_cliente->fecha->CellAttributes() ?>>
-<span id="el_pago_cliente_fecha">
-<input type="text" data-field="x_fecha" name="x_fecha" id="x_fecha" placeholder="<?php echo ew_HtmlEncode($pago_cliente->fecha->PlaceHolder) ?>" value="<?php echo $pago_cliente->fecha->EditValue ?>"<?php echo $pago_cliente->fecha->EditAttributes() ?>>
-<?php if (!$pago_cliente->fecha->ReadOnly && !$pago_cliente->fecha->Disabled && @$pago_cliente->fecha->EditAttrs["readonly"] == "" && @$pago_cliente->fecha->EditAttrs["disabled"] == "") { ?>
+		<label id="elh_cheque_cliente_fecha" for="x_fecha" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->fecha->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->fecha->CellAttributes() ?>>
+<span id="el_cheque_cliente_fecha">
+<input type="text" data-field="x_fecha" name="x_fecha" id="x_fecha" placeholder="<?php echo ew_HtmlEncode($cheque_cliente->fecha->PlaceHolder) ?>" value="<?php echo $cheque_cliente->fecha->EditValue ?>"<?php echo $cheque_cliente->fecha->EditAttributes() ?>>
+<?php if (!$cheque_cliente->fecha->ReadOnly && !$cheque_cliente->fecha->Disabled && @$cheque_cliente->fecha->EditAttrs["readonly"] == "" && @$cheque_cliente->fecha->EditAttrs["disabled"] == "") { ?>
 <script type="text/javascript">
-ew_CreateCalendar("fpago_clienteedit", "x_fecha", "%d/%m/%Y");
+ew_CreateCalendar("fcheque_clienteedit", "x_fecha", "%d/%m/%Y");
 </script>
 <?php } ?>
 </span>
-<?php echo $pago_cliente->fecha->CustomMsg ?></div></div>
+<?php echo $cheque_cliente->fecha->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($pago_cliente->estado->Visible) { // estado ?>
-	<div id="r_estado" class="form-group">
-		<label id="elh_pago_cliente_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $pago_cliente->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $pago_cliente->estado->CellAttributes() ?>>
-<span id="el_pago_cliente_estado">
-<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $pago_cliente->estado->EditAttributes() ?>>
+<?php if ($cheque_cliente->descripcion->Visible) { // descripcion ?>
+	<div id="r_descripcion" class="form-group">
+		<label id="elh_cheque_cliente_descripcion" for="x_descripcion" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->descripcion->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->descripcion->CellAttributes() ?>>
+<span id="el_cheque_cliente_descripcion">
+<input type="text" data-field="x_descripcion" name="x_descripcion" id="x_descripcion" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cheque_cliente->descripcion->PlaceHolder) ?>" value="<?php echo $cheque_cliente->descripcion->EditValue ?>"<?php echo $cheque_cliente->descripcion->EditAttributes() ?>>
+</span>
+<?php echo $cheque_cliente->descripcion->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cheque_cliente->cheque_estado->Visible) { // cheque_estado ?>
+	<div id="r_cheque_estado" class="form-group">
+		<label id="elh_cheque_cliente_cheque_estado" for="x_cheque_estado" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->cheque_estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->cheque_estado->CellAttributes() ?>>
+<span id="el_cheque_cliente_cheque_estado">
+<select data-field="x_cheque_estado" id="x_cheque_estado" name="x_cheque_estado"<?php echo $cheque_cliente->cheque_estado->EditAttributes() ?>>
 <?php
-if (is_array($pago_cliente->estado->EditValue)) {
-	$arwrk = $pago_cliente->estado->EditValue;
+if (is_array($cheque_cliente->cheque_estado->EditValue)) {
+	$arwrk = $cheque_cliente->cheque_estado->EditValue;
 	$rowswrk = count($arwrk);
 	$emptywrk = TRUE;
 	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($pago_cliente->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		$selwrk = (strval($cheque_cliente->cheque_estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
 		if ($selwrk <> "") $emptywrk = FALSE;
 ?>
 <option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
@@ -1337,11 +1286,46 @@ if (is_array($pago_cliente->estado->EditValue)) {
 ?>
 </select>
 </span>
-<?php echo $pago_cliente->estado->CustomMsg ?></div></div>
+<?php echo $cheque_cliente->cheque_estado->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cheque_cliente->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_cheque_cliente_estado" for="x_estado" class="col-sm-2 control-label ewLabel"><?php echo $cheque_cliente->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $cheque_cliente->estado->CellAttributes() ?>>
+<span id="el_cheque_cliente_estado">
+<select data-field="x_estado" id="x_estado" name="x_estado"<?php echo $cheque_cliente->estado->EditAttributes() ?>>
+<?php
+if (is_array($cheque_cliente->estado->EditValue)) {
+	$arwrk = $cheque_cliente->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cheque_cliente->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+</span>
+<?php echo $cheque_cliente->estado->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>
-<input type="hidden" data-field="x_idpago_cliente" name="x_idpago_cliente" id="x_idpago_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idpago_cliente->CurrentValue) ?>">
+<input type="hidden" data-field="x_idcheque_cliente" name="x_idcheque_cliente" id="x_idcheque_cliente" value="<?php echo ew_HtmlEncode($cheque_cliente->idcheque_cliente->CurrentValue) ?>">
+<?php
+	if (in_array("pago_cliente", explode(",", $cheque_cliente->getCurrentDetailTable())) && $pago_cliente->DetailEdit) {
+?>
+<?php if ($cheque_cliente->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("pago_cliente", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "pago_clientegrid.php" ?>
+<?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">
 <button class="btn btn-primary ewButton" name="btnAction" id="btnAction" type="submit"><?php echo $Language->Phrase("SaveBtn") ?></button>
@@ -1349,10 +1333,10 @@ if (is_array($pago_cliente->estado->EditValue)) {
 </div>
 </form>
 <script type="text/javascript">
-fpago_clienteedit.Init();
+fcheque_clienteedit.Init();
 </script>
 <?php
-$pago_cliente_edit->ShowPageFooter();
+$cheque_cliente_edit->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
@@ -1364,5 +1348,5 @@ if (EW_DEBUG_ENABLED)
 </script>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$pago_cliente_edit->Page_Terminate();
+$cheque_cliente_edit->Page_Terminate();
 ?>

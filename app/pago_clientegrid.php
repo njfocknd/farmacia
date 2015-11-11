@@ -87,6 +87,7 @@ fpago_clientegrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "idsucursal", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idboleta_deposito", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idvoucher_tarjeta", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "idcheque_cliente", false)) return false;
 	return true;
 }
 
@@ -111,6 +112,7 @@ fpago_clientegrid.Lists["x_idcliente"] = {"LinkField":"x_idcliente","Ajax":true,
 fpago_clientegrid.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fpago_clientegrid.Lists["x_idboleta_deposito"] = {"LinkField":"x_idboleta_deposito","Ajax":true,"AutoFill":false,"DisplayFields":["x_numero","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fpago_clientegrid.Lists["x_idvoucher_tarjeta"] = {"LinkField":"x_idvoucher_tarjeta","Ajax":true,"AutoFill":false,"DisplayFields":["x_marca","x_marca","x_ultimos_cuatro_digitos",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fpago_clientegrid.Lists["x_idcheque_cliente"] = {"LinkField":"x_idcheque_cliente","Ajax":true,"AutoFill":false,"DisplayFields":["x_numero","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -240,6 +242,15 @@ $pago_cliente_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idvoucher_tarjeta"><div><div id="elh_pago_cliente_idvoucher_tarjeta" class="pago_cliente_idvoucher_tarjeta">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pago_cliente->idvoucher_tarjeta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($pago_cliente->idvoucher_tarjeta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pago_cliente->idvoucher_tarjeta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($pago_cliente->idcheque_cliente->Visible) { // idcheque_cliente ?>
+	<?php if ($pago_cliente->SortUrl($pago_cliente->idcheque_cliente) == "") { ?>
+		<th data-name="idcheque_cliente"><div id="elh_pago_cliente_idcheque_cliente" class="pago_cliente_idcheque_cliente"><div class="ewTableHeaderCaption"><?php echo $pago_cliente->idcheque_cliente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idcheque_cliente"><div><div id="elh_pago_cliente_idcheque_cliente" class="pago_cliente_idcheque_cliente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pago_cliente->idcheque_cliente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($pago_cliente->idcheque_cliente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pago_cliente->idcheque_cliente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -912,6 +923,105 @@ if (@$emptywrk) $pago_cliente->idvoucher_tarjeta->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($pago_cliente->idcheque_cliente->Visible) { // idcheque_cliente ?>
+		<td data-name="idcheque_cliente"<?php echo $pago_cliente->idcheque_cliente->CellAttributes() ?>>
+<?php if ($pago_cliente->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<?php if ($pago_cliente->idcheque_cliente->getSessionValue() <> "") { ?>
+<span id="el<?php echo $pago_cliente_grid->RowCnt ?>_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<span<?php echo $pago_cliente->idcheque_cliente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $pago_cliente->idcheque_cliente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $pago_cliente_grid->RowCnt ?>_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<select data-field="x_idcheque_cliente" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente"<?php echo $pago_cliente->idcheque_cliente->EditAttributes() ?>>
+<?php
+if (is_array($pago_cliente->idcheque_cliente->EditValue)) {
+	$arwrk = $pago_cliente->idcheque_cliente->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($pago_cliente->idcheque_cliente->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $pago_cliente->idcheque_cliente->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcheque_cliente`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cheque_cliente`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $pago_cliente->Lookup_Selecting($pago_cliente->idcheque_cliente, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="s_x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcheque_cliente` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<input type="hidden" data-field="x_idcheque_cliente" name="o<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="o<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->OldValue) ?>">
+<?php } ?>
+<?php if ($pago_cliente->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<?php if ($pago_cliente->idcheque_cliente->getSessionValue() <> "") { ?>
+<span id="el<?php echo $pago_cliente_grid->RowCnt ?>_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<span<?php echo $pago_cliente->idcheque_cliente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $pago_cliente->idcheque_cliente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $pago_cliente_grid->RowCnt ?>_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<select data-field="x_idcheque_cliente" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente"<?php echo $pago_cliente->idcheque_cliente->EditAttributes() ?>>
+<?php
+if (is_array($pago_cliente->idcheque_cliente->EditValue)) {
+	$arwrk = $pago_cliente->idcheque_cliente->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($pago_cliente->idcheque_cliente->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $pago_cliente->idcheque_cliente->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcheque_cliente`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cheque_cliente`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $pago_cliente->Lookup_Selecting($pago_cliente->idcheque_cliente, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="s_x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcheque_cliente` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php } ?>
+<?php if ($pago_cliente->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $pago_cliente->idcheque_cliente->ViewAttributes() ?>>
+<?php echo $pago_cliente->idcheque_cliente->ListViewValue() ?></span>
+<input type="hidden" data-field="x_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->FormValue) ?>">
+<input type="hidden" data-field="x_idcheque_cliente" name="o<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="o<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -1267,6 +1377,61 @@ if (@$emptywrk) $pago_cliente->idvoucher_tarjeta->OldValue = "";
 <input type="hidden" data-field="x_idvoucher_tarjeta" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idvoucher_tarjeta" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idvoucher_tarjeta" value="<?php echo ew_HtmlEncode($pago_cliente->idvoucher_tarjeta->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_idvoucher_tarjeta" name="o<?php echo $pago_cliente_grid->RowIndex ?>_idvoucher_tarjeta" id="o<?php echo $pago_cliente_grid->RowIndex ?>_idvoucher_tarjeta" value="<?php echo ew_HtmlEncode($pago_cliente->idvoucher_tarjeta->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($pago_cliente->idcheque_cliente->Visible) { // idcheque_cliente ?>
+		<td>
+<?php if ($pago_cliente->CurrentAction <> "F") { ?>
+<?php if ($pago_cliente->idcheque_cliente->getSessionValue() <> "") { ?>
+<span id="el$rowindex$_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<span<?php echo $pago_cliente->idcheque_cliente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $pago_cliente->idcheque_cliente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el$rowindex$_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<select data-field="x_idcheque_cliente" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente"<?php echo $pago_cliente->idcheque_cliente->EditAttributes() ?>>
+<?php
+if (is_array($pago_cliente->idcheque_cliente->EditValue)) {
+	$arwrk = $pago_cliente->idcheque_cliente->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($pago_cliente->idcheque_cliente->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $pago_cliente->idcheque_cliente->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcheque_cliente`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cheque_cliente`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $pago_cliente->Lookup_Selecting($pago_cliente->idcheque_cliente, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="s_x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcheque_cliente` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php } else { ?>
+<span id="el$rowindex$_pago_cliente_idcheque_cliente" class="form-group pago_cliente_idcheque_cliente">
+<span<?php echo $pago_cliente->idcheque_cliente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $pago_cliente->idcheque_cliente->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_idcheque_cliente" name="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="x<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_idcheque_cliente" name="o<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" id="o<?php echo $pago_cliente_grid->RowIndex ?>_idcheque_cliente" value="<?php echo ew_HtmlEncode($pago_cliente->idcheque_cliente->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

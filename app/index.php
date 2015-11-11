@@ -305,6 +305,8 @@ class cdefault {
 			$this->Page_Terminate("voucher_tarjetalist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'tipo_pago'))
 			$this->Page_Terminate("tipo_pagolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'cheque_cliente'))
+			$this->Page_Terminate("cheque_clientelist.php");
 		if ($Security->IsLoggedIn()) {
 			$this->setFailureMessage($Language->Phrase("NoPermission") . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
 		} else {

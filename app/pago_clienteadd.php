@@ -12,6 +12,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "boleta_depositoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "voucher_tarjetainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "tipo_pagoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cheque_clienteinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -221,6 +222,9 @@ class cpago_cliente_add extends cpago_cliente {
 
 		// Table object (tipo_pago)
 		if (!isset($GLOBALS['tipo_pago'])) $GLOBALS['tipo_pago'] = new ctipo_pago();
+
+		// Table object (cheque_cliente)
+		if (!isset($GLOBALS['cheque_cliente'])) $GLOBALS['cheque_cliente'] = new ccheque_cliente();
 
 		// User table object (usuario)
 		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
@@ -523,6 +527,7 @@ class cpago_cliente_add extends cpago_cliente {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idboleta_deposito->setDbValue($rs->fields('idboleta_deposito'));
 		$this->idvoucher_tarjeta->setDbValue($rs->fields('idvoucher_tarjeta'));
+		$this->idcheque_cliente->setDbValue($rs->fields('idcheque_cliente'));
 	}
 
 	// Load DbValue from recordset
@@ -539,6 +544,7 @@ class cpago_cliente_add extends cpago_cliente {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idboleta_deposito->DbValue = $row['idboleta_deposito'];
 		$this->idvoucher_tarjeta->DbValue = $row['idvoucher_tarjeta'];
+		$this->idcheque_cliente->DbValue = $row['idcheque_cliente'];
 	}
 
 	// Load old record
@@ -588,6 +594,7 @@ class cpago_cliente_add extends cpago_cliente {
 		// idsucursal
 		// idboleta_deposito
 		// idvoucher_tarjeta
+		// idcheque_cliente
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -771,6 +778,34 @@ class cpago_cliente_add extends cpago_cliente {
 				$this->idvoucher_tarjeta->ViewValue = NULL;
 			}
 			$this->idvoucher_tarjeta->ViewCustomAttributes = "";
+
+			// idcheque_cliente
+			if (strval($this->idcheque_cliente->CurrentValue) <> "") {
+				$sFilterWrk = "`idcheque_cliente`" . ew_SearchString("=", $this->idcheque_cliente->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcheque_cliente`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cheque_cliente`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcheque_cliente, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idcheque_cliente->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idcheque_cliente->ViewValue = $this->idcheque_cliente->CurrentValue;
+				}
+			} else {
+				$this->idcheque_cliente->ViewValue = NULL;
+			}
+			$this->idcheque_cliente->ViewCustomAttributes = "";
 
 			// idtipo_pago
 			$this->idtipo_pago->LinkCustomAttributes = "";
@@ -1028,44 +1063,6 @@ class cpago_cliente_add extends cpago_cliente {
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
 
-		// Check referential integrity for master table 'cliente'
-		$bValidMasterRecord = TRUE;
-		$sMasterFilter = $this->SqlMasterFilter_cliente();
-		if (strval($this->idcliente->CurrentValue) <> "") {
-			$sMasterFilter = str_replace("@idcliente@", ew_AdjustSql($this->idcliente->CurrentValue), $sMasterFilter);
-		} else {
-			$bValidMasterRecord = FALSE;
-		}
-		if ($bValidMasterRecord) {
-			$rsmaster = $GLOBALS["cliente"]->LoadRs($sMasterFilter);
-			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-			$rsmaster->Close();
-		}
-		if (!$bValidMasterRecord) {
-			$sRelatedRecordMsg = str_replace("%t", "cliente", $Language->Phrase("RelatedRecordRequired"));
-			$this->setFailureMessage($sRelatedRecordMsg);
-			return FALSE;
-		}
-
-		// Check referential integrity for master table 'tipo_pago'
-		$bValidMasterRecord = TRUE;
-		$sMasterFilter = $this->SqlMasterFilter_tipo_pago();
-		if (strval($this->idtipo_pago->CurrentValue) <> "") {
-			$sMasterFilter = str_replace("@idtipo_pago@", ew_AdjustSql($this->idtipo_pago->CurrentValue), $sMasterFilter);
-		} else {
-			$bValidMasterRecord = FALSE;
-		}
-		if ($bValidMasterRecord) {
-			$rsmaster = $GLOBALS["tipo_pago"]->LoadRs($sMasterFilter);
-			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-			$rsmaster->Close();
-		}
-		if (!$bValidMasterRecord) {
-			$sRelatedRecordMsg = str_replace("%t", "tipo_pago", $Language->Phrase("RelatedRecordRequired"));
-			$this->setFailureMessage($sRelatedRecordMsg);
-			return FALSE;
-		}
-
 		// Load db values from rsold
 		if ($rsold) {
 			$this->LoadDbValues($rsold);
@@ -1095,6 +1092,11 @@ class cpago_cliente_add extends cpago_cliente {
 		// idvoucher_tarjeta
 		if ($this->idvoucher_tarjeta->getSessionValue() <> "") {
 			$rsnew['idvoucher_tarjeta'] = $this->idvoucher_tarjeta->getSessionValue();
+		}
+
+		// idcheque_cliente
+		if ($this->idcheque_cliente->getSessionValue() <> "") {
+			$rsnew['idcheque_cliente'] = $this->idcheque_cliente->getSessionValue();
 		}
 
 		// Call Row Inserting event
@@ -1190,6 +1192,17 @@ class cpago_cliente_add extends cpago_cliente {
 					$bValidMaster = FALSE;
 				}
 			}
+			if ($sMasterTblVar == "cheque_cliente") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idcheque_cliente"] <> "") {
+					$GLOBALS["cheque_cliente"]->idcheque_cliente->setQueryStringValue($_GET["fk_idcheque_cliente"]);
+					$this->idcheque_cliente->setQueryStringValue($GLOBALS["cheque_cliente"]->idcheque_cliente->QueryStringValue);
+					$this->idcheque_cliente->setSessionValue($this->idcheque_cliente->QueryStringValue);
+					if (!is_numeric($GLOBALS["cheque_cliente"]->idcheque_cliente->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
 		}
 		if ($bValidMaster) {
 
@@ -1212,6 +1225,9 @@ class cpago_cliente_add extends cpago_cliente {
 			}
 			if ($sMasterTblVar <> "voucher_tarjeta") {
 				if ($this->idvoucher_tarjeta->QueryStringValue == "") $this->idvoucher_tarjeta->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "cheque_cliente") {
+				if ($this->idcheque_cliente->QueryStringValue == "") $this->idcheque_cliente->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -1629,6 +1645,9 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 <?php } ?>
 <?php if (strval($pago_cliente->idvoucher_tarjeta->getSessionValue()) <> "") { ?>
 <input type="hidden" name="x_idvoucher_tarjeta" id="x_idvoucher_tarjeta" value="<?php echo ew_HtmlEncode(strval($pago_cliente->idvoucher_tarjeta->getSessionValue())) ?>">
+<?php } ?>
+<?php if (strval($pago_cliente->idcheque_cliente->getSessionValue()) <> "") { ?>
+<input type="hidden" name="x_idcheque_cliente" id="x_idcheque_cliente" value="<?php echo ew_HtmlEncode(strval($pago_cliente->idcheque_cliente->getSessionValue())) ?>">
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

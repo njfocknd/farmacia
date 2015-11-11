@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" standalone="yes"?>
-<ew-language date="2015/11/10" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
+<ew-language date="2015/11/11" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
 	<locale>
 		<phrase id="locale" value=""/><!-- *** system locale for this language -->
 		<phrase id="use_system_locale" value="0"/><!-- *** change to "0" to disable system locale and use the following settings *** -->
@@ -479,7 +479,7 @@
 </menu>
 <menu id="17"><phrase id="menutext" value="Serie de Documento"/>
 </menu>
-<menu id="111"><phrase id="menutext" value="tipo pago"/>
+<menu id="111"><phrase id="menutext" value="Tipo de Pago"/>
 </menu>
 <menu id="63"><phrase id="menutext" value="Banco"/>
 </menu>
@@ -490,6 +490,8 @@
 <menu id="109"><phrase id="menutext" value="Boleta de Depósito"/>
 </menu>
 <menu id="110"><phrase id="menutext" value="Voucher Tarjeta"/>
+</menu>
+<menu id="112"><phrase id="menutext" value="Cheque de Cliente"/>
 </menu>
 <menu id="108"><phrase id="menutext" value="categoria"/>
 </menu>
@@ -1072,6 +1074,8 @@
 </field>
 <field id="idtipo_pago"><phrase id="fldcaption" value="Tipo de Pago"/>
 </field>
+<field id="idcheque_cliente"><phrase id="fldcaption" value="Cheque Cliente"/>
+</field>
 </table>
 <table id="pago_proveedor"><phrase id="tblcaption" value="Pagos a Proveedor"/>
 <field id="idpago_proveedor"><phrase id="fldcaption" value="idpago proveedor"/>
@@ -1403,6 +1407,40 @@
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
+</field>
+</table>
+<table id="cheque_cliente"><phrase id="tblcaption" value="Cheque de Cliente"/>
+<field id="idcheque_cliente"><phrase id="fldcaption" value="idcheque cliente"/>
+</field>
+<field id="numero"><phrase id="fldcaption" value="Número"/>
+</field>
+<field id="propietario"><phrase id="fldcaption" value="Emisor"/>
+</field>
+<field id="idbanco"><phrase id="fldcaption" value="Banco"/>
+</field>
+<field id="cuenta"><phrase id="fldcaption" value="Cuenta"/>
+</field>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
+<field id="descripcion"><phrase id="fldcaption" value="Descripción"/>
+</field>
+<field id="monto"><phrase id="fldcaption" value="Monto"/>
+</field>
+<field id="cheque_estado"><phrase id="fldcaption" value="Estado de Cheque"/>
+<phrase id="fldtagvalue1" value="Recibido"/>
+<phrase id="fldtagcaption1" value="Recibido"/>
+<phrase id="fldtagvalue2" value="Cobrado"/>
+<phrase id="fldtagcaption2" value="Cobrado"/>
+<phrase id="fldtagvalue3" value="Rechazado"/>
+<phrase id="fldtagcaption3" value="Rechazado"/>
 </field>
 </table>
 </project>

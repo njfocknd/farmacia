@@ -12,6 +12,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "boleta_depositoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "voucher_tarjetainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "tipo_pagoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "cheque_clienteinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -275,6 +276,9 @@ class cpago_cliente_list extends cpago_cliente {
 
 		// Table object (tipo_pago)
 		if (!isset($GLOBALS['tipo_pago'])) $GLOBALS['tipo_pago'] = new ctipo_pago();
+
+		// Table object (cheque_cliente)
+		if (!isset($GLOBALS['cheque_cliente'])) $GLOBALS['cheque_cliente'] = new ccheque_cliente();
 
 		// User table object (usuario)
 		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
@@ -649,6 +653,22 @@ class cpago_cliente_list extends cpago_cliente {
 			}
 		}
 
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "cheque_cliente") {
+			global $cheque_cliente;
+			$rsmaster = $cheque_cliente->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("cheque_clientelist.php"); // Return to master page
+			} else {
+				$cheque_cliente->LoadListRowValues($rsmaster);
+				$cheque_cliente->RowType = EW_ROWTYPE_MASTER; // Master row
+				$cheque_cliente->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
 		$this->CurrentFilter = "";
@@ -725,6 +745,7 @@ class cpago_cliente_list extends cpago_cliente {
 			$this->UpdateSort($this->idsucursal); // idsucursal
 			$this->UpdateSort($this->idboleta_deposito); // idboleta_deposito
 			$this->UpdateSort($this->idvoucher_tarjeta); // idvoucher_tarjeta
+			$this->UpdateSort($this->idcheque_cliente); // idcheque_cliente
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -758,6 +779,7 @@ class cpago_cliente_list extends cpago_cliente {
 				$this->idtipo_pago->setSessionValue("");
 				$this->idboleta_deposito->setSessionValue("");
 				$this->idvoucher_tarjeta->setSessionValue("");
+				$this->idcheque_cliente->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -771,6 +793,7 @@ class cpago_cliente_list extends cpago_cliente {
 				$this->idsucursal->setSort("");
 				$this->idboleta_deposito->setSort("");
 				$this->idvoucher_tarjeta->setSort("");
+				$this->idcheque_cliente->setSort("");
 			}
 
 			// Reset start position
@@ -1076,6 +1099,7 @@ class cpago_cliente_list extends cpago_cliente {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idboleta_deposito->setDbValue($rs->fields('idboleta_deposito'));
 		$this->idvoucher_tarjeta->setDbValue($rs->fields('idvoucher_tarjeta'));
+		$this->idcheque_cliente->setDbValue($rs->fields('idcheque_cliente'));
 	}
 
 	// Load DbValue from recordset
@@ -1092,6 +1116,7 @@ class cpago_cliente_list extends cpago_cliente {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idboleta_deposito->DbValue = $row['idboleta_deposito'];
 		$this->idvoucher_tarjeta->DbValue = $row['idvoucher_tarjeta'];
+		$this->idcheque_cliente->DbValue = $row['idcheque_cliente'];
 	}
 
 	// Load old record
@@ -1147,6 +1172,7 @@ class cpago_cliente_list extends cpago_cliente {
 		// idsucursal
 		// idboleta_deposito
 		// idvoucher_tarjeta
+		// idcheque_cliente
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1331,6 +1357,34 @@ class cpago_cliente_list extends cpago_cliente {
 			}
 			$this->idvoucher_tarjeta->ViewCustomAttributes = "";
 
+			// idcheque_cliente
+			if (strval($this->idcheque_cliente->CurrentValue) <> "") {
+				$sFilterWrk = "`idcheque_cliente`" . ew_SearchString("=", $this->idcheque_cliente->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcheque_cliente`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cheque_cliente`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcheque_cliente, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idcheque_cliente->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idcheque_cliente->ViewValue = $this->idcheque_cliente->CurrentValue;
+				}
+			} else {
+				$this->idcheque_cliente->ViewValue = NULL;
+			}
+			$this->idcheque_cliente->ViewCustomAttributes = "";
+
 			// idtipo_pago
 			$this->idtipo_pago->LinkCustomAttributes = "";
 			$this->idtipo_pago->HrefValue = "";
@@ -1365,6 +1419,11 @@ class cpago_cliente_list extends cpago_cliente {
 			$this->idvoucher_tarjeta->LinkCustomAttributes = "";
 			$this->idvoucher_tarjeta->HrefValue = "";
 			$this->idvoucher_tarjeta->TooltipValue = "";
+
+			// idcheque_cliente
+			$this->idcheque_cliente->LinkCustomAttributes = "";
+			$this->idcheque_cliente->HrefValue = "";
+			$this->idcheque_cliente->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1551,6 +1610,23 @@ class cpago_cliente_list extends cpago_cliente {
 				$rsmaster->Close();
 			}
 		}
+
+		// Export master record
+		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "cheque_cliente") {
+			global $cheque_cliente;
+			if (!isset($cheque_cliente)) $cheque_cliente = new ccheque_cliente;
+			$rsmaster = $cheque_cliente->LoadRs($this->DbMasterFilter); // Load master record
+			if ($rsmaster && !$rsmaster->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("v"); // Change to vertical
+				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
+					$cheque_cliente->ExportDocument($Doc, $rsmaster, 1, 1);
+					$Doc->ExportEmptyRow();
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsmaster->Close();
+			}
+		}
 		$sHeader = $this->PageHeader;
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
@@ -1636,6 +1712,17 @@ class cpago_cliente_list extends cpago_cliente {
 					$bValidMaster = FALSE;
 				}
 			}
+			if ($sMasterTblVar == "cheque_cliente") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idcheque_cliente"] <> "") {
+					$GLOBALS["cheque_cliente"]->idcheque_cliente->setQueryStringValue($_GET["fk_idcheque_cliente"]);
+					$this->idcheque_cliente->setQueryStringValue($GLOBALS["cheque_cliente"]->idcheque_cliente->QueryStringValue);
+					$this->idcheque_cliente->setSessionValue($this->idcheque_cliente->QueryStringValue);
+					if (!is_numeric($GLOBALS["cheque_cliente"]->idcheque_cliente->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
 		}
 		if ($bValidMaster) {
 
@@ -1658,6 +1745,9 @@ class cpago_cliente_list extends cpago_cliente {
 			}
 			if ($sMasterTblVar <> "voucher_tarjeta") {
 				if ($this->idvoucher_tarjeta->QueryStringValue == "") $this->idvoucher_tarjeta->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "cheque_cliente") {
+				if ($this->idcheque_cliente->QueryStringValue == "") $this->idcheque_cliente->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -1852,6 +1942,7 @@ fpago_clientelist.Lists["x_idcliente"] = {"LinkField":"x_idcliente","Ajax":true,
 fpago_clientelist.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fpago_clientelist.Lists["x_idboleta_deposito"] = {"LinkField":"x_idboleta_deposito","Ajax":true,"AutoFill":false,"DisplayFields":["x_numero","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fpago_clientelist.Lists["x_idvoucher_tarjeta"] = {"LinkField":"x_idvoucher_tarjeta","Ajax":true,"AutoFill":false,"DisplayFields":["x_marca","x_marca","x_ultimos_cuatro_digitos",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fpago_clientelist.Lists["x_idcheque_cliente"] = {"LinkField":"x_idcheque_cliente","Ajax":true,"AutoFill":false,"DisplayFields":["x_numero","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1927,6 +2018,20 @@ if ($pago_cliente_list->DbMasterFilter <> "" && $pago_cliente->getCurrentMasterT
 <div class="ewListExportOptions"><?php $pago_cliente_list->ExportOptions->Render("body") ?></div>
 <?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "voucher_tarjetamaster.php" ?>
+<?php
+	}
+}
+?>
+<?php
+$gsMasterReturnUrl = "cheque_clientelist.php";
+if ($pago_cliente_list->DbMasterFilter <> "" && $pago_cliente->getCurrentMasterTable() == "cheque_cliente") {
+	if ($pago_cliente_list->MasterRecordExists) {
+		if ($pago_cliente->getCurrentMasterTable() == $pago_cliente->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($pago_cliente_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $pago_cliente_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "cheque_clientemaster.php" ?>
 <?php
 	}
 }
@@ -2047,6 +2152,15 @@ $pago_cliente_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($pago_cliente->idcheque_cliente->Visible) { // idcheque_cliente ?>
+	<?php if ($pago_cliente->SortUrl($pago_cliente->idcheque_cliente) == "") { ?>
+		<th data-name="idcheque_cliente"><div id="elh_pago_cliente_idcheque_cliente" class="pago_cliente_idcheque_cliente"><div class="ewTableHeaderCaption"><?php echo $pago_cliente->idcheque_cliente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idcheque_cliente"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $pago_cliente->SortUrl($pago_cliente->idcheque_cliente) ?>',1);"><div id="elh_pago_cliente_idcheque_cliente" class="pago_cliente_idcheque_cliente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $pago_cliente->idcheque_cliente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($pago_cliente->idcheque_cliente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($pago_cliente->idcheque_cliente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2152,6 +2266,12 @@ $pago_cliente_list->ListOptions->Render("body", "left", $pago_cliente_list->RowC
 		<td data-name="idvoucher_tarjeta"<?php echo $pago_cliente->idvoucher_tarjeta->CellAttributes() ?>>
 <span<?php echo $pago_cliente->idvoucher_tarjeta->ViewAttributes() ?>>
 <?php echo $pago_cliente->idvoucher_tarjeta->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($pago_cliente->idcheque_cliente->Visible) { // idcheque_cliente ?>
+		<td data-name="idcheque_cliente"<?php echo $pago_cliente->idcheque_cliente->CellAttributes() ?>>
+<span<?php echo $pago_cliente->idcheque_cliente->ViewAttributes() ?>>
+<?php echo $pago_cliente->idcheque_cliente->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

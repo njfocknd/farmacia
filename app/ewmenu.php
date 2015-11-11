@@ -35,6 +35,7 @@ $RootMenu->AddMenuItem(63, "mi_banco", $Language->MenuPhrase("63", "MenuText"), 
 $RootMenu->AddMenuItem(64, "mi_cuenta", $Language->MenuPhrase("64", "MenuText"), "cuentalist.php?cmd=resetall", 63, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}cuenta'), FALSE);
 $RootMenu->AddMenuItem(109, "mi_boleta_deposito", $Language->MenuPhrase("109", "MenuText"), "boleta_depositolist.php?cmd=resetall", 64, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}boleta_deposito'), FALSE);
 $RootMenu->AddMenuItem(110, "mi_voucher_tarjeta", $Language->MenuPhrase("110", "MenuText"), "voucher_tarjetalist.php?cmd=resetall", 64, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}voucher_tarjeta'), FALSE);
+$RootMenu->AddMenuItem(112, "mi_cheque_cliente", $Language->MenuPhrase("112", "MenuText"), "cheque_clientelist.php", 63, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}cheque_cliente'), FALSE);
 $RootMenu->AddMenuItem(108, "mi_categoria", $Language->MenuPhrase("108", "MenuText"), "categorialist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}categoria'), FALSE);
 $RootMenu->AddMenuItem(29, "mi_persona", $Language->MenuPhrase("29", "MenuText"), "personalist.php", -1, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}persona'), FALSE);
 $RootMenu->AddMenuItem(25, "mi_cliente", $Language->MenuPhrase("25", "MenuText"), "clientelist.php?cmd=resetall", 29, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}cliente'), FALSE);
