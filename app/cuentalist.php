@@ -10,6 +10,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "bancoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "cuenta_transacciongridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "boleta_depositogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "voucher_tarjetagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -401,6 +403,22 @@ class ccuenta_list extends ccuenta {
 			if (@$_POST["grid"] == "fcuenta_transacciongrid") {
 				if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
 				$GLOBALS["cuenta_transaccion_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'boleta_deposito'
+			if (@$_POST["grid"] == "fboleta_depositogrid") {
+				if (!isset($GLOBALS["boleta_deposito_grid"])) $GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid;
+				$GLOBALS["boleta_deposito_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'voucher_tarjeta'
+			if (@$_POST["grid"] == "fvoucher_tarjetagrid") {
+				if (!isset($GLOBALS["voucher_tarjeta_grid"])) $GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid;
+				$GLOBALS["voucher_tarjeta_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -950,6 +968,22 @@ class ccuenta_list extends ccuenta {
 		$item->ShowInButtonGroup = FALSE;
 		if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
 
+		// "detail_boleta_deposito"
+		$item = &$this->ListOptions->Add("detail_boleta_deposito");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'boleta_deposito') && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["boleta_deposito_grid"])) $GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid;
+
+		// "detail_voucher_tarjeta"
+		$item = &$this->ListOptions->Add("detail_voucher_tarjeta");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'voucher_tarjeta') && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["voucher_tarjeta_grid"])) $GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid;
+
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
 			$item = &$this->ListOptions->Add("details");
@@ -1030,6 +1064,56 @@ class ccuenta_list extends ccuenta {
 			$oListOpt->Body = $body;
 			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
 		}
+
+		// "detail_boleta_deposito"
+		$oListOpt = &$this->ListOptions->Items["detail_boleta_deposito"];
+		if ($Security->AllowList(CurrentProjectID() . 'boleta_deposito')) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("boleta_deposito", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("boleta_depositolist.php?" . EW_TABLE_SHOW_MASTER . "=cuenta&fk_idcuenta=" . strval($this->idcuenta->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["boleta_deposito_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'boleta_deposito')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=boleta_deposito")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "boleta_deposito";
+			}
+			if ($GLOBALS["boleta_deposito_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'boleta_deposito')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=boleta_deposito")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "boleta_deposito";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+
+		// "detail_voucher_tarjeta"
+		$oListOpt = &$this->ListOptions->Items["detail_voucher_tarjeta"];
+		if ($Security->AllowList(CurrentProjectID() . 'voucher_tarjeta')) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("voucher_tarjeta", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("voucher_tarjetalist.php?" . EW_TABLE_SHOW_MASTER . "=cuenta&fk_idcuenta=" . strval($this->idcuenta->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["voucher_tarjeta_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'voucher_tarjeta')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=voucher_tarjeta")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "voucher_tarjeta";
+			}
+			if ($GLOBALS["voucher_tarjeta_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'voucher_tarjeta')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=voucher_tarjeta")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "voucher_tarjeta";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
 		if ($this->ShowMultipleDetails) {
 			$body = $Language->Phrase("MultipleMasterDetails");
 			$body = "<div class=\"btn-group\">";
@@ -1081,6 +1165,20 @@ class ccuenta_list extends ccuenta {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "cuenta_transaccion";
+		}
+		$item = &$option->Add("detailadd_boleta_deposito");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=boleta_deposito") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["boleta_deposito"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["boleta_deposito"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'boleta_deposito') && $Security->CanAdd());
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "boleta_deposito";
+		}
+		$item = &$option->Add("detailadd_voucher_tarjeta");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=voucher_tarjeta") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["voucher_tarjeta"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["voucher_tarjeta"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'voucher_tarjeta') && $Security->CanAdd());
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "voucher_tarjeta";
 		}
 
 		// Add multiple details

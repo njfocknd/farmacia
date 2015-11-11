@@ -3354,6 +3354,26 @@ class cAdvancedSecurity {
 			}
 		}
 
+		// Check hard coded admin first
+		if (!$ValidateUser) {
+			if (EW_CASE_SENSITIVE_PASSWORD) {
+				$ValidateUser = (!$CustomValidateUser && EW_ADMIN_USER_NAME == $usr && EW_ADMIN_PASSWORD == $pwd) ||
+								($CustomValidateUser && EW_ADMIN_USER_NAME == $usr);
+			} else {
+				$ValidateUser = (!$CustomValidateUser && strtolower(EW_ADMIN_USER_NAME) == strtolower($usr)
+								&& strtolower(EW_ADMIN_PASSWORD) == strtolower($pwd)) ||
+								($CustomValidateUser && strtolower(EW_ADMIN_USER_NAME) == strtolower($usr));
+			}
+			if ($ValidateUser) {
+				$_SESSION[EW_SESSION_STATUS] = "login";
+				$_SESSION[EW_SESSION_SYS_ADMIN] = 1; // System Administrator
+				$this->setCurrentUserName("Administrator"); // Load user name
+				$this->setSessionUserID(-1); // System Administrator
+				$this->setSessionUserLevelID(-1); // System Administrator
+				$this->SetUpUserLevel();
+			}
+		}
+
 		// Check other users
 		if (!$ValidateUser) {
 			$sFilter = str_replace("%u", ew_AdjustSql($usr), EW_USER_NAME_FILTER);

@@ -178,6 +178,14 @@ class ccuenta extends cTable {
 			$sDetailUrl = $GLOBALS["cuenta_transaccion"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idcuenta=" . urlencode($this->idcuenta->CurrentValue);
 		}
+		if ($this->getCurrentDetailTable() == "boleta_deposito") {
+			$sDetailUrl = $GLOBALS["boleta_deposito"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idcuenta=" . urlencode($this->idcuenta->CurrentValue);
+		}
+		if ($this->getCurrentDetailTable() == "voucher_tarjeta") {
+			$sDetailUrl = $GLOBALS["voucher_tarjeta"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idcuenta=" . urlencode($this->idcuenta->CurrentValue);
+		}
 		if ($sDetailUrl == "") {
 			$sDetailUrl = "cuentalist.php";
 		}

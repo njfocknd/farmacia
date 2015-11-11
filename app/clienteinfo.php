@@ -18,6 +18,8 @@ class ccliente extends cTable {
 	var $_email;
 	var $fecha_insercion;
 	var $estado;
+	var $telefono;
+	var $tributa;
 
 	//
 	// Table class constructor
@@ -92,6 +94,14 @@ class ccliente extends cTable {
 		// estado
 		$this->estado = new cField('cliente', 'cliente', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
+
+		// telefono
+		$this->telefono = new cField('cliente', 'cliente', 'x_telefono', 'telefono', '`telefono`', '`telefono`', 200, -1, FALSE, '`telefono`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['telefono'] = &$this->telefono;
+
+		// tributa
+		$this->tributa = new cField('cliente', 'cliente', 'x_tributa', 'tributa', '`tributa`', '`tributa`', 202, -1, FALSE, '`tributa`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['tributa'] = &$this->tributa;
 	}
 
 	// Single column sort
@@ -455,6 +465,14 @@ class ccliente extends cTable {
 	// Update
 	function Update(&$rs, $where = "", $rsold = NULL) {
 		global $conn;
+
+		// Cascade update detail field 'idcliente'
+		if (!is_null($rsold) && (isset($rs['idcliente']) && $rsold['idcliente'] <> $rs['idcliente'])) {
+			if (!isset($GLOBALS["pago_cliente"])) $GLOBALS["pago_cliente"] = new cpago_cliente();
+			$rscascade = array();
+			$rscascade['idcliente'] = $rs['idcliente']; 
+			$GLOBALS["pago_cliente"]->Update($rscascade, "`idcliente` = " . ew_QuotedValue($rsold['idcliente'], EW_DATATYPE_NUMBER));
+		}
 		return $conn->Execute($this->UpdateSQL($rs, $where));
 	}
 
@@ -477,6 +495,11 @@ class ccliente extends cTable {
 	// Delete
 	function Delete(&$rs, $where = "") {
 		global $conn;
+
+		// Cascade delete detail table 'pago_cliente'
+		if (!isset($GLOBALS["pago_cliente"])) $GLOBALS["pago_cliente"] = new cpago_cliente();
+		$rscascade = array();
+		$GLOBALS["pago_cliente"]->Delete($rscascade, "`idcliente` = " . ew_QuotedValue($rs['idcliente'], EW_DATATYPE_NUMBER));
 		return $conn->Execute($this->DeleteSQL($rs, $where));
 	}
 
@@ -654,6 +677,8 @@ class ccliente extends cTable {
 		$this->_email->setDbValue($rs->fields('email'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->telefono->setDbValue($rs->fields('telefono'));
+		$this->tributa->setDbValue($rs->fields('tributa'));
 	}
 
 	// Render list row values
@@ -675,6 +700,8 @@ class ccliente extends cTable {
 		// email
 		// fecha_insercion
 		// estado
+		// telefono
+		// tributa
 		// idcliente
 
 		$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
@@ -759,6 +786,27 @@ class ccliente extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
+		// telefono
+		$this->telefono->ViewValue = $this->telefono->CurrentValue;
+		$this->telefono->ViewCustomAttributes = "";
+
+		// tributa
+		if (strval($this->tributa->CurrentValue) <> "") {
+			switch ($this->tributa->CurrentValue) {
+				case $this->tributa->FldTagValue(1):
+					$this->tributa->ViewValue = $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->CurrentValue;
+					break;
+				case $this->tributa->FldTagValue(2):
+					$this->tributa->ViewValue = $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->CurrentValue;
+					break;
+				default:
+					$this->tributa->ViewValue = $this->tributa->CurrentValue;
+			}
+		} else {
+			$this->tributa->ViewValue = NULL;
+		}
+		$this->tributa->ViewCustomAttributes = "";
+
 		// idcliente
 		$this->idcliente->LinkCustomAttributes = "";
 		$this->idcliente->HrefValue = "";
@@ -813,6 +861,16 @@ class ccliente extends cTable {
 		$this->estado->LinkCustomAttributes = "";
 		$this->estado->HrefValue = "";
 		$this->estado->TooltipValue = "";
+
+		// telefono
+		$this->telefono->LinkCustomAttributes = "";
+		$this->telefono->HrefValue = "";
+		$this->telefono->TooltipValue = "";
+
+		// tributa
+		$this->tributa->LinkCustomAttributes = "";
+		$this->tributa->HrefValue = "";
+		$this->tributa->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -925,6 +983,19 @@ class ccliente extends cTable {
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
+		// telefono
+		$this->telefono->EditAttrs["class"] = "form-control";
+		$this->telefono->EditCustomAttributes = "";
+		$this->telefono->EditValue = ew_HtmlEncode($this->telefono->CurrentValue);
+		$this->telefono->PlaceHolder = ew_RemoveHtml($this->telefono->FldCaption());
+
+		// tributa
+		$this->tributa->EditCustomAttributes = "";
+		$arwrk = array();
+		$arwrk[] = array($this->tributa->FldTagValue(1), $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->FldTagValue(1));
+		$arwrk[] = array($this->tributa->FldTagValue(2), $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->FldTagValue(2));
+		$this->tributa->EditValue = $arwrk;
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -960,6 +1031,8 @@ class ccliente extends cTable {
 					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->telefono->Exportable) $Doc->ExportCaption($this->telefono);
+					if ($this->tributa->Exportable) $Doc->ExportCaption($this->tributa);
 				} else {
 					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
 					if ($this->idpersona->Exportable) $Doc->ExportCaption($this->idpersona);
@@ -972,6 +1045,8 @@ class ccliente extends cTable {
 					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->telefono->Exportable) $Doc->ExportCaption($this->telefono);
+					if ($this->tributa->Exportable) $Doc->ExportCaption($this->tributa);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1014,6 +1089,8 @@ class ccliente extends cTable {
 						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->telefono->Exportable) $Doc->ExportField($this->telefono);
+						if ($this->tributa->Exportable) $Doc->ExportField($this->tributa);
 					} else {
 						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
 						if ($this->idpersona->Exportable) $Doc->ExportField($this->idpersona);
@@ -1026,6 +1103,8 @@ class ccliente extends cTable {
 						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->telefono->Exportable) $Doc->ExportField($this->telefono);
+						if ($this->tributa->Exportable) $Doc->ExportField($this->tributa);
 					}
 					$Doc->EndExportRow();
 				}

@@ -9,6 +9,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "categoriainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
@@ -266,6 +267,9 @@ class cproducto_list extends cproducto {
 
 		// Table object (usuario)
 		if (!isset($GLOBALS['usuario'])) $GLOBALS['usuario'] = new cusuario();
+
+		// Table object (categoria)
+		if (!isset($GLOBALS['categoria'])) $GLOBALS['categoria'] = new ccategoria();
 
 		// User table object (usuario)
 		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
@@ -658,6 +662,22 @@ class cproducto_list extends cproducto {
 			}
 		}
 
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "categoria") {
+			global $categoria;
+			$rsmaster = $categoria->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("categorialist.php"); // Return to master page
+			} else {
+				$categoria->LoadListRowValues($rsmaster);
+				$categoria->RowType = EW_ROWTYPE_MASTER; // Master row
+				$categoria->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
 		$this->CurrentFilter = "";
@@ -877,11 +897,13 @@ class cproducto_list extends cproducto {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
+			$this->UpdateSort($this->idcategoria); // idcategoria
 			$this->UpdateSort($this->idmarca); // idmarca
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idpais); // idpais
 			$this->UpdateSort($this->existencia); // existencia
 			$this->UpdateSort($this->estado); // estado
+			$this->UpdateSort($this->precio_venta); // precio_venta
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -916,17 +938,20 @@ class cproducto_list extends cproducto {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 				$this->idmarca->setSessionValue("");
+				$this->idcategoria->setSessionValue("");
 			}
 
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
+				$this->idcategoria->setSort("");
 				$this->idmarca->setSort("");
 				$this->nombre->setSort("");
 				$this->idpais->setSort("");
 				$this->existencia->setSort("");
 				$this->estado->setSort("");
+				$this->precio_venta->setSort("");
 			}
 
 			// Reset start position
@@ -1413,11 +1438,14 @@ class cproducto_list extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
+		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 	}
 
 	// Load DbValue from recordset
@@ -1425,11 +1453,14 @@ class cproducto_list extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->idcategoria->DbValue = $row['idcategoria'];
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->existencia->DbValue = $row['existencia'];
 		$this->estado->DbValue = $row['estado'];
+		$this->precio_venta->DbValue = $row['precio_venta'];
+		$this->precio_compra->DbValue = $row['precio_compra'];
 	}
 
 	// Load old record
@@ -1467,22 +1498,57 @@ class cproducto_list extends cproducto {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
+		// Convert decimal values if posted back
+		if ($this->precio_venta->FormValue == $this->precio_venta->CurrentValue && is_numeric(ew_StrToFloat($this->precio_venta->CurrentValue)))
+			$this->precio_venta->CurrentValue = ew_StrToFloat($this->precio_venta->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
 		// idproducto
+		// idcategoria
 		// idmarca
 		// nombre
 		// idpais
 		// existencia
 		// estado
+		// precio_venta
+		// precio_compra
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idproducto
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// idcategoria
+			if (strval($this->idcategoria->CurrentValue) <> "") {
+				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
+				}
+			} else {
+				$this->idcategoria->ViewValue = NULL;
+			}
+			$this->idcategoria->ViewCustomAttributes = "";
 
 			// idmarca
 			if (strval($this->idmarca->CurrentValue) <> "") {
@@ -1567,6 +1633,21 @@ class cproducto_list extends cproducto {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// precio_venta
+			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewCustomAttributes = "";
+
+			// precio_compra
+			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+			$this->precio_compra->ViewCustomAttributes = "";
+
+			// idcategoria
+			$this->idcategoria->LinkCustomAttributes = "";
+			$this->idcategoria->HrefValue = "";
+			$this->idcategoria->TooltipValue = "";
+
 			// idmarca
 			$this->idmarca->LinkCustomAttributes = "";
 			$this->idmarca->HrefValue = "";
@@ -1591,6 +1672,11 @@ class cproducto_list extends cproducto {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// precio_venta
+			$this->precio_venta->LinkCustomAttributes = "";
+			$this->precio_venta->HrefValue = "";
+			$this->precio_venta->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1726,6 +1812,23 @@ class cproducto_list extends cproducto {
 				$rsmaster->Close();
 			}
 		}
+
+		// Export master record
+		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "categoria") {
+			global $categoria;
+			if (!isset($categoria)) $categoria = new ccategoria;
+			$rsmaster = $categoria->LoadRs($this->DbMasterFilter); // Load master record
+			if ($rsmaster && !$rsmaster->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("v"); // Change to vertical
+				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
+					$categoria->ExportDocument($Doc, $rsmaster, 1, 1);
+					$Doc->ExportEmptyRow();
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsmaster->Close();
+			}
+		}
 		$sHeader = $this->PageHeader;
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
@@ -1778,6 +1881,17 @@ class cproducto_list extends cproducto {
 					$bValidMaster = FALSE;
 				}
 			}
+			if ($sMasterTblVar == "categoria") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idcategoria"] <> "") {
+					$GLOBALS["categoria"]->idcategoria->setQueryStringValue($_GET["fk_idcategoria"]);
+					$this->idcategoria->setQueryStringValue($GLOBALS["categoria"]->idcategoria->QueryStringValue);
+					$this->idcategoria->setSessionValue($this->idcategoria->QueryStringValue);
+					if (!is_numeric($GLOBALS["categoria"]->idcategoria->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
 		}
 		if ($bValidMaster) {
 
@@ -1791,6 +1905,9 @@ class cproducto_list extends cproducto {
 			// Clear previous master key from Session
 			if ($sMasterTblVar <> "marca") {
 				if ($this->idmarca->QueryStringValue == "") $this->idmarca->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "categoria") {
+				if ($this->idcategoria->QueryStringValue == "") $this->idcategoria->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -1980,6 +2097,7 @@ fproductolist.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
+fproductolist.Lists["x_idcategoria"] = {"LinkField":"x_idcategoria","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproductolist.Lists["x_idmarca"] = {"LinkField":"x_idmarca","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproductolist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
@@ -2019,6 +2137,20 @@ if ($producto_list->DbMasterFilter <> "" && $producto->getCurrentMasterTable() =
 <div class="ewListExportOptions"><?php $producto_list->ExportOptions->Render("body") ?></div>
 <?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "marcamaster.php" ?>
+<?php
+	}
+}
+?>
+<?php
+$gsMasterReturnUrl = "categorialist.php";
+if ($producto_list->DbMasterFilter <> "" && $producto->getCurrentMasterTable() == "categoria") {
+	if ($producto_list->MasterRecordExists) {
+		if ($producto->getCurrentMasterTable() == $producto->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+?>
+<?php if ($producto_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_list->ExportOptions->Render("body") ?></div>
+<?php } ?>
+<?php include_once $EW_RELATIVE_PATH . "categoriamaster.php" ?>
 <?php
 	}
 }
@@ -2105,6 +2237,15 @@ $producto_list->RenderListOptions();
 // Render list options (header, left)
 $producto_list->ListOptions->Render("header", "left");
 ?>
+<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+	<?php if ($producto->SortUrl($producto->idcategoria) == "") { ?>
+		<th data-name="idcategoria"><div id="elh_producto_idcategoria" class="producto_idcategoria"><div class="ewTableHeaderCaption"><?php echo $producto->idcategoria->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idcategoria"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->idcategoria) ?>',1);"><div id="elh_producto_idcategoria" class="producto_idcategoria">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->idcategoria->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->idcategoria->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->idcategoria->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php if ($producto->idmarca->Visible) { // idmarca ?>
 	<?php if ($producto->SortUrl($producto->idmarca) == "") { ?>
 		<th data-name="idmarca"><div id="elh_producto_idmarca" class="producto_idmarca"><div class="ewTableHeaderCaption"><?php echo $producto->idmarca->FldCaption() ?></div></div></th>
@@ -2147,6 +2288,15 @@ $producto_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->estado) ?>',1);"><div id="elh_producto_estado" class="producto_estado">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+	<?php if ($producto->SortUrl($producto->precio_venta) == "") { ?>
+		<th data-name="precio_venta"><div id="elh_producto_precio_venta" class="producto_precio_venta"><div class="ewTableHeaderCaption"><?php echo $producto->precio_venta->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="precio_venta"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->precio_venta) ?>',1);"><div id="elh_producto_precio_venta" class="producto_precio_venta">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->precio_venta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->precio_venta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->precio_venta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -2215,11 +2365,17 @@ while ($producto_list->RecCnt < $producto_list->StopRec) {
 // Render list options (body, left)
 $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 ?>
+	<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+		<td data-name="idcategoria"<?php echo $producto->idcategoria->CellAttributes() ?>>
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<?php echo $producto->idcategoria->ListViewValue() ?></span>
+<a id="<?php echo $producto_list->PageObjName . "_row_" . $producto_list->RowCnt ?>"></a></td>
+	<?php } ?>
 	<?php if ($producto->idmarca->Visible) { // idmarca ?>
 		<td data-name="idmarca"<?php echo $producto->idmarca->CellAttributes() ?>>
 <span<?php echo $producto->idmarca->ViewAttributes() ?>>
 <?php echo $producto->idmarca->ListViewValue() ?></span>
-<a id="<?php echo $producto_list->PageObjName . "_row_" . $producto_list->RowCnt ?>"></a></td>
+</td>
 	<?php } ?>
 	<?php if ($producto->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $producto->nombre->CellAttributes() ?>>
@@ -2243,6 +2399,12 @@ $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 		<td data-name="estado"<?php echo $producto->estado->CellAttributes() ?>>
 <span<?php echo $producto->estado->ViewAttributes() ?>>
 <?php echo $producto->estado->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+		<td data-name="precio_venta"<?php echo $producto->precio_venta->CellAttributes() ?>>
+<span<?php echo $producto->precio_venta->ViewAttributes() ?>>
+<?php echo $producto->precio_venta->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

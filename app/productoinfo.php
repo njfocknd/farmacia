@@ -8,11 +8,14 @@ $producto = NULL;
 //
 class cproducto extends cTable {
 	var $idproducto;
+	var $idcategoria;
 	var $idmarca;
 	var $nombre;
 	var $idpais;
 	var $existencia;
 	var $estado;
+	var $precio_venta;
+	var $precio_compra;
 
 	//
 	// Table class constructor
@@ -43,6 +46,11 @@ class cproducto extends cTable {
 		$this->idproducto->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idproducto'] = &$this->idproducto;
 
+		// idcategoria
+		$this->idcategoria = new cField('producto', 'producto', 'x_idcategoria', 'idcategoria', '`idcategoria`', '`idcategoria`', 3, -1, FALSE, '`idcategoria`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idcategoria->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idcategoria'] = &$this->idcategoria;
+
 		// idmarca
 		$this->idmarca = new cField('producto', 'producto', 'x_idmarca', 'idmarca', '`idmarca`', '`idmarca`', 3, -1, FALSE, '`idmarca`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idmarca->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
@@ -65,6 +73,16 @@ class cproducto extends cTable {
 		// estado
 		$this->estado = new cField('producto', 'producto', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
+
+		// precio_venta
+		$this->precio_venta = new cField('producto', 'producto', 'x_precio_venta', 'precio_venta', '`precio_venta`', '`precio_venta`', 131, -1, FALSE, '`precio_venta`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->precio_venta->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['precio_venta'] = &$this->precio_venta;
+
+		// precio_compra
+		$this->precio_compra = new cField('producto', 'producto', 'x_precio_compra', 'precio_compra', '`precio_compra`', '`precio_compra`', 131, -1, FALSE, '`precio_compra`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->precio_compra->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['precio_compra'] = &$this->precio_compra;
 	}
 
 	// Single column sort
@@ -104,6 +122,12 @@ class cproducto extends cTable {
 			else
 				return "";
 		}
+		if ($this->getCurrentMasterTable() == "categoria") {
+			if ($this->idcategoria->getSessionValue() <> "")
+				$sMasterFilter .= "`idcategoria`=" . ew_QuotedValue($this->idcategoria->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
 		return $sMasterFilter;
 	}
 
@@ -118,6 +142,12 @@ class cproducto extends cTable {
 			else
 				return "";
 		}
+		if ($this->getCurrentMasterTable() == "categoria") {
+			if ($this->idcategoria->getSessionValue() <> "")
+				$sDetailFilter .= "`idcategoria`=" . ew_QuotedValue($this->idcategoria->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
+		}
 		return $sDetailFilter;
 	}
 
@@ -129,6 +159,16 @@ class cproducto extends cTable {
 	// Detail filter
 	function SqlDetailFilter_marca() {
 		return "`idmarca`=@idmarca@";
+	}
+
+	// Master filter
+	function SqlMasterFilter_categoria() {
+		return "`idcategoria`=@idcategoria@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_categoria() {
+		return "`idcategoria`=@idcategoria@";
 	}
 
 	// Current detail table name
@@ -625,11 +665,14 @@ class cproducto extends cTable {
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
+		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 	}
 
 	// Render list row values
@@ -641,15 +684,46 @@ class cproducto extends cTable {
 
    // Common render codes
 		// idproducto
+		// idcategoria
 		// idmarca
 		// nombre
 		// idpais
 		// existencia
 		// estado
+		// precio_venta
+		// precio_compra
 		// idproducto
 
 		$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 		$this->idproducto->ViewCustomAttributes = "";
+
+		// idcategoria
+		if (strval($this->idcategoria->CurrentValue) <> "") {
+			$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
+			}
+		} else {
+			$this->idcategoria->ViewValue = NULL;
+		}
+		$this->idcategoria->ViewCustomAttributes = "";
 
 		// idmarca
 		if (strval($this->idmarca->CurrentValue) <> "") {
@@ -734,10 +808,25 @@ class cproducto extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
+		// precio_venta
+		$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+		$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+		$this->precio_venta->ViewCustomAttributes = "";
+
+		// precio_compra
+		$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+		$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+		$this->precio_compra->ViewCustomAttributes = "";
+
 		// idproducto
 		$this->idproducto->LinkCustomAttributes = "";
 		$this->idproducto->HrefValue = "";
 		$this->idproducto->TooltipValue = "";
+
+		// idcategoria
+		$this->idcategoria->LinkCustomAttributes = "";
+		$this->idcategoria->HrefValue = "";
+		$this->idcategoria->TooltipValue = "";
 
 		// idmarca
 		$this->idmarca->LinkCustomAttributes = "";
@@ -764,6 +853,16 @@ class cproducto extends cTable {
 		$this->estado->HrefValue = "";
 		$this->estado->TooltipValue = "";
 
+		// precio_venta
+		$this->precio_venta->LinkCustomAttributes = "";
+		$this->precio_venta->HrefValue = "";
+		$this->precio_venta->TooltipValue = "";
+
+		// precio_compra
+		$this->precio_compra->LinkCustomAttributes = "";
+		$this->precio_compra->HrefValue = "";
+		$this->precio_compra->TooltipValue = "";
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -780,6 +879,40 @@ class cproducto extends cTable {
 		$this->idproducto->EditCustomAttributes = "";
 		$this->idproducto->EditValue = $this->idproducto->CurrentValue;
 		$this->idproducto->ViewCustomAttributes = "";
+
+		// idcategoria
+		$this->idcategoria->EditAttrs["class"] = "form-control";
+		$this->idcategoria->EditCustomAttributes = "";
+		if ($this->idcategoria->getSessionValue() <> "") {
+			$this->idcategoria->CurrentValue = $this->idcategoria->getSessionValue();
+		if (strval($this->idcategoria->CurrentValue) <> "") {
+			$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
+			}
+		} else {
+			$this->idcategoria->ViewValue = NULL;
+		}
+		$this->idcategoria->ViewCustomAttributes = "";
+		} else {
+		}
 
 		// idmarca
 		$this->idmarca->EditAttrs["class"] = "form-control";
@@ -841,6 +974,20 @@ class cproducto extends cTable {
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
+		// precio_venta
+		$this->precio_venta->EditAttrs["class"] = "form-control";
+		$this->precio_venta->EditCustomAttributes = "";
+		$this->precio_venta->EditValue = ew_HtmlEncode($this->precio_venta->CurrentValue);
+		$this->precio_venta->PlaceHolder = ew_RemoveHtml($this->precio_venta->FldCaption());
+		if (strval($this->precio_venta->EditValue) <> "" && is_numeric($this->precio_venta->EditValue)) $this->precio_venta->EditValue = ew_FormatNumber($this->precio_venta->EditValue, -2, -2, -2, -2);
+
+		// precio_compra
+		$this->precio_compra->EditAttrs["class"] = "form-control";
+		$this->precio_compra->EditCustomAttributes = "";
+		$this->precio_compra->EditValue = ew_HtmlEncode($this->precio_compra->CurrentValue);
+		$this->precio_compra->PlaceHolder = ew_RemoveHtml($this->precio_compra->FldCaption());
+		if (strval($this->precio_compra->EditValue) <> "" && is_numeric($this->precio_compra->EditValue)) $this->precio_compra->EditValue = ew_FormatNumber($this->precio_compra->EditValue, -2, -2, -2, -2);
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -866,18 +1013,24 @@ class cproducto extends cTable {
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->idcategoria->Exportable) $Doc->ExportCaption($this->idcategoria);
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
 					if ($this->existencia->Exportable) $Doc->ExportCaption($this->existencia);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
+					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
 				} else {
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->idcategoria->Exportable) $Doc->ExportCaption($this->idcategoria);
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
 					if ($this->existencia->Exportable) $Doc->ExportCaption($this->existencia);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
+					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
 				}
 				$Doc->EndExportRow();
 			}
@@ -910,18 +1063,24 @@ class cproducto extends cTable {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->idcategoria->Exportable) $Doc->ExportField($this->idcategoria);
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
 						if ($this->existencia->Exportable) $Doc->ExportField($this->existencia);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
+						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
 					} else {
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->idcategoria->Exportable) $Doc->ExportField($this->idcategoria);
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
 						if ($this->existencia->Exportable) $Doc->ExportField($this->existencia);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
+						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
 					}
 					$Doc->EndExportRow();
 				}

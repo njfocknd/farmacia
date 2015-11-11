@@ -472,6 +472,54 @@ class cpago_cliente_grid extends cpago_cliente {
 			}
 		}
 
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "tipo_pago") {
+			global $tipo_pago;
+			$rsmaster = $tipo_pago->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("tipo_pagolist.php"); // Return to master page
+			} else {
+				$tipo_pago->LoadListRowValues($rsmaster);
+				$tipo_pago->RowType = EW_ROWTYPE_MASTER; // Master row
+				$tipo_pago->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "boleta_deposito") {
+			global $boleta_deposito;
+			$rsmaster = $boleta_deposito->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("boleta_depositolist.php"); // Return to master page
+			} else {
+				$boleta_deposito->LoadListRowValues($rsmaster);
+				$boleta_deposito->RowType = EW_ROWTYPE_MASTER; // Master row
+				$boleta_deposito->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "voucher_tarjeta") {
+			global $voucher_tarjeta;
+			$rsmaster = $voucher_tarjeta->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("voucher_tarjetalist.php"); // Return to master page
+			} else {
+				$voucher_tarjeta->LoadListRowValues($rsmaster);
+				$voucher_tarjeta->RowType = EW_ROWTYPE_MASTER; // Master row
+				$voucher_tarjeta->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
+
 		// Set up filter in session
 		$this->setSessionWhere($sFilter);
 		$this->CurrentFilter = "";
@@ -732,6 +780,8 @@ class cpago_cliente_grid extends cpago_cliente {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
+		if ($objForm->HasValue("x_idtipo_pago") && $objForm->HasValue("o_idtipo_pago") && $this->idtipo_pago->CurrentValue <> $this->idtipo_pago->OldValue)
+			return FALSE;
 		if ($objForm->HasValue("x_idcliente") && $objForm->HasValue("o_idcliente") && $this->idcliente->CurrentValue <> $this->idcliente->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_monto") && $objForm->HasValue("o_monto") && $this->monto->CurrentValue <> $this->monto->OldValue)
@@ -739,6 +789,10 @@ class cpago_cliente_grid extends cpago_cliente {
 		if ($objForm->HasValue("x_fecha") && $objForm->HasValue("o_fecha") && $this->fecha->CurrentValue <> $this->fecha->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_idsucursal") && $objForm->HasValue("o_idsucursal") && $this->idsucursal->CurrentValue <> $this->idsucursal->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_idboleta_deposito") && $objForm->HasValue("o_idboleta_deposito") && $this->idboleta_deposito->CurrentValue <> $this->idboleta_deposito->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_idvoucher_tarjeta") && $objForm->HasValue("o_idvoucher_tarjeta") && $this->idvoucher_tarjeta->CurrentValue <> $this->idvoucher_tarjeta->OldValue)
 			return FALSE;
 		return TRUE;
 	}
@@ -848,6 +902,9 @@ class cpago_cliente_grid extends cpago_cliente {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 				$this->idcliente->setSessionValue("");
+				$this->idtipo_pago->setSessionValue("");
+				$this->idboleta_deposito->setSessionValue("");
+				$this->idvoucher_tarjeta->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -1024,6 +1081,8 @@ class cpago_cliente_grid extends cpago_cliente {
 
 	// Load default values
 	function LoadDefaultValues() {
+		$this->idtipo_pago->CurrentValue = 1;
+		$this->idtipo_pago->OldValue = $this->idtipo_pago->CurrentValue;
 		$this->idcliente->CurrentValue = 1;
 		$this->idcliente->OldValue = $this->idcliente->CurrentValue;
 		$this->monto->CurrentValue = 0.00;
@@ -1032,6 +1091,10 @@ class cpago_cliente_grid extends cpago_cliente {
 		$this->fecha->OldValue = $this->fecha->CurrentValue;
 		$this->idsucursal->CurrentValue = 1;
 		$this->idsucursal->OldValue = $this->idsucursal->CurrentValue;
+		$this->idboleta_deposito->CurrentValue = NULL;
+		$this->idboleta_deposito->OldValue = $this->idboleta_deposito->CurrentValue;
+		$this->idvoucher_tarjeta->CurrentValue = NULL;
+		$this->idvoucher_tarjeta->OldValue = $this->idvoucher_tarjeta->CurrentValue;
 	}
 
 	// Load form values
@@ -1040,6 +1103,10 @@ class cpago_cliente_grid extends cpago_cliente {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
+		if (!$this->idtipo_pago->FldIsDetailKey) {
+			$this->idtipo_pago->setFormValue($objForm->GetValue("x_idtipo_pago"));
+		}
+		$this->idtipo_pago->setOldValue($objForm->GetValue("o_idtipo_pago"));
 		if (!$this->idcliente->FldIsDetailKey) {
 			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
 		}
@@ -1057,6 +1124,14 @@ class cpago_cliente_grid extends cpago_cliente {
 			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
 		}
 		$this->idsucursal->setOldValue($objForm->GetValue("o_idsucursal"));
+		if (!$this->idboleta_deposito->FldIsDetailKey) {
+			$this->idboleta_deposito->setFormValue($objForm->GetValue("x_idboleta_deposito"));
+		}
+		$this->idboleta_deposito->setOldValue($objForm->GetValue("o_idboleta_deposito"));
+		if (!$this->idvoucher_tarjeta->FldIsDetailKey) {
+			$this->idvoucher_tarjeta->setFormValue($objForm->GetValue("x_idvoucher_tarjeta"));
+		}
+		$this->idvoucher_tarjeta->setOldValue($objForm->GetValue("o_idvoucher_tarjeta"));
 		if (!$this->idpago_cliente->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idpago_cliente->setFormValue($objForm->GetValue("x_idpago_cliente"));
 	}
@@ -1066,11 +1141,14 @@ class cpago_cliente_grid extends cpago_cliente {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idpago_cliente->CurrentValue = $this->idpago_cliente->FormValue;
+		$this->idtipo_pago->CurrentValue = $this->idtipo_pago->FormValue;
 		$this->idcliente->CurrentValue = $this->idcliente->FormValue;
 		$this->monto->CurrentValue = $this->monto->FormValue;
 		$this->fecha->CurrentValue = $this->fecha->FormValue;
 		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
+		$this->idboleta_deposito->CurrentValue = $this->idboleta_deposito->FormValue;
+		$this->idvoucher_tarjeta->CurrentValue = $this->idvoucher_tarjeta->FormValue;
 	}
 
 	// Load recordset
@@ -1120,12 +1198,15 @@ class cpago_cliente_grid extends cpago_cliente {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idpago_cliente->setDbValue($rs->fields('idpago_cliente'));
+		$this->idtipo_pago->setDbValue($rs->fields('idtipo_pago'));
 		$this->idcliente->setDbValue($rs->fields('idcliente'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha->setDbValue($rs->fields('fecha'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
+		$this->idboleta_deposito->setDbValue($rs->fields('idboleta_deposito'));
+		$this->idvoucher_tarjeta->setDbValue($rs->fields('idvoucher_tarjeta'));
 	}
 
 	// Load DbValue from recordset
@@ -1133,12 +1214,15 @@ class cpago_cliente_grid extends cpago_cliente {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idpago_cliente->DbValue = $row['idpago_cliente'];
+		$this->idtipo_pago->DbValue = $row['idtipo_pago'];
 		$this->idcliente->DbValue = $row['idcliente'];
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha->DbValue = $row['fecha'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 		$this->idsucursal->DbValue = $row['idsucursal'];
+		$this->idboleta_deposito->DbValue = $row['idboleta_deposito'];
+		$this->idvoucher_tarjeta->DbValue = $row['idvoucher_tarjeta'];
 	}
 
 	// Load old record
@@ -1185,18 +1269,49 @@ class cpago_cliente_grid extends cpago_cliente {
 
 		// Common render codes for all row types
 		// idpago_cliente
+		// idtipo_pago
 		// idcliente
 		// monto
 		// fecha
 		// estado
 		// fecha_insercion
 		// idsucursal
+		// idboleta_deposito
+		// idvoucher_tarjeta
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idpago_cliente
 			$this->idpago_cliente->ViewValue = $this->idpago_cliente->CurrentValue;
 			$this->idpago_cliente->ViewCustomAttributes = "";
+
+			// idtipo_pago
+			if (strval($this->idtipo_pago->CurrentValue) <> "") {
+				$sFilterWrk = "`idtipo_pago`" . ew_SearchString("=", $this->idtipo_pago->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idtipo_pago`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_pago`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idtipo_pago, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idtipo_pago->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idtipo_pago->ViewValue = $this->idtipo_pago->CurrentValue;
+				}
+			} else {
+				$this->idtipo_pago->ViewValue = NULL;
+			}
+			$this->idtipo_pago->ViewCustomAttributes = "";
 
 			// idcliente
 			if (strval($this->idcliente->CurrentValue) <> "") {
@@ -1288,6 +1403,70 @@ class cpago_cliente_grid extends cpago_cliente {
 			}
 			$this->idsucursal->ViewCustomAttributes = "";
 
+			// idboleta_deposito
+			if (strval($this->idboleta_deposito->CurrentValue) <> "") {
+				$sFilterWrk = "`idboleta_deposito`" . ew_SearchString("=", $this->idboleta_deposito->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idboleta_deposito`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `boleta_deposito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idboleta_deposito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `numero`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idboleta_deposito->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idboleta_deposito->ViewValue = $this->idboleta_deposito->CurrentValue;
+				}
+			} else {
+				$this->idboleta_deposito->ViewValue = NULL;
+			}
+			$this->idboleta_deposito->ViewCustomAttributes = "";
+
+			// idvoucher_tarjeta
+			if (strval($this->idvoucher_tarjeta->CurrentValue) <> "") {
+				$sFilterWrk = "`idvoucher_tarjeta`" . ew_SearchString("=", $this->idvoucher_tarjeta->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idvoucher_tarjeta`, `marca` AS `DispFld`, `marca` AS `Disp2Fld`, `ultimos_cuatro_digitos` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `voucher_tarjeta`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idvoucher_tarjeta, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idvoucher_tarjeta->ViewValue = $rswrk->fields('DispFld');
+					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(1,$this->idvoucher_tarjeta) . $rswrk->fields('Disp2Fld');
+					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(2,$this->idvoucher_tarjeta) . $rswrk->fields('Disp3Fld');
+					$rswrk->Close();
+				} else {
+					$this->idvoucher_tarjeta->ViewValue = $this->idvoucher_tarjeta->CurrentValue;
+				}
+			} else {
+				$this->idvoucher_tarjeta->ViewValue = NULL;
+			}
+			$this->idvoucher_tarjeta->ViewCustomAttributes = "";
+
+			// idtipo_pago
+			$this->idtipo_pago->LinkCustomAttributes = "";
+			$this->idtipo_pago->HrefValue = "";
+			$this->idtipo_pago->TooltipValue = "";
+
 			// idcliente
 			$this->idcliente->LinkCustomAttributes = "";
 			$this->idcliente->HrefValue = "";
@@ -1307,8 +1486,76 @@ class cpago_cliente_grid extends cpago_cliente {
 			$this->idsucursal->LinkCustomAttributes = "";
 			$this->idsucursal->HrefValue = "";
 			$this->idsucursal->TooltipValue = "";
+
+			// idboleta_deposito
+			$this->idboleta_deposito->LinkCustomAttributes = "";
+			$this->idboleta_deposito->HrefValue = "";
+			$this->idboleta_deposito->TooltipValue = "";
+
+			// idvoucher_tarjeta
+			$this->idvoucher_tarjeta->LinkCustomAttributes = "";
+			$this->idvoucher_tarjeta->HrefValue = "";
+			$this->idvoucher_tarjeta->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
+			// idtipo_pago
+			$this->idtipo_pago->EditAttrs["class"] = "form-control";
+			$this->idtipo_pago->EditCustomAttributes = "";
+			if ($this->idtipo_pago->getSessionValue() <> "") {
+				$this->idtipo_pago->CurrentValue = $this->idtipo_pago->getSessionValue();
+				$this->idtipo_pago->OldValue = $this->idtipo_pago->CurrentValue;
+			if (strval($this->idtipo_pago->CurrentValue) <> "") {
+				$sFilterWrk = "`idtipo_pago`" . ew_SearchString("=", $this->idtipo_pago->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idtipo_pago`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_pago`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idtipo_pago, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idtipo_pago->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idtipo_pago->ViewValue = $this->idtipo_pago->CurrentValue;
+				}
+			} else {
+				$this->idtipo_pago->ViewValue = NULL;
+			}
+			$this->idtipo_pago->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idtipo_pago->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idtipo_pago`" . ew_SearchString("=", $this->idtipo_pago->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idtipo_pago`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `tipo_pago`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idtipo_pago, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idtipo_pago->EditValue = $arwrk;
+			}
+
 			// idcliente
 			$this->idcliente->EditAttrs["class"] = "form-control";
 			$this->idcliente->EditCustomAttributes = "";
@@ -1413,9 +1660,132 @@ class cpago_cliente_grid extends cpago_cliente {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idsucursal->EditValue = $arwrk;
 
-			// Edit refer script
-			// idcliente
+			// idboleta_deposito
+			$this->idboleta_deposito->EditAttrs["class"] = "form-control";
+			$this->idboleta_deposito->EditCustomAttributes = "";
+			if ($this->idboleta_deposito->getSessionValue() <> "") {
+				$this->idboleta_deposito->CurrentValue = $this->idboleta_deposito->getSessionValue();
+				$this->idboleta_deposito->OldValue = $this->idboleta_deposito->CurrentValue;
+			if (strval($this->idboleta_deposito->CurrentValue) <> "") {
+				$sFilterWrk = "`idboleta_deposito`" . ew_SearchString("=", $this->idboleta_deposito->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idboleta_deposito`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `boleta_deposito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
 
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idboleta_deposito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `numero`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idboleta_deposito->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idboleta_deposito->ViewValue = $this->idboleta_deposito->CurrentValue;
+				}
+			} else {
+				$this->idboleta_deposito->ViewValue = NULL;
+			}
+			$this->idboleta_deposito->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idboleta_deposito->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idboleta_deposito`" . ew_SearchString("=", $this->idboleta_deposito->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idboleta_deposito`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `boleta_deposito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idboleta_deposito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `numero`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idboleta_deposito->EditValue = $arwrk;
+			}
+
+			// idvoucher_tarjeta
+			$this->idvoucher_tarjeta->EditAttrs["class"] = "form-control";
+			$this->idvoucher_tarjeta->EditCustomAttributes = "";
+			if ($this->idvoucher_tarjeta->getSessionValue() <> "") {
+				$this->idvoucher_tarjeta->CurrentValue = $this->idvoucher_tarjeta->getSessionValue();
+				$this->idvoucher_tarjeta->OldValue = $this->idvoucher_tarjeta->CurrentValue;
+			if (strval($this->idvoucher_tarjeta->CurrentValue) <> "") {
+				$sFilterWrk = "`idvoucher_tarjeta`" . ew_SearchString("=", $this->idvoucher_tarjeta->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idvoucher_tarjeta`, `marca` AS `DispFld`, `marca` AS `Disp2Fld`, `ultimos_cuatro_digitos` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `voucher_tarjeta`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idvoucher_tarjeta, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idvoucher_tarjeta->ViewValue = $rswrk->fields('DispFld');
+					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(1,$this->idvoucher_tarjeta) . $rswrk->fields('Disp2Fld');
+					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(2,$this->idvoucher_tarjeta) . $rswrk->fields('Disp3Fld');
+					$rswrk->Close();
+				} else {
+					$this->idvoucher_tarjeta->ViewValue = $this->idvoucher_tarjeta->CurrentValue;
+				}
+			} else {
+				$this->idvoucher_tarjeta->ViewValue = NULL;
+			}
+			$this->idvoucher_tarjeta->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idvoucher_tarjeta->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idvoucher_tarjeta`" . ew_SearchString("=", $this->idvoucher_tarjeta->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idvoucher_tarjeta`, `marca` AS `DispFld`, `marca` AS `Disp2Fld`, `ultimos_cuatro_digitos` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `voucher_tarjeta`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idvoucher_tarjeta, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idvoucher_tarjeta->EditValue = $arwrk;
+			}
+
+			// Edit refer script
+			// idtipo_pago
+
+			$this->idtipo_pago->HrefValue = "";
+
+			// idcliente
 			$this->idcliente->HrefValue = "";
 
 			// monto
@@ -1426,8 +1796,72 @@ class cpago_cliente_grid extends cpago_cliente {
 
 			// idsucursal
 			$this->idsucursal->HrefValue = "";
+
+			// idboleta_deposito
+			$this->idboleta_deposito->HrefValue = "";
+
+			// idvoucher_tarjeta
+			$this->idvoucher_tarjeta->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
+			// idtipo_pago
+			$this->idtipo_pago->EditAttrs["class"] = "form-control";
+			$this->idtipo_pago->EditCustomAttributes = "";
+			if ($this->idtipo_pago->getSessionValue() <> "") {
+				$this->idtipo_pago->CurrentValue = $this->idtipo_pago->getSessionValue();
+				$this->idtipo_pago->OldValue = $this->idtipo_pago->CurrentValue;
+			if (strval($this->idtipo_pago->CurrentValue) <> "") {
+				$sFilterWrk = "`idtipo_pago`" . ew_SearchString("=", $this->idtipo_pago->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idtipo_pago`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_pago`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idtipo_pago, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idtipo_pago->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idtipo_pago->ViewValue = $this->idtipo_pago->CurrentValue;
+				}
+			} else {
+				$this->idtipo_pago->ViewValue = NULL;
+			}
+			$this->idtipo_pago->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idtipo_pago->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idtipo_pago`" . ew_SearchString("=", $this->idtipo_pago->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idtipo_pago`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `tipo_pago`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idtipo_pago, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idtipo_pago->EditValue = $arwrk;
+			}
+
 			// idcliente
 			$this->idcliente->EditAttrs["class"] = "form-control";
 			$this->idcliente->EditCustomAttributes = "";
@@ -1532,9 +1966,132 @@ class cpago_cliente_grid extends cpago_cliente {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
 			$this->idsucursal->EditValue = $arwrk;
 
-			// Edit refer script
-			// idcliente
+			// idboleta_deposito
+			$this->idboleta_deposito->EditAttrs["class"] = "form-control";
+			$this->idboleta_deposito->EditCustomAttributes = "";
+			if ($this->idboleta_deposito->getSessionValue() <> "") {
+				$this->idboleta_deposito->CurrentValue = $this->idboleta_deposito->getSessionValue();
+				$this->idboleta_deposito->OldValue = $this->idboleta_deposito->CurrentValue;
+			if (strval($this->idboleta_deposito->CurrentValue) <> "") {
+				$sFilterWrk = "`idboleta_deposito`" . ew_SearchString("=", $this->idboleta_deposito->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idboleta_deposito`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `boleta_deposito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
 
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idboleta_deposito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `numero`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idboleta_deposito->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idboleta_deposito->ViewValue = $this->idboleta_deposito->CurrentValue;
+				}
+			} else {
+				$this->idboleta_deposito->ViewValue = NULL;
+			}
+			$this->idboleta_deposito->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idboleta_deposito->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idboleta_deposito`" . ew_SearchString("=", $this->idboleta_deposito->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idboleta_deposito`, `numero` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `boleta_deposito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idboleta_deposito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `numero`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idboleta_deposito->EditValue = $arwrk;
+			}
+
+			// idvoucher_tarjeta
+			$this->idvoucher_tarjeta->EditAttrs["class"] = "form-control";
+			$this->idvoucher_tarjeta->EditCustomAttributes = "";
+			if ($this->idvoucher_tarjeta->getSessionValue() <> "") {
+				$this->idvoucher_tarjeta->CurrentValue = $this->idvoucher_tarjeta->getSessionValue();
+				$this->idvoucher_tarjeta->OldValue = $this->idvoucher_tarjeta->CurrentValue;
+			if (strval($this->idvoucher_tarjeta->CurrentValue) <> "") {
+				$sFilterWrk = "`idvoucher_tarjeta`" . ew_SearchString("=", $this->idvoucher_tarjeta->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idvoucher_tarjeta`, `marca` AS `DispFld`, `marca` AS `Disp2Fld`, `ultimos_cuatro_digitos` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `voucher_tarjeta`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idvoucher_tarjeta, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idvoucher_tarjeta->ViewValue = $rswrk->fields('DispFld');
+					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(1,$this->idvoucher_tarjeta) . $rswrk->fields('Disp2Fld');
+					$this->idvoucher_tarjeta->ViewValue .= ew_ValueSeparator(2,$this->idvoucher_tarjeta) . $rswrk->fields('Disp3Fld');
+					$rswrk->Close();
+				} else {
+					$this->idvoucher_tarjeta->ViewValue = $this->idvoucher_tarjeta->CurrentValue;
+				}
+			} else {
+				$this->idvoucher_tarjeta->ViewValue = NULL;
+			}
+			$this->idvoucher_tarjeta->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->idvoucher_tarjeta->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idvoucher_tarjeta`" . ew_SearchString("=", $this->idvoucher_tarjeta->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idvoucher_tarjeta`, `marca` AS `DispFld`, `marca` AS `Disp2Fld`, `ultimos_cuatro_digitos` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `voucher_tarjeta`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idvoucher_tarjeta, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idvoucher_tarjeta->EditValue = $arwrk;
+			}
+
+			// Edit refer script
+			// idtipo_pago
+
+			$this->idtipo_pago->HrefValue = "";
+
+			// idcliente
 			$this->idcliente->HrefValue = "";
 
 			// monto
@@ -1545,6 +2102,12 @@ class cpago_cliente_grid extends cpago_cliente {
 
 			// idsucursal
 			$this->idsucursal->HrefValue = "";
+
+			// idboleta_deposito
+			$this->idboleta_deposito->HrefValue = "";
+
+			// idvoucher_tarjeta
+			$this->idvoucher_tarjeta->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1564,6 +2127,9 @@ class cpago_cliente_grid extends cpago_cliente {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
+		if (!$this->idtipo_pago->FldIsDetailKey && !is_null($this->idtipo_pago->FormValue) && $this->idtipo_pago->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idtipo_pago->FldCaption(), $this->idtipo_pago->ReqErrMsg));
+		}
 		if (!$this->idcliente->FldIsDetailKey && !is_null($this->idcliente->FormValue) && $this->idcliente->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idcliente->FldCaption(), $this->idcliente->ReqErrMsg));
 		}
@@ -1696,6 +2262,9 @@ class cpago_cliente_grid extends cpago_cliente {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
+			// idtipo_pago
+			$this->idtipo_pago->SetDbValueDef($rsnew, $this->idtipo_pago->CurrentValue, 0, $this->idtipo_pago->ReadOnly);
+
 			// idcliente
 			$this->idcliente->SetDbValueDef($rsnew, $this->idcliente->CurrentValue, 0, $this->idcliente->ReadOnly);
 
@@ -1707,6 +2276,54 @@ class cpago_cliente_grid extends cpago_cliente {
 
 			// idsucursal
 			$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, $this->idsucursal->ReadOnly);
+
+			// idboleta_deposito
+			$this->idboleta_deposito->SetDbValueDef($rsnew, $this->idboleta_deposito->CurrentValue, NULL, $this->idboleta_deposito->ReadOnly);
+
+			// idvoucher_tarjeta
+			$this->idvoucher_tarjeta->SetDbValueDef($rsnew, $this->idvoucher_tarjeta->CurrentValue, NULL, $this->idvoucher_tarjeta->ReadOnly);
+
+			// Check referential integrity for master table 'cliente'
+			$bValidMasterRecord = TRUE;
+			$sMasterFilter = $this->SqlMasterFilter_cliente();
+			$KeyValue = isset($rsnew['idcliente']) ? $rsnew['idcliente'] : $rsold['idcliente'];
+			if (strval($KeyValue) <> "") {
+				$sMasterFilter = str_replace("@idcliente@", ew_AdjustSql($KeyValue), $sMasterFilter);
+			} else {
+				$bValidMasterRecord = FALSE;
+			}
+			if ($bValidMasterRecord) {
+				$rsmaster = $GLOBALS["cliente"]->LoadRs($sMasterFilter);
+				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+				$rsmaster->Close();
+			}
+			if (!$bValidMasterRecord) {
+				$sRelatedRecordMsg = str_replace("%t", "cliente", $Language->Phrase("RelatedRecordRequired"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				$rs->Close();
+				return FALSE;
+			}
+
+			// Check referential integrity for master table 'tipo_pago'
+			$bValidMasterRecord = TRUE;
+			$sMasterFilter = $this->SqlMasterFilter_tipo_pago();
+			$KeyValue = isset($rsnew['idtipo_pago']) ? $rsnew['idtipo_pago'] : $rsold['idtipo_pago'];
+			if (strval($KeyValue) <> "") {
+				$sMasterFilter = str_replace("@idtipo_pago@", ew_AdjustSql($KeyValue), $sMasterFilter);
+			} else {
+				$bValidMasterRecord = FALSE;
+			}
+			if ($bValidMasterRecord) {
+				$rsmaster = $GLOBALS["tipo_pago"]->LoadRs($sMasterFilter);
+				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+				$rsmaster->Close();
+			}
+			if (!$bValidMasterRecord) {
+				$sRelatedRecordMsg = str_replace("%t", "tipo_pago", $Language->Phrase("RelatedRecordRequired"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				$rs->Close();
+				return FALSE;
+			}
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1751,12 +2368,62 @@ class cpago_cliente_grid extends cpago_cliente {
 			if ($this->getCurrentMasterTable() == "cliente") {
 				$this->idcliente->CurrentValue = $this->idcliente->getSessionValue();
 			}
+			if ($this->getCurrentMasterTable() == "tipo_pago") {
+				$this->idtipo_pago->CurrentValue = $this->idtipo_pago->getSessionValue();
+			}
+			if ($this->getCurrentMasterTable() == "boleta_deposito") {
+				$this->idboleta_deposito->CurrentValue = $this->idboleta_deposito->getSessionValue();
+			}
+			if ($this->getCurrentMasterTable() == "voucher_tarjeta") {
+				$this->idvoucher_tarjeta->CurrentValue = $this->idvoucher_tarjeta->getSessionValue();
+			}
+
+		// Check referential integrity for master table 'cliente'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_cliente();
+		if (strval($this->idcliente->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@idcliente@", ew_AdjustSql($this->idcliente->CurrentValue), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			$rsmaster = $GLOBALS["cliente"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "cliente", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
+
+		// Check referential integrity for master table 'tipo_pago'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_tipo_pago();
+		if (strval($this->idtipo_pago->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@idtipo_pago@", ew_AdjustSql($this->idtipo_pago->CurrentValue), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			$rsmaster = $GLOBALS["tipo_pago"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "tipo_pago", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
 
 		// Load db values from rsold
 		if ($rsold) {
 			$this->LoadDbValues($rsold);
 		}
 		$rsnew = array();
+
+		// idtipo_pago
+		$this->idtipo_pago->SetDbValueDef($rsnew, $this->idtipo_pago->CurrentValue, 0, strval($this->idtipo_pago->CurrentValue) == "");
 
 		// idcliente
 		$this->idcliente->SetDbValueDef($rsnew, $this->idcliente->CurrentValue, 0, strval($this->idcliente->CurrentValue) == "");
@@ -1769,6 +2436,12 @@ class cpago_cliente_grid extends cpago_cliente {
 
 		// idsucursal
 		$this->idsucursal->SetDbValueDef($rsnew, $this->idsucursal->CurrentValue, 0, strval($this->idsucursal->CurrentValue) == "");
+
+		// idboleta_deposito
+		$this->idboleta_deposito->SetDbValueDef($rsnew, $this->idboleta_deposito->CurrentValue, NULL, FALSE);
+
+		// idvoucher_tarjeta
+		$this->idvoucher_tarjeta->SetDbValueDef($rsnew, $this->idvoucher_tarjeta->CurrentValue, NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1815,6 +2488,18 @@ class cpago_cliente_grid extends cpago_cliente {
 		if ($sMasterTblVar == "cliente") {
 			$this->idcliente->Visible = FALSE;
 			if ($GLOBALS["cliente"]->EventCancelled) $this->EventCancelled = TRUE;
+		}
+		if ($sMasterTblVar == "tipo_pago") {
+			$this->idtipo_pago->Visible = FALSE;
+			if ($GLOBALS["tipo_pago"]->EventCancelled) $this->EventCancelled = TRUE;
+		}
+		if ($sMasterTblVar == "boleta_deposito") {
+			$this->idboleta_deposito->Visible = FALSE;
+			if ($GLOBALS["boleta_deposito"]->EventCancelled) $this->EventCancelled = TRUE;
+		}
+		if ($sMasterTblVar == "voucher_tarjeta") {
+			$this->idvoucher_tarjeta->Visible = FALSE;
+			if ($GLOBALS["voucher_tarjeta"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter

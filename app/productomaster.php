@@ -1,16 +1,29 @@
 <?php
 
+// idcategoria
 // idmarca
 // nombre
 // idpais
 // existencia
 // estado
+// precio_venta
 
 ?>
 <?php if ($producto->Visible) { ?>
 <!-- <h4 class="ewMasterCaption"><?php echo $producto->TableCaption() ?></h4> -->
 <table id="tbl_productomaster" class="table table-bordered table-striped ewViewTable">
 	<tbody>
+<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+		<tr id="r_idcategoria">
+			<td><?php echo $producto->idcategoria->FldCaption() ?></td>
+			<td<?php echo $producto->idcategoria->CellAttributes() ?>>
+<span id="el_producto_idcategoria" class="form-group">
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<?php echo $producto->idcategoria->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
 <?php if ($producto->idmarca->Visible) { // idmarca ?>
 		<tr id="r_idmarca">
 			<td><?php echo $producto->idmarca->FldCaption() ?></td>
@@ -62,6 +75,17 @@
 <span id="el_producto_estado" class="form-group">
 <span<?php echo $producto->estado->ViewAttributes() ?>>
 <?php echo $producto->estado->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+		<tr id="r_precio_venta">
+			<td><?php echo $producto->precio_venta->FldCaption() ?></td>
+			<td<?php echo $producto->precio_venta->CellAttributes() ?>>
+<span id="el_producto_precio_venta" class="form-group">
+<span<?php echo $producto->precio_venta->ViewAttributes() ?>>
+<?php echo $producto->precio_venta->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

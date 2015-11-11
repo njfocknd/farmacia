@@ -4,6 +4,8 @@
 // nit
 // nombre_factura
 // direccion_factura
+// telefono
+// tributa
 
 ?>
 <?php if ($cliente->Visible) { ?>
@@ -50,6 +52,28 @@
 <span id="el_cliente_direccion_factura" class="form-group">
 <span<?php echo $cliente->direccion_factura->ViewAttributes() ?>>
 <?php echo $cliente->direccion_factura->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($cliente->telefono->Visible) { // telefono ?>
+		<tr id="r_telefono">
+			<td><?php echo $cliente->telefono->FldCaption() ?></td>
+			<td<?php echo $cliente->telefono->CellAttributes() ?>>
+<span id="el_cliente_telefono" class="form-group">
+<span<?php echo $cliente->telefono->ViewAttributes() ?>>
+<?php echo $cliente->telefono->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($cliente->tributa->Visible) { // tributa ?>
+		<tr id="r_tributa">
+			<td><?php echo $cliente->tributa->FldCaption() ?></td>
+			<td<?php echo $cliente->tributa->CellAttributes() ?>>
+<span id="el_cliente_tributa" class="form-group">
+<span<?php echo $cliente->tributa->ViewAttributes() ?>>
+<?php echo $cliente->tributa->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

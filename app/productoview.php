@@ -9,6 +9,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "categoriainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
@@ -255,6 +256,9 @@ class cproducto_view extends cproducto {
 
 		// Table object (usuario)
 		if (!isset($GLOBALS['usuario'])) $GLOBALS['usuario'] = new cusuario();
+
+		// Table object (categoria)
+		if (!isset($GLOBALS['categoria'])) $GLOBALS['categoria'] = new ccategoria();
 
 		// User table object (usuario)
 		if (!isset($GLOBALS["UserTable"])) $GLOBALS["UserTable"] = new cusuario();
@@ -774,11 +778,14 @@ class cproducto_view extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->existencia->setDbValue($rs->fields('existencia'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
+		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 	}
 
 	// Load DbValue from recordset
@@ -786,11 +793,14 @@ class cproducto_view extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->idcategoria->DbValue = $row['idcategoria'];
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->existencia->DbValue = $row['existencia'];
 		$this->estado->DbValue = $row['estado'];
+		$this->precio_venta->DbValue = $row['precio_venta'];
+		$this->precio_compra->DbValue = $row['precio_compra'];
 	}
 
 	// Render row values based on field settings
@@ -806,22 +816,61 @@ class cproducto_view extends cproducto {
 		$this->ListUrl = $this->GetListUrl();
 		$this->SetupOtherOptions();
 
+		// Convert decimal values if posted back
+		if ($this->precio_venta->FormValue == $this->precio_venta->CurrentValue && is_numeric(ew_StrToFloat($this->precio_venta->CurrentValue)))
+			$this->precio_venta->CurrentValue = ew_StrToFloat($this->precio_venta->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->precio_compra->FormValue == $this->precio_compra->CurrentValue && is_numeric(ew_StrToFloat($this->precio_compra->CurrentValue)))
+			$this->precio_compra->CurrentValue = ew_StrToFloat($this->precio_compra->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
 		// idproducto
+		// idcategoria
 		// idmarca
 		// nombre
 		// idpais
 		// existencia
 		// estado
+		// precio_venta
+		// precio_compra
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idproducto
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// idcategoria
+			if (strval($this->idcategoria->CurrentValue) <> "") {
+				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
+				}
+			} else {
+				$this->idcategoria->ViewValue = NULL;
+			}
+			$this->idcategoria->ViewCustomAttributes = "";
 
 			// idmarca
 			if (strval($this->idmarca->CurrentValue) <> "") {
@@ -906,10 +955,25 @@ class cproducto_view extends cproducto {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// precio_venta
+			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewCustomAttributes = "";
+
+			// precio_compra
+			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+			$this->precio_compra->ViewCustomAttributes = "";
+
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
 			$this->idproducto->TooltipValue = "";
+
+			// idcategoria
+			$this->idcategoria->LinkCustomAttributes = "";
+			$this->idcategoria->HrefValue = "";
+			$this->idcategoria->TooltipValue = "";
 
 			// idmarca
 			$this->idmarca->LinkCustomAttributes = "";
@@ -935,6 +999,16 @@ class cproducto_view extends cproducto {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// precio_venta
+			$this->precio_venta->LinkCustomAttributes = "";
+			$this->precio_venta->HrefValue = "";
+			$this->precio_venta->TooltipValue = "";
+
+			// precio_compra
+			$this->precio_compra->LinkCustomAttributes = "";
+			$this->precio_compra->HrefValue = "";
+			$this->precio_compra->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1153,6 +1227,17 @@ class cproducto_view extends cproducto {
 					$bValidMaster = FALSE;
 				}
 			}
+			if ($sMasterTblVar == "categoria") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_idcategoria"] <> "") {
+					$GLOBALS["categoria"]->idcategoria->setQueryStringValue($_GET["fk_idcategoria"]);
+					$this->idcategoria->setQueryStringValue($GLOBALS["categoria"]->idcategoria->QueryStringValue);
+					$this->idcategoria->setSessionValue($this->idcategoria->QueryStringValue);
+					if (!is_numeric($GLOBALS["categoria"]->idcategoria->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
 		}
 		if ($bValidMaster) {
 
@@ -1167,6 +1252,9 @@ class cproducto_view extends cproducto {
 			// Clear previous master key from Session
 			if ($sMasterTblVar <> "marca") {
 				if ($this->idmarca->QueryStringValue == "") $this->idmarca->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "categoria") {
+				if ($this->idcategoria->QueryStringValue == "") $this->idcategoria->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
@@ -1372,6 +1460,7 @@ fproductoview.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
+fproductoview.Lists["x_idcategoria"] = {"LinkField":"x_idcategoria","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproductoview.Lists["x_idmarca"] = {"LinkField":"x_idmarca","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproductoview.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
@@ -1415,6 +1504,17 @@ $producto_view->ShowMessage();
 <span id="el_producto_idproducto" class="form-group">
 <span<?php echo $producto->idproducto->ViewAttributes() ?>>
 <?php echo $producto->idproducto->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+	<tr id="r_idcategoria">
+		<td><span id="elh_producto_idcategoria"><?php echo $producto->idcategoria->FldCaption() ?></span></td>
+		<td<?php echo $producto->idcategoria->CellAttributes() ?>>
+<span id="el_producto_idcategoria" class="form-group">
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<?php echo $producto->idcategoria->ViewValue ?></span>
 </span>
 </td>
 	</tr>
@@ -1470,6 +1570,28 @@ $producto_view->ShowMessage();
 <span id="el_producto_estado" class="form-group">
 <span<?php echo $producto->estado->ViewAttributes() ?>>
 <?php echo $producto->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+	<tr id="r_precio_venta">
+		<td><span id="elh_producto_precio_venta"><?php echo $producto->precio_venta->FldCaption() ?></span></td>
+		<td<?php echo $producto->precio_venta->CellAttributes() ?>>
+<span id="el_producto_precio_venta" class="form-group">
+<span<?php echo $producto->precio_venta->ViewAttributes() ?>>
+<?php echo $producto->precio_venta->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto->precio_compra->Visible) { // precio_compra ?>
+	<tr id="r_precio_compra">
+		<td><span id="elh_producto_precio_compra"><?php echo $producto->precio_compra->FldCaption() ?></span></td>
+		<td<?php echo $producto->precio_compra->CellAttributes() ?>>
+<span id="el_producto_precio_compra" class="form-group">
+<span<?php echo $producto->precio_compra->ViewAttributes() ?>>
+<?php echo $producto->precio_compra->ViewValue ?></span>
 </span>
 </td>
 	</tr>

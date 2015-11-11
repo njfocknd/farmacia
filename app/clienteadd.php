@@ -459,6 +459,9 @@ class ccliente_add extends ccliente {
 		$this->direccion_factura->OldValue = $this->direccion_factura->CurrentValue;
 		$this->_email->CurrentValue = NULL;
 		$this->_email->OldValue = $this->_email->CurrentValue;
+		$this->telefono->CurrentValue = NULL;
+		$this->telefono->OldValue = $this->telefono->CurrentValue;
+		$this->tributa->CurrentValue = "Si";
 	}
 
 	// Load form values
@@ -481,6 +484,12 @@ class ccliente_add extends ccliente {
 		if (!$this->_email->FldIsDetailKey) {
 			$this->_email->setFormValue($objForm->GetValue("x__email"));
 		}
+		if (!$this->telefono->FldIsDetailKey) {
+			$this->telefono->setFormValue($objForm->GetValue("x_telefono"));
+		}
+		if (!$this->tributa->FldIsDetailKey) {
+			$this->tributa->setFormValue($objForm->GetValue("x_tributa"));
+		}
 	}
 
 	// Restore form values
@@ -492,6 +501,8 @@ class ccliente_add extends ccliente {
 		$this->nombre_factura->CurrentValue = $this->nombre_factura->FormValue;
 		$this->direccion_factura->CurrentValue = $this->direccion_factura->FormValue;
 		$this->_email->CurrentValue = $this->_email->FormValue;
+		$this->telefono->CurrentValue = $this->telefono->FormValue;
+		$this->tributa->CurrentValue = $this->tributa->FormValue;
 	}
 
 	// Load row based on key values
@@ -534,6 +545,8 @@ class ccliente_add extends ccliente {
 		$this->_email->setDbValue($rs->fields('email'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->telefono->setDbValue($rs->fields('telefono'));
+		$this->tributa->setDbValue($rs->fields('tributa'));
 	}
 
 	// Load DbValue from recordset
@@ -551,6 +564,8 @@ class ccliente_add extends ccliente {
 		$this->_email->DbValue = $row['email'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 		$this->estado->DbValue = $row['estado'];
+		$this->telefono->DbValue = $row['telefono'];
+		$this->tributa->DbValue = $row['tributa'];
 	}
 
 	// Load old record
@@ -597,6 +612,8 @@ class ccliente_add extends ccliente {
 		// email
 		// fecha_insercion
 		// estado
+		// telefono
+		// tributa
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -683,6 +700,27 @@ class ccliente_add extends ccliente {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// telefono
+			$this->telefono->ViewValue = $this->telefono->CurrentValue;
+			$this->telefono->ViewCustomAttributes = "";
+
+			// tributa
+			if (strval($this->tributa->CurrentValue) <> "") {
+				switch ($this->tributa->CurrentValue) {
+					case $this->tributa->FldTagValue(1):
+						$this->tributa->ViewValue = $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->CurrentValue;
+						break;
+					case $this->tributa->FldTagValue(2):
+						$this->tributa->ViewValue = $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->CurrentValue;
+						break;
+					default:
+						$this->tributa->ViewValue = $this->tributa->CurrentValue;
+				}
+			} else {
+				$this->tributa->ViewValue = NULL;
+			}
+			$this->tributa->ViewCustomAttributes = "";
+
 			// idpersona
 			$this->idpersona->LinkCustomAttributes = "";
 			$this->idpersona->HrefValue = "";
@@ -707,6 +745,16 @@ class ccliente_add extends ccliente {
 			$this->_email->LinkCustomAttributes = "";
 			$this->_email->HrefValue = "";
 			$this->_email->TooltipValue = "";
+
+			// telefono
+			$this->telefono->LinkCustomAttributes = "";
+			$this->telefono->HrefValue = "";
+			$this->telefono->TooltipValue = "";
+
+			// tributa
+			$this->tributa->LinkCustomAttributes = "";
+			$this->tributa->HrefValue = "";
+			$this->tributa->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idpersona
@@ -791,6 +839,19 @@ class ccliente_add extends ccliente {
 			$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
 			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
 
+			// telefono
+			$this->telefono->EditAttrs["class"] = "form-control";
+			$this->telefono->EditCustomAttributes = "";
+			$this->telefono->EditValue = ew_HtmlEncode($this->telefono->CurrentValue);
+			$this->telefono->PlaceHolder = ew_RemoveHtml($this->telefono->FldCaption());
+
+			// tributa
+			$this->tributa->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->tributa->FldTagValue(1), $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->FldTagValue(1));
+			$arwrk[] = array($this->tributa->FldTagValue(2), $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->FldTagValue(2));
+			$this->tributa->EditValue = $arwrk;
+
 			// Edit refer script
 			// idpersona
 
@@ -807,6 +868,12 @@ class ccliente_add extends ccliente {
 
 			// email
 			$this->_email->HrefValue = "";
+
+			// telefono
+			$this->telefono->HrefValue = "";
+
+			// tributa
+			$this->tributa->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -834,6 +901,9 @@ class ccliente_add extends ccliente {
 		}
 		if (!ew_CheckEmail($this->_email->FormValue)) {
 			ew_AddMessage($gsFormError, $this->_email->FldErrMsg());
+		}
+		if ($this->tributa->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->tributa->FldCaption(), $this->tributa->ReqErrMsg));
 		}
 
 		// Validate detail grid
@@ -883,6 +953,12 @@ class ccliente_add extends ccliente {
 
 		// email
 		$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, NULL, FALSE);
+
+		// telefono
+		$this->telefono->SetDbValueDef($rsnew, $this->telefono->CurrentValue, NULL, FALSE);
+
+		// tributa
+		$this->tributa->SetDbValueDef($rsnew, $this->tributa->CurrentValue, "", strval($this->tributa->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1183,6 +1259,9 @@ fclienteadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "__email");
 			if (elm && !ew_CheckEmail(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($cliente->_email->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_tributa");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cliente->tributa->FldCaption(), $cliente->tributa->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1329,6 +1408,46 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 <input type="text" data-field="x__email" name="x__email" id="x__email" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->_email->PlaceHolder) ?>" value="<?php echo $cliente->_email->EditValue ?>"<?php echo $cliente->_email->EditAttributes() ?>>
 </span>
 <?php echo $cliente->_email->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cliente->telefono->Visible) { // telefono ?>
+	<div id="r_telefono" class="form-group">
+		<label id="elh_cliente_telefono" for="x_telefono" class="col-sm-2 control-label ewLabel"><?php echo $cliente->telefono->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->telefono->CellAttributes() ?>>
+<span id="el_cliente_telefono">
+<input type="text" data-field="x_telefono" name="x_telefono" id="x_telefono" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->telefono->PlaceHolder) ?>" value="<?php echo $cliente->telefono->EditValue ?>"<?php echo $cliente->telefono->EditAttributes() ?>>
+</span>
+<?php echo $cliente->telefono->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($cliente->tributa->Visible) { // tributa ?>
+	<div id="r_tributa" class="form-group">
+		<label id="elh_cliente_tributa" class="col-sm-2 control-label ewLabel"><?php echo $cliente->tributa->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $cliente->tributa->CellAttributes() ?>>
+<span id="el_cliente_tributa">
+<div id="tp_x_tributa" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_tributa" id="x_tributa" value="{value}"<?php echo $cliente->tributa->EditAttributes() ?>></div>
+<div id="dsl_x_tributa" data-repeatcolumn="5" class="ewItemList">
+<?php
+$arwrk = $cliente->tributa->EditValue;
+if (is_array($arwrk)) {
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($cliente->tributa->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+
+		// Note: No spacing within the LABEL tag
+?>
+<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
+<label class="radio-inline"><input type="radio" data-field="x_tributa" name="x_tributa" id="x_tributa_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cliente->tributa->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
+<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
+<?php
+	}
+}
+?>
+</div>
+</span>
+<?php echo $cliente->tributa->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

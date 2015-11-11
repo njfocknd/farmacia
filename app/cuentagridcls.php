@@ -302,6 +302,22 @@ class ccuenta_grid extends ccuenta {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'boleta_deposito'
+			if (@$_POST["grid"] == "fboleta_depositogrid") {
+				if (!isset($GLOBALS["boleta_deposito_grid"])) $GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid;
+				$GLOBALS["boleta_deposito_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'voucher_tarjeta'
+			if (@$_POST["grid"] == "fvoucher_tarjetagrid") {
+				if (!isset($GLOBALS["voucher_tarjeta_grid"])) $GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid;
+				$GLOBALS["voucher_tarjeta_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 

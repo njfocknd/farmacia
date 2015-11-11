@@ -47,6 +47,9 @@ fproductogrid.Validate = function() {
 		var checkrow = (gridinsert) ? !this.EmptyRow(infix) : true;
 		if (checkrow) {
 			addcnt++;
+			elm = this.GetElements("x" + infix + "_idcategoria");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->idcategoria->FldCaption(), $producto->idcategoria->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_idmarca");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->idmarca->FldCaption(), $producto->idmarca->ReqErrMsg)) ?>");
@@ -65,6 +68,12 @@ fproductogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->estado->FldCaption(), $producto->estado->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_precio_venta");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->precio_venta->FldCaption(), $producto->precio_venta->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_precio_venta");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($producto->precio_venta->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -80,11 +89,13 @@ fproductogrid.Validate = function() {
 // Check empty row
 fproductogrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
+	if (ew_ValueChanged(fobj, infix, "idcategoria", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idmarca", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idpais", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "existencia", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "precio_venta", false)) return false;
 	return true;
 }
 
@@ -104,6 +115,7 @@ fproductogrid.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
+fproductogrid.Lists["x_idcategoria"] = {"LinkField":"x_idcategoria","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproductogrid.Lists["x_idmarca"] = {"LinkField":"x_idmarca","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fproductogrid.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
@@ -175,6 +187,15 @@ $producto_grid->RenderListOptions();
 // Render list options (header, left)
 $producto_grid->ListOptions->Render("header", "left");
 ?>
+<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+	<?php if ($producto->SortUrl($producto->idcategoria) == "") { ?>
+		<th data-name="idcategoria"><div id="elh_producto_idcategoria" class="producto_idcategoria"><div class="ewTableHeaderCaption"><?php echo $producto->idcategoria->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="idcategoria"><div><div id="elh_producto_idcategoria" class="producto_idcategoria">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->idcategoria->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->idcategoria->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->idcategoria->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php if ($producto->idmarca->Visible) { // idmarca ?>
 	<?php if ($producto->SortUrl($producto->idmarca) == "") { ?>
 		<th data-name="idmarca"><div id="elh_producto_idmarca" class="producto_idmarca"><div class="ewTableHeaderCaption"><?php echo $producto->idmarca->FldCaption() ?></div></div></th>
@@ -217,6 +238,15 @@ $producto_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="estado"><div><div id="elh_producto_estado" class="producto_estado">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+	<?php if ($producto->SortUrl($producto->precio_venta) == "") { ?>
+		<th data-name="precio_venta"><div id="elh_producto_precio_venta" class="producto_precio_venta"><div class="ewTableHeaderCaption"><?php echo $producto->precio_venta->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="precio_venta"><div><div id="elh_producto_precio_venta" class="producto_precio_venta">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->precio_venta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->precio_venta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->precio_venta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -329,6 +359,112 @@ while ($producto_grid->RecCnt < $producto_grid->StopRec) {
 // Render list options (body, left)
 $producto_grid->ListOptions->Render("body", "left", $producto_grid->RowCnt);
 ?>
+	<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+		<td data-name="idcategoria"<?php echo $producto->idcategoria->CellAttributes() ?>>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<?php if ($producto->idcategoria->getSessionValue() <> "") { ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_idcategoria" class="form-group producto_idcategoria">
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->idcategoria->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_idcategoria" class="form-group producto_idcategoria">
+<select data-field="x_idcategoria" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria"<?php echo $producto->idcategoria->EditAttributes() ?>>
+<?php
+if (is_array($producto->idcategoria->EditValue)) {
+	$arwrk = $producto->idcategoria->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($producto->idcategoria->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $producto->idcategoria->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $producto->Lookup_Selecting($producto->idcategoria, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $producto_grid->RowIndex ?>_idcategoria" id="s_x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcategoria` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<input type="hidden" data-field="x_idcategoria" name="o<?php echo $producto_grid->RowIndex ?>_idcategoria" id="o<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<?php if ($producto->idcategoria->getSessionValue() <> "") { ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_idcategoria" class="form-group producto_idcategoria">
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->idcategoria->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_idcategoria" class="form-group producto_idcategoria">
+<select data-field="x_idcategoria" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria"<?php echo $producto->idcategoria->EditAttributes() ?>>
+<?php
+if (is_array($producto->idcategoria->EditValue)) {
+	$arwrk = $producto->idcategoria->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($producto->idcategoria->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $producto->idcategoria->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $producto->Lookup_Selecting($producto->idcategoria, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $producto_grid->RowIndex ?>_idcategoria" id="s_x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcategoria` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<?php echo $producto->idcategoria->ListViewValue() ?></span>
+<input type="hidden" data-field="x_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->FormValue) ?>">
+<input type="hidden" data-field="x_idcategoria" name="o<?php echo $producto_grid->RowIndex ?>_idcategoria" id="o<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->OldValue) ?>">
+<?php } ?>
+<a id="<?php echo $producto_grid->PageObjName . "_row_" . $producto_grid->RowCnt ?>"></a></td>
+	<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
+<input type="hidden" data-field="x_idproducto" name="o<?php echo $producto_grid->RowIndex ?>_idproducto" id="o<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT || $producto->CurrentMode == "edit") { ?>
+<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
+<?php } ?>
 	<?php if ($producto->idmarca->Visible) { // idmarca ?>
 		<td data-name="idmarca"<?php echo $producto->idmarca->CellAttributes() ?>>
 <?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -428,15 +564,8 @@ if (@$emptywrk) $producto->idmarca->OldValue = "";
 <input type="hidden" data-field="x_idmarca" name="x<?php echo $producto_grid->RowIndex ?>_idmarca" id="x<?php echo $producto_grid->RowIndex ?>_idmarca" value="<?php echo ew_HtmlEncode($producto->idmarca->FormValue) ?>">
 <input type="hidden" data-field="x_idmarca" name="o<?php echo $producto_grid->RowIndex ?>_idmarca" id="o<?php echo $producto_grid->RowIndex ?>_idmarca" value="<?php echo ew_HtmlEncode($producto->idmarca->OldValue) ?>">
 <?php } ?>
-<a id="<?php echo $producto_grid->PageObjName . "_row_" . $producto_grid->RowCnt ?>"></a></td>
+</td>
 	<?php } ?>
-<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
-<input type="hidden" data-field="x_idproducto" name="o<?php echo $producto_grid->RowIndex ?>_idproducto" id="o<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->OldValue) ?>">
-<?php } ?>
-<?php if ($producto->RowType == EW_ROWTYPE_EDIT || $producto->CurrentMode == "edit") { ?>
-<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
-<?php } ?>
 	<?php if ($producto->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $producto->nombre->CellAttributes() ?>>
 <?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -621,6 +750,27 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+		<td data-name="precio_venta"<?php echo $producto->precio_venta->CellAttributes() ?>>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_precio_venta" class="form-group producto_precio_venta">
+<input type="text" data-field="x_precio_venta" name="x<?php echo $producto_grid->RowIndex ?>_precio_venta" id="x<?php echo $producto_grid->RowIndex ?>_precio_venta" size="30" placeholder="<?php echo ew_HtmlEncode($producto->precio_venta->PlaceHolder) ?>" value="<?php echo $producto->precio_venta->EditValue ?>"<?php echo $producto->precio_venta->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_precio_venta" name="o<?php echo $producto_grid->RowIndex ?>_precio_venta" id="o<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_precio_venta" class="form-group producto_precio_venta">
+<input type="text" data-field="x_precio_venta" name="x<?php echo $producto_grid->RowIndex ?>_precio_venta" id="x<?php echo $producto_grid->RowIndex ?>_precio_venta" size="30" placeholder="<?php echo ew_HtmlEncode($producto->precio_venta->PlaceHolder) ?>" value="<?php echo $producto->precio_venta->EditValue ?>"<?php echo $producto->precio_venta->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto->precio_venta->ViewAttributes() ?>>
+<?php echo $producto->precio_venta->ListViewValue() ?></span>
+<input type="hidden" data-field="x_precio_venta" name="x<?php echo $producto_grid->RowIndex ?>_precio_venta" id="x<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->FormValue) ?>">
+<input type="hidden" data-field="x_precio_venta" name="o<?php echo $producto_grid->RowIndex ?>_precio_venta" id="o<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -663,6 +813,61 @@ fproductogrid.UpdateOpts(<?php echo $producto_grid->RowIndex ?>);
 // Render list options (body, left)
 $producto_grid->ListOptions->Render("body", "left", $producto_grid->RowIndex);
 ?>
+	<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
+		<td>
+<?php if ($producto->CurrentAction <> "F") { ?>
+<?php if ($producto->idcategoria->getSessionValue() <> "") { ?>
+<span id="el$rowindex$_producto_idcategoria" class="form-group producto_idcategoria">
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->idcategoria->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el$rowindex$_producto_idcategoria" class="form-group producto_idcategoria">
+<select data-field="x_idcategoria" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria"<?php echo $producto->idcategoria->EditAttributes() ?>>
+<?php
+if (is_array($producto->idcategoria->EditValue)) {
+	$arwrk = $producto->idcategoria->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($producto->idcategoria->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $producto->idcategoria->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $producto->Lookup_Selecting($producto->idcategoria, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $producto_grid->RowIndex ?>_idcategoria" id="s_x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcategoria` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php } else { ?>
+<span id="el$rowindex$_producto_idcategoria" class="form-group producto_idcategoria">
+<span<?php echo $producto->idcategoria->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->idcategoria->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_idcategoria" name="o<?php echo $producto_grid->RowIndex ?>_idcategoria" id="o<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->OldValue) ?>">
+</td>
+	<?php } ?>
 	<?php if ($producto->idmarca->Visible) { // idmarca ?>
 		<td>
 <?php if ($producto->CurrentAction <> "F") { ?>
@@ -831,6 +1036,22 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 <input type="hidden" data-field="x_estado" name="x<?php echo $producto_grid->RowIndex ?>_estado" id="x<?php echo $producto_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto->estado->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_estado" name="o<?php echo $producto_grid->RowIndex ?>_estado" id="o<?php echo $producto_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto->estado->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($producto->precio_venta->Visible) { // precio_venta ?>
+		<td>
+<?php if ($producto->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_producto_precio_venta" class="form-group producto_precio_venta">
+<input type="text" data-field="x_precio_venta" name="x<?php echo $producto_grid->RowIndex ?>_precio_venta" id="x<?php echo $producto_grid->RowIndex ?>_precio_venta" size="30" placeholder="<?php echo ew_HtmlEncode($producto->precio_venta->PlaceHolder) ?>" value="<?php echo $producto->precio_venta->EditValue ?>"<?php echo $producto->precio_venta->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_producto_precio_venta" class="form-group producto_precio_venta">
+<span<?php echo $producto->precio_venta->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->precio_venta->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_precio_venta" name="x<?php echo $producto_grid->RowIndex ?>_precio_venta" id="x<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_precio_venta" name="o<?php echo $producto_grid->RowIndex ?>_precio_venta" id="o<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

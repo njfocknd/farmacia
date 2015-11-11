@@ -10,6 +10,8 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "bancoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "cuenta_transacciongridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "boleta_depositogridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "voucher_tarjetagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -282,6 +284,22 @@ class ccuenta_add extends ccuenta {
 			if (@$_POST["grid"] == "fcuenta_transacciongrid") {
 				if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid;
 				$GLOBALS["cuenta_transaccion_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'boleta_deposito'
+			if (@$_POST["grid"] == "fboleta_depositogrid") {
+				if (!isset($GLOBALS["boleta_deposito_grid"])) $GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid;
+				$GLOBALS["boleta_deposito_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'voucher_tarjeta'
+			if (@$_POST["grid"] == "fvoucher_tarjetagrid") {
+				if (!isset($GLOBALS["voucher_tarjeta_grid"])) $GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid;
+				$GLOBALS["voucher_tarjeta_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -933,6 +951,14 @@ class ccuenta_add extends ccuenta {
 			if (!isset($GLOBALS["cuenta_transaccion_grid"])) $GLOBALS["cuenta_transaccion_grid"] = new ccuenta_transaccion_grid(); // get detail page object
 			$GLOBALS["cuenta_transaccion_grid"]->ValidateGridForm();
 		}
+		if (in_array("boleta_deposito", $DetailTblVar) && $GLOBALS["boleta_deposito"]->DetailAdd) {
+			if (!isset($GLOBALS["boleta_deposito_grid"])) $GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid(); // get detail page object
+			$GLOBALS["boleta_deposito_grid"]->ValidateGridForm();
+		}
+		if (in_array("voucher_tarjeta", $DetailTblVar) && $GLOBALS["voucher_tarjeta"]->DetailAdd) {
+			if (!isset($GLOBALS["voucher_tarjeta_grid"])) $GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid(); // get detail page object
+			$GLOBALS["voucher_tarjeta_grid"]->ValidateGridForm();
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -1012,6 +1038,20 @@ class ccuenta_add extends ccuenta {
 				$AddRow = $GLOBALS["cuenta_transaccion_grid"]->GridInsert();
 				if (!$AddRow)
 					$GLOBALS["cuenta_transaccion"]->idcuenta->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("boleta_deposito", $DetailTblVar) && $GLOBALS["boleta_deposito"]->DetailAdd) {
+				$GLOBALS["boleta_deposito"]->idcuenta->setSessionValue($this->idcuenta->CurrentValue); // Set master key
+				if (!isset($GLOBALS["boleta_deposito_grid"])) $GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid(); // Get detail page object
+				$AddRow = $GLOBALS["boleta_deposito_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["boleta_deposito"]->idcuenta->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("voucher_tarjeta", $DetailTblVar) && $GLOBALS["voucher_tarjeta"]->DetailAdd) {
+				$GLOBALS["voucher_tarjeta"]->idcuenta->setSessionValue($this->idcuenta->CurrentValue); // Set master key
+				if (!isset($GLOBALS["voucher_tarjeta_grid"])) $GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid(); // Get detail page object
+				$AddRow = $GLOBALS["voucher_tarjeta_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["voucher_tarjeta"]->idcuenta->setSessionValue(""); // Clear master key if insert failed
 			}
 		}
 
@@ -1103,6 +1143,42 @@ class ccuenta_add extends ccuenta {
 					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->FldIsDetailKey = TRUE;
 					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->CurrentValue = $this->idcuenta->CurrentValue;
 					$GLOBALS["cuenta_transaccion_grid"]->idcuenta->setSessionValue($GLOBALS["cuenta_transaccion_grid"]->idcuenta->CurrentValue);
+				}
+			}
+			if (in_array("boleta_deposito", $DetailTblVar)) {
+				if (!isset($GLOBALS["boleta_deposito_grid"]))
+					$GLOBALS["boleta_deposito_grid"] = new cboleta_deposito_grid;
+				if ($GLOBALS["boleta_deposito_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["boleta_deposito_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["boleta_deposito_grid"]->CurrentMode = "add";
+					$GLOBALS["boleta_deposito_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["boleta_deposito_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["boleta_deposito_grid"]->setStartRecordNumber(1);
+					$GLOBALS["boleta_deposito_grid"]->idcuenta->FldIsDetailKey = TRUE;
+					$GLOBALS["boleta_deposito_grid"]->idcuenta->CurrentValue = $this->idcuenta->CurrentValue;
+					$GLOBALS["boleta_deposito_grid"]->idcuenta->setSessionValue($GLOBALS["boleta_deposito_grid"]->idcuenta->CurrentValue);
+				}
+			}
+			if (in_array("voucher_tarjeta", $DetailTblVar)) {
+				if (!isset($GLOBALS["voucher_tarjeta_grid"]))
+					$GLOBALS["voucher_tarjeta_grid"] = new cvoucher_tarjeta_grid;
+				if ($GLOBALS["voucher_tarjeta_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["voucher_tarjeta_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["voucher_tarjeta_grid"]->CurrentMode = "add";
+					$GLOBALS["voucher_tarjeta_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["voucher_tarjeta_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["voucher_tarjeta_grid"]->setStartRecordNumber(1);
+					$GLOBALS["voucher_tarjeta_grid"]->idcuenta->FldIsDetailKey = TRUE;
+					$GLOBALS["voucher_tarjeta_grid"]->idcuenta->CurrentValue = $this->idcuenta->CurrentValue;
+					$GLOBALS["voucher_tarjeta_grid"]->idcuenta->setSessionValue($GLOBALS["voucher_tarjeta_grid"]->idcuenta->CurrentValue);
 				}
 			}
 		}
@@ -1498,6 +1574,22 @@ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("cuenta_transaccion", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "cuenta_transacciongrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("boleta_deposito", explode(",", $cuenta->getCurrentDetailTable())) && $boleta_deposito->DetailAdd) {
+?>
+<?php if ($cuenta->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("boleta_deposito", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "boleta_depositogrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("voucher_tarjeta", explode(",", $cuenta->getCurrentDetailTable())) && $voucher_tarjeta->DetailAdd) {
+?>
+<?php if ($cuenta->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("voucher_tarjeta", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "voucher_tarjetagrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

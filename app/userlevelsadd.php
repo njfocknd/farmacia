@@ -451,15 +451,12 @@ class cuserlevels_add extends cuserlevels {
 		if (!$this->userlevelname->FldIsDetailKey) {
 			$this->userlevelname->setFormValue($objForm->GetValue("x_userlevelname"));
 		}
-		if (!$this->userlevelid->FldIsDetailKey)
-			$this->userlevelid->setFormValue($objForm->GetValue("x_userlevelid"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		$this->LoadOldRecord();
-		$this->userlevelid->CurrentValue = $this->userlevelid->FormValue;
 		$this->userlevelname->CurrentValue = $this->userlevelname->FormValue;
 	}
 
@@ -642,24 +639,6 @@ class cuserlevels_add extends cuserlevels {
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
 		$bInsertRow = $this->Row_Inserting($rs, $rsnew);
-
-		// Check if key value entered
-		if ($bInsertRow && $this->ValidateKey && strval($rsnew['userlevelid']) == "") {
-			$this->setFailureMessage($Language->Phrase("InvalidKeyValue"));
-			$bInsertRow = FALSE;
-		}
-
-		// Check for duplicate key
-		if ($bInsertRow && $this->ValidateKey) {
-			$sFilter = $this->KeyFilter();
-			$rsChk = $this->LoadRs($sFilter);
-			if ($rsChk && !$rsChk->EOF) {
-				$sKeyErrMsg = str_replace("%f", $sFilter, $Language->Phrase("DupKey"));
-				$this->setFailureMessage($sKeyErrMsg);
-				$rsChk->Close();
-				$bInsertRow = FALSE;
-			}
-		}
 		if ($bInsertRow) {
 			$conn->raiseErrorFn = 'ew_ErrorFn';
 			$AddRow = $this->Insert($rsnew);
@@ -681,6 +660,8 @@ class cuserlevels_add extends cuserlevels {
 
 		// Get insert id if necessary
 		if ($AddRow) {
+			$this->userlevelid->setDbValue($conn->Insert_ID());
+			$rsnew['userlevelid'] = $this->userlevelid->DbValue;
 		}
 		if ($AddRow) {
 

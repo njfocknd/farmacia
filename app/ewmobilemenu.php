@@ -29,8 +29,12 @@ $RootMenu->AddMenuItem(8, "mmi_registro_sanitario", $Language->MenuPhrase("8", "
 $RootMenu->AddMenuItem(12, "mmi_tipo_bodega", $Language->MenuPhrase("12", "MenuText"), "tipo_bodegalist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_bodega'), FALSE);
 $RootMenu->AddMenuItem(18, "mmi_tipo_documento", $Language->MenuPhrase("18", "MenuText"), "tipo_documentolist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_documento'), FALSE);
 $RootMenu->AddMenuItem(17, "mmi_serie_documento", $Language->MenuPhrase("17", "MenuText"), "serie_documentolist.php", 18, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}serie_documento'), FALSE);
+$RootMenu->AddMenuItem(111, "mmi_tipo_pago", $Language->MenuPhrase("111", "MenuText"), "tipo_pagolist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_pago'), FALSE);
 $RootMenu->AddMenuItem(63, "mmi_banco", $Language->MenuPhrase("63", "MenuText"), "bancolist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}banco'), FALSE);
 $RootMenu->AddMenuItem(64, "mmi_cuenta", $Language->MenuPhrase("64", "MenuText"), "cuentalist.php?cmd=resetall", 63, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}cuenta'), FALSE);
+$RootMenu->AddMenuItem(109, "mmi_boleta_deposito", $Language->MenuPhrase("109", "MenuText"), "boleta_depositolist.php?cmd=resetall", 64, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}boleta_deposito'), FALSE);
+$RootMenu->AddMenuItem(110, "mmi_voucher_tarjeta", $Language->MenuPhrase("110", "MenuText"), "voucher_tarjetalist.php?cmd=resetall", 64, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}voucher_tarjeta'), FALSE);
+$RootMenu->AddMenuItem(108, "mmi_categoria", $Language->MenuPhrase("108", "MenuText"), "categorialist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}categoria'), FALSE);
 $RootMenu->AddMenuItem(29, "mmi_persona", $Language->MenuPhrase("29", "MenuText"), "personalist.php", -1, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}persona'), FALSE);
 $RootMenu->AddMenuItem(25, "mmi_cliente", $Language->MenuPhrase("25", "MenuText"), "clientelist.php?cmd=resetall", 29, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}cliente'), FALSE);
 $RootMenu->AddMenuItem(30, "mmi_proveedor", $Language->MenuPhrase("30", "MenuText"), "proveedorlist.php?cmd=resetall", 29, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}proveedor'), FALSE);

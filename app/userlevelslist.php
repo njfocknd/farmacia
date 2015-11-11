@@ -370,6 +370,7 @@ class cuserlevels_list extends cuserlevels {
 
 		// Setup export options
 		$this->SetupExportOptions();
+		$this->userlevelid->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();

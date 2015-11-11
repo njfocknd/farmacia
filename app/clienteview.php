@@ -710,6 +710,8 @@ class ccliente_view extends ccliente {
 		$this->_email->setDbValue($rs->fields('email'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->telefono->setDbValue($rs->fields('telefono'));
+		$this->tributa->setDbValue($rs->fields('tributa'));
 	}
 
 	// Load DbValue from recordset
@@ -727,6 +729,8 @@ class ccliente_view extends ccliente {
 		$this->_email->DbValue = $row['email'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 		$this->estado->DbValue = $row['estado'];
+		$this->telefono->DbValue = $row['telefono'];
+		$this->tributa->DbValue = $row['tributa'];
 	}
 
 	// Render row values based on field settings
@@ -765,6 +769,8 @@ class ccliente_view extends ccliente {
 		// email
 		// fecha_insercion
 		// estado
+		// telefono
+		// tributa
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -851,6 +857,27 @@ class ccliente_view extends ccliente {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// telefono
+			$this->telefono->ViewValue = $this->telefono->CurrentValue;
+			$this->telefono->ViewCustomAttributes = "";
+
+			// tributa
+			if (strval($this->tributa->CurrentValue) <> "") {
+				switch ($this->tributa->CurrentValue) {
+					case $this->tributa->FldTagValue(1):
+						$this->tributa->ViewValue = $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->CurrentValue;
+						break;
+					case $this->tributa->FldTagValue(2):
+						$this->tributa->ViewValue = $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->CurrentValue;
+						break;
+					default:
+						$this->tributa->ViewValue = $this->tributa->CurrentValue;
+				}
+			} else {
+				$this->tributa->ViewValue = NULL;
+			}
+			$this->tributa->ViewCustomAttributes = "";
+
 			// idcliente
 			$this->idcliente->LinkCustomAttributes = "";
 			$this->idcliente->HrefValue = "";
@@ -905,6 +932,16 @@ class ccliente_view extends ccliente {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// telefono
+			$this->telefono->LinkCustomAttributes = "";
+			$this->telefono->HrefValue = "";
+			$this->telefono->TooltipValue = "";
+
+			// tributa
+			$this->tributa->LinkCustomAttributes = "";
+			$this->tributa->HrefValue = "";
+			$this->tributa->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1430,6 +1467,28 @@ $cliente_view->ShowMessage();
 <span id="el_cliente_estado" class="form-group">
 <span<?php echo $cliente->estado->ViewAttributes() ?>>
 <?php echo $cliente->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cliente->telefono->Visible) { // telefono ?>
+	<tr id="r_telefono">
+		<td><span id="elh_cliente_telefono"><?php echo $cliente->telefono->FldCaption() ?></span></td>
+		<td<?php echo $cliente->telefono->CellAttributes() ?>>
+<span id="el_cliente_telefono" class="form-group">
+<span<?php echo $cliente->telefono->ViewAttributes() ?>>
+<?php echo $cliente->telefono->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($cliente->tributa->Visible) { // tributa ?>
+	<tr id="r_tributa">
+		<td><span id="elh_cliente_tributa"><?php echo $cliente->tributa->FldCaption() ?></span></td>
+		<td<?php echo $cliente->tributa->CellAttributes() ?>>
+<span id="el_cliente_tributa" class="form-group">
+<span<?php echo $cliente->tributa->ViewAttributes() ?>>
+<?php echo $cliente->tributa->ViewValue ?></span>
 </span>
 </td>
 	</tr>

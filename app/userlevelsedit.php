@@ -251,6 +251,7 @@ class cuserlevels_edit extends cuserlevels {
 		// Create form object
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
+		$this->userlevelid->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -437,9 +438,8 @@ class cuserlevels_edit extends cuserlevels {
 
 		// Load from form
 		global $objForm;
-		if (!$this->userlevelid->FldIsDetailKey) {
+		if (!$this->userlevelid->FldIsDetailKey)
 			$this->userlevelid->setFormValue($objForm->GetValue("x_userlevelid"));
-		}
 		if (!$this->userlevelname->FldIsDetailKey) {
 			$this->userlevelname->setFormValue($objForm->GetValue("x_userlevelname"));
 		}
@@ -575,9 +575,6 @@ class cuserlevels_edit extends cuserlevels {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->userlevelid->FldIsDetailKey && !is_null($this->userlevelid->FormValue) && $this->userlevelid->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->userlevelid->FldCaption(), $this->userlevelid->ReqErrMsg));
-		}
 		if (!ew_CheckInteger($this->userlevelid->FormValue)) {
 			ew_AddMessage($gsFormError, $this->userlevelid->FldErrMsg());
 		}
@@ -617,9 +614,7 @@ class cuserlevels_edit extends cuserlevels {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// userlevelid
 			// userlevelname
-
 			$this->userlevelname->SetDbValueDef($rsnew, $this->userlevelname->CurrentValue, "", $this->userlevelname->ReadOnly);
 
 			// Call Row Updating event
@@ -830,9 +825,6 @@ fuserlevelsedit.Validate = function() {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
 			elm = this.GetElements("x" + infix + "_userlevelid");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $userlevels->userlevelid->FldCaption(), $userlevels->userlevelid->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_userlevelid");
 			if (elm && !ew_CheckInteger(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($userlevels->userlevelid->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_userlevelname");
@@ -920,7 +912,7 @@ $userlevels_edit->ShowMessage();
 <div>
 <?php if ($userlevels->userlevelid->Visible) { // userlevelid ?>
 	<div id="r_userlevelid" class="form-group">
-		<label id="elh_userlevels_userlevelid" for="x_userlevelid" class="col-sm-2 control-label ewLabel"><?php echo $userlevels->userlevelid->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<label id="elh_userlevels_userlevelid" for="x_userlevelid" class="col-sm-2 control-label ewLabel"><?php echo $userlevels->userlevelid->FldCaption() ?></label>
 		<div class="col-sm-10"><div<?php echo $userlevels->userlevelid->CellAttributes() ?>>
 <span id="el_userlevels_userlevelid">
 <span<?php echo $userlevels->userlevelid->ViewAttributes() ?>>

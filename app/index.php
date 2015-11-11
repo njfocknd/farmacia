@@ -297,6 +297,14 @@ class cdefault {
 			$this->Page_Terminate("userlevelslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'audittrail'))
 			$this->Page_Terminate("audittraillist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'categoria'))
+			$this->Page_Terminate("categorialist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'boleta_deposito'))
+			$this->Page_Terminate("boleta_depositolist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'voucher_tarjeta'))
+			$this->Page_Terminate("voucher_tarjetalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_pago'))
+			$this->Page_Terminate("tipo_pagolist.php");
 		if ($Security->IsLoggedIn()) {
 			$this->setFailureMessage($Language->Phrase("NoPermission") . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
 		} else {

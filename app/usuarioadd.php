@@ -422,8 +422,7 @@ class cusuario_add extends cusuario {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->userlevelid->CurrentValue = NULL;
-		$this->userlevelid->OldValue = $this->userlevelid->CurrentValue;
+		$this->userlevelid->CurrentValue = 1;
 		$this->usuario->CurrentValue = NULL;
 		$this->usuario->OldValue = $this->usuario->CurrentValue;
 		$this->contrasena->CurrentValue = NULL;
@@ -762,7 +761,7 @@ class cusuario_add extends cusuario {
 
 		// userlevelid
 		if ($Security->CanAdmin()) { // System admin
-		$this->userlevelid->SetDbValueDef($rsnew, $this->userlevelid->CurrentValue, NULL, FALSE);
+		$this->userlevelid->SetDbValueDef($rsnew, $this->userlevelid->CurrentValue, 0, strval($this->userlevelid->CurrentValue) == "");
 		}
 
 		// usuario

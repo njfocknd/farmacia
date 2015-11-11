@@ -801,7 +801,7 @@ class cusuario_edit extends cusuario {
 
 			// userlevelid
 			if ($Security->CanAdmin()) { // System admin
-			$this->userlevelid->SetDbValueDef($rsnew, $this->userlevelid->CurrentValue, NULL, $this->userlevelid->ReadOnly);
+			$this->userlevelid->SetDbValueDef($rsnew, $this->userlevelid->CurrentValue, 0, $this->userlevelid->ReadOnly);
 			}
 
 			// usuario
