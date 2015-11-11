@@ -695,6 +695,7 @@ class ctipo_documento_view extends ctipo_documento {
 		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -704,6 +705,7 @@ class ctipo_documento_view extends ctipo_documento {
 		$this->idtipo_documento->DbValue = $row['idtipo_documento'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -726,6 +728,7 @@ class ctipo_documento_view extends ctipo_documento {
 		// idtipo_documento
 		// nombre
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -754,6 +757,11 @@ class ctipo_documento_view extends ctipo_documento {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
 			$this->idtipo_documento->HrefValue = "";
@@ -768,6 +776,11 @@ class ctipo_documento_view extends ctipo_documento {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1161,6 +1174,17 @@ $tipo_documento_view->ShowMessage();
 <span id="el_tipo_documento_estado" class="form-group">
 <span<?php echo $tipo_documento->estado->ViewAttributes() ?>>
 <?php echo $tipo_documento->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($tipo_documento->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_tipo_documento_fecha_insercion"><?php echo $tipo_documento->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $tipo_documento->fecha_insercion->CellAttributes() ?>>
+<span id="el_tipo_documento_fecha_insercion" class="form-group">
+<span<?php echo $tipo_documento->fecha_insercion->ViewAttributes() ?>>
+<?php echo $tipo_documento->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

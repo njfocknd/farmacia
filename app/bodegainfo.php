@@ -12,6 +12,7 @@ class cbodega extends cTable {
 	var $idsucursal;
 	var $idtipo_bodega;
 	var $estado;
+	var $fecha_insercion;
 
 	//
 	// Table class constructor
@@ -59,6 +60,11 @@ class cbodega extends cTable {
 		// estado
 		$this->estado = new cField('bodega', 'bodega', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
+
+		// fecha_insercion
+		$this->fecha_insercion = new cField('bodega', 'bodega', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}
 
 	// Single column sort
@@ -637,6 +643,7 @@ class cbodega extends cTable {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idtipo_bodega->setDbValue($rs->fields('idtipo_bodega'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Render list row values
@@ -652,6 +659,7 @@ class cbodega extends cTable {
 		// idsucursal
 		// idtipo_bodega
 		// estado
+		// fecha_insercion
 		// idbodega
 
 		$this->idbodega->ViewValue = $this->idbodega->CurrentValue;
@@ -736,6 +744,11 @@ class cbodega extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
+		// fecha_insercion
+		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+		$this->fecha_insercion->ViewCustomAttributes = "";
+
 		// idbodega
 		$this->idbodega->LinkCustomAttributes = "";
 		$this->idbodega->HrefValue = "";
@@ -760,6 +773,11 @@ class cbodega extends cTable {
 		$this->estado->LinkCustomAttributes = "";
 		$this->estado->HrefValue = "";
 		$this->estado->TooltipValue = "";
+
+		// fecha_insercion
+		$this->fecha_insercion->LinkCustomAttributes = "";
+		$this->fecha_insercion->HrefValue = "";
+		$this->fecha_insercion->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -863,6 +881,12 @@ class cbodega extends cTable {
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
+		// fecha_insercion
+		$this->fecha_insercion->EditAttrs["class"] = "form-control";
+		$this->fecha_insercion->EditCustomAttributes = "";
+		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -892,12 +916,14 @@ class cbodega extends cTable {
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
 					if ($this->idtipo_bodega->Exportable) $Doc->ExportCaption($this->idtipo_bodega);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
 					if ($this->idbodega->Exportable) $Doc->ExportCaption($this->idbodega);
 					if ($this->descripcion->Exportable) $Doc->ExportCaption($this->descripcion);
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
 					if ($this->idtipo_bodega->Exportable) $Doc->ExportCaption($this->idtipo_bodega);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
 				$Doc->EndExportRow();
 			}
@@ -934,12 +960,14 @@ class cbodega extends cTable {
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
 						if ($this->idtipo_bodega->Exportable) $Doc->ExportField($this->idtipo_bodega);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
 						if ($this->idbodega->Exportable) $Doc->ExportField($this->idbodega);
 						if ($this->descripcion->Exportable) $Doc->ExportField($this->descripcion);
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
 						if ($this->idtipo_bodega->Exportable) $Doc->ExportField($this->idtipo_bodega);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}
 					$Doc->EndExportRow();
 				}

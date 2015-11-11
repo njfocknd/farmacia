@@ -552,6 +552,7 @@ class csucursal_add extends csucursal {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->debito->setDbValue($rs->fields('debito'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -566,6 +567,7 @@ class csucursal_add extends csucursal {
 		$this->estado->DbValue = $row['estado'];
 		$this->credito->DbValue = $row['credito'];
 		$this->debito->DbValue = $row['debito'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -617,6 +619,7 @@ class csucursal_add extends csucursal {
 		// estado
 		// credito
 		// debito
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -714,6 +717,11 @@ class csucursal_add extends csucursal {
 			// debito
 			$this->debito->ViewValue = $this->debito->CurrentValue;
 			$this->debito->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";

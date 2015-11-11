@@ -53,6 +53,9 @@ fmarcagrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idfabricante");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $marca->idfabricante->FldCaption(), $marca->idfabricante->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_fecha_insercion");
+			if (elm && !ew_CheckEuroDate(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($marca->fecha_insercion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -70,6 +73,7 @@ fmarcagrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idfabricante", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
 	return true;
 }
 
@@ -174,6 +178,15 @@ $marca_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idfabricante"><div><div id="elh_marca_idfabricante" class="marca_idfabricante">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $marca->idfabricante->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($marca->idfabricante->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($marca->idfabricante->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($marca->fecha_insercion->Visible) { // fecha_insercion ?>
+	<?php if ($marca->SortUrl($marca->fecha_insercion) == "") { ?>
+		<th data-name="fecha_insercion"><div id="elh_marca_fecha_insercion" class="marca_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $marca->fecha_insercion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercion"><div><div id="elh_marca_fecha_insercion" class="marca_fecha_insercion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $marca->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($marca->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($marca->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -415,6 +428,27 @@ if (@$emptywrk) $marca->idfabricante->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($marca->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td data-name="fecha_insercion"<?php echo $marca->fecha_insercion->CellAttributes() ?>>
+<?php if ($marca->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $marca_grid->RowCnt ?>_marca_fecha_insercion" class="form-group marca_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($marca->fecha_insercion->PlaceHolder) ?>" value="<?php echo $marca->fecha_insercion->EditValue ?>"<?php echo $marca->fecha_insercion->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $marca_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($marca->fecha_insercion->OldValue) ?>">
+<?php } ?>
+<?php if ($marca->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $marca_grid->RowCnt ?>_marca_fecha_insercion" class="form-group marca_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($marca->fecha_insercion->PlaceHolder) ?>" value="<?php echo $marca->fecha_insercion->EditValue ?>"<?php echo $marca->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($marca->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $marca->fecha_insercion->ViewAttributes() ?>>
+<?php echo $marca->fecha_insercion->ListViewValue() ?></span>
+<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($marca->fecha_insercion->FormValue) ?>">
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $marca_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($marca->fecha_insercion->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -527,6 +561,22 @@ if (@$emptywrk) $marca->idfabricante->OldValue = "";
 <input type="hidden" data-field="x_idfabricante" name="x<?php echo $marca_grid->RowIndex ?>_idfabricante" id="x<?php echo $marca_grid->RowIndex ?>_idfabricante" value="<?php echo ew_HtmlEncode($marca->idfabricante->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_idfabricante" name="o<?php echo $marca_grid->RowIndex ?>_idfabricante" id="o<?php echo $marca_grid->RowIndex ?>_idfabricante" value="<?php echo ew_HtmlEncode($marca->idfabricante->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($marca->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td>
+<?php if ($marca->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_marca_fecha_insercion" class="form-group marca_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($marca->fecha_insercion->PlaceHolder) ?>" value="<?php echo $marca->fecha_insercion->EditValue ?>"<?php echo $marca->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_marca_fecha_insercion" class="form-group marca_fecha_insercion">
+<span<?php echo $marca->fecha_insercion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $marca->fecha_insercion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $marca_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($marca->fecha_insercion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $marca_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $marca_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($marca->fecha_insercion->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

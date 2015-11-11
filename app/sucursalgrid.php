@@ -65,6 +65,9 @@ fsucursalgrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_debito");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($sucursal->debito->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_fecha_insercion");
+			if (elm && !ew_CheckEuroDate(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($sucursal->fecha_insercion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -85,6 +88,7 @@ fsucursalgrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "idempresa", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "credito", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "debito", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
 	return true;
 }
 
@@ -217,6 +221,15 @@ $sucursal_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="debito"><div><div id="elh_sucursal_debito" class="sucursal_debito">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->debito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->debito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->debito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
+	<?php if ($sucursal->SortUrl($sucursal->fecha_insercion) == "") { ?>
+		<th data-name="fecha_insercion"><div id="elh_sucursal_fecha_insercion" class="sucursal_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $sucursal->fecha_insercion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercion"><div><div id="elh_sucursal_fecha_insercion" class="sucursal_fecha_insercion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -585,6 +598,27 @@ if (@$emptywrk) $sucursal->idempresa->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td data-name="fecha_insercion"<?php echo $sucursal->fecha_insercion->CellAttributes() ?>>
+<?php if ($sucursal->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $sucursal_grid->RowCnt ?>_sucursal_fecha_insercion" class="form-group sucursal_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->PlaceHolder) ?>" value="<?php echo $sucursal->fecha_insercion->EditValue ?>"<?php echo $sucursal->fecha_insercion->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->OldValue) ?>">
+<?php } ?>
+<?php if ($sucursal->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $sucursal_grid->RowCnt ?>_sucursal_fecha_insercion" class="form-group sucursal_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->PlaceHolder) ?>" value="<?php echo $sucursal->fecha_insercion->EditValue ?>"<?php echo $sucursal->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($sucursal->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $sucursal->fecha_insercion->ViewAttributes() ?>>
+<?php echo $sucursal->fecha_insercion->ListViewValue() ?></span>
+<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->FormValue) ?>">
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -777,6 +811,22 @@ if (@$emptywrk) $sucursal->idempresa->OldValue = "";
 <input type="hidden" data-field="x_debito" name="x<?php echo $sucursal_grid->RowIndex ?>_debito" id="x<?php echo $sucursal_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($sucursal->debito->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_debito" name="o<?php echo $sucursal_grid->RowIndex ?>_debito" id="o<?php echo $sucursal_grid->RowIndex ?>_debito" value="<?php echo ew_HtmlEncode($sucursal->debito->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td>
+<?php if ($sucursal->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_sucursal_fecha_insercion" class="form-group sucursal_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->PlaceHolder) ?>" value="<?php echo $sucursal->fecha_insercion->EditValue ?>"<?php echo $sucursal->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_sucursal_fecha_insercion" class="form-group sucursal_fecha_insercion">
+<span<?php echo $sucursal->fecha_insercion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $sucursal->fecha_insercion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $sucursal_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($sucursal->fecha_insercion->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

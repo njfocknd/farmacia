@@ -13,6 +13,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_precio_historialgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -423,6 +424,14 @@ class cproducto_list extends cproducto {
 			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
 				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
 				$GLOBALS["producto_sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'producto_precio_historial'
+			if (@$_POST["grid"] == "fproducto_precio_historialgrid") {
+				if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
+				$GLOBALS["producto_precio_historial_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -904,6 +913,7 @@ class cproducto_list extends cproducto {
 			$this->UpdateSort($this->existencia); // existencia
 			$this->UpdateSort($this->estado); // estado
 			$this->UpdateSort($this->precio_venta); // precio_venta
+			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -952,6 +962,7 @@ class cproducto_list extends cproducto {
 				$this->existencia->setSort("");
 				$this->estado->setSort("");
 				$this->precio_venta->setSort("");
+				$this->fecha_insercion->setSort("");
 			}
 
 			// Reset start position
@@ -1005,6 +1016,14 @@ class cproducto_list extends cproducto {
 		$item->OnLeft = FALSE;
 		$item->ShowInButtonGroup = FALSE;
 		if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
+
+		// "detail_producto_precio_historial"
+		$item = &$this->ListOptions->Add("detail_producto_precio_historial");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_precio_historial') && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
 
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
@@ -1136,6 +1155,31 @@ class cproducto_list extends cproducto {
 			$oListOpt->Body = $body;
 			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
 		}
+
+		// "detail_producto_precio_historial"
+		$oListOpt = &$this->ListOptions->Items["detail_producto_precio_historial"];
+		if ($Security->AllowList(CurrentProjectID() . 'producto_precio_historial')) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_precio_historial", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_precio_historiallist.php?" . EW_TABLE_SHOW_MASTER . "=producto&fk_idproducto=" . strval($this->idproducto->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["producto_precio_historial_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'producto_precio_historial')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_precio_historial")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "producto_precio_historial";
+			}
+			if ($GLOBALS["producto_precio_historial_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'producto_precio_historial')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_precio_historial")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "producto_precio_historial";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
 		if ($this->ShowMultipleDetails) {
 			$body = $Language->Phrase("MultipleMasterDetails");
 			$body = "<div class=\"btn-group\">";
@@ -1201,6 +1245,13 @@ class cproducto_list extends cproducto {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "producto_sucursal";
+		}
+		$item = &$option->Add("detailadd_producto_precio_historial");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=producto_precio_historial") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["producto_precio_historial"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["producto_precio_historial"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'producto_precio_historial') && $Security->CanAdd());
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto_precio_historial";
 		}
 
 		// Add multiple details
@@ -1446,6 +1497,7 @@ class cproducto_list extends cproducto {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1461,6 +1513,7 @@ class cproducto_list extends cproducto {
 		$this->estado->DbValue = $row['estado'];
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1515,6 +1568,7 @@ class cproducto_list extends cproducto {
 		// estado
 		// precio_venta
 		// precio_compra
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1643,6 +1697,11 @@ class cproducto_list extends cproducto {
 			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
 			$this->precio_compra->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idcategoria
 			$this->idcategoria->LinkCustomAttributes = "";
 			$this->idcategoria->HrefValue = "";
@@ -1677,6 +1736,11 @@ class cproducto_list extends cproducto {
 			$this->precio_venta->LinkCustomAttributes = "";
 			$this->precio_venta->HrefValue = "";
 			$this->precio_venta->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -2300,6 +2364,15 @@ $producto_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+	<?php if ($producto->SortUrl($producto->fecha_insercion) == "") { ?>
+		<th data-name="fecha_insercion"><div id="elh_producto_fecha_insercion" class="producto_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $producto->fecha_insercion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->fecha_insercion) ?>',1);"><div id="elh_producto_fecha_insercion" class="producto_fecha_insercion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2405,6 +2478,12 @@ $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 		<td data-name="precio_venta"<?php echo $producto->precio_venta->CellAttributes() ?>>
 <span<?php echo $producto->precio_venta->ViewAttributes() ?>>
 <?php echo $producto->precio_venta->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td data-name="fecha_insercion"<?php echo $producto->fecha_insercion->CellAttributes() ?>>
+<span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto->fecha_insercion->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -612,6 +612,7 @@ class cmunicipio_view extends cmunicipio {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->iddepartamento->setDbValue($rs->fields('iddepartamento'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -622,6 +623,7 @@ class cmunicipio_view extends cmunicipio {
 		$this->nombre->DbValue = $row['nombre'];
 		$this->iddepartamento->DbValue = $row['iddepartamento'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -645,6 +647,7 @@ class cmunicipio_view extends cmunicipio {
 		// nombre
 		// iddepartamento
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -702,6 +705,11 @@ class cmunicipio_view extends cmunicipio {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idmunicipio
 			$this->idmunicipio->LinkCustomAttributes = "";
 			$this->idmunicipio->HrefValue = "";
@@ -721,6 +729,11 @@ class cmunicipio_view extends cmunicipio {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1122,6 +1135,17 @@ $municipio_view->ShowMessage();
 <span id="el_municipio_estado" class="form-group">
 <span<?php echo $municipio->estado->ViewAttributes() ?>>
 <?php echo $municipio->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($municipio->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_municipio_fecha_insercion"><?php echo $municipio->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $municipio->fecha_insercion->CellAttributes() ?>>
+<span id="el_municipio_fecha_insercion" class="form-group">
+<span<?php echo $municipio->fecha_insercion->ViewAttributes() ?>>
+<?php echo $municipio->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

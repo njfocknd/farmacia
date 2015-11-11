@@ -27,6 +27,7 @@ $RootMenu->AddMenuItem(3, "mi_fabricante", $Language->MenuPhrase("3", "MenuText"
 $RootMenu->AddMenuItem(4, "mi_marca", $Language->MenuPhrase("4", "MenuText"), "marcalist.php?cmd=resetall", 3, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}marca'), FALSE);
 $RootMenu->AddMenuItem(7, "mi_producto", $Language->MenuPhrase("7", "MenuText"), "productolist.php?cmd=resetall", 4, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto'), FALSE);
 $RootMenu->AddMenuItem(8, "mi_registro_sanitario", $Language->MenuPhrase("8", "MenuText"), "registro_sanitariolist.php?cmd=resetall", 7, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}registro_sanitario'), FALSE);
+$RootMenu->AddMenuItem(113, "mi_producto_precio_historial", $Language->MenuPhrase("113", "MenuText"), "producto_precio_historiallist.php?cmd=resetall", 7, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto_precio_historial'), FALSE);
 $RootMenu->AddMenuItem(12, "mi_tipo_bodega", $Language->MenuPhrase("12", "MenuText"), "tipo_bodegalist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_bodega'), FALSE);
 $RootMenu->AddMenuItem(18, "mi_tipo_documento", $Language->MenuPhrase("18", "MenuText"), "tipo_documentolist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_documento'), FALSE);
 $RootMenu->AddMenuItem(17, "mi_serie_documento", $Language->MenuPhrase("17", "MenuText"), "serie_documentolist.php", 18, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}serie_documento'), FALSE);

@@ -15,6 +15,7 @@ class csucursal extends cTable {
 	var $estado;
 	var $credito;
 	var $debito;
+	var $fecha_insercion;
 
 	//
 	// Table class constructor
@@ -76,6 +77,11 @@ class csucursal extends cTable {
 		$this->debito = new cField('sucursal', 'sucursal', 'x_debito', 'debito', '`debito`', '`debito`', 131, -1, FALSE, '`debito`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->debito->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
 		$this->fields['debito'] = &$this->debito;
+
+		// fecha_insercion
+		$this->fecha_insercion = new cField('sucursal', 'sucursal', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}
 
 	// Single column sort
@@ -643,6 +649,7 @@ class csucursal extends cTable {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->debito->setDbValue($rs->fields('debito'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Render list row values
@@ -661,6 +668,7 @@ class csucursal extends cTable {
 		// estado
 		// credito
 		// debito
+		// fecha_insercion
 		// idsucursal
 
 		$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
@@ -757,6 +765,11 @@ class csucursal extends cTable {
 		$this->debito->ViewValue = $this->debito->CurrentValue;
 		$this->debito->ViewCustomAttributes = "";
 
+		// fecha_insercion
+		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+		$this->fecha_insercion->ViewCustomAttributes = "";
+
 		// idsucursal
 		$this->idsucursal->LinkCustomAttributes = "";
 		$this->idsucursal->HrefValue = "";
@@ -796,6 +809,11 @@ class csucursal extends cTable {
 		$this->debito->LinkCustomAttributes = "";
 		$this->debito->HrefValue = "";
 		$this->debito->TooltipValue = "";
+
+		// fecha_insercion
+		$this->fecha_insercion->LinkCustomAttributes = "";
+		$this->fecha_insercion->HrefValue = "";
+		$this->fecha_insercion->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -886,6 +904,12 @@ class csucursal extends cTable {
 		$this->debito->PlaceHolder = ew_RemoveHtml($this->debito->FldCaption());
 		if (strval($this->debito->EditValue) <> "" && is_numeric($this->debito->EditValue)) $this->debito->EditValue = ew_FormatNumber($this->debito->EditValue, -2, -1, -2, 0);
 
+		// fecha_insercion
+		$this->fecha_insercion->EditAttrs["class"] = "form-control";
+		$this->fecha_insercion->EditCustomAttributes = "";
+		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -918,6 +942,7 @@ class csucursal extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->credito->Exportable) $Doc->ExportCaption($this->credito);
 					if ($this->debito->Exportable) $Doc->ExportCaption($this->debito);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
@@ -927,6 +952,7 @@ class csucursal extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->credito->Exportable) $Doc->ExportCaption($this->credito);
 					if ($this->debito->Exportable) $Doc->ExportCaption($this->debito);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
 				$Doc->EndExportRow();
 			}
@@ -966,6 +992,7 @@ class csucursal extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->credito->Exportable) $Doc->ExportField($this->credito);
 						if ($this->debito->Exportable) $Doc->ExportField($this->debito);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
@@ -975,6 +1002,7 @@ class csucursal extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->credito->Exportable) $Doc->ExportField($this->credito);
 						if ($this->debito->Exportable) $Doc->ExportField($this->debito);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}
 					$Doc->EndExportRow();
 				}

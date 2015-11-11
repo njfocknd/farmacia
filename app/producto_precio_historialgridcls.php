@@ -1,4 +1,4 @@
-<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_precio_historialinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php
 
@@ -6,9 +6,9 @@
 // Page class
 //
 
-$producto_grid = NULL; // Initialize page object first
+$producto_precio_historial_grid = NULL; // Initialize page object first
 
-class cproducto_grid extends cproducto {
+class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 	// Page ID
 	var $PageID = 'grid';
@@ -17,13 +17,13 @@ class cproducto_grid extends cproducto {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'producto';
+	var $TableName = 'producto_precio_historial';
 
 	// Page object name
-	var $PageObjName = 'producto_grid';
+	var $PageObjName = 'producto_precio_historial_grid';
 
 	// Grid form hidden field names
-	var $FormName = 'fproductogrid';
+	var $FormName = 'fproducto_precio_historialgrid';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -41,9 +41,6 @@ class cproducto_grid extends cproducto {
 		if ($this->UseTokenInUrl) $PageUrl .= "t=" . $this->TableVar . "&"; // Add page token
 		return $PageUrl;
 	}
-	var $AuditTrailOnAdd = TRUE;
-	var $AuditTrailOnEdit = TRUE;
-	var $AuditTrailOnDelete = TRUE;
 
 	// Message
 	function getMessage() {
@@ -203,12 +200,12 @@ class cproducto_grid extends cproducto {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (producto)
-		if (!isset($GLOBALS["producto"]) || get_class($GLOBALS["producto"]) == "cproducto") {
-			$GLOBALS["producto"] = &$this;
+		// Table object (producto_precio_historial)
+		if (!isset($GLOBALS["producto_precio_historial"]) || get_class($GLOBALS["producto_precio_historial"]) == "cproducto_precio_historial") {
+			$GLOBALS["producto_precio_historial"] = &$this;
 
 //			$GLOBALS["MasterTable"] = &$GLOBALS["Table"];
-//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["producto"];
+//			if (!isset($GLOBALS["Table"])) $GLOBALS["Table"] = &$GLOBALS["producto_precio_historial"];
 
 		}
 
@@ -224,7 +221,7 @@ class cproducto_grid extends cproducto {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'producto', TRUE);
+			define("EW_TABLE_NAME", 'producto_precio_historial', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -278,6 +275,7 @@ class cproducto_grid extends cproducto {
 
 		// Set up list options
 		$this->SetupListOptions();
+		$this->idproducto_precio_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -294,38 +292,6 @@ class cproducto_grid extends cproducto {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'registro_sanitario'
-			if (@$_POST["grid"] == "fregistro_sanitariogrid") {
-				if (!isset($GLOBALS["registro_sanitario_grid"])) $GLOBALS["registro_sanitario_grid"] = new cregistro_sanitario_grid;
-				$GLOBALS["registro_sanitario_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'producto_bodega'
-			if (@$_POST["grid"] == "fproducto_bodegagrid") {
-				if (!isset($GLOBALS["producto_bodega_grid"])) $GLOBALS["producto_bodega_grid"] = new cproducto_bodega_grid;
-				$GLOBALS["producto_bodega_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'producto_sucursal'
-			if (@$_POST["grid"] == "fproducto_sucursalgrid") {
-				if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid;
-				$GLOBALS["producto_sucursal_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'producto_precio_historial'
-			if (@$_POST["grid"] == "fproducto_precio_historialgrid") {
-				if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
-				$GLOBALS["producto_precio_historial_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -352,13 +318,13 @@ class cproducto_grid extends cproducto {
 		global $conn, $gsExportFile, $gTmpImages;
 
 		// Export
-		global $EW_EXPORT, $producto;
+		global $EW_EXPORT, $producto_precio_historial;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($producto);
+				$doc = new $class($producto_precio_historial);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -489,33 +455,17 @@ class cproducto_grid extends cproducto {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "marca") {
-			global $marca;
-			$rsmaster = $marca->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "producto") {
+			global $producto;
+			$rsmaster = $producto->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("marcalist.php"); // Return to master page
+				$this->Page_Terminate("productolist.php"); // Return to master page
 			} else {
-				$marca->LoadListRowValues($rsmaster);
-				$marca->RowType = EW_ROWTYPE_MASTER; // Master row
-				$marca->RenderListRow();
-				$rsmaster->Close();
-			}
-		}
-
-		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "categoria") {
-			global $categoria;
-			$rsmaster = $categoria->LoadRs($this->DbMasterFilter);
-			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
-			if (!$this->MasterRecordExists) {
-				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("categorialist.php"); // Return to master page
-			} else {
-				$categoria->LoadListRowValues($rsmaster);
-				$categoria->RowType = EW_ROWTYPE_MASTER; // Master row
-				$categoria->RenderListRow();
+				$producto->LoadListRowValues($rsmaster);
+				$producto->RowType = EW_ROWTYPE_MASTER; // Master row
+				$producto->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -537,6 +487,7 @@ class cproducto_grid extends cproducto {
 	//  Exit inline mode
 	function ClearInlineMode() {
 		$this->precio_venta->FormValue = ""; // Clear form value
+		$this->precio_compra->FormValue = ""; // Clear form value
 		$this->LastAction = $this->CurrentAction; // Save last action
 		$this->CurrentAction = ""; // Clear action
 		$_SESSION[EW_SESSION_INLINE_MODE] = ""; // Clear inline mode
@@ -573,7 +524,6 @@ class cproducto_grid extends cproducto {
 				$this->setFailureMessage($Language->Phrase("GridEditCancelled")); // Set grid edit cancelled message
 			return FALSE;
 		}
-		if ($this->AuditTrailOnEdit) $this->WriteAuditTrailDummy($Language->Phrase("BatchUpdateBegin")); // Batch update begin
 		$sKey = "";
 
 		// Update row index and get row key
@@ -639,10 +589,8 @@ class cproducto_grid extends cproducto {
 
 			// Call Grid_Updated event
 			$this->Grid_Updated($rsold, $rsnew);
-			if ($this->AuditTrailOnEdit) $this->WriteAuditTrailDummy($Language->Phrase("BatchUpdateSuccess")); // Batch update success
 			$this->ClearInlineMode(); // Clear inline edit mode
 		} else {
-			if ($this->AuditTrailOnEdit) $this->WriteAuditTrailDummy($Language->Phrase("BatchUpdateRollback")); // Batch update rollback
 			if ($this->getFailureMessage() == "")
 				$this->setFailureMessage($Language->Phrase("UpdateFailed")); // Set update failed message
 		}
@@ -680,8 +628,8 @@ class cproducto_grid extends cproducto {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idproducto->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idproducto->FormValue))
+			$this->idproducto_precio_historial->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idproducto_precio_historial->FormValue))
 				return FALSE;
 		}
 		return TRUE;
@@ -704,7 +652,6 @@ class cproducto_grid extends cproducto {
 		// Init key filter
 		$sWrkFilter = "";
 		$addcnt = 0;
-		if ($this->AuditTrailOnAdd) $this->WriteAuditTrailDummy($Language->Phrase("BatchInsertBegin")); // Batch insert begin
 		$sKey = "";
 
 		// Get row count
@@ -739,7 +686,7 @@ class cproducto_grid extends cproducto {
 				}
 				if ($bGridInsert) {
 					if ($sKey <> "") $sKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-					$sKey .= $this->idproducto->CurrentValue;
+					$sKey .= $this->idproducto_precio_historial->CurrentValue;
 
 					// Add filter for this record
 					$sFilter = $this->KeyFilter();
@@ -766,10 +713,8 @@ class cproducto_grid extends cproducto {
 
 			// Call Grid_Inserted event
 			$this->Grid_Inserted($rsnew);
-			if ($this->AuditTrailOnAdd) $this->WriteAuditTrailDummy($Language->Phrase("BatchInsertSuccess")); // Batch insert success
 			$this->ClearInlineMode(); // Clear grid add mode
 		} else {
-			if ($this->AuditTrailOnAdd) $this->WriteAuditTrailDummy($Language->Phrase("BatchInsertRollback")); // Batch insert rollback
 			if ($this->getFailureMessage() == "") {
 				$this->setFailureMessage($Language->Phrase("InsertFailed")); // Set insert failed message
 			}
@@ -780,19 +725,15 @@ class cproducto_grid extends cproducto {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
-		if ($objForm->HasValue("x_idcategoria") && $objForm->HasValue("o_idcategoria") && $this->idcategoria->CurrentValue <> $this->idcategoria->OldValue)
+		if ($objForm->HasValue("x_idproducto") && $objForm->HasValue("o_idproducto") && $this->idproducto->CurrentValue <> $this->idproducto->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_idmarca") && $objForm->HasValue("o_idmarca") && $this->idmarca->CurrentValue <> $this->idmarca->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_nombre") && $objForm->HasValue("o_nombre") && $this->nombre->CurrentValue <> $this->nombre->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_idpais") && $objForm->HasValue("o_idpais") && $this->idpais->CurrentValue <> $this->idpais->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_existencia") && $objForm->HasValue("o_existencia") && $this->existencia->CurrentValue <> $this->existencia->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
+		if ($objForm->HasValue("x_fecha") && $objForm->HasValue("o_fecha") && $this->fecha->CurrentValue <> $this->fecha->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_precio_venta") && $objForm->HasValue("o_precio_venta") && $this->precio_venta->CurrentValue <> $this->precio_venta->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_precio_compra") && $objForm->HasValue("o_precio_compra") && $this->precio_compra->CurrentValue <> $this->precio_compra->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_fecha_insercion") && $objForm->HasValue("o_fecha_insercion") && $this->fecha_insercion->CurrentValue <> $this->fecha_insercion->OldValue)
 			return FALSE;
@@ -885,6 +826,7 @@ class cproducto_grid extends cproducto {
 			if ($this->getSqlOrderBy() <> "") {
 				$sOrderBy = $this->getSqlOrderBy();
 				$this->setSessionOrderBy($sOrderBy);
+				$this->idproducto_precio_historial->setSort("DESC");
 			}
 		}
 	}
@@ -903,8 +845,7 @@ class cproducto_grid extends cproducto {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->idmarca->setSessionValue("");
-				$this->idcategoria->setSessionValue("");
+				$this->idproducto->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -990,7 +931,7 @@ class cproducto_grid extends cproducto {
 			}
 		}
 		if ($this->CurrentMode == "edit" && is_numeric($this->RowIndex)) {
-			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idproducto->CurrentValue . "\">";
+			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->idproducto_precio_historial->CurrentValue . "\">";
 		}
 		$this->RenderListOptionsExt();
 	}
@@ -999,7 +940,7 @@ class cproducto_grid extends cproducto {
 	function SetRecordKey(&$key, $rs) {
 		$key = "";
 		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs->fields('idproducto');
+		$key .= $rs->fields('idproducto_precio_historial');
 	}
 
 	// Set up other options
@@ -1026,7 +967,7 @@ class cproducto_grid extends cproducto {
 				$option->UseImageAndText = TRUE;
 				$item = &$option->Add("addblankrow");
 				$item->Body = "<a class=\"ewAddEdit ewAddBlankRow\" title=\"" . ew_HtmlTitle($Language->Phrase("AddBlankRow")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddBlankRow")) . "\" href=\"javascript:void(0);\" onclick=\"ew_AddGridRow(this);\">" . $Language->Phrase("AddBlankRow") . "</a>";
-				$item->Visible = $Security->CanAdd();
+				$item->Visible = FALSE;
 				$this->ShowOtherOptions = $item->Visible;
 			}
 		}
@@ -1081,20 +1022,18 @@ class cproducto_grid extends cproducto {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->idcategoria->CurrentValue = 1;
-		$this->idcategoria->OldValue = $this->idcategoria->CurrentValue;
-		$this->idmarca->CurrentValue = 1;
-		$this->idmarca->OldValue = $this->idmarca->CurrentValue;
-		$this->nombre->CurrentValue = NULL;
-		$this->nombre->OldValue = $this->nombre->CurrentValue;
-		$this->idpais->CurrentValue = NULL;
-		$this->idpais->OldValue = $this->idpais->CurrentValue;
-		$this->existencia->CurrentValue = 0;
-		$this->existencia->OldValue = $this->existencia->CurrentValue;
-		$this->estado->CurrentValue = "Activo";
-		$this->estado->OldValue = $this->estado->CurrentValue;
+		$this->idproducto_precio_historial->CurrentValue = NULL;
+		$this->idproducto_precio_historial->OldValue = $this->idproducto_precio_historial->CurrentValue;
+		$this->idproducto->CurrentValue = 1;
+		$this->idproducto->OldValue = $this->idproducto->CurrentValue;
+		$this->fecha->CurrentValue = NULL;
+		$this->fecha->OldValue = $this->fecha->CurrentValue;
 		$this->precio_venta->CurrentValue = 0.00;
 		$this->precio_venta->OldValue = $this->precio_venta->CurrentValue;
+		$this->precio_compra->CurrentValue = 0.00;
+		$this->precio_compra->OldValue = $this->precio_compra->CurrentValue;
+		$this->estado->CurrentValue = "Activo";
+		$this->estado->OldValue = $this->estado->CurrentValue;
 		$this->fecha_insercion->CurrentValue = NULL;
 		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 	}
@@ -1105,55 +1044,47 @@ class cproducto_grid extends cproducto {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
-		if (!$this->idcategoria->FldIsDetailKey) {
-			$this->idcategoria->setFormValue($objForm->GetValue("x_idcategoria"));
+		if (!$this->idproducto_precio_historial->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->idproducto_precio_historial->setFormValue($objForm->GetValue("x_idproducto_precio_historial"));
+		if (!$this->idproducto->FldIsDetailKey) {
+			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
 		}
-		$this->idcategoria->setOldValue($objForm->GetValue("o_idcategoria"));
-		if (!$this->idmarca->FldIsDetailKey) {
-			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
+		$this->idproducto->setOldValue($objForm->GetValue("o_idproducto"));
+		if (!$this->fecha->FldIsDetailKey) {
+			$this->fecha->setFormValue($objForm->GetValue("x_fecha"));
+			$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		}
-		$this->idmarca->setOldValue($objForm->GetValue("o_idmarca"));
-		if (!$this->nombre->FldIsDetailKey) {
-			$this->nombre->setFormValue($objForm->GetValue("x_nombre"));
-		}
-		$this->nombre->setOldValue($objForm->GetValue("o_nombre"));
-		if (!$this->idpais->FldIsDetailKey) {
-			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
-		}
-		$this->idpais->setOldValue($objForm->GetValue("o_idpais"));
-		if (!$this->existencia->FldIsDetailKey) {
-			$this->existencia->setFormValue($objForm->GetValue("x_existencia"));
-		}
-		$this->existencia->setOldValue($objForm->GetValue("o_existencia"));
-		if (!$this->estado->FldIsDetailKey) {
-			$this->estado->setFormValue($objForm->GetValue("x_estado"));
-		}
-		$this->estado->setOldValue($objForm->GetValue("o_estado"));
+		$this->fecha->setOldValue($objForm->GetValue("o_fecha"));
 		if (!$this->precio_venta->FldIsDetailKey) {
 			$this->precio_venta->setFormValue($objForm->GetValue("x_precio_venta"));
 		}
 		$this->precio_venta->setOldValue($objForm->GetValue("o_precio_venta"));
+		if (!$this->precio_compra->FldIsDetailKey) {
+			$this->precio_compra->setFormValue($objForm->GetValue("x_precio_compra"));
+		}
+		$this->precio_compra->setOldValue($objForm->GetValue("o_precio_compra"));
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
+		}
+		$this->estado->setOldValue($objForm->GetValue("o_estado"));
 		if (!$this->fecha_insercion->FldIsDetailKey) {
 			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
 			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 		}
 		$this->fecha_insercion->setOldValue($objForm->GetValue("o_fecha_insercion"));
-		if (!$this->idproducto->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idproducto->CurrentValue = $this->idproducto->FormValue;
-		$this->idcategoria->CurrentValue = $this->idcategoria->FormValue;
-		$this->idmarca->CurrentValue = $this->idmarca->FormValue;
-		$this->nombre->CurrentValue = $this->nombre->FormValue;
-		$this->idpais->CurrentValue = $this->idpais->FormValue;
-		$this->existencia->CurrentValue = $this->existencia->FormValue;
-		$this->estado->CurrentValue = $this->estado->FormValue;
+			$this->idproducto_precio_historial->CurrentValue = $this->idproducto_precio_historial->FormValue;
+		$this->idproducto->CurrentValue = $this->idproducto->FormValue;
+		$this->fecha->CurrentValue = $this->fecha->FormValue;
+		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		$this->precio_venta->CurrentValue = $this->precio_venta->FormValue;
+		$this->precio_compra->CurrentValue = $this->precio_compra->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
 		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
 		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 	}
@@ -1204,15 +1135,12 @@ class cproducto_grid extends cproducto {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
+		$this->idproducto_precio_historial->setDbValue($rs->fields('idproducto_precio_historial'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
-		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
-		$this->idmarca->setDbValue($rs->fields('idmarca'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->idpais->setDbValue($rs->fields('idpais'));
-		$this->existencia->setDbValue($rs->fields('existencia'));
-		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
+		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
@@ -1220,15 +1148,12 @@ class cproducto_grid extends cproducto {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
+		$this->idproducto_precio_historial->DbValue = $row['idproducto_precio_historial'];
 		$this->idproducto->DbValue = $row['idproducto'];
-		$this->idcategoria->DbValue = $row['idcategoria'];
-		$this->idmarca->DbValue = $row['idmarca'];
-		$this->nombre->DbValue = $row['nombre'];
-		$this->idpais->DbValue = $row['idpais'];
-		$this->existencia->DbValue = $row['existencia'];
-		$this->estado->DbValue = $row['estado'];
+		$this->fecha->DbValue = $row['fecha'];
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
+		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
@@ -1241,7 +1166,7 @@ class cproducto_grid extends cproducto {
 		$cnt = count($arKeys);
 		if ($cnt >= 1) {
 			if (strval($arKeys[0]) <> "")
-				$this->idproducto->CurrentValue = strval($arKeys[0]); // idproducto
+				$this->idproducto_precio_historial->CurrentValue = strval($arKeys[0]); // idproducto_precio_historial
 			else
 				$bValidKey = FALSE;
 		} else {
@@ -1271,120 +1196,66 @@ class cproducto_grid extends cproducto {
 		if ($this->precio_venta->FormValue == $this->precio_venta->CurrentValue && is_numeric(ew_StrToFloat($this->precio_venta->CurrentValue)))
 			$this->precio_venta->CurrentValue = ew_StrToFloat($this->precio_venta->CurrentValue);
 
+		// Convert decimal values if posted back
+		if ($this->precio_compra->FormValue == $this->precio_compra->CurrentValue && is_numeric(ew_StrToFloat($this->precio_compra->CurrentValue)))
+			$this->precio_compra->CurrentValue = ew_StrToFloat($this->precio_compra->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
+		// idproducto_precio_historial
 		// idproducto
-		// idcategoria
-		// idmarca
-		// nombre
-		// idpais
-		// existencia
-		// estado
+		// fecha
 		// precio_venta
 		// precio_compra
+		// estado
 		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->ViewValue = $this->idproducto_precio_historial->CurrentValue;
+			$this->idproducto_precio_historial->ViewCustomAttributes = "";
+
 			// idproducto
-			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+				}
+			} else {
+				$this->idproducto->ViewValue = NULL;
+			}
 			$this->idproducto->ViewCustomAttributes = "";
 
-			// idcategoria
-			if (strval($this->idcategoria->CurrentValue) <> "") {
-				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
 
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
-				}
-			} else {
-				$this->idcategoria->ViewValue = NULL;
-			}
-			$this->idcategoria->ViewCustomAttributes = "";
+			// precio_venta
+			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewCustomAttributes = "";
 
-			// idmarca
-			if (strval($this->idmarca->CurrentValue) <> "") {
-				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `marca`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmarca->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-				}
-			} else {
-				$this->idmarca->ViewValue = NULL;
-			}
-			$this->idmarca->ViewCustomAttributes = "";
-
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
-
-			// idpais
-			if (strval($this->idpais->CurrentValue) <> "") {
-				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpais->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idpais->ViewValue = $this->idpais->CurrentValue;
-				}
-			} else {
-				$this->idpais->ViewValue = NULL;
-			}
-			$this->idpais->ViewCustomAttributes = "";
-
-			// existencia
-			$this->existencia->ViewValue = $this->existencia->CurrentValue;
-			$this->existencia->ViewCustomAttributes = "";
+			// precio_compra
+			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1403,55 +1274,40 @@ class cproducto_grid extends cproducto {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
-			// precio_venta
-			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
-			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
-			$this->precio_venta->ViewCustomAttributes = "";
-
-			// precio_compra
-			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
-			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
-			$this->precio_compra->ViewCustomAttributes = "";
-
 			// fecha_insercion
 			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// idcategoria
-			$this->idcategoria->LinkCustomAttributes = "";
-			$this->idcategoria->HrefValue = "";
-			$this->idcategoria->TooltipValue = "";
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->LinkCustomAttributes = "";
+			$this->idproducto_precio_historial->HrefValue = "";
+			$this->idproducto_precio_historial->TooltipValue = "";
 
-			// idmarca
-			$this->idmarca->LinkCustomAttributes = "";
-			$this->idmarca->HrefValue = "";
-			$this->idmarca->TooltipValue = "";
+			// idproducto
+			$this->idproducto->LinkCustomAttributes = "";
+			$this->idproducto->HrefValue = "";
+			$this->idproducto->TooltipValue = "";
 
-			// nombre
-			$this->nombre->LinkCustomAttributes = "";
-			$this->nombre->HrefValue = "";
-			$this->nombre->TooltipValue = "";
-
-			// idpais
-			$this->idpais->LinkCustomAttributes = "";
-			$this->idpais->HrefValue = "";
-			$this->idpais->TooltipValue = "";
-
-			// existencia
-			$this->existencia->LinkCustomAttributes = "";
-			$this->existencia->HrefValue = "";
-			$this->existencia->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
 
 			// precio_venta
 			$this->precio_venta->LinkCustomAttributes = "";
 			$this->precio_venta->HrefValue = "";
 			$this->precio_venta->TooltipValue = "";
+
+			// precio_compra
+			$this->precio_compra->LinkCustomAttributes = "";
+			$this->precio_compra->HrefValue = "";
+			$this->precio_compra->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->LinkCustomAttributes = "";
@@ -1459,172 +1315,63 @@ class cproducto_grid extends cproducto {
 			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
-			// idcategoria
-			$this->idcategoria->EditAttrs["class"] = "form-control";
-			$this->idcategoria->EditCustomAttributes = "";
-			if ($this->idcategoria->getSessionValue() <> "") {
-				$this->idcategoria->CurrentValue = $this->idcategoria->getSessionValue();
-				$this->idcategoria->OldValue = $this->idcategoria->CurrentValue;
-			if (strval($this->idcategoria->CurrentValue) <> "") {
-				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+			// idproducto_precio_historial
+			// idproducto
+
+			$this->idproducto->EditAttrs["class"] = "form-control";
+			$this->idproducto->EditCustomAttributes = "";
+			if ($this->idproducto->getSessionValue() <> "") {
+				$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
+				$this->idproducto->OldValue = $this->idproducto->CurrentValue;
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 				}
 			} else {
-				$this->idcategoria->ViewValue = NULL;
+				$this->idproducto->ViewValue = NULL;
 			}
-			$this->idcategoria->ViewCustomAttributes = "";
+			$this->idproducto->ViewCustomAttributes = "";
 			} else {
-			if (trim(strval($this->idcategoria->CurrentValue)) == "") {
+			if (trim(strval($this->idproducto->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
 			}
-			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `categoria`";
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto`";
 			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$rswrk = $conn->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idcategoria->EditValue = $arwrk;
+			$this->idproducto->EditValue = $arwrk;
 			}
 
-			// idmarca
-			$this->idmarca->EditAttrs["class"] = "form-control";
-			$this->idmarca->EditCustomAttributes = "";
-			if ($this->idmarca->getSessionValue() <> "") {
-				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
-				$this->idmarca->OldValue = $this->idmarca->CurrentValue;
-			if (strval($this->idmarca->CurrentValue) <> "") {
-				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `marca`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmarca->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-				}
-			} else {
-				$this->idmarca->ViewValue = NULL;
-			}
-			$this->idmarca->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idmarca->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `marca`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idmarca->EditValue = $arwrk;
-			}
-
-			// nombre
-			$this->nombre->EditAttrs["class"] = "form-control";
-			$this->nombre->EditCustomAttributes = "";
-			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
-			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
-
-			// idpais
-			$this->idpais->EditAttrs["class"] = "form-control";
-			$this->idpais->EditCustomAttributes = "";
-			if (trim(strval($this->idpais->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idpais->EditValue = $arwrk;
-
-			// existencia
-			$this->existencia->EditAttrs["class"] = "form-control";
-			$this->existencia->EditCustomAttributes = "";
-			$this->existencia->EditValue = ew_HtmlEncode($this->existencia->CurrentValue);
-			$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
-
-			// estado
-			$this->estado->EditAttrs["class"] = "form-control";
-			$this->estado->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-			$this->estado->EditValue = $arwrk;
+			// fecha
+			$this->fecha->EditAttrs["class"] = "form-control";
+			$this->fecha->EditCustomAttributes = "";
+			$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
+			$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
 
 			// precio_venta
 			$this->precio_venta->EditAttrs["class"] = "form-control";
@@ -1636,6 +1383,25 @@ class cproducto_grid extends cproducto {
 			$this->precio_venta->OldValue = $this->precio_venta->EditValue;
 			}
 
+			// precio_compra
+			$this->precio_compra->EditAttrs["class"] = "form-control";
+			$this->precio_compra->EditCustomAttributes = "";
+			$this->precio_compra->EditValue = ew_HtmlEncode($this->precio_compra->CurrentValue);
+			$this->precio_compra->PlaceHolder = ew_RemoveHtml($this->precio_compra->FldCaption());
+			if (strval($this->precio_compra->EditValue) <> "" && is_numeric($this->precio_compra->EditValue)) {
+			$this->precio_compra->EditValue = ew_FormatNumber($this->precio_compra->EditValue, -2, -2, -2, -2);
+			$this->precio_compra->OldValue = $this->precio_compra->EditValue;
+			}
+
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
+
 			// fecha_insercion
 			$this->fecha_insercion->EditAttrs["class"] = "form-control";
 			$this->fecha_insercion->EditCustomAttributes = "";
@@ -1643,198 +1409,90 @@ class cproducto_grid extends cproducto {
 			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
 			// Edit refer script
-			// idcategoria
+			// idproducto_precio_historial
 
-			$this->idcategoria->HrefValue = "";
+			$this->idproducto_precio_historial->HrefValue = "";
 
-			// idmarca
-			$this->idmarca->HrefValue = "";
+			// idproducto
+			$this->idproducto->HrefValue = "";
 
-			// nombre
-			$this->nombre->HrefValue = "";
-
-			// idpais
-			$this->idpais->HrefValue = "";
-
-			// existencia
-			$this->existencia->HrefValue = "";
-
-			// estado
-			$this->estado->HrefValue = "";
+			// fecha
+			$this->fecha->HrefValue = "";
 
 			// precio_venta
 			$this->precio_venta->HrefValue = "";
+
+			// precio_compra
+			$this->precio_compra->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idcategoria
-			$this->idcategoria->EditAttrs["class"] = "form-control";
-			$this->idcategoria->EditCustomAttributes = "";
-			if ($this->idcategoria->getSessionValue() <> "") {
-				$this->idcategoria->CurrentValue = $this->idcategoria->getSessionValue();
-				$this->idcategoria->OldValue = $this->idcategoria->CurrentValue;
-			if (strval($this->idcategoria->CurrentValue) <> "") {
-				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `categoria`";
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->EditAttrs["class"] = "form-control";
+			$this->idproducto_precio_historial->EditCustomAttributes = "";
+			$this->idproducto_precio_historial->EditValue = $this->idproducto_precio_historial->CurrentValue;
+			$this->idproducto_precio_historial->ViewCustomAttributes = "";
+
+			// idproducto
+			$this->idproducto->EditAttrs["class"] = "form-control";
+			$this->idproducto->EditCustomAttributes = "";
+			if ($this->idproducto->getSessionValue() <> "") {
+				$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
+				$this->idproducto->OldValue = $this->idproducto->CurrentValue;
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idcategoria->ViewValue = $rswrk->fields('DispFld');
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idcategoria->ViewValue = $this->idcategoria->CurrentValue;
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 				}
 			} else {
-				$this->idcategoria->ViewValue = NULL;
+				$this->idproducto->ViewValue = NULL;
 			}
-			$this->idcategoria->ViewCustomAttributes = "";
+			$this->idproducto->ViewCustomAttributes = "";
 			} else {
-			if (trim(strval($this->idcategoria->CurrentValue)) == "") {
+			if (trim(strval($this->idproducto->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`idcategoria`" . ew_SearchString("=", $this->idcategoria->CurrentValue, EW_DATATYPE_NUMBER);
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
 			}
-			$sSqlWrk = "SELECT `idcategoria`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `categoria`";
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto`";
 			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idcategoria, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 			$rswrk = $conn->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idcategoria->EditValue = $arwrk;
+			$this->idproducto->EditValue = $arwrk;
 			}
 
-			// idmarca
-			$this->idmarca->EditAttrs["class"] = "form-control";
-			$this->idmarca->EditCustomAttributes = "";
-			if ($this->idmarca->getSessionValue() <> "") {
-				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
-				$this->idmarca->OldValue = $this->idmarca->CurrentValue;
-			if (strval($this->idmarca->CurrentValue) <> "") {
-				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `marca`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idmarca->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-				}
-			} else {
-				$this->idmarca->ViewValue = NULL;
-			}
-			$this->idmarca->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->idmarca->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idmarca`" . ew_SearchString("=", $this->idmarca->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idmarca`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `marca`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idmarca, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idmarca->EditValue = $arwrk;
-			}
-
-			// nombre
-			$this->nombre->EditAttrs["class"] = "form-control";
-			$this->nombre->EditCustomAttributes = "";
-			$this->nombre->EditValue = ew_HtmlEncode($this->nombre->CurrentValue);
-			$this->nombre->PlaceHolder = ew_RemoveHtml($this->nombre->FldCaption());
-
-			// idpais
-			$this->idpais->EditAttrs["class"] = "form-control";
-			$this->idpais->EditCustomAttributes = "";
-			if (trim(strval($this->idpais->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			}
-			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `pais`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
-			$this->idpais->EditValue = $arwrk;
-
-			// existencia
-			$this->existencia->EditAttrs["class"] = "form-control";
-			$this->existencia->EditCustomAttributes = "";
-			$this->existencia->EditValue = ew_HtmlEncode($this->existencia->CurrentValue);
-			$this->existencia->PlaceHolder = ew_RemoveHtml($this->existencia->FldCaption());
-
-			// estado
-			$this->estado->EditAttrs["class"] = "form-control";
-			$this->estado->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-			$this->estado->EditValue = $arwrk;
+			// fecha
+			$this->fecha->EditAttrs["class"] = "form-control";
+			$this->fecha->EditCustomAttributes = "";
+			$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
+			$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
 
 			// precio_venta
 			$this->precio_venta->EditAttrs["class"] = "form-control";
@@ -1846,6 +1504,25 @@ class cproducto_grid extends cproducto {
 			$this->precio_venta->OldValue = $this->precio_venta->EditValue;
 			}
 
+			// precio_compra
+			$this->precio_compra->EditAttrs["class"] = "form-control";
+			$this->precio_compra->EditCustomAttributes = "";
+			$this->precio_compra->EditValue = ew_HtmlEncode($this->precio_compra->CurrentValue);
+			$this->precio_compra->PlaceHolder = ew_RemoveHtml($this->precio_compra->FldCaption());
+			if (strval($this->precio_compra->EditValue) <> "" && is_numeric($this->precio_compra->EditValue)) {
+			$this->precio_compra->EditValue = ew_FormatNumber($this->precio_compra->EditValue, -2, -2, -2, -2);
+			$this->precio_compra->OldValue = $this->precio_compra->EditValue;
+			}
+
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
+
 			// fecha_insercion
 			$this->fecha_insercion->EditAttrs["class"] = "form-control";
 			$this->fecha_insercion->EditCustomAttributes = "";
@@ -1853,27 +1530,24 @@ class cproducto_grid extends cproducto {
 			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
 			// Edit refer script
-			// idcategoria
+			// idproducto_precio_historial
 
-			$this->idcategoria->HrefValue = "";
+			$this->idproducto_precio_historial->HrefValue = "";
 
-			// idmarca
-			$this->idmarca->HrefValue = "";
+			// idproducto
+			$this->idproducto->HrefValue = "";
 
-			// nombre
-			$this->nombre->HrefValue = "";
-
-			// idpais
-			$this->idpais->HrefValue = "";
-
-			// existencia
-			$this->existencia->HrefValue = "";
-
-			// estado
-			$this->estado->HrefValue = "";
+			// fecha
+			$this->fecha->HrefValue = "";
 
 			// precio_venta
 			$this->precio_venta->HrefValue = "";
+
+			// precio_compra
+			$this->precio_compra->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->HrefValue = "";
@@ -1896,32 +1570,26 @@ class cproducto_grid extends cproducto {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->idcategoria->FldIsDetailKey && !is_null($this->idcategoria->FormValue) && $this->idcategoria->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idcategoria->FldCaption(), $this->idcategoria->ReqErrMsg));
+		if (!$this->idproducto->FldIsDetailKey && !is_null($this->idproducto->FormValue) && $this->idproducto->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idproducto->FldCaption(), $this->idproducto->ReqErrMsg));
 		}
-		if (!$this->idmarca->FldIsDetailKey && !is_null($this->idmarca->FormValue) && $this->idmarca->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idmarca->FldCaption(), $this->idmarca->ReqErrMsg));
-		}
-		if (!$this->nombre->FldIsDetailKey && !is_null($this->nombre->FormValue) && $this->nombre->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->nombre->FldCaption(), $this->nombre->ReqErrMsg));
-		}
-		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
-		}
-		if (!$this->existencia->FldIsDetailKey && !is_null($this->existencia->FormValue) && $this->existencia->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->existencia->FldCaption(), $this->existencia->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->existencia->FormValue)) {
-			ew_AddMessage($gsFormError, $this->existencia->FldErrMsg());
-		}
-		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		if (!ew_CheckEuroDate($this->fecha->FormValue)) {
+			ew_AddMessage($gsFormError, $this->fecha->FldErrMsg());
 		}
 		if (!$this->precio_venta->FldIsDetailKey && !is_null($this->precio_venta->FormValue) && $this->precio_venta->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->precio_venta->FldCaption(), $this->precio_venta->ReqErrMsg));
 		}
 		if (!ew_CheckNumber($this->precio_venta->FormValue)) {
 			ew_AddMessage($gsFormError, $this->precio_venta->FldErrMsg());
+		}
+		if (!$this->precio_compra->FldIsDetailKey && !is_null($this->precio_compra->FormValue) && $this->precio_compra->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->precio_compra->FldCaption(), $this->precio_compra->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->precio_compra->FormValue)) {
+			ew_AddMessage($gsFormError, $this->precio_compra->FldErrMsg());
+		}
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
 			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
@@ -1965,7 +1633,6 @@ class cproducto_grid extends cproducto {
 
 		}
 		$rows = ($rs) ? $rs->GetRows() : array();
-		if ($this->AuditTrailOnDelete) $this->WriteAuditTrailDummy($Language->Phrase("BatchDeleteBegin")); // Batch delete begin
 
 		// Clone old rows
 		$rsold = $rows;
@@ -1984,7 +1651,7 @@ class cproducto_grid extends cproducto {
 			foreach ($rsold as $row) {
 				$sThisKey = "";
 				if ($sThisKey <> "") $sThisKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-				$sThisKey .= $row['idproducto'];
+				$sThisKey .= $row['idproducto_precio_historial'];
 				$conn->raiseErrorFn = 'ew_ErrorFn';
 				$DeleteRows = $this->Delete($row); // Delete
 				$conn->raiseErrorFn = '';
@@ -2007,10 +1674,6 @@ class cproducto_grid extends cproducto {
 			}
 		}
 		if ($DeleteRows) {
-			if ($DeleteRows) {
-				foreach ($rsold as $row)
-					$this->WriteAuditTrailOnDelete($row);
-			}
 		} else {
 		}
 
@@ -2043,26 +1706,20 @@ class cproducto_grid extends cproducto {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// idcategoria
-			$this->idcategoria->SetDbValueDef($rsnew, $this->idcategoria->CurrentValue, 0, $this->idcategoria->ReadOnly);
+			// idproducto
+			$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, $this->idproducto->ReadOnly);
 
-			// idmarca
-			$this->idmarca->SetDbValueDef($rsnew, $this->idmarca->CurrentValue, 0, $this->idmarca->ReadOnly);
-
-			// nombre
-			$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", $this->nombre->ReadOnly);
-
-			// idpais
-			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
-
-			// existencia
-			$this->existencia->SetDbValueDef($rsnew, $this->existencia->CurrentValue, 0, $this->existencia->ReadOnly);
-
-			// estado
-			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
+			// fecha
+			$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, $this->fecha->ReadOnly);
 
 			// precio_venta
 			$this->precio_venta->SetDbValueDef($rsnew, $this->precio_venta->CurrentValue, 0, $this->precio_venta->ReadOnly);
+
+			// precio_compra
+			$this->precio_compra->SetDbValueDef($rsnew, $this->precio_compra->CurrentValue, 0, $this->precio_compra->ReadOnly);
+
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
 
 			// fecha_insercion
 			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
@@ -2095,9 +1752,6 @@ class cproducto_grid extends cproducto {
 		// Call Row_Updated event
 		if ($EditRow)
 			$this->Row_Updated($rsold, $rsnew);
-		if ($EditRow) {
-			$this->WriteAuditTrailOnEdit($rsold, $rsnew);
-		}
 		$rs->Close();
 		return $EditRow;
 	}
@@ -2107,11 +1761,8 @@ class cproducto_grid extends cproducto {
 		global $conn, $Language, $Security;
 
 		// Set up foreign key field value from Session
-			if ($this->getCurrentMasterTable() == "marca") {
-				$this->idmarca->CurrentValue = $this->idmarca->getSessionValue();
-			}
-			if ($this->getCurrentMasterTable() == "categoria") {
-				$this->idcategoria->CurrentValue = $this->idcategoria->getSessionValue();
+			if ($this->getCurrentMasterTable() == "producto") {
+				$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
 			}
 
 		// Load db values from rsold
@@ -2120,26 +1771,20 @@ class cproducto_grid extends cproducto {
 		}
 		$rsnew = array();
 
-		// idcategoria
-		$this->idcategoria->SetDbValueDef($rsnew, $this->idcategoria->CurrentValue, 0, strval($this->idcategoria->CurrentValue) == "");
+		// idproducto
+		$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, strval($this->idproducto->CurrentValue) == "");
 
-		// idmarca
-		$this->idmarca->SetDbValueDef($rsnew, $this->idmarca->CurrentValue, 0, strval($this->idmarca->CurrentValue) == "");
-
-		// nombre
-		$this->nombre->SetDbValueDef($rsnew, $this->nombre->CurrentValue, "", FALSE);
-
-		// idpais
-		$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, FALSE);
-
-		// existencia
-		$this->existencia->SetDbValueDef($rsnew, $this->existencia->CurrentValue, 0, strval($this->existencia->CurrentValue) == "");
-
-		// estado
-		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
+		// fecha
+		$this->fecha->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha->CurrentValue, 7), NULL, FALSE);
 
 		// precio_venta
 		$this->precio_venta->SetDbValueDef($rsnew, $this->precio_venta->CurrentValue, 0, strval($this->precio_venta->CurrentValue) == "");
+
+		// precio_compra
+		$this->precio_compra->SetDbValueDef($rsnew, $this->precio_compra->CurrentValue, 0, strval($this->precio_compra->CurrentValue) == "");
+
+		// estado
+		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
 
 		// fecha_insercion
 		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
@@ -2168,15 +1813,14 @@ class cproducto_grid extends cproducto {
 
 		// Get insert id if necessary
 		if ($AddRow) {
-			$this->idproducto->setDbValue($conn->Insert_ID());
-			$rsnew['idproducto'] = $this->idproducto->DbValue;
+			$this->idproducto_precio_historial->setDbValue($conn->Insert_ID());
+			$rsnew['idproducto_precio_historial'] = $this->idproducto_precio_historial->DbValue;
 		}
 		if ($AddRow) {
 
 			// Call Row Inserted event
 			$rs = ($rsold == NULL) ? NULL : $rsold->fields;
 			$this->Row_Inserted($rs, $rsnew);
-			$this->WriteAuditTrailOnAdd($rsnew);
 		}
 		return $AddRow;
 	}
@@ -2186,129 +1830,12 @@ class cproducto_grid extends cproducto {
 
 		// Hide foreign keys
 		$sMasterTblVar = $this->getCurrentMasterTable();
-		if ($sMasterTblVar == "marca") {
-			$this->idmarca->Visible = FALSE;
-			if ($GLOBALS["marca"]->EventCancelled) $this->EventCancelled = TRUE;
-		}
-		if ($sMasterTblVar == "categoria") {
-			$this->idcategoria->Visible = FALSE;
-			if ($GLOBALS["categoria"]->EventCancelled) $this->EventCancelled = TRUE;
+		if ($sMasterTblVar == "producto") {
+			$this->idproducto->Visible = FALSE;
+			if ($GLOBALS["producto"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
-	// Write Audit Trail start/end for grid update
-	function WriteAuditTrailDummy($typ) {
-		$table = 'producto';
-	  $usr = CurrentUserID();
-		ew_WriteAuditTrail("log", ew_StdCurrentDateTime(), ew_ScriptName(), $usr, $typ, $table, "", "", "", "");
-	}
-
-	// Write Audit Trail (add page)
-	function WriteAuditTrailOnAdd(&$rs) {
-		if (!$this->AuditTrailOnAdd) return;
-		$table = 'producto';
-
-		// Get key value
-		$key = "";
-		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs['idproducto'];
-
-		// Write Audit Trail
-		$dt = ew_StdCurrentDateTime();
-		$id = ew_ScriptName();
-	  $usr = CurrentUserID();
-		foreach (array_keys($rs) as $fldname) {
-			if ($this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
-				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) {
-					if (EW_AUDIT_TRAIL_TO_DATABASE)
-						$newvalue = $rs[$fldname];
-					else
-						$newvalue = "[MEMO]"; // Memo Field
-				} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) {
-					$newvalue = "[XML]"; // XML Field
-				} else {
-					$newvalue = $rs[$fldname];
-				}
-				ew_WriteAuditTrail("log", $dt, $id, $usr, "A", $table, $fldname, $key, "", $newvalue);
-			}
-		}
-	}
-
-	// Write Audit Trail (edit page)
-	function WriteAuditTrailOnEdit(&$rsold, &$rsnew) {
-		if (!$this->AuditTrailOnEdit) return;
-		$table = 'producto';
-
-		// Get key value
-		$key = "";
-		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rsold['idproducto'];
-
-		// Write Audit Trail
-		$dt = ew_StdCurrentDateTime();
-		$id = ew_ScriptName();
-	  $usr = CurrentUserID();
-		foreach (array_keys($rsnew) as $fldname) {
-			if ($this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
-				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_DATE) { // DateTime field
-					$modified = (ew_FormatDateTime($rsold[$fldname], 0) <> ew_FormatDateTime($rsnew[$fldname], 0));
-				} else {
-					$modified = !ew_CompareValue($rsold[$fldname], $rsnew[$fldname]);
-				}
-				if ($modified) {
-					if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) { // Memo field
-						if (EW_AUDIT_TRAIL_TO_DATABASE) {
-							$oldvalue = $rsold[$fldname];
-							$newvalue = $rsnew[$fldname];
-						} else {
-							$oldvalue = "[MEMO]";
-							$newvalue = "[MEMO]";
-						}
-					} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) { // XML field
-						$oldvalue = "[XML]";
-						$newvalue = "[XML]";
-					} else {
-						$oldvalue = $rsold[$fldname];
-						$newvalue = $rsnew[$fldname];
-					}
-					ew_WriteAuditTrail("log", $dt, $id, $usr, "U", $table, $fldname, $key, $oldvalue, $newvalue);
-				}
-			}
-		}
-	}
-
-	// Write Audit Trail (delete page)
-	function WriteAuditTrailOnDelete(&$rs) {
-		if (!$this->AuditTrailOnDelete) return;
-		$table = 'producto';
-
-		// Get key value
-		$key = "";
-		if ($key <> "")
-			$key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
-		$key .= $rs['idproducto'];
-
-		// Write Audit Trail
-		$dt = ew_StdCurrentDateTime();
-		$id = ew_ScriptName();
-	  $curUser = CurrentUserID();
-		foreach (array_keys($rs) as $fldname) {
-			if (array_key_exists($fldname, $this->fields) && $this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
-				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) {
-					if (EW_AUDIT_TRAIL_TO_DATABASE)
-						$oldvalue = $rs[$fldname];
-					else
-						$oldvalue = "[MEMO]"; // Memo field
-				} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) {
-					$oldvalue = "[XML]"; // XML field
-				} else {
-					$oldvalue = $rs[$fldname];
-				}
-				ew_WriteAuditTrail("log", $dt, $id, $curUser, "D", $table, $fldname, $key, $oldvalue, "");
-			}
-		}
 	}
 
 	// Page Load event

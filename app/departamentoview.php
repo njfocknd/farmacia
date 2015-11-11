@@ -703,6 +703,7 @@ class cdepartamento_view extends cdepartamento {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -713,6 +714,7 @@ class cdepartamento_view extends cdepartamento {
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -736,6 +738,7 @@ class cdepartamento_view extends cdepartamento {
 		// nombre
 		// idpais
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -792,6 +795,11 @@ class cdepartamento_view extends cdepartamento {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// iddepartamento
 			$this->iddepartamento->LinkCustomAttributes = "";
 			$this->iddepartamento->HrefValue = "";
@@ -811,6 +819,11 @@ class cdepartamento_view extends cdepartamento {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1259,6 +1272,17 @@ $departamento_view->ShowMessage();
 <span id="el_departamento_estado" class="form-group">
 <span<?php echo $departamento->estado->ViewAttributes() ?>>
 <?php echo $departamento->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($departamento->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_departamento_fecha_insercion"><?php echo $departamento->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $departamento->fecha_insercion->CellAttributes() ?>>
+<span id="el_departamento_fecha_insercion" class="form-group">
+<span<?php echo $departamento->fecha_insercion->ViewAttributes() ?>>
+<?php echo $departamento->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

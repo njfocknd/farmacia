@@ -13,6 +13,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_precio_historialgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -307,6 +308,14 @@ class cproducto_add extends cproducto {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'producto_precio_historial'
+			if (@$_POST["grid"] == "fproducto_precio_historialgrid") {
+				if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
+				$GLOBALS["producto_precio_historial_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -557,6 +566,7 @@ class cproducto_add extends cproducto {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -572,6 +582,7 @@ class cproducto_add extends cproducto {
 		$this->estado->DbValue = $row['estado'];
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -624,6 +635,7 @@ class cproducto_add extends cproducto {
 		// estado
 		// precio_venta
 		// precio_compra
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -751,6 +763,11 @@ class cproducto_add extends cproducto {
 			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
 			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
 			$this->precio_compra->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idcategoria
 			$this->idcategoria->LinkCustomAttributes = "";
@@ -1027,6 +1044,10 @@ class cproducto_add extends cproducto {
 			if (!isset($GLOBALS["producto_sucursal_grid"])) $GLOBALS["producto_sucursal_grid"] = new cproducto_sucursal_grid(); // get detail page object
 			$GLOBALS["producto_sucursal_grid"]->ValidateGridForm();
 		}
+		if (in_array("producto_precio_historial", $DetailTblVar) && $GLOBALS["producto_precio_historial"]->DetailAdd) {
+			if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid(); // get detail page object
+			$GLOBALS["producto_precio_historial_grid"]->ValidateGridForm();
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -1123,6 +1144,13 @@ class cproducto_add extends cproducto {
 				$AddRow = $GLOBALS["producto_sucursal_grid"]->GridInsert();
 				if (!$AddRow)
 					$GLOBALS["producto_sucursal"]->idproducto->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("producto_precio_historial", $DetailTblVar) && $GLOBALS["producto_precio_historial"]->DetailAdd) {
+				$GLOBALS["producto_precio_historial"]->idproducto->setSessionValue($this->idproducto->CurrentValue); // Set master key
+				if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid(); // Get detail page object
+				$AddRow = $GLOBALS["producto_precio_historial_grid"]->GridInsert();
+				if (!$AddRow)
+					$GLOBALS["producto_precio_historial"]->idproducto->setSessionValue(""); // Clear master key if insert failed
 			}
 		}
 
@@ -1264,6 +1292,24 @@ class cproducto_add extends cproducto {
 					$GLOBALS["producto_sucursal_grid"]->idproducto->FldIsDetailKey = TRUE;
 					$GLOBALS["producto_sucursal_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
 					$GLOBALS["producto_sucursal_grid"]->idproducto->setSessionValue($GLOBALS["producto_sucursal_grid"]->idproducto->CurrentValue);
+				}
+			}
+			if (in_array("producto_precio_historial", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_precio_historial_grid"]))
+					$GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
+				if ($GLOBALS["producto_precio_historial_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["producto_precio_historial_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["producto_precio_historial_grid"]->CurrentMode = "add";
+					$GLOBALS["producto_precio_historial_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_precio_historial_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_precio_historial_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_precio_historial_grid"]->idproducto->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_precio_historial_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
+					$GLOBALS["producto_precio_historial_grid"]->idproducto->setSessionValue($GLOBALS["producto_precio_historial_grid"]->idproducto->CurrentValue);
 				}
 			}
 		}
@@ -1707,6 +1753,14 @@ $sSqlWrk .= " ORDER BY `nombre`";
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_sucursal", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "producto_sucursalgrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("producto_precio_historial", explode(",", $producto->getCurrentDetailTable())) && $producto_precio_historial->DetailAdd) {
+?>
+<?php if ($producto->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_precio_historial", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "producto_precio_historialgrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

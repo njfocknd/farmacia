@@ -2,6 +2,7 @@
 
 // nombre
 // idfabricante
+// fecha_insercion
 
 ?>
 <?php if ($marca->Visible) { ?>
@@ -26,6 +27,17 @@
 <span id="el_marca_idfabricante" class="form-group">
 <span<?php echo $marca->idfabricante->ViewAttributes() ?>>
 <?php echo $marca->idfabricante->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($marca->fecha_insercion->Visible) { // fecha_insercion ?>
+		<tr id="r_fecha_insercion">
+			<td><?php echo $marca->fecha_insercion->FldCaption() ?></td>
+			<td<?php echo $marca->fecha_insercion->CellAttributes() ?>>
+<span id="el_marca_fecha_insercion" class="form-group">
+<span<?php echo $marca->fecha_insercion->ViewAttributes() ?>>
+<?php echo $marca->fecha_insercion->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

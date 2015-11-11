@@ -1323,6 +1323,7 @@ class cpais_list extends cpais {
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1332,6 +1333,7 @@ class cpais_list extends cpais {
 		$this->idpais->DbValue = $row['idpais'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1376,6 +1378,7 @@ class cpais_list extends cpais {
 		// idpais
 		// nombre
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1403,6 +1406,11 @@ class cpais_list extends cpais {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";

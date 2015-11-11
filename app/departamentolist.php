@@ -726,6 +726,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->BuildSearchSql($sWhere, $this->nombre, $Default, FALSE); // nombre
 		$this->BuildSearchSql($sWhere, $this->idpais, $Default, FALSE); // idpais
 		$this->BuildSearchSql($sWhere, $this->estado, $Default, FALSE); // estado
+		$this->BuildSearchSql($sWhere, $this->fecha_insercion, $Default, FALSE); // fecha_insercion
 
 		// Set up search parm
 		if (!$Default && $sWhere <> "") {
@@ -736,6 +737,7 @@ class cdepartamento_list extends cdepartamento {
 			$this->nombre->AdvancedSearch->Save(); // nombre
 			$this->idpais->AdvancedSearch->Save(); // idpais
 			$this->estado->AdvancedSearch->Save(); // estado
+			$this->fecha_insercion->AdvancedSearch->Save(); // fecha_insercion
 		}
 		return $sWhere;
 	}
@@ -915,6 +917,8 @@ class cdepartamento_list extends cdepartamento {
 			return TRUE;
 		if ($this->estado->AdvancedSearch->IssetSession())
 			return TRUE;
+		if ($this->fecha_insercion->AdvancedSearch->IssetSession())
+			return TRUE;
 		return FALSE;
 	}
 
@@ -948,6 +952,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->nombre->AdvancedSearch->UnsetSession();
 		$this->idpais->AdvancedSearch->UnsetSession();
 		$this->estado->AdvancedSearch->UnsetSession();
+		$this->fecha_insercion->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
@@ -962,6 +967,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
+		$this->fecha_insercion->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -973,6 +979,7 @@ class cdepartamento_list extends cdepartamento {
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idpais); // idpais
+			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -1015,6 +1022,7 @@ class cdepartamento_list extends cdepartamento {
 				$this->setSessionOrderBy($sOrderBy);
 				$this->nombre->setSort("");
 				$this->idpais->setSort("");
+				$this->estado->setSort("");
 			}
 
 			// Reset start position
@@ -1407,6 +1415,11 @@ class cdepartamento_list extends cdepartamento {
 		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_estado"]);
 		if ($this->estado->AdvancedSearch->SearchValue <> "") $this->Command = "search";
 		$this->estado->AdvancedSearch->SearchOperator = @$_GET["z_estado"];
+
+		// fecha_insercion
+		$this->fecha_insercion->AdvancedSearch->SearchValue = ew_StripSlashes(@$_GET["x_fecha_insercion"]);
+		if ($this->fecha_insercion->AdvancedSearch->SearchValue <> "") $this->Command = "search";
+		$this->fecha_insercion->AdvancedSearch->SearchOperator = @$_GET["z_fecha_insercion"];
 	}
 
 	// Load recordset
@@ -1459,6 +1472,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1469,6 +1483,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1514,6 +1529,7 @@ class cdepartamento_list extends cdepartamento {
 		// nombre
 		// idpais
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1570,6 +1586,11 @@ class cdepartamento_list extends cdepartamento {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1579,6 +1600,11 @@ class cdepartamento_list extends cdepartamento {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1615,6 +1641,7 @@ class cdepartamento_list extends cdepartamento {
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
+		$this->fecha_insercion->AdvancedSearch->Load();
 	}
 
 	// Set up export options
@@ -2141,6 +2168,15 @@ $departamento_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($departamento->estado->Visible) { // estado ?>
+	<?php if ($departamento->SortUrl($departamento->estado) == "") { ?>
+		<th data-name="estado"><div id="elh_departamento_estado" class="departamento_estado"><div class="ewTableHeaderCaption"><?php echo $departamento->estado->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $departamento->SortUrl($departamento->estado) ?>',1);"><div id="elh_departamento_estado" class="departamento_estado">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $departamento->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($departamento->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($departamento->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2216,6 +2252,12 @@ $departamento_list->ListOptions->Render("body", "left", $departamento_list->RowC
 		<td data-name="idpais"<?php echo $departamento->idpais->CellAttributes() ?>>
 <span<?php echo $departamento->idpais->ViewAttributes() ?>>
 <?php echo $departamento->idpais->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($departamento->estado->Visible) { // estado ?>
+		<td data-name="estado"<?php echo $departamento->estado->CellAttributes() ?>>
+<span<?php echo $departamento->estado->ViewAttributes() ?>>
+<?php echo $departamento->estado->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

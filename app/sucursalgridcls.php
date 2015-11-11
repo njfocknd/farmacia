@@ -767,6 +767,8 @@ class csucursal_grid extends csucursal {
 			return FALSE;
 		if ($objForm->HasValue("x_debito") && $objForm->HasValue("o_debito") && $this->debito->CurrentValue <> $this->debito->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_fecha_insercion") && $objForm->HasValue("o_fecha_insercion") && $this->fecha_insercion->CurrentValue <> $this->fecha_insercion->OldValue)
+			return FALSE;
 		return TRUE;
 	}
 
@@ -1061,6 +1063,8 @@ class csucursal_grid extends csucursal {
 		$this->credito->OldValue = $this->credito->CurrentValue;
 		$this->debito->CurrentValue = 0.00;
 		$this->debito->OldValue = $this->debito->CurrentValue;
+		$this->fecha_insercion->CurrentValue = NULL;
+		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 	}
 
 	// Load form values
@@ -1089,6 +1093,11 @@ class csucursal_grid extends csucursal {
 			$this->debito->setFormValue($objForm->GetValue("x_debito"));
 		}
 		$this->debito->setOldValue($objForm->GetValue("o_debito"));
+		if (!$this->fecha_insercion->FldIsDetailKey) {
+			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
+			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
+		}
+		$this->fecha_insercion->setOldValue($objForm->GetValue("o_fecha_insercion"));
 		if (!$this->idsucursal->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idsucursal->setFormValue($objForm->GetValue("x_idsucursal"));
 	}
@@ -1103,6 +1112,8 @@ class csucursal_grid extends csucursal {
 		$this->idempresa->CurrentValue = $this->idempresa->FormValue;
 		$this->credito->CurrentValue = $this->credito->FormValue;
 		$this->debito->CurrentValue = $this->debito->FormValue;
+		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
+		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 	}
 
 	// Load recordset
@@ -1159,6 +1170,7 @@ class csucursal_grid extends csucursal {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->debito->setDbValue($rs->fields('debito'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1173,6 +1185,7 @@ class csucursal_grid extends csucursal {
 		$this->estado->DbValue = $row['estado'];
 		$this->credito->DbValue = $row['credito'];
 		$this->debito->DbValue = $row['debito'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1230,6 +1243,7 @@ class csucursal_grid extends csucursal {
 		// estado
 		// credito
 		// debito
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1328,6 +1342,11 @@ class csucursal_grid extends csucursal {
 			$this->debito->ViewValue = $this->debito->CurrentValue;
 			$this->debito->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1352,6 +1371,11 @@ class csucursal_grid extends csucursal {
 			$this->debito->LinkCustomAttributes = "";
 			$this->debito->HrefValue = "";
 			$this->debito->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// nombre
@@ -1468,6 +1492,12 @@ class csucursal_grid extends csucursal {
 			$this->debito->OldValue = $this->debito->EditValue;
 			}
 
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 			// Edit refer script
 			// nombre
 
@@ -1484,6 +1514,9 @@ class csucursal_grid extends csucursal {
 
 			// debito
 			$this->debito->HrefValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
@@ -1600,6 +1633,12 @@ class csucursal_grid extends csucursal {
 			$this->debito->OldValue = $this->debito->EditValue;
 			}
 
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 			// Edit refer script
 			// nombre
 
@@ -1616,6 +1655,9 @@ class csucursal_grid extends csucursal {
 
 			// debito
 			$this->debito->HrefValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1652,6 +1694,9 @@ class csucursal_grid extends csucursal {
 		}
 		if (!ew_CheckNumber($this->debito->FormValue)) {
 			ew_AddMessage($gsFormError, $this->debito->FldErrMsg());
+		}
+		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
+			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1785,6 +1830,9 @@ class csucursal_grid extends csucursal {
 			// debito
 			$this->debito->SetDbValueDef($rsnew, $this->debito->CurrentValue, 0, $this->debito->ReadOnly);
 
+			// fecha_insercion
+			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1849,6 +1897,9 @@ class csucursal_grid extends csucursal {
 
 		// debito
 		$this->debito->SetDbValueDef($rsnew, $this->debito->CurrentValue, 0, strval($this->debito->CurrentValue) == "");
+
+		// fecha_insercion
+		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

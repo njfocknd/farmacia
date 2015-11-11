@@ -6,7 +6,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "registro_sanitarioinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_precio_historialinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
@@ -16,9 +16,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$registro_sanitario_list = NULL; // Initialize page object first
+$producto_precio_historial_list = NULL; // Initialize page object first
 
-class cregistro_sanitario_list extends cregistro_sanitario {
+class cproducto_precio_historial_list extends cproducto_precio_historial {
 
 	// Page ID
 	var $PageID = 'list';
@@ -27,13 +27,13 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'registro_sanitario';
+	var $TableName = 'producto_precio_historial';
 
 	// Page object name
-	var $PageObjName = 'registro_sanitario_list';
+	var $PageObjName = 'producto_precio_historial_list';
 
 	// Grid form hidden field names
-	var $FormName = 'fregistro_sanitariolist';
+	var $FormName = 'fproducto_precio_historiallist';
 	var $FormActionName = 'k_action';
 	var $FormKeyName = 'k_key';
 	var $FormOldKeyName = 'k_oldkey';
@@ -237,10 +237,10 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (registro_sanitario)
-		if (!isset($GLOBALS["registro_sanitario"]) || get_class($GLOBALS["registro_sanitario"]) == "cregistro_sanitario") {
-			$GLOBALS["registro_sanitario"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["registro_sanitario"];
+		// Table object (producto_precio_historial)
+		if (!isset($GLOBALS["producto_precio_historial"]) || get_class($GLOBALS["producto_precio_historial"]) == "cproducto_precio_historial") {
+			$GLOBALS["producto_precio_historial"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["producto_precio_historial"];
 		}
 
 		// Initialize URLs
@@ -251,12 +251,12 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "registro_sanitarioadd.php";
+		$this->AddUrl = "producto_precio_historialadd.php";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
-		$this->MultiDeleteUrl = "registro_sanitariodelete.php";
-		$this->MultiUpdateUrl = "registro_sanitarioupdate.php";
+		$this->MultiDeleteUrl = "producto_precio_historialdelete.php";
+		$this->MultiUpdateUrl = "producto_precio_historialupdate.php";
 
 		// Table object (producto)
 		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
@@ -273,7 +273,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'registro_sanitario', TRUE);
+			define("EW_TABLE_NAME", 'producto_precio_historial', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -379,6 +379,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Setup export options
 		$this->SetupExportOptions();
+		$this->idproducto_precio_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -431,13 +432,13 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $registro_sanitario;
+		global $EW_EXPORT, $producto_precio_historial;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($registro_sanitario);
+				$doc = new $class($producto_precio_historial);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -548,25 +549,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 					$option->HideAllOptions();
 			}
 
-			// Get default search criteria
-			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
-
-			// Get basic search values
-			$this->LoadBasicSearchValues();
-
-			// Restore search parms from Session if not searching / reset / export
-			if (($this->Export <> "" || $this->Command <> "search" && $this->Command <> "reset" && $this->Command <> "resetall") && $this->CheckSearchParms())
-				$this->RestoreSearchParms();
-
-			// Call Recordset SearchValidated event
-			$this->Recordset_SearchValidated();
-
 			// Set up sorting order
 			$this->SetUpSortOrder();
-
-			// Get basic search criteria
-			if ($gsSearchError == "")
-				$sSrchBasic = $this->BasicSearchWhere();
 		}
 
 		// Restore display records
@@ -578,31 +562,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Load Sorting Order
 		$this->LoadSortOrder();
-
-		// Load search default if no existing search criteria
-		if (!$this->CheckSearchParms()) {
-
-			// Load basic search from default
-			$this->BasicSearch->LoadDefault();
-			if ($this->BasicSearch->Keyword != "")
-				$sSrchBasic = $this->BasicSearchWhere();
-		}
-
-		// Build search criteria
-		ew_AddFilter($this->SearchWhere, $sSrchAdvanced);
-		ew_AddFilter($this->SearchWhere, $sSrchBasic);
-
-		// Call Recordset_Searching event
-		$this->Recordset_Searching($this->SearchWhere);
-
-		// Save search criteria
-		if ($this->Command == "search" && !$this->RestoreSearch) {
-			$this->setSearchWhere($this->SearchWhere); // Save to Session
-			$this->StartRec = 1; // Reset start record counter
-			$this->setStartRecordNumber($this->StartRec);
-		} else {
-			$this->SearchWhere = $this->getSearchWhere();
-		}
 
 		// Build filter
 		$sFilter = "";
@@ -686,161 +645,11 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 	function SetupKeyValues($key) {
 		$arrKeyFlds = explode($GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"], $key);
 		if (count($arrKeyFlds) >= 1) {
-			$this->idregistro_sanitario->setFormValue($arrKeyFlds[0]);
-			if (!is_numeric($this->idregistro_sanitario->FormValue))
+			$this->idproducto_precio_historial->setFormValue($arrKeyFlds[0]);
+			if (!is_numeric($this->idproducto_precio_historial->FormValue))
 				return FALSE;
 		}
 		return TRUE;
-	}
-
-	// Return basic search SQL
-	function BasicSearchSQL($arKeywords, $type) {
-		$sWhere = "";
-		$this->BuildBasicSearchSQL($sWhere, $this->descripcion, $arKeywords, $type);
-		return $sWhere;
-	}
-
-	// Build basic search SQL
-	function BuildBasicSearchSql(&$Where, &$Fld, $arKeywords, $type) {
-		$sDefCond = ($type == "OR") ? "OR" : "AND";
-		$sCond = $sDefCond;
-		$arSQL = array(); // Array for SQL parts
-		$arCond = array(); // Array for search conditions
-		$cnt = count($arKeywords);
-		$j = 0; // Number of SQL parts
-		for ($i = 0; $i < $cnt; $i++) {
-			$Keyword = $arKeywords[$i];
-			$Keyword = trim($Keyword);
-			if (EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
-				$Keyword = preg_replace(EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
-				$ar = explode("\\", $Keyword);
-			} else {
-				$ar = array($Keyword);
-			}
-			foreach ($ar as $Keyword) {
-				if ($Keyword <> "") {
-					$sWrk = "";
-					if ($Keyword == "OR" && $type == "") {
-						if ($j > 0)
-							$arCond[$j-1] = "OR";
-					} elseif ($Keyword == EW_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NULL";
-					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NOT NULL";
-					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
-						$sFldExpression = ($Fld->FldVirtualExpression <> $Fld->FldExpression) ? $Fld->FldVirtualExpression : $Fld->FldBasicSearchExpression;
-						$sWrk = $sFldExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING));
-					}
-					if ($sWrk <> "") {
-						$arSQL[$j] = $sWrk;
-						$arCond[$j] = $sDefCond;
-						$j += 1;
-					}
-				}
-			}
-		}
-		$cnt = count($arSQL);
-		$bQuoted = FALSE;
-		$sSql = "";
-		if ($cnt > 0) {
-			for ($i = 0; $i < $cnt-1; $i++) {
-				if ($arCond[$i] == "OR") {
-					if (!$bQuoted) $sSql .= "(";
-					$bQuoted = TRUE;
-				}
-				$sSql .= $arSQL[$i];
-				if ($bQuoted && $arCond[$i] <> "OR") {
-					$sSql .= ")";
-					$bQuoted = FALSE;
-				}
-				$sSql .= " " . $arCond[$i] . " ";
-			}
-			$sSql .= $arSQL[$cnt-1];
-			if ($bQuoted)
-				$sSql .= ")";
-		}
-		if ($sSql <> "") {
-			if ($Where <> "") $Where .= " OR ";
-			$Where .=  "(" . $sSql . ")";
-		}
-	}
-
-	// Return basic search WHERE clause based on search keyword and type
-	function BasicSearchWhere($Default = FALSE) {
-		global $Security;
-		$sSearchStr = "";
-		if (!$Security->CanSearch()) return "";
-		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
-		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
-		if ($sSearchKeyword <> "") {
-			$sSearch = trim($sSearchKeyword);
-			if ($sSearchType <> "=") {
-				$ar = array();
-
-				// Match quoted keywords (i.e.: "...")
-				if (preg_match_all('/"([^"]*)"/i', $sSearch, $matches, PREG_SET_ORDER)) {
-					foreach ($matches as $match) {
-						$p = strpos($sSearch, $match[0]);
-						$str = substr($sSearch, 0, $p);
-						$sSearch = substr($sSearch, $p + strlen($match[0]));
-						if (strlen(trim($str)) > 0)
-							$ar = array_merge($ar, explode(" ", trim($str)));
-						$ar[] = $match[1]; // Save quoted keyword
-					}
-				}
-
-				// Match individual keywords
-				if (strlen(trim($sSearch)) > 0)
-					$ar = array_merge($ar, explode(" ", trim($sSearch)));
-				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
-			} else {
-				$sSearchStr = $this->BasicSearchSQL(array($sSearch), $sSearchType);
-			}
-			if (!$Default) $this->Command = "search";
-		}
-		if (!$Default && $this->Command == "search") {
-			$this->BasicSearch->setKeyword($sSearchKeyword);
-			$this->BasicSearch->setType($sSearchType);
-		}
-		return $sSearchStr;
-	}
-
-	// Check if search parm exists
-	function CheckSearchParms() {
-
-		// Check basic search
-		if ($this->BasicSearch->IssetSession())
-			return TRUE;
-		return FALSE;
-	}
-
-	// Clear all search parameters
-	function ResetSearchParms() {
-
-		// Clear search WHERE clause
-		$this->SearchWhere = "";
-		$this->setSearchWhere($this->SearchWhere);
-
-		// Clear basic search parameters
-		$this->ResetBasicSearchParms();
-	}
-
-	// Load advanced search default values
-	function LoadAdvancedSearchDefault() {
-		return FALSE;
-	}
-
-	// Clear all basic search parameters
-	function ResetBasicSearchParms() {
-		$this->BasicSearch->UnsetSession();
-	}
-
-	// Restore all search parameters
-	function RestoreSearchParms() {
-		$this->RestoreSearch = TRUE;
-
-		// Restore basic search values
-		$this->BasicSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -850,9 +659,13 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->descripcion); // descripcion
-			$this->UpdateSort($this->idpais); // idpais
+			$this->UpdateSort($this->idproducto_precio_historial); // idproducto_precio_historial
 			$this->UpdateSort($this->idproducto); // idproducto
+			$this->UpdateSort($this->fecha); // fecha
+			$this->UpdateSort($this->precio_venta); // precio_venta
+			$this->UpdateSort($this->precio_compra); // precio_compra
+			$this->UpdateSort($this->estado); // estado
+			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -864,6 +677,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			if ($this->getSqlOrderBy() <> "") {
 				$sOrderBy = $this->getSqlOrderBy();
 				$this->setSessionOrderBy($sOrderBy);
+				$this->idproducto_precio_historial->setSort("DESC");
 			}
 		}
 	}
@@ -877,10 +691,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		// Check if reset command
 		if (substr($this->Command,0,5) == "reset") {
 
-			// Reset search criteria
-			if ($this->Command == "reset" || $this->Command == "resetall")
-				$this->ResetSearchParms();
-
 			// Reset master/detail keys
 			if ($this->Command == "resetall") {
 				$this->setCurrentMasterTable(""); // Clear master table
@@ -893,9 +703,13 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->descripcion->setSort("");
-				$this->idpais->setSort("");
+				$this->idproducto_precio_historial->setSort("");
 				$this->idproducto->setSort("");
+				$this->fecha->setSort("");
+				$this->precio_venta->setSort("");
+				$this->precio_compra->setSort("");
+				$this->estado->setSort("");
+				$this->fecha_insercion->setSort("");
 			}
 
 			// Reset start position
@@ -918,12 +732,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$item = &$this->ListOptions->Add("view");
 		$item->CssStyle = "white-space: nowrap;";
 		$item->Visible = $Security->CanView();
-		$item->OnLeft = FALSE;
-
-		// "edit"
-		$item = &$this->ListOptions->Add("edit");
-		$item->CssStyle = "white-space: nowrap;";
-		$item->Visible = $Security->CanEdit();
 		$item->OnLeft = FALSE;
 
 		// "checkbox"
@@ -962,17 +770,9 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		else
 			$oListOpt->Body = "";
 
-		// "edit"
-		$oListOpt = &$this->ListOptions->Items["edit"];
-		if ($Security->CanEdit()) {
-			$oListOpt->Body = "<a class=\"ewRowLink ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("EditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("EditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("EditLink") . "</a>";
-		} else {
-			$oListOpt->Body = "";
-		}
-
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
-		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->idregistro_sanitario->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
+		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->idproducto_precio_historial->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
 		$this->RenderListOptionsExt();
 
 		// Call ListOptions_Rendered event
@@ -983,12 +783,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 	function SetupOtherOptions() {
 		global $Language, $Security;
 		$options = &$this->OtherOptions;
-		$option = $options["addedit"];
-
-		// Add
-		$item = &$option->Add("add");
-		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
-		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
 		$option = $options["action"];
 
 		// Set up options default
@@ -1015,7 +809,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 				// Add custom action
 				$item = &$option->Add("custom_" . $action);
-				$item->Body = "<a class=\"ewAction ewCustomAction\" href=\"\" onclick=\"ew_SubmitSelected(document.fregistro_sanitariolist, '" . ew_CurrentUrl() . "', null, '" . $action . "');return false;\">" . $name . "</a>";
+				$item->Body = "<a class=\"ewAction ewCustomAction\" href=\"\" onclick=\"ew_SubmitSelected(document.fproducto_precio_historiallist, '" . ew_CurrentUrl() . "', null, '" . $action . "');return false;\">" . $name . "</a>";
 			}
 
 			// Hide grid edit, multi-delete and multi-update
@@ -1082,17 +876,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->SearchOptions->Tag = "div";
 		$this->SearchOptions->TagClassName = "ewSearchOption";
 
-		// Search button
-		$item = &$this->SearchOptions->Add("searchtoggle");
-		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
-		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fregistro_sanitariolistsrch\">" . $Language->Phrase("SearchBtn") . "</button>";
-		$item->Visible = TRUE;
-
-		// Show all button
-		$item = &$this->SearchOptions->Add("showall");
-		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
-		$item->Visible = ($this->SearchWhere <> $this->DefaultSearchWhere);
-
 		// Button group for search
 		$this->SearchOptions->UseDropDownButton = FALSE;
 		$this->SearchOptions->UseImageAndText = TRUE;
@@ -1156,13 +939,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		}
 	}
 
-	// Load basic search values
-	function LoadBasicSearchValues() {
-		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
-		if ($this->BasicSearch->Keyword <> "") $this->Command = "search";
-		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
-	}
-
 	// Load recordset
 	function LoadRecordset($offset = -1, $rowcnt = -1) {
 		global $conn;
@@ -1209,10 +985,11 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idregistro_sanitario->setDbValue($rs->fields('idregistro_sanitario'));
-		$this->descripcion->setDbValue($rs->fields('descripcion'));
-		$this->idpais->setDbValue($rs->fields('idpais'));
+		$this->idproducto_precio_historial->setDbValue($rs->fields('idproducto_precio_historial'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
+		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -1221,10 +998,11 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idregistro_sanitario->DbValue = $row['idregistro_sanitario'];
-		$this->descripcion->DbValue = $row['descripcion'];
-		$this->idpais->DbValue = $row['idpais'];
+		$this->idproducto_precio_historial->DbValue = $row['idproducto_precio_historial'];
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->fecha->DbValue = $row['fecha'];
+		$this->precio_venta->DbValue = $row['precio_venta'];
+		$this->precio_compra->DbValue = $row['precio_compra'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -1234,8 +1012,8 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 
 		// Load key values from Session
 		$bValidKey = TRUE;
-		if (strval($this->getKey("idregistro_sanitario")) <> "")
-			$this->idregistro_sanitario->CurrentValue = $this->getKey("idregistro_sanitario"); // idregistro_sanitario
+		if (strval($this->getKey("idproducto_precio_historial")) <> "")
+			$this->idproducto_precio_historial->CurrentValue = $this->getKey("idproducto_precio_historial"); // idproducto_precio_historial
 		else
 			$bValidKey = FALSE;
 
@@ -1264,65 +1042,37 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
+		// Convert decimal values if posted back
+		if ($this->precio_venta->FormValue == $this->precio_venta->CurrentValue && is_numeric(ew_StrToFloat($this->precio_venta->CurrentValue)))
+			$this->precio_venta->CurrentValue = ew_StrToFloat($this->precio_venta->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->precio_compra->FormValue == $this->precio_compra->CurrentValue && is_numeric(ew_StrToFloat($this->precio_compra->CurrentValue)))
+			$this->precio_compra->CurrentValue = ew_StrToFloat($this->precio_compra->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idregistro_sanitario
-		// descripcion
-		// idpais
+		// idproducto_precio_historial
 		// idproducto
+		// fecha
+		// precio_venta
+		// precio_compra
 		// estado
 		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idregistro_sanitario
-			$this->idregistro_sanitario->ViewValue = $this->idregistro_sanitario->CurrentValue;
-			$this->idregistro_sanitario->ViewCustomAttributes = "";
-
-			// descripcion
-			$this->descripcion->ViewValue = $this->descripcion->CurrentValue;
-			$this->descripcion->ViewCustomAttributes = "";
-
-			// idpais
-			if (strval($this->idpais->CurrentValue) <> "") {
-				$sFilterWrk = "`idpais`" . ew_SearchString("=", $this->idpais->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idpais`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `pais`";
-			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
-			if ($sFilterWrk <> "") {
-				ew_AddFilter($sWhereWrk, $sFilterWrk);
-			}
-
-			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idpais, $sWhereWrk);
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
-				$rswrk = $conn->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idpais->ViewValue = $rswrk->fields('DispFld');
-					$rswrk->Close();
-				} else {
-					$this->idpais->ViewValue = $this->idpais->CurrentValue;
-				}
-			} else {
-				$this->idpais->ViewValue = NULL;
-			}
-			$this->idpais->ViewCustomAttributes = "";
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->ViewValue = $this->idproducto_precio_historial->CurrentValue;
+			$this->idproducto_precio_historial->ViewCustomAttributes = "";
 
 			// idproducto
 			if (strval($this->idproducto->CurrentValue) <> "") {
 				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
 			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
@@ -1330,7 +1080,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			// Call Lookup selecting
 			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
 					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
@@ -1342,6 +1091,21 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 				$this->idproducto->ViewValue = NULL;
 			}
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
+
+			// precio_venta
+			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewCustomAttributes = "";
+
+			// precio_compra
+			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -1365,20 +1129,40 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// descripcion
-			$this->descripcion->LinkCustomAttributes = "";
-			$this->descripcion->HrefValue = "";
-			$this->descripcion->TooltipValue = "";
-
-			// idpais
-			$this->idpais->LinkCustomAttributes = "";
-			$this->idpais->HrefValue = "";
-			$this->idpais->TooltipValue = "";
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->LinkCustomAttributes = "";
+			$this->idproducto_precio_historial->HrefValue = "";
+			$this->idproducto_precio_historial->TooltipValue = "";
 
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
 			$this->idproducto->TooltipValue = "";
+
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
+
+			// precio_venta
+			$this->precio_venta->LinkCustomAttributes = "";
+			$this->precio_venta->HrefValue = "";
+			$this->precio_venta->TooltipValue = "";
+
+			// precio_compra
+			$this->precio_compra->LinkCustomAttributes = "";
+			$this->precio_compra->HrefValue = "";
+			$this->precio_compra->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1428,7 +1212,7 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		// Export to Email
 		$item = &$this->ExportOptions->Add("email");
 		$url = "";
-		$item->Body = "<button id=\"emf_registro_sanitario\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_registro_sanitario',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fregistro_sanitariolist,sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
+		$item->Body = "<button id=\"emf_producto_precio_historial\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_producto_precio_historial',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fproducto_precio_historiallist,sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
 		$item->Visible = FALSE;
 
 		// Drop down button for export
@@ -1594,13 +1378,6 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 		$Breadcrumb->Add("list", $this->TableVar, $url, "", $this->TableVar, TRUE);
 	}
 
-	// Write Audit Trail start/end for grid update
-	function WriteAuditTrailDummy($typ) {
-		$table = 'registro_sanitario';
-	  $usr = CurrentUserID();
-		ew_WriteAuditTrail("log", ew_StdCurrentDateTime(), ew_ScriptName(), $usr, $typ, $table, "", "", "", "");
-	}
-
 	// Page Load event
 	function Page_Load() {
 
@@ -1725,35 +1502,35 @@ class cregistro_sanitario_list extends cregistro_sanitario {
 <?php
 
 // Create page object
-if (!isset($registro_sanitario_list)) $registro_sanitario_list = new cregistro_sanitario_list();
+if (!isset($producto_precio_historial_list)) $producto_precio_historial_list = new cproducto_precio_historial_list();
 
 // Page init
-$registro_sanitario_list->Page_Init();
+$producto_precio_historial_list->Page_Init();
 
 // Page main
-$registro_sanitario_list->Page_Main();
+$producto_precio_historial_list->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$registro_sanitario_list->Page_Render();
+$producto_precio_historial_list->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <script type="text/javascript">
 
 // Page object
-var registro_sanitario_list = new ew_Page("registro_sanitario_list");
-registro_sanitario_list.PageID = "list"; // Page ID
-var EW_PAGE_ID = registro_sanitario_list.PageID; // For backward compatibility
+var producto_precio_historial_list = new ew_Page("producto_precio_historial_list");
+producto_precio_historial_list.PageID = "list"; // Page ID
+var EW_PAGE_ID = producto_precio_historial_list.PageID; // For backward compatibility
 
 // Form object
-var fregistro_sanitariolist = new ew_Form("fregistro_sanitariolist");
-fregistro_sanitariolist.FormKeyCountName = '<?php echo $registro_sanitario_list->FormKeyCountName ?>';
+var fproducto_precio_historiallist = new ew_Form("fproducto_precio_historiallist");
+fproducto_precio_historiallist.FormKeyCountName = '<?php echo $producto_precio_historial_list->FormKeyCountName ?>';
 
 // Form_CustomValidate event
-fregistro_sanitariolist.Form_CustomValidate = 
+fproducto_precio_historiallist.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1762,49 +1539,44 @@ fregistro_sanitariolist.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fregistro_sanitariolist.ValidateRequired = true;
+fproducto_precio_historiallist.ValidateRequired = true;
 <?php } else { ?>
-fregistro_sanitariolist.ValidateRequired = false; 
+fproducto_precio_historiallist.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fregistro_sanitariolist.Lists["x_idpais"] = {"LinkField":"x_idpais","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
-fregistro_sanitariolist.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_precio_historiallist.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
-var fregistro_sanitariolistsrch = new ew_Form("fregistro_sanitariolistsrch");
 </script>
 <script type="text/javascript">
 
 // Write your client script here, no need to add script tags.
 </script>
 <?php } ?>
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <div class="ewToolbar">
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <?php $Breadcrumb->Render(); ?>
 <?php } ?>
-<?php if ($registro_sanitario_list->TotalRecs > 0 && $registro_sanitario->getCurrentMasterTable() == "" && $registro_sanitario_list->ExportOptions->Visible()) { ?>
-<?php $registro_sanitario_list->ExportOptions->Render("body") ?>
+<?php if ($producto_precio_historial_list->TotalRecs > 0 && $producto_precio_historial->getCurrentMasterTable() == "" && $producto_precio_historial_list->ExportOptions->Visible()) { ?>
+<?php $producto_precio_historial_list->ExportOptions->Render("body") ?>
 <?php } ?>
-<?php if ($registro_sanitario_list->SearchOptions->Visible()) { ?>
-<?php $registro_sanitario_list->SearchOptions->Render("body") ?>
-<?php } ?>
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <?php echo $Language->SelectionForm(); ?>
 <?php } ?>
 <div class="clearfix"></div>
 </div>
 <?php } ?>
-<?php if (($registro_sanitario->Export == "") || (EW_EXPORT_MASTER_RECORD && $registro_sanitario->Export == "print")) { ?>
+<?php if (($producto_precio_historial->Export == "") || (EW_EXPORT_MASTER_RECORD && $producto_precio_historial->Export == "print")) { ?>
 <?php
 $gsMasterReturnUrl = "productolist.php";
-if ($registro_sanitario_list->DbMasterFilter <> "" && $registro_sanitario->getCurrentMasterTable() == "producto") {
-	if ($registro_sanitario_list->MasterRecordExists) {
-		if ($registro_sanitario->getCurrentMasterTable() == $registro_sanitario->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
+if ($producto_precio_historial_list->DbMasterFilter <> "" && $producto_precio_historial->getCurrentMasterTable() == "producto") {
+	if ($producto_precio_historial_list->MasterRecordExists) {
+		if ($producto_precio_historial->getCurrentMasterTable() == $producto_precio_historial->TableVar) $gsMasterReturnUrl .= "?" . EW_TABLE_SHOW_MASTER . "=";
 ?>
-<?php if ($registro_sanitario_list->ExportOptions->Visible()) { ?>
-<div class="ewListExportOptions"><?php $registro_sanitario_list->ExportOptions->Render("body") ?></div>
+<?php if ($producto_precio_historial_list->ExportOptions->Visible()) { ?>
+<div class="ewListExportOptions"><?php $producto_precio_historial_list->ExportOptions->Render("body") ?></div>
 <?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "productomaster.php" ?>
 <?php
@@ -1815,210 +1587,241 @@ if ($registro_sanitario_list->DbMasterFilter <> "" && $registro_sanitario->getCu
 <?php
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
-		$registro_sanitario_list->TotalRecs = $registro_sanitario->SelectRecordCount();
+		$producto_precio_historial_list->TotalRecs = $producto_precio_historial->SelectRecordCount();
 	} else {
-		if ($registro_sanitario_list->Recordset = $registro_sanitario_list->LoadRecordset())
-			$registro_sanitario_list->TotalRecs = $registro_sanitario_list->Recordset->RecordCount();
+		if ($producto_precio_historial_list->Recordset = $producto_precio_historial_list->LoadRecordset())
+			$producto_precio_historial_list->TotalRecs = $producto_precio_historial_list->Recordset->RecordCount();
 	}
-	$registro_sanitario_list->StartRec = 1;
-	if ($registro_sanitario_list->DisplayRecs <= 0 || ($registro_sanitario->Export <> "" && $registro_sanitario->ExportAll)) // Display all records
-		$registro_sanitario_list->DisplayRecs = $registro_sanitario_list->TotalRecs;
-	if (!($registro_sanitario->Export <> "" && $registro_sanitario->ExportAll))
-		$registro_sanitario_list->SetUpStartRec(); // Set up start record position
+	$producto_precio_historial_list->StartRec = 1;
+	if ($producto_precio_historial_list->DisplayRecs <= 0 || ($producto_precio_historial->Export <> "" && $producto_precio_historial->ExportAll)) // Display all records
+		$producto_precio_historial_list->DisplayRecs = $producto_precio_historial_list->TotalRecs;
+	if (!($producto_precio_historial->Export <> "" && $producto_precio_historial->ExportAll))
+		$producto_precio_historial_list->SetUpStartRec(); // Set up start record position
 	if ($bSelectLimit)
-		$registro_sanitario_list->Recordset = $registro_sanitario_list->LoadRecordset($registro_sanitario_list->StartRec-1, $registro_sanitario_list->DisplayRecs);
+		$producto_precio_historial_list->Recordset = $producto_precio_historial_list->LoadRecordset($producto_precio_historial_list->StartRec-1, $producto_precio_historial_list->DisplayRecs);
 
 	// Set no record found message
-	if ($registro_sanitario->CurrentAction == "" && $registro_sanitario_list->TotalRecs == 0) {
+	if ($producto_precio_historial->CurrentAction == "" && $producto_precio_historial_list->TotalRecs == 0) {
 		if (!$Security->CanList())
-			$registro_sanitario_list->setWarningMessage($Language->Phrase("NoPermission"));
-		if ($registro_sanitario_list->SearchWhere == "0=101")
-			$registro_sanitario_list->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
+			$producto_precio_historial_list->setWarningMessage($Language->Phrase("NoPermission"));
+		if ($producto_precio_historial_list->SearchWhere == "0=101")
+			$producto_precio_historial_list->setWarningMessage($Language->Phrase("EnterSearchCriteria"));
 		else
-			$registro_sanitario_list->setWarningMessage($Language->Phrase("NoRecord"));
+			$producto_precio_historial_list->setWarningMessage($Language->Phrase("NoRecord"));
 	}
-$registro_sanitario_list->RenderOtherOptions();
+$producto_precio_historial_list->RenderOtherOptions();
 ?>
-<?php if ($Security->CanSearch()) { ?>
-<?php if ($registro_sanitario->Export == "" && $registro_sanitario->CurrentAction == "") { ?>
-<form name="fregistro_sanitariolistsrch" id="fregistro_sanitariolistsrch" class="form-inline ewForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($registro_sanitario_list->SearchWhere <> "") ? " in" : " in"; ?>
-<div id="fregistro_sanitariolistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
-<input type="hidden" name="cmd" value="search">
-<input type="hidden" name="t" value="registro_sanitario">
-	<div class="ewBasicSearch">
-<div id="xsr_1" class="ewRow">
-	<div class="ewQuickSearch input-group">
-	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($registro_sanitario_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
-	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($registro_sanitario_list->BasicSearch->getType()) ?>">
-	<div class="input-group-btn">
-		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $registro_sanitario_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
-		<ul class="dropdown-menu pull-right" role="menu">
-			<li<?php if ($registro_sanitario_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
-			<li<?php if ($registro_sanitario_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
-			<li<?php if ($registro_sanitario_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
-			<li<?php if ($registro_sanitario_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
-		</ul>
-	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("QuickSearchBtn") ?></button>
-	</div>
-	</div>
-</div>
-	</div>
-</div>
-</form>
-<?php } ?>
-<?php } ?>
-<?php $registro_sanitario_list->ShowPageHeader(); ?>
+<?php $producto_precio_historial_list->ShowPageHeader(); ?>
 <?php
-$registro_sanitario_list->ShowMessage();
+$producto_precio_historial_list->ShowMessage();
 ?>
-<?php if ($registro_sanitario_list->TotalRecs > 0 || $registro_sanitario->CurrentAction <> "") { ?>
+<?php if ($producto_precio_historial_list->TotalRecs > 0 || $producto_precio_historial->CurrentAction <> "") { ?>
 <div class="ewGrid">
-<form name="fregistro_sanitariolist" id="fregistro_sanitariolist" class="form-inline ewForm ewListForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($registro_sanitario_list->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $registro_sanitario_list->Token ?>">
+<form name="fproducto_precio_historiallist" id="fproducto_precio_historiallist" class="form-inline ewForm ewListForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($producto_precio_historial_list->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_precio_historial_list->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="registro_sanitario">
-<div id="gmp_registro_sanitario" class="<?php if (ew_IsResponsiveLayout()) { echo "table-responsive "; } ?>ewGridMiddlePanel">
-<?php if ($registro_sanitario_list->TotalRecs > 0) { ?>
-<table id="tbl_registro_sanitariolist" class="table ewTable">
-<?php echo $registro_sanitario->TableCustomInnerHtml ?>
+<input type="hidden" name="t" value="producto_precio_historial">
+<div id="gmp_producto_precio_historial" class="<?php if (ew_IsResponsiveLayout()) { echo "table-responsive "; } ?>ewGridMiddlePanel">
+<?php if ($producto_precio_historial_list->TotalRecs > 0) { ?>
+<table id="tbl_producto_precio_historiallist" class="table ewTable">
+<?php echo $producto_precio_historial->TableCustomInnerHtml ?>
 <thead><!-- Table header -->
 	<tr class="ewTableHeader">
 <?php
 
 // Render list options
-$registro_sanitario_list->RenderListOptions();
+$producto_precio_historial_list->RenderListOptions();
 
 // Render list options (header, left)
-$registro_sanitario_list->ListOptions->Render("header", "left");
+$producto_precio_historial_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
-	<?php if ($registro_sanitario->SortUrl($registro_sanitario->descripcion) == "") { ?>
-		<th data-name="descripcion"><div id="elh_registro_sanitario_descripcion" class="registro_sanitario_descripcion"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->descripcion->FldCaption() ?></div></div></th>
+<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->idproducto_precio_historial) == "") { ?>
+		<th data-name="idproducto_precio_historial"><div id="elh_producto_precio_historial_idproducto_precio_historial" class="producto_precio_historial_idproducto_precio_historial"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="descripcion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->descripcion) ?>',1);"><div id="elh_registro_sanitario_descripcion" class="registro_sanitario_descripcion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->descripcion->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->descripcion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->descripcion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idproducto_precio_historial"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->idproducto_precio_historial) ?>',1);"><div id="elh_producto_precio_historial_idproducto_precio_historial" class="producto_precio_historial_idproducto_precio_historial">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->idproducto_precio_historial->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->idproducto_precio_historial->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($registro_sanitario->idpais->Visible) { // idpais ?>
-	<?php if ($registro_sanitario->SortUrl($registro_sanitario->idpais) == "") { ?>
-		<th data-name="idpais"><div id="elh_registro_sanitario_idpais" class="registro_sanitario_idpais"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->idpais->FldCaption() ?></div></div></th>
+<?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->idproducto) == "") { ?>
+		<th data-name="idproducto"><div id="elh_producto_precio_historial_idproducto" class="producto_precio_historial_idproducto"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="idpais"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idpais) ?>',1);"><div id="elh_registro_sanitario_idpais" class="registro_sanitario_idpais">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="idproducto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->idproducto) ?>',1);"><div id="elh_producto_precio_historial_idproducto" class="producto_precio_historial_idproducto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->idproducto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->idproducto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
-	<?php if ($registro_sanitario->SortUrl($registro_sanitario->idproducto) == "") { ?>
-		<th data-name="idproducto"><div id="elh_registro_sanitario_idproducto" class="registro_sanitario_idproducto"><div class="ewTableHeaderCaption"><?php echo $registro_sanitario->idproducto->FldCaption() ?></div></div></th>
+<?php if ($producto_precio_historial->fecha->Visible) { // fecha ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->fecha) == "") { ?>
+		<th data-name="fecha"><div id="elh_producto_precio_historial_fecha" class="producto_precio_historial_fecha"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="idproducto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $registro_sanitario->SortUrl($registro_sanitario->idproducto) ?>',1);"><div id="elh_registro_sanitario_idproducto" class="registro_sanitario_idproducto">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $registro_sanitario->idproducto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($registro_sanitario->idproducto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($registro_sanitario->idproducto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="fecha"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->fecha) ?>',1);"><div id="elh_producto_precio_historial_fecha" class="producto_precio_historial_fecha">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->fecha->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->fecha->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_precio_historial->precio_venta->Visible) { // precio_venta ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->precio_venta) == "") { ?>
+		<th data-name="precio_venta"><div id="elh_producto_precio_historial_precio_venta" class="producto_precio_historial_precio_venta"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->precio_venta->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="precio_venta"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->precio_venta) ?>',1);"><div id="elh_producto_precio_historial_precio_venta" class="producto_precio_historial_precio_venta">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->precio_venta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->precio_venta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->precio_venta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_precio_historial->precio_compra->Visible) { // precio_compra ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->precio_compra) == "") { ?>
+		<th data-name="precio_compra"><div id="elh_producto_precio_historial_precio_compra" class="producto_precio_historial_precio_compra"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->precio_compra->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="precio_compra"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->precio_compra) ?>',1);"><div id="elh_producto_precio_historial_precio_compra" class="producto_precio_historial_precio_compra">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->precio_compra->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->precio_compra->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->precio_compra->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->estado) == "") { ?>
+		<th data-name="estado"><div id="elh_producto_precio_historial_estado" class="producto_precio_historial_estado"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->estado->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->estado) ?>',1);"><div id="elh_producto_precio_historial_estado" class="producto_precio_historial_estado">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
+	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->fecha_insercion) == "") { ?>
+		<th data-name="fecha_insercion"><div id="elh_producto_precio_historial_fecha_insercion" class="producto_precio_historial_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->fecha_insercion) ?>',1);"><div id="elh_producto_precio_historial_fecha_insercion" class="producto_precio_historial_fecha_insercion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
 <?php
 
 // Render list options (header, right)
-$registro_sanitario_list->ListOptions->Render("header", "right");
+$producto_precio_historial_list->ListOptions->Render("header", "right");
 ?>
 	</tr>
 </thead>
 <tbody>
 <?php
-if ($registro_sanitario->ExportAll && $registro_sanitario->Export <> "") {
-	$registro_sanitario_list->StopRec = $registro_sanitario_list->TotalRecs;
+if ($producto_precio_historial->ExportAll && $producto_precio_historial->Export <> "") {
+	$producto_precio_historial_list->StopRec = $producto_precio_historial_list->TotalRecs;
 } else {
 
 	// Set the last record to display
-	if ($registro_sanitario_list->TotalRecs > $registro_sanitario_list->StartRec + $registro_sanitario_list->DisplayRecs - 1)
-		$registro_sanitario_list->StopRec = $registro_sanitario_list->StartRec + $registro_sanitario_list->DisplayRecs - 1;
+	if ($producto_precio_historial_list->TotalRecs > $producto_precio_historial_list->StartRec + $producto_precio_historial_list->DisplayRecs - 1)
+		$producto_precio_historial_list->StopRec = $producto_precio_historial_list->StartRec + $producto_precio_historial_list->DisplayRecs - 1;
 	else
-		$registro_sanitario_list->StopRec = $registro_sanitario_list->TotalRecs;
+		$producto_precio_historial_list->StopRec = $producto_precio_historial_list->TotalRecs;
 }
-$registro_sanitario_list->RecCnt = $registro_sanitario_list->StartRec - 1;
-if ($registro_sanitario_list->Recordset && !$registro_sanitario_list->Recordset->EOF) {
-	$registro_sanitario_list->Recordset->MoveFirst();
+$producto_precio_historial_list->RecCnt = $producto_precio_historial_list->StartRec - 1;
+if ($producto_precio_historial_list->Recordset && !$producto_precio_historial_list->Recordset->EOF) {
+	$producto_precio_historial_list->Recordset->MoveFirst();
 	$bSelectLimit = EW_SELECT_LIMIT;
-	if (!$bSelectLimit && $registro_sanitario_list->StartRec > 1)
-		$registro_sanitario_list->Recordset->Move($registro_sanitario_list->StartRec - 1);
-} elseif (!$registro_sanitario->AllowAddDeleteRow && $registro_sanitario_list->StopRec == 0) {
-	$registro_sanitario_list->StopRec = $registro_sanitario->GridAddRowCount;
+	if (!$bSelectLimit && $producto_precio_historial_list->StartRec > 1)
+		$producto_precio_historial_list->Recordset->Move($producto_precio_historial_list->StartRec - 1);
+} elseif (!$producto_precio_historial->AllowAddDeleteRow && $producto_precio_historial_list->StopRec == 0) {
+	$producto_precio_historial_list->StopRec = $producto_precio_historial->GridAddRowCount;
 }
 
 // Initialize aggregate
-$registro_sanitario->RowType = EW_ROWTYPE_AGGREGATEINIT;
-$registro_sanitario->ResetAttrs();
-$registro_sanitario_list->RenderRow();
-while ($registro_sanitario_list->RecCnt < $registro_sanitario_list->StopRec) {
-	$registro_sanitario_list->RecCnt++;
-	if (intval($registro_sanitario_list->RecCnt) >= intval($registro_sanitario_list->StartRec)) {
-		$registro_sanitario_list->RowCnt++;
+$producto_precio_historial->RowType = EW_ROWTYPE_AGGREGATEINIT;
+$producto_precio_historial->ResetAttrs();
+$producto_precio_historial_list->RenderRow();
+while ($producto_precio_historial_list->RecCnt < $producto_precio_historial_list->StopRec) {
+	$producto_precio_historial_list->RecCnt++;
+	if (intval($producto_precio_historial_list->RecCnt) >= intval($producto_precio_historial_list->StartRec)) {
+		$producto_precio_historial_list->RowCnt++;
 
 		// Set up key count
-		$registro_sanitario_list->KeyCount = $registro_sanitario_list->RowIndex;
+		$producto_precio_historial_list->KeyCount = $producto_precio_historial_list->RowIndex;
 
 		// Init row class and style
-		$registro_sanitario->ResetAttrs();
-		$registro_sanitario->CssClass = "";
-		if ($registro_sanitario->CurrentAction == "gridadd") {
+		$producto_precio_historial->ResetAttrs();
+		$producto_precio_historial->CssClass = "";
+		if ($producto_precio_historial->CurrentAction == "gridadd") {
 		} else {
-			$registro_sanitario_list->LoadRowValues($registro_sanitario_list->Recordset); // Load row values
+			$producto_precio_historial_list->LoadRowValues($producto_precio_historial_list->Recordset); // Load row values
 		}
-		$registro_sanitario->RowType = EW_ROWTYPE_VIEW; // Render view
+		$producto_precio_historial->RowType = EW_ROWTYPE_VIEW; // Render view
 
 		// Set up row id / data-rowindex
-		$registro_sanitario->RowAttrs = array_merge($registro_sanitario->RowAttrs, array('data-rowindex'=>$registro_sanitario_list->RowCnt, 'id'=>'r' . $registro_sanitario_list->RowCnt . '_registro_sanitario', 'data-rowtype'=>$registro_sanitario->RowType));
+		$producto_precio_historial->RowAttrs = array_merge($producto_precio_historial->RowAttrs, array('data-rowindex'=>$producto_precio_historial_list->RowCnt, 'id'=>'r' . $producto_precio_historial_list->RowCnt . '_producto_precio_historial', 'data-rowtype'=>$producto_precio_historial->RowType));
 
 		// Render row
-		$registro_sanitario_list->RenderRow();
+		$producto_precio_historial_list->RenderRow();
 
 		// Render list options
-		$registro_sanitario_list->RenderListOptions();
+		$producto_precio_historial_list->RenderListOptions();
 ?>
-	<tr<?php echo $registro_sanitario->RowAttributes() ?>>
+	<tr<?php echo $producto_precio_historial->RowAttributes() ?>>
 <?php
 
 // Render list options (body, left)
-$registro_sanitario_list->ListOptions->Render("body", "left", $registro_sanitario_list->RowCnt);
+$producto_precio_historial_list->ListOptions->Render("body", "left", $producto_precio_historial_list->RowCnt);
 ?>
-	<?php if ($registro_sanitario->descripcion->Visible) { // descripcion ?>
-		<td data-name="descripcion"<?php echo $registro_sanitario->descripcion->CellAttributes() ?>>
-<span<?php echo $registro_sanitario->descripcion->ViewAttributes() ?>>
-<?php echo $registro_sanitario->descripcion->ListViewValue() ?></span>
-<a id="<?php echo $registro_sanitario_list->PageObjName . "_row_" . $registro_sanitario_list->RowCnt ?>"></a></td>
+	<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
+		<td data-name="idproducto_precio_historial"<?php echo $producto_precio_historial->idproducto_precio_historial->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->idproducto_precio_historial->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->idproducto_precio_historial->ListViewValue() ?></span>
+<a id="<?php echo $producto_precio_historial_list->PageObjName . "_row_" . $producto_precio_historial_list->RowCnt ?>"></a></td>
 	<?php } ?>
-	<?php if ($registro_sanitario->idpais->Visible) { // idpais ?>
-		<td data-name="idpais"<?php echo $registro_sanitario->idpais->CellAttributes() ?>>
-<span<?php echo $registro_sanitario->idpais->ViewAttributes() ?>>
-<?php echo $registro_sanitario->idpais->ListViewValue() ?></span>
+	<?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
+		<td data-name="idproducto"<?php echo $producto_precio_historial->idproducto->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->idproducto->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->idproducto->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($registro_sanitario->idproducto->Visible) { // idproducto ?>
-		<td data-name="idproducto"<?php echo $registro_sanitario->idproducto->CellAttributes() ?>>
-<span<?php echo $registro_sanitario->idproducto->ViewAttributes() ?>>
-<?php echo $registro_sanitario->idproducto->ListViewValue() ?></span>
+	<?php if ($producto_precio_historial->fecha->Visible) { // fecha ?>
+		<td data-name="fecha"<?php echo $producto_precio_historial->fecha->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->fecha->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->fecha->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_precio_historial->precio_venta->Visible) { // precio_venta ?>
+		<td data-name="precio_venta"<?php echo $producto_precio_historial->precio_venta->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->precio_venta->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->precio_venta->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_precio_historial->precio_compra->Visible) { // precio_compra ?>
+		<td data-name="precio_compra"<?php echo $producto_precio_historial->precio_compra->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->precio_compra->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->precio_compra->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
+		<td data-name="estado"<?php echo $producto_precio_historial->estado->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->estado->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->estado->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td data-name="fecha_insercion"<?php echo $producto_precio_historial->fecha_insercion->CellAttributes() ?>>
+<span<?php echo $producto_precio_historial->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->fecha_insercion->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php
 
 // Render list options (body, right)
-$registro_sanitario_list->ListOptions->Render("body", "right", $registro_sanitario_list->RowCnt);
+$producto_precio_historial_list->ListOptions->Render("body", "right", $producto_precio_historial_list->RowCnt);
 ?>
 	</tr>
 <?php
 	}
-	if ($registro_sanitario->CurrentAction <> "gridadd")
-		$registro_sanitario_list->Recordset->MoveNext();
+	if ($producto_precio_historial->CurrentAction <> "gridadd")
+		$producto_precio_historial_list->Recordset->MoveNext();
 }
 ?>
 </tbody>
 </table>
 <?php } ?>
-<?php if ($registro_sanitario->CurrentAction == "") { ?>
+<?php if ($producto_precio_historial->CurrentAction == "") { ?>
 <input type="hidden" name="a_list" id="a_list" value="">
 <?php } ?>
 </div>
@@ -2026,61 +1829,61 @@ $registro_sanitario_list->ListOptions->Render("body", "right", $registro_sanitar
 <?php
 
 // Close recordset
-if ($registro_sanitario_list->Recordset)
-	$registro_sanitario_list->Recordset->Close();
+if ($producto_precio_historial_list->Recordset)
+	$producto_precio_historial_list->Recordset->Close();
 ?>
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <div class="ewGridLowerPanel">
-<?php if ($registro_sanitario->CurrentAction <> "gridadd" && $registro_sanitario->CurrentAction <> "gridedit") { ?>
+<?php if ($producto_precio_historial->CurrentAction <> "gridadd" && $producto_precio_historial->CurrentAction <> "gridedit") { ?>
 <form name="ewPagerForm" class="ewForm form-inline ewPagerForm" action="<?php echo ew_CurrentPage() ?>">
-<?php if (!isset($registro_sanitario_list->Pager)) $registro_sanitario_list->Pager = new cPrevNextPager($registro_sanitario_list->StartRec, $registro_sanitario_list->DisplayRecs, $registro_sanitario_list->TotalRecs) ?>
-<?php if ($registro_sanitario_list->Pager->RecordCount > 0) { ?>
+<?php if (!isset($producto_precio_historial_list->Pager)) $producto_precio_historial_list->Pager = new cPrevNextPager($producto_precio_historial_list->StartRec, $producto_precio_historial_list->DisplayRecs, $producto_precio_historial_list->TotalRecs) ?>
+<?php if ($producto_precio_historial_list->Pager->RecordCount > 0) { ?>
 <div class="ewPager">
 <span><?php echo $Language->Phrase("Page") ?>&nbsp;</span>
 <div class="ewPrevNext"><div class="input-group">
 <div class="input-group-btn">
 <!--first page button-->
-	<?php if ($registro_sanitario_list->Pager->FirstButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerFirst") ?>" href="<?php echo $registro_sanitario_list->PageUrl() ?>start=<?php echo $registro_sanitario_list->Pager->FirstButton->Start ?>"><span class="icon-first ewIcon"></span></a>
+	<?php if ($producto_precio_historial_list->Pager->FirstButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerFirst") ?>" href="<?php echo $producto_precio_historial_list->PageUrl() ?>start=<?php echo $producto_precio_historial_list->Pager->FirstButton->Start ?>"><span class="icon-first ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerFirst") ?>"><span class="icon-first ewIcon"></span></a>
 	<?php } ?>
 <!--previous page button-->
-	<?php if ($registro_sanitario_list->Pager->PrevButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerPrevious") ?>" href="<?php echo $registro_sanitario_list->PageUrl() ?>start=<?php echo $registro_sanitario_list->Pager->PrevButton->Start ?>"><span class="icon-prev ewIcon"></span></a>
+	<?php if ($producto_precio_historial_list->Pager->PrevButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerPrevious") ?>" href="<?php echo $producto_precio_historial_list->PageUrl() ?>start=<?php echo $producto_precio_historial_list->Pager->PrevButton->Start ?>"><span class="icon-prev ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerPrevious") ?>"><span class="icon-prev ewIcon"></span></a>
 	<?php } ?>
 </div>
 <!--current page number-->
-	<input class="form-control input-sm" type="text" name="<?php echo EW_TABLE_PAGE_NO ?>" value="<?php echo $registro_sanitario_list->Pager->CurrentPage ?>">
+	<input class="form-control input-sm" type="text" name="<?php echo EW_TABLE_PAGE_NO ?>" value="<?php echo $producto_precio_historial_list->Pager->CurrentPage ?>">
 <div class="input-group-btn">
 <!--next page button-->
-	<?php if ($registro_sanitario_list->Pager->NextButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerNext") ?>" href="<?php echo $registro_sanitario_list->PageUrl() ?>start=<?php echo $registro_sanitario_list->Pager->NextButton->Start ?>"><span class="icon-next ewIcon"></span></a>
+	<?php if ($producto_precio_historial_list->Pager->NextButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerNext") ?>" href="<?php echo $producto_precio_historial_list->PageUrl() ?>start=<?php echo $producto_precio_historial_list->Pager->NextButton->Start ?>"><span class="icon-next ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerNext") ?>"><span class="icon-next ewIcon"></span></a>
 	<?php } ?>
 <!--last page button-->
-	<?php if ($registro_sanitario_list->Pager->LastButton->Enabled) { ?>
-	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerLast") ?>" href="<?php echo $registro_sanitario_list->PageUrl() ?>start=<?php echo $registro_sanitario_list->Pager->LastButton->Start ?>"><span class="icon-last ewIcon"></span></a>
+	<?php if ($producto_precio_historial_list->Pager->LastButton->Enabled) { ?>
+	<a class="btn btn-default btn-sm" title="<?php echo $Language->Phrase("PagerLast") ?>" href="<?php echo $producto_precio_historial_list->PageUrl() ?>start=<?php echo $producto_precio_historial_list->Pager->LastButton->Start ?>"><span class="icon-last ewIcon"></span></a>
 	<?php } else { ?>
 	<a class="btn btn-default btn-sm disabled" title="<?php echo $Language->Phrase("PagerLast") ?>"><span class="icon-last ewIcon"></span></a>
 	<?php } ?>
 </div>
 </div>
 </div>
-<span>&nbsp;<?php echo $Language->Phrase("of") ?>&nbsp;<?php echo $registro_sanitario_list->Pager->PageCount ?></span>
+<span>&nbsp;<?php echo $Language->Phrase("of") ?>&nbsp;<?php echo $producto_precio_historial_list->Pager->PageCount ?></span>
 </div>
 <div class="ewPager ewRec">
-	<span><?php echo $Language->Phrase("Record") ?>&nbsp;<?php echo $registro_sanitario_list->Pager->FromIndex ?>&nbsp;<?php echo $Language->Phrase("To") ?>&nbsp;<?php echo $registro_sanitario_list->Pager->ToIndex ?>&nbsp;<?php echo $Language->Phrase("Of") ?>&nbsp;<?php echo $registro_sanitario_list->Pager->RecordCount ?></span>
+	<span><?php echo $Language->Phrase("Record") ?>&nbsp;<?php echo $producto_precio_historial_list->Pager->FromIndex ?>&nbsp;<?php echo $Language->Phrase("To") ?>&nbsp;<?php echo $producto_precio_historial_list->Pager->ToIndex ?>&nbsp;<?php echo $Language->Phrase("Of") ?>&nbsp;<?php echo $producto_precio_historial_list->Pager->RecordCount ?></span>
 </div>
 <?php } ?>
 </form>
 <?php } ?>
 <div class="ewListOtherOptions">
 <?php
-	foreach ($registro_sanitario_list->OtherOptions as &$option)
+	foreach ($producto_precio_historial_list->OtherOptions as &$option)
 		$option->Render("body", "bottom");
 ?>
 </div>
@@ -2089,10 +1892,10 @@ if ($registro_sanitario_list->Recordset)
 <?php } ?>
 </div>
 <?php } ?>
-<?php if ($registro_sanitario_list->TotalRecs == 0 && $registro_sanitario->CurrentAction == "") { // Show other options ?>
+<?php if ($producto_precio_historial_list->TotalRecs == 0 && $producto_precio_historial->CurrentAction == "") { // Show other options ?>
 <div class="ewListOtherOptions">
 <?php
-	foreach ($registro_sanitario_list->OtherOptions as &$option) {
+	foreach ($producto_precio_historial_list->OtherOptions as &$option) {
 		$option->ButtonClass = "";
 		$option->Render("body", "");
 	}
@@ -2100,18 +1903,17 @@ if ($registro_sanitario_list->Recordset)
 </div>
 <div class="clearfix"></div>
 <?php } ?>
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <script type="text/javascript">
-fregistro_sanitariolistsrch.Init();
-fregistro_sanitariolist.Init();
+fproducto_precio_historiallist.Init();
 </script>
 <?php } ?>
 <?php
-$registro_sanitario_list->ShowPageFooter();
+$producto_precio_historial_list->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
-<?php if ($registro_sanitario->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <script type="text/javascript">
 
 // Write your table-specific startup script here
@@ -2121,5 +1923,5 @@ if (EW_DEBUG_ENABLED)
 <?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$registro_sanitario_list->Page_Terminate();
+$producto_precio_historial_list->Page_Terminate();
 ?>

@@ -6,10 +6,9 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "ewcfg11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "ewmysql11.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "phpfn11.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "marcainfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "fabricanteinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_precio_historialinfo.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "productoinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
-<?php include_once $EW_RELATIVE_PATH . "productogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -17,9 +16,9 @@ $EW_RELATIVE_PATH = "";
 // Page class
 //
 
-$marca_view = NULL; // Initialize page object first
+$producto_precio_historial_view = NULL; // Initialize page object first
 
-class cmarca_view extends cmarca {
+class cproducto_precio_historial_view extends cproducto_precio_historial {
 
 	// Page ID
 	var $PageID = 'view';
@@ -28,10 +27,10 @@ class cmarca_view extends cmarca {
 	var $ProjectID = "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}";
 
 	// Table name
-	var $TableName = 'marca';
+	var $TableName = 'producto_precio_historial';
 
 	// Page object name
-	var $PageObjName = 'marca_view';
+	var $PageObjName = 'producto_precio_historial_view';
 
 	// Page name
 	function PageName() {
@@ -230,15 +229,15 @@ class cmarca_view extends cmarca {
 		// Parent constuctor
 		parent::__construct();
 
-		// Table object (marca)
-		if (!isset($GLOBALS["marca"]) || get_class($GLOBALS["marca"]) == "cmarca") {
-			$GLOBALS["marca"] = &$this;
-			$GLOBALS["Table"] = &$GLOBALS["marca"];
+		// Table object (producto_precio_historial)
+		if (!isset($GLOBALS["producto_precio_historial"]) || get_class($GLOBALS["producto_precio_historial"]) == "cproducto_precio_historial") {
+			$GLOBALS["producto_precio_historial"] = &$this;
+			$GLOBALS["Table"] = &$GLOBALS["producto_precio_historial"];
 		}
 		$KeyUrl = "";
-		if (@$_GET["idmarca"] <> "") {
-			$this->RecKey["idmarca"] = $_GET["idmarca"];
-			$KeyUrl .= "&amp;idmarca=" . urlencode($this->RecKey["idmarca"]);
+		if (@$_GET["idproducto_precio_historial"] <> "") {
+			$this->RecKey["idproducto_precio_historial"] = $_GET["idproducto_precio_historial"];
+			$KeyUrl .= "&amp;idproducto_precio_historial=" . urlencode($this->RecKey["idproducto_precio_historial"]);
 		}
 		$this->ExportPrintUrl = $this->PageUrl() . "export=print" . $KeyUrl;
 		$this->ExportHtmlUrl = $this->PageUrl() . "export=html" . $KeyUrl;
@@ -248,8 +247,8 @@ class cmarca_view extends cmarca {
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv" . $KeyUrl;
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf" . $KeyUrl;
 
-		// Table object (fabricante)
-		if (!isset($GLOBALS['fabricante'])) $GLOBALS['fabricante'] = new cfabricante();
+		// Table object (producto)
+		if (!isset($GLOBALS['producto'])) $GLOBALS['producto'] = new cproducto();
 
 		// Table object (usuario)
 		if (!isset($GLOBALS['usuario'])) $GLOBALS['usuario'] = new cusuario();
@@ -263,7 +262,7 @@ class cmarca_view extends cmarca {
 
 		// Table name (for backward compatibility)
 		if (!defined("EW_TABLE_NAME"))
-			define("EW_TABLE_NAME", 'marca', TRUE);
+			define("EW_TABLE_NAME", 'producto_precio_historial', TRUE);
 
 		// Start timer
 		if (!isset($GLOBALS["gTimer"])) $GLOBALS["gTimer"] = new cTimer();
@@ -308,7 +307,7 @@ class cmarca_view extends cmarca {
 		if (!$Security->CanView()) {
 			$Security->SaveLastUrl();
 			$this->setFailureMessage($Language->Phrase("NoPermission")); // Set no permission
-			$this->Page_Terminate(ew_GetUrl("marcalist.php"));
+			$this->Page_Terminate(ew_GetUrl("producto_precio_historiallist.php"));
 		}
 		$Security->UserID_Loading();
 		if ($Security->IsLoggedIn()) $Security->LoadUserID();
@@ -330,9 +329,9 @@ class cmarca_view extends cmarca {
 			$this->setExportReturnUrl(ew_CurrentUrl());
 		}
 		$gsExportFile = $this->TableVar; // Get export file, used in header
-		if (@$_GET["idmarca"] <> "") {
+		if (@$_GET["idproducto_precio_historial"] <> "") {
 			if ($gsExportFile <> "") $gsExportFile .= "_";
-			$gsExportFile .= ew_StripSlashes($_GET["idmarca"]);
+			$gsExportFile .= ew_StripSlashes($_GET["idproducto_precio_historial"]);
 		}
 
 		// Get custom export parameters
@@ -358,7 +357,7 @@ class cmarca_view extends cmarca {
 
 		// Setup export options
 		$this->SetupExportOptions();
-		$this->idmarca->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->idproducto_precio_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -375,14 +374,6 @@ class cmarca_view extends cmarca {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'producto'
-			if (@$_POST["grid"] == "fproductogrid") {
-				if (!isset($GLOBALS["producto_grid"])) $GLOBALS["producto_grid"] = new cproducto_grid;
-				$GLOBALS["producto_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -412,13 +403,13 @@ class cmarca_view extends cmarca {
 		Page_Unloaded();
 
 		// Export
-		global $EW_EXPORT, $marca;
+		global $EW_EXPORT, $producto_precio_historial;
 		if ($this->CustomExport <> "" && $this->CustomExport == $this->Export && array_key_exists($this->CustomExport, $EW_EXPORT)) {
 				$sContent = ob_get_contents();
 			if ($gsExportFile == "") $gsExportFile = $this->TableVar;
 			$class = $EW_EXPORT[$this->CustomExport];
 			if (class_exists($class)) {
-				$doc = new $class($marca);
+				$doc = new $class($producto_precio_historial);
 				$doc->Text = $sContent;
 				if ($this->Export == "email")
 					echo $this->ExportEmail($doc->Text);
@@ -472,11 +463,11 @@ class cmarca_view extends cmarca {
 		if ($this->Export == "")
 			$this->SetupBreadcrumb();
 		if ($this->IsPageRequest()) { // Validate request
-			if (@$_GET["idmarca"] <> "") {
-				$this->idmarca->setQueryStringValue($_GET["idmarca"]);
-				$this->RecKey["idmarca"] = $this->idmarca->QueryStringValue;
+			if (@$_GET["idproducto_precio_historial"] <> "") {
+				$this->idproducto_precio_historial->setQueryStringValue($_GET["idproducto_precio_historial"]);
+				$this->RecKey["idproducto_precio_historial"] = $this->idproducto_precio_historial->QueryStringValue;
 			} else {
-				$sReturnUrl = "marcalist.php"; // Return to list
+				$sReturnUrl = "producto_precio_historiallist.php"; // Return to list
 			}
 
 			// Get action
@@ -486,7 +477,7 @@ class cmarca_view extends cmarca {
 					if (!$this->LoadRow()) { // Load record based on key
 						if ($this->getSuccessMessage() == "" && $this->getFailureMessage() == "")
 							$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record message
-						$sReturnUrl = "marcalist.php"; // No matching record, return to list
+						$sReturnUrl = "producto_precio_historiallist.php"; // No matching record, return to list
 					}
 			}
 
@@ -497,7 +488,7 @@ class cmarca_view extends cmarca {
 				exit();
 			}
 		} else {
-			$sReturnUrl = "marcalist.php"; // Not page request, return to list
+			$sReturnUrl = "producto_precio_historiallist.php"; // Not page request, return to list
 		}
 		if ($sReturnUrl <> "")
 			$this->Page_Terminate($sReturnUrl);
@@ -506,9 +497,6 @@ class cmarca_view extends cmarca {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
-
-		// Set up detail parameters
-		$this->SetUpDetailParms();
 	}
 
 	// Set up other options
@@ -516,95 +504,6 @@ class cmarca_view extends cmarca {
 		global $Language, $Security;
 		$options = &$this->OtherOptions;
 		$option = &$options["action"];
-
-		// Add
-		$item = &$option->Add("add");
-		$item->Body = "<a class=\"ewAction ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageAddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageAddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("ViewPageAddLink") . "</a>";
-		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
-
-		// Edit
-		$item = &$option->Add("edit");
-		$item->Body = "<a class=\"ewAction ewEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageEditLink")) . "\" href=\"" . ew_HtmlEncode($this->EditUrl) . "\">" . $Language->Phrase("ViewPageEditLink") . "</a>";
-		$item->Visible = ($this->EditUrl <> "" && $Security->CanEdit());
-
-		// Show detail edit/copy
-		if ($this->getCurrentDetailTable() <> "") {
-
-			// Detail Edit
-			$item = &$option->Add("detailedit");
-			$item->Body = "<a class=\"ewAction ewDetailEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable())) . "\">" . $Language->Phrase("MasterDetailEditLink") . "</a>";
-			$item->Visible = ($Security->CanEdit());
-		}
-		$option = &$options["detail"];
-		$DetailTableLink = "";
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_producto"
-		$item = &$option->Add("detail_producto");
-		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto", "TblCaption");
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("productolist.php?" . EW_TABLE_SHOW_MASTER . "=marca&fk_idmarca=" . strval($this->idmarca->CurrentValue) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["producto_grid"] && $GLOBALS["producto_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'producto')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "producto";
-		}
-		if ($GLOBALS["producto_grid"] && $GLOBALS["producto_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'producto')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "producto";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto');
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "producto";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$option->Add("details");
-			$oListOpt->Body = $body;
-		}
-
-		// Set up detail default
-		$option = &$options["detail"];
-		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
-		$option->UseImageAndText = TRUE;
-		$ar = explode(",", $DetailTableLink);
-		$cnt = count($ar);
-		$option->UseDropDownButton = ($cnt > 1);
-		$option->UseButtonGroup = TRUE;
-		$item = &$option->Add($option->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
 
 		// Set up action default
 		$option = &$options["action"];
@@ -699,9 +598,11 @@ class cmarca_view extends cmarca {
 		// Call Row Selected event
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
-		$this->idmarca->setDbValue($rs->fields('idmarca'));
-		$this->nombre->setDbValue($rs->fields('nombre'));
-		$this->idfabricante->setDbValue($rs->fields('idfabricante'));
+		$this->idproducto_precio_historial->setDbValue($rs->fields('idproducto_precio_historial'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
+		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -710,9 +611,11 @@ class cmarca_view extends cmarca {
 	function LoadDbValues(&$rs) {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
-		$this->idmarca->DbValue = $row['idmarca'];
-		$this->nombre->DbValue = $row['nombre'];
-		$this->idfabricante->DbValue = $row['idfabricante'];
+		$this->idproducto_precio_historial->DbValue = $row['idproducto_precio_historial'];
+		$this->idproducto->DbValue = $row['idproducto'];
+		$this->fecha->DbValue = $row['fecha'];
+		$this->precio_venta->DbValue = $row['precio_venta'];
+		$this->precio_compra->DbValue = $row['precio_compra'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -730,54 +633,70 @@ class cmarca_view extends cmarca {
 		$this->ListUrl = $this->GetListUrl();
 		$this->SetupOtherOptions();
 
+		// Convert decimal values if posted back
+		if ($this->precio_venta->FormValue == $this->precio_venta->CurrentValue && is_numeric(ew_StrToFloat($this->precio_venta->CurrentValue)))
+			$this->precio_venta->CurrentValue = ew_StrToFloat($this->precio_venta->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->precio_compra->FormValue == $this->precio_compra->CurrentValue && is_numeric(ew_StrToFloat($this->precio_compra->CurrentValue)))
+			$this->precio_compra->CurrentValue = ew_StrToFloat($this->precio_compra->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
 		// Common render codes for all row types
-		// idmarca
-		// nombre
-		// idfabricante
+		// idproducto_precio_historial
+		// idproducto
+		// fecha
+		// precio_venta
+		// precio_compra
 		// estado
 		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
-			// idmarca
-			$this->idmarca->ViewValue = $this->idmarca->CurrentValue;
-			$this->idmarca->ViewCustomAttributes = "";
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->ViewValue = $this->idproducto_precio_historial->CurrentValue;
+			$this->idproducto_precio_historial->ViewCustomAttributes = "";
 
-			// nombre
-			$this->nombre->ViewValue = $this->nombre->CurrentValue;
-			$this->nombre->ViewCustomAttributes = "";
-
-			// idfabricante
-			if (strval($this->idfabricante->CurrentValue) <> "") {
-				$sFilterWrk = "`idfabricante`" . ew_SearchString("=", $this->idfabricante->CurrentValue, EW_DATATYPE_NUMBER);
-			$sSqlWrk = "SELECT `idfabricante`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fabricante`";
+			// idproducto
+			if (strval($this->idproducto->CurrentValue) <> "") {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 			$sWhereWrk = "";
-			$lookuptblfilter = "`estado` = 'Activo'";
-			if (strval($lookuptblfilter) <> "") {
-				ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			}
 			if ($sFilterWrk <> "") {
 				ew_AddFilter($sWhereWrk, $sFilterWrk);
 			}
 
 			// Call Lookup selecting
-			$this->Lookup_Selecting($this->idfabricante, $sWhereWrk);
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$sSqlWrk .= " ORDER BY `nombre`";
 				$rswrk = $conn->Execute($sSqlWrk);
 				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$this->idfabricante->ViewValue = $rswrk->fields('DispFld');
+					$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 					$rswrk->Close();
 				} else {
-					$this->idfabricante->ViewValue = $this->idfabricante->CurrentValue;
+					$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 				}
 			} else {
-				$this->idfabricante->ViewValue = NULL;
+				$this->idproducto->ViewValue = NULL;
 			}
-			$this->idfabricante->ViewCustomAttributes = "";
+			$this->idproducto->ViewCustomAttributes = "";
+
+			// fecha
+			$this->fecha->ViewValue = $this->fecha->CurrentValue;
+			$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
+			$this->fecha->ViewCustomAttributes = "";
+
+			// precio_venta
+			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewCustomAttributes = "";
+
+			// precio_compra
+			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->ViewCustomAttributes = "";
 
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
@@ -801,20 +720,30 @@ class cmarca_view extends cmarca {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// idmarca
-			$this->idmarca->LinkCustomAttributes = "";
-			$this->idmarca->HrefValue = "";
-			$this->idmarca->TooltipValue = "";
+			// idproducto_precio_historial
+			$this->idproducto_precio_historial->LinkCustomAttributes = "";
+			$this->idproducto_precio_historial->HrefValue = "";
+			$this->idproducto_precio_historial->TooltipValue = "";
 
-			// nombre
-			$this->nombre->LinkCustomAttributes = "";
-			$this->nombre->HrefValue = "";
-			$this->nombre->TooltipValue = "";
+			// idproducto
+			$this->idproducto->LinkCustomAttributes = "";
+			$this->idproducto->HrefValue = "";
+			$this->idproducto->TooltipValue = "";
 
-			// idfabricante
-			$this->idfabricante->LinkCustomAttributes = "";
-			$this->idfabricante->HrefValue = "";
-			$this->idfabricante->TooltipValue = "";
+			// fecha
+			$this->fecha->LinkCustomAttributes = "";
+			$this->fecha->HrefValue = "";
+			$this->fecha->TooltipValue = "";
+
+			// precio_venta
+			$this->precio_venta->LinkCustomAttributes = "";
+			$this->precio_venta->HrefValue = "";
+			$this->precio_venta->TooltipValue = "";
+
+			// precio_compra
+			$this->precio_compra->LinkCustomAttributes = "";
+			$this->precio_compra->HrefValue = "";
+			$this->precio_compra->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -874,7 +803,7 @@ class cmarca_view extends cmarca {
 		// Export to Email
 		$item = &$this->ExportOptions->Add("email");
 		$url = "";
-		$item->Body = "<button id=\"emf_marca\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_marca',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fmarcaview,key:" . ew_ArrayToJsonAttr($this->RecKey) . ",sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
+		$item->Body = "<button id=\"emf_producto_precio_historial\" class=\"ewExportLink ewEmail\" title=\"" . $Language->Phrase("ExportToEmailText") . "\" data-caption=\"" . $Language->Phrase("ExportToEmailText") . "\" onclick=\"ew_EmailDialogShow({lnk:'emf_producto_precio_historial',hdr:ewLanguage.Phrase('ExportToEmailText'),f:document.fproducto_precio_historialview,key:" . ew_ArrayToJsonAttr($this->RecKey) . ",sel:false" . $url . "});\">" . $Language->Phrase("ExportToEmail") . "</button>";
 		$item->Visible = FALSE;
 
 		// Drop down button for export
@@ -941,24 +870,6 @@ class cmarca_view extends cmarca {
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
 		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "view");
-
-		// Export detail records (producto)
-		if (EW_EXPORT_DETAIL_RECORDS && in_array("producto", explode(",", $this->getCurrentDetailTable()))) {
-			global $producto;
-			if (!isset($producto)) $producto = new cproducto;
-			$rsdetail = $producto->LoadRs($producto->GetDetailFilter()); // Load detail records
-			if ($rsdetail && !$rsdetail->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("h"); // Change to horizontal
-				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
-					$Doc->ExportEmptyRow();
-					$detailcnt = $rsdetail->RecordCount();
-					$producto->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsdetail->Close();
-			}
-		}
 		$sFooter = $this->PageFooter;
 		$this->Page_DataRendered($sFooter);
 		$Doc->Text .= $sFooter;
@@ -996,13 +907,13 @@ class cmarca_view extends cmarca {
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
 			}
-			if ($sMasterTblVar == "fabricante") {
+			if ($sMasterTblVar == "producto") {
 				$bValidMaster = TRUE;
-				if (@$_GET["fk_idfabricante"] <> "") {
-					$GLOBALS["fabricante"]->idfabricante->setQueryStringValue($_GET["fk_idfabricante"]);
-					$this->idfabricante->setQueryStringValue($GLOBALS["fabricante"]->idfabricante->QueryStringValue);
-					$this->idfabricante->setSessionValue($this->idfabricante->QueryStringValue);
-					if (!is_numeric($GLOBALS["fabricante"]->idfabricante->QueryStringValue)) $bValidMaster = FALSE;
+				if (@$_GET["fk_idproducto"] <> "") {
+					$GLOBALS["producto"]->idproducto->setQueryStringValue($_GET["fk_idproducto"]);
+					$this->idproducto->setQueryStringValue($GLOBALS["producto"]->idproducto->QueryStringValue);
+					$this->idproducto->setSessionValue($this->idproducto->QueryStringValue);
+					if (!is_numeric($GLOBALS["producto"]->idproducto->QueryStringValue)) $bValidMaster = FALSE;
 				} else {
 					$bValidMaster = FALSE;
 				}
@@ -1019,48 +930,19 @@ class cmarca_view extends cmarca {
 			$this->setStartRecordNumber($this->StartRec);
 
 			// Clear previous master key from Session
-			if ($sMasterTblVar <> "fabricante") {
-				if ($this->idfabricante->QueryStringValue == "") $this->idfabricante->setSessionValue("");
+			if ($sMasterTblVar <> "producto") {
+				if ($this->idproducto->QueryStringValue == "") $this->idproducto->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); //  Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
-	// Set up detail parms based on QueryString
-	function SetUpDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("producto", $DetailTblVar)) {
-				if (!isset($GLOBALS["producto_grid"]))
-					$GLOBALS["producto_grid"] = new cproducto_grid;
-				if ($GLOBALS["producto_grid"]->DetailView) {
-					$GLOBALS["producto_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["producto_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["producto_grid"]->setStartRecordNumber(1);
-					$GLOBALS["producto_grid"]->idmarca->FldIsDetailKey = TRUE;
-					$GLOBALS["producto_grid"]->idmarca->CurrentValue = $this->idmarca->CurrentValue;
-					$GLOBALS["producto_grid"]->idmarca->setSessionValue($GLOBALS["producto_grid"]->idmarca->CurrentValue);
-				}
-			}
-		}
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
 		$Breadcrumb = new cBreadcrumb();
-		$Breadcrumb->Add("list", $this->TableVar, "marcalist.php", "", $this->TableVar, TRUE);
+		$Breadcrumb->Add("list", $this->TableVar, "producto_precio_historiallist.php", "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, ew_CurrentUrl());
 	}
@@ -1156,34 +1038,34 @@ class cmarca_view extends cmarca {
 <?php
 
 // Create page object
-if (!isset($marca_view)) $marca_view = new cmarca_view();
+if (!isset($producto_precio_historial_view)) $producto_precio_historial_view = new cproducto_precio_historial_view();
 
 // Page init
-$marca_view->Page_Init();
+$producto_precio_historial_view->Page_Init();
 
 // Page main
-$marca_view->Page_Main();
+$producto_precio_historial_view->Page_Main();
 
 // Global Page Rendering event (in userfn*.php)
 Page_Rendering();
 
 // Page Rendering event
-$marca_view->Page_Render();
+$producto_precio_historial_view->Page_Render();
 ?>
 <?php include_once $EW_RELATIVE_PATH . "header.php" ?>
-<?php if ($marca->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <script type="text/javascript">
 
 // Page object
-var marca_view = new ew_Page("marca_view");
-marca_view.PageID = "view"; // Page ID
-var EW_PAGE_ID = marca_view.PageID; // For backward compatibility
+var producto_precio_historial_view = new ew_Page("producto_precio_historial_view");
+producto_precio_historial_view.PageID = "view"; // Page ID
+var EW_PAGE_ID = producto_precio_historial_view.PageID; // For backward compatibility
 
 // Form object
-var fmarcaview = new ew_Form("fmarcaview");
+var fproducto_precio_historialview = new ew_Form("fproducto_precio_historialview");
 
 // Form_CustomValidate event
-fmarcaview.Form_CustomValidate = 
+fproducto_precio_historialview.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
 
  	// Your custom validation code here, return false if invalid. 
@@ -1192,13 +1074,13 @@ fmarcaview.Form_CustomValidate =
 
 // Use JavaScript validation or not
 <?php if (EW_CLIENT_VALIDATE) { ?>
-fmarcaview.ValidateRequired = true;
+fproducto_precio_historialview.ValidateRequired = true;
 <?php } else { ?>
-fmarcaview.ValidateRequired = false; 
+fproducto_precio_historialview.ValidateRequired = false; 
 <?php } ?>
 
 // Dynamic selection lists
-fmarcaview.Lists["x_idfabricante"] = {"LinkField":"x_idfabricante","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fproducto_precio_historialview.Lists["x_idproducto"] = {"LinkField":"x_idproducto","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -1207,106 +1089,120 @@ fmarcaview.Lists["x_idfabricante"] = {"LinkField":"x_idfabricante","Ajax":true,"
 // Write your client script here, no need to add script tags.
 </script>
 <?php } ?>
-<?php if ($marca->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <div class="ewToolbar">
-<?php if ($marca->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <?php $Breadcrumb->Render(); ?>
 <?php } ?>
-<?php $marca_view->ExportOptions->Render("body") ?>
+<?php $producto_precio_historial_view->ExportOptions->Render("body") ?>
 <?php
-	foreach ($marca_view->OtherOptions as &$option)
+	foreach ($producto_precio_historial_view->OtherOptions as &$option)
 		$option->Render("body");
 ?>
-<?php if ($marca->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <?php echo $Language->SelectionForm(); ?>
 <?php } ?>
 <div class="clearfix"></div>
 </div>
 <?php } ?>
-<?php $marca_view->ShowPageHeader(); ?>
+<?php $producto_precio_historial_view->ShowPageHeader(); ?>
 <?php
-$marca_view->ShowMessage();
+$producto_precio_historial_view->ShowMessage();
 ?>
-<form name="fmarcaview" id="fmarcaview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
-<?php if ($marca_view->CheckToken) { ?>
-<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $marca_view->Token ?>">
+<form name="fproducto_precio_historialview" id="fproducto_precio_historialview" class="form-inline ewForm ewViewForm" action="<?php echo ew_CurrentPage() ?>" method="post">
+<?php if ($producto_precio_historial_view->CheckToken) { ?>
+<input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $producto_precio_historial_view->Token ?>">
 <?php } ?>
-<input type="hidden" name="t" value="marca">
+<input type="hidden" name="t" value="producto_precio_historial">
 <table class="table table-bordered table-striped ewViewTable">
-<?php if ($marca->idmarca->Visible) { // idmarca ?>
-	<tr id="r_idmarca">
-		<td><span id="elh_marca_idmarca"><?php echo $marca->idmarca->FldCaption() ?></span></td>
-		<td<?php echo $marca->idmarca->CellAttributes() ?>>
-<span id="el_marca_idmarca" class="form-group">
-<span<?php echo $marca->idmarca->ViewAttributes() ?>>
-<?php echo $marca->idmarca->ViewValue ?></span>
+<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
+	<tr id="r_idproducto_precio_historial">
+		<td><span id="elh_producto_precio_historial_idproducto_precio_historial"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->idproducto_precio_historial->CellAttributes() ?>>
+<span id="el_producto_precio_historial_idproducto_precio_historial" class="form-group">
+<span<?php echo $producto_precio_historial->idproducto_precio_historial->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->idproducto_precio_historial->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($marca->nombre->Visible) { // nombre ?>
-	<tr id="r_nombre">
-		<td><span id="elh_marca_nombre"><?php echo $marca->nombre->FldCaption() ?></span></td>
-		<td<?php echo $marca->nombre->CellAttributes() ?>>
-<span id="el_marca_nombre" class="form-group">
-<span<?php echo $marca->nombre->ViewAttributes() ?>>
-<?php echo $marca->nombre->ViewValue ?></span>
+<?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
+	<tr id="r_idproducto">
+		<td><span id="elh_producto_precio_historial_idproducto"><?php echo $producto_precio_historial->idproducto->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->idproducto->CellAttributes() ?>>
+<span id="el_producto_precio_historial_idproducto" class="form-group">
+<span<?php echo $producto_precio_historial->idproducto->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->idproducto->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($marca->idfabricante->Visible) { // idfabricante ?>
-	<tr id="r_idfabricante">
-		<td><span id="elh_marca_idfabricante"><?php echo $marca->idfabricante->FldCaption() ?></span></td>
-		<td<?php echo $marca->idfabricante->CellAttributes() ?>>
-<span id="el_marca_idfabricante" class="form-group">
-<span<?php echo $marca->idfabricante->ViewAttributes() ?>>
-<?php echo $marca->idfabricante->ViewValue ?></span>
+<?php if ($producto_precio_historial->fecha->Visible) { // fecha ?>
+	<tr id="r_fecha">
+		<td><span id="elh_producto_precio_historial_fecha"><?php echo $producto_precio_historial->fecha->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->fecha->CellAttributes() ?>>
+<span id="el_producto_precio_historial_fecha" class="form-group">
+<span<?php echo $producto_precio_historial->fecha->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->fecha->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($marca->estado->Visible) { // estado ?>
+<?php if ($producto_precio_historial->precio_venta->Visible) { // precio_venta ?>
+	<tr id="r_precio_venta">
+		<td><span id="elh_producto_precio_historial_precio_venta"><?php echo $producto_precio_historial->precio_venta->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->precio_venta->CellAttributes() ?>>
+<span id="el_producto_precio_historial_precio_venta" class="form-group">
+<span<?php echo $producto_precio_historial->precio_venta->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->precio_venta->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto_precio_historial->precio_compra->Visible) { // precio_compra ?>
+	<tr id="r_precio_compra">
+		<td><span id="elh_producto_precio_historial_precio_compra"><?php echo $producto_precio_historial->precio_compra->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->precio_compra->CellAttributes() ?>>
+<span id="el_producto_precio_historial_precio_compra" class="form-group">
+<span<?php echo $producto_precio_historial->precio_compra->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->precio_compra->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
 	<tr id="r_estado">
-		<td><span id="elh_marca_estado"><?php echo $marca->estado->FldCaption() ?></span></td>
-		<td<?php echo $marca->estado->CellAttributes() ?>>
-<span id="el_marca_estado" class="form-group">
-<span<?php echo $marca->estado->ViewAttributes() ?>>
-<?php echo $marca->estado->ViewValue ?></span>
+		<td><span id="elh_producto_precio_historial_estado"><?php echo $producto_precio_historial->estado->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->estado->CellAttributes() ?>>
+<span id="el_producto_precio_historial_estado" class="form-group">
+<span<?php echo $producto_precio_historial->estado->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->estado->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($marca->fecha_insercion->Visible) { // fecha_insercion ?>
+<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
 	<tr id="r_fecha_insercion">
-		<td><span id="elh_marca_fecha_insercion"><?php echo $marca->fecha_insercion->FldCaption() ?></span></td>
-		<td<?php echo $marca->fecha_insercion->CellAttributes() ?>>
-<span id="el_marca_fecha_insercion" class="form-group">
-<span<?php echo $marca->fecha_insercion->ViewAttributes() ?>>
-<?php echo $marca->fecha_insercion->ViewValue ?></span>
+		<td><span id="elh_producto_precio_historial_fecha_insercion"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $producto_precio_historial->fecha_insercion->CellAttributes() ?>>
+<span id="el_producto_precio_historial_fecha_insercion" class="form-group">
+<span<?php echo $producto_precio_historial->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto_precio_historial->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
-<?php
-	if (in_array("producto", explode(",", $marca->getCurrentDetailTable())) && $producto->DetailView) {
-?>
-<?php if ($marca->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "productogrid.php" ?>
-<?php } ?>
 </form>
 <script type="text/javascript">
-fmarcaview.Init();
+fproducto_precio_historialview.Init();
 </script>
 <?php
-$marca_view->ShowPageFooter();
+$producto_precio_historial_view->ShowPageFooter();
 if (EW_DEBUG_ENABLED)
 	echo ew_DebugMsg();
 ?>
-<?php if ($marca->Export == "") { ?>
+<?php if ($producto_precio_historial->Export == "") { ?>
 <script type="text/javascript">
 
 // Write your table-specific startup script here
@@ -1316,5 +1212,5 @@ if (EW_DEBUG_ENABLED)
 <?php } ?>
 <?php include_once $EW_RELATIVE_PATH . "footer.php" ?>
 <?php
-$marca_view->Page_Terminate();
+$producto_precio_historial_view->Page_Terminate();
 ?>

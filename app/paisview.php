@@ -732,6 +732,7 @@ class cpais_view extends cpais {
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -741,6 +742,7 @@ class cpais_view extends cpais {
 		$this->idpais->DbValue = $row['idpais'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -763,6 +765,7 @@ class cpais_view extends cpais {
 		// idpais
 		// nombre
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -791,6 +794,11 @@ class cpais_view extends cpais {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idpais
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
@@ -805,6 +813,11 @@ class cpais_view extends cpais {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1230,6 +1243,17 @@ $pais_view->ShowMessage();
 <span id="el_pais_estado" class="form-group">
 <span<?php echo $pais->estado->ViewAttributes() ?>>
 <?php echo $pais->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($pais->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_pais_fecha_insercion"><?php echo $pais->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $pais->fecha_insercion->CellAttributes() ?>>
+<span id="el_pais_fecha_insercion" class="form-group">
+<span<?php echo $pais->fecha_insercion->ViewAttributes() ?>>
+<?php echo $pais->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

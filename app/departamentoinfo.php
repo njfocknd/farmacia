@@ -11,6 +11,7 @@ class cdepartamento extends cTable {
 	var $nombre;
 	var $idpais;
 	var $estado;
+	var $fecha_insercion;
 
 	//
 	// Table class constructor
@@ -53,6 +54,11 @@ class cdepartamento extends cTable {
 		// estado
 		$this->estado = new cField('departamento', 'departamento', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
+
+		// fecha_insercion
+		$this->fecha_insercion = new cField('departamento', 'departamento', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}
 
 	// Single column sort
@@ -608,6 +614,7 @@ class cdepartamento extends cTable {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Render list row values
@@ -622,6 +629,7 @@ class cdepartamento extends cTable {
 		// nombre
 		// idpais
 		// estado
+		// fecha_insercion
 		// iddepartamento
 
 		$this->iddepartamento->ViewValue = $this->iddepartamento->CurrentValue;
@@ -676,6 +684,11 @@ class cdepartamento extends cTable {
 		}
 		$this->estado->ViewCustomAttributes = "";
 
+		// fecha_insercion
+		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+		$this->fecha_insercion->ViewCustomAttributes = "";
+
 		// iddepartamento
 		$this->iddepartamento->LinkCustomAttributes = "";
 		$this->iddepartamento->HrefValue = "";
@@ -695,6 +708,11 @@ class cdepartamento extends cTable {
 		$this->estado->LinkCustomAttributes = "";
 		$this->estado->HrefValue = "";
 		$this->estado->TooltipValue = "";
+
+		// fecha_insercion
+		$this->fecha_insercion->LinkCustomAttributes = "";
+		$this->fecha_insercion->HrefValue = "";
+		$this->fecha_insercion->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -762,6 +780,12 @@ class cdepartamento extends cTable {
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado->EditValue = $arwrk;
 
+		// fecha_insercion
+		$this->fecha_insercion->EditAttrs["class"] = "form-control";
+		$this->fecha_insercion->EditCustomAttributes = "";
+		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -790,11 +814,13 @@ class cdepartamento extends cTable {
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
 					if ($this->iddepartamento->Exportable) $Doc->ExportCaption($this->iddepartamento);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->idpais->Exportable) $Doc->ExportCaption($this->idpais);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
 				$Doc->EndExportRow();
 			}
@@ -830,11 +856,13 @@ class cdepartamento extends cTable {
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
 						if ($this->iddepartamento->Exportable) $Doc->ExportField($this->iddepartamento);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->idpais->Exportable) $Doc->ExportField($this->idpais);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}
 					$Doc->EndExportRow();
 				}

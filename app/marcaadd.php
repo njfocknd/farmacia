@@ -509,6 +509,7 @@ class cmarca_add extends cmarca {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idfabricante->setDbValue($rs->fields('idfabricante'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -519,6 +520,7 @@ class cmarca_add extends cmarca {
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idfabricante->DbValue = $row['idfabricante'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -558,6 +560,7 @@ class cmarca_add extends cmarca {
 		// nombre
 		// idfabricante
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -614,6 +617,11 @@ class cmarca_add extends cmarca {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";

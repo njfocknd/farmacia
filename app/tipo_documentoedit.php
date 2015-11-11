@@ -514,6 +514,7 @@ class ctipo_documento_edit extends ctipo_documento {
 		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -523,6 +524,7 @@ class ctipo_documento_edit extends ctipo_documento {
 		$this->idtipo_documento->DbValue = $row['idtipo_documento'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -539,6 +541,7 @@ class ctipo_documento_edit extends ctipo_documento {
 		// idtipo_documento
 		// nombre
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -566,6 +569,11 @@ class ctipo_documento_edit extends ctipo_documento {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";

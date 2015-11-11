@@ -3,6 +3,7 @@
 // nombre
 // idpais
 // estado
+// fecha_insercion
 
 ?>
 <?php if ($fabricante->Visible) { ?>
@@ -38,6 +39,17 @@
 <span id="el_fabricante_estado" class="form-group">
 <span<?php echo $fabricante->estado->ViewAttributes() ?>>
 <?php echo $fabricante->estado->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($fabricante->fecha_insercion->Visible) { // fecha_insercion ?>
+		<tr id="r_fecha_insercion">
+			<td><?php echo $fabricante->fecha_insercion->FldCaption() ?></td>
+			<td<?php echo $fabricante->fecha_insercion->CellAttributes() ?>>
+<span id="el_fabricante_fecha_insercion" class="form-group">
+<span<?php echo $fabricante->fecha_insercion->ViewAttributes() ?>>
+<?php echo $fabricante->fecha_insercion->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

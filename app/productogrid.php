@@ -74,6 +74,9 @@ fproductogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_precio_venta");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($producto->precio_venta->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_fecha_insercion");
+			if (elm && !ew_CheckEuroDate(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($producto->fecha_insercion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -96,6 +99,7 @@ fproductogrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "existencia", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "precio_venta", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
 	return true;
 }
 
@@ -247,6 +251,15 @@ $producto_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="precio_venta"><div><div id="elh_producto_precio_venta" class="producto_precio_venta">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->precio_venta->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->precio_venta->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->precio_venta->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+	<?php if ($producto->SortUrl($producto->fecha_insercion) == "") { ?>
+		<th data-name="fecha_insercion"><div id="elh_producto_fecha_insercion" class="producto_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $producto->fecha_insercion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercion"><div><div id="elh_producto_fecha_insercion" class="producto_fecha_insercion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -771,6 +784,27 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td data-name="fecha_insercion"<?php echo $producto->fecha_insercion->CellAttributes() ?>>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_fecha_insercion" class="form-group producto_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto->fecha_insercion->EditValue ?>"<?php echo $producto->fecha_insercion->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_fecha_insercion" class="form-group producto_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto->fecha_insercion->EditValue ?>"<?php echo $producto->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto->fecha_insercion->ListViewValue() ?></span>
+<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->FormValue) ?>">
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -1052,6 +1086,22 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 <input type="hidden" data-field="x_precio_venta" name="x<?php echo $producto_grid->RowIndex ?>_precio_venta" id="x<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_precio_venta" name="o<?php echo $producto_grid->RowIndex ?>_precio_venta" id="o<?php echo $producto_grid->RowIndex ?>_precio_venta" value="<?php echo ew_HtmlEncode($producto->precio_venta->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td>
+<?php if ($producto->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_producto_fecha_insercion" class="form-group producto_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto->fecha_insercion->EditValue ?>"<?php echo $producto->fecha_insercion->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_producto_fecha_insercion" class="form-group producto_fecha_insercion">
+<span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->fecha_insercion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

@@ -833,6 +833,7 @@ class ctipo_bodega_list extends ctipo_bodega {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->nombre); // nombre
+			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -866,6 +867,7 @@ class ctipo_bodega_list extends ctipo_bodega {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->nombre->setSort("");
+				$this->fecha_insercion->setSort("");
 			}
 
 			// Reset start position
@@ -1274,6 +1276,7 @@ class ctipo_bodega_list extends ctipo_bodega {
 		$this->idtipo_bodega->setDbValue($rs->fields('idtipo_bodega'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1283,6 +1286,7 @@ class ctipo_bodega_list extends ctipo_bodega {
 		$this->idtipo_bodega->DbValue = $row['idtipo_bodega'];
 		$this->nombre->DbValue = $row['nombre'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1327,6 +1331,7 @@ class ctipo_bodega_list extends ctipo_bodega {
 		// idtipo_bodega
 		// nombre
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1355,10 +1360,20 @@ class ctipo_bodega_list extends ctipo_bodega {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1805,6 +1820,15 @@ $tipo_bodega_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($tipo_bodega->fecha_insercion->Visible) { // fecha_insercion ?>
+	<?php if ($tipo_bodega->SortUrl($tipo_bodega->fecha_insercion) == "") { ?>
+		<th data-name="fecha_insercion"><div id="elh_tipo_bodega_fecha_insercion" class="tipo_bodega_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $tipo_bodega->fecha_insercion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $tipo_bodega->SortUrl($tipo_bodega->fecha_insercion) ?>',1);"><div id="elh_tipo_bodega_fecha_insercion" class="tipo_bodega_fecha_insercion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $tipo_bodega->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($tipo_bodega->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($tipo_bodega->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -1875,6 +1899,12 @@ $tipo_bodega_list->ListOptions->Render("body", "left", $tipo_bodega_list->RowCnt
 <span<?php echo $tipo_bodega->nombre->ViewAttributes() ?>>
 <?php echo $tipo_bodega->nombre->ListViewValue() ?></span>
 <a id="<?php echo $tipo_bodega_list->PageObjName . "_row_" . $tipo_bodega_list->RowCnt ?>"></a></td>
+	<?php } ?>
+	<?php if ($tipo_bodega->fecha_insercion->Visible) { // fecha_insercion ?>
+		<td data-name="fecha_insercion"<?php echo $tipo_bodega->fecha_insercion->CellAttributes() ?>>
+<span<?php echo $tipo_bodega->fecha_insercion->ViewAttributes() ?>>
+<?php echo $tipo_bodega->fecha_insercion->ListViewValue() ?></span>
+</td>
 	<?php } ?>
 <?php
 

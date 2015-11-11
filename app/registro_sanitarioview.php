@@ -613,6 +613,7 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -624,6 +625,7 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 		$this->idpais->DbValue = $row['idpais'];
 		$this->idproducto->DbValue = $row['idproducto'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -648,6 +650,7 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 		// idpais
 		// idproducto
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -734,6 +737,11 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idregistro_sanitario
 			$this->idregistro_sanitario->LinkCustomAttributes = "";
 			$this->idregistro_sanitario->HrefValue = "";
@@ -758,6 +766,11 @@ class cregistro_sanitario_view extends cregistro_sanitario {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1171,6 +1184,17 @@ $registro_sanitario_view->ShowMessage();
 <span id="el_registro_sanitario_estado" class="form-group">
 <span<?php echo $registro_sanitario->estado->ViewAttributes() ?>>
 <?php echo $registro_sanitario->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($registro_sanitario->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_registro_sanitario_fecha_insercion"><?php echo $registro_sanitario->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $registro_sanitario->fecha_insercion->CellAttributes() ?>>
+<span id="el_registro_sanitario_fecha_insercion" class="form-group">
+<span<?php echo $registro_sanitario->fecha_insercion->ViewAttributes() ?>>
+<?php echo $registro_sanitario->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

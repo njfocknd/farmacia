@@ -1282,6 +1282,7 @@ class cserie_documento_list extends cserie_documento {
 		$this->correlativo->setDbValue($rs->fields('correlativo'));
 		$this->fecha->setDbValue($rs->fields('fecha'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1295,6 +1296,7 @@ class cserie_documento_list extends cserie_documento {
 		$this->correlativo->DbValue = $row['correlativo'];
 		$this->fecha->DbValue = $row['fecha'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1343,6 +1345,7 @@ class cserie_documento_list extends cserie_documento {
 		// correlativo
 		// fecha
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1437,6 +1440,11 @@ class cserie_documento_list extends cserie_documento {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";

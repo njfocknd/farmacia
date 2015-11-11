@@ -743,6 +743,8 @@ class cmarca_grid extends cmarca {
 			return FALSE;
 		if ($objForm->HasValue("x_idfabricante") && $objForm->HasValue("o_idfabricante") && $this->idfabricante->CurrentValue <> $this->idfabricante->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_fecha_insercion") && $objForm->HasValue("o_fecha_insercion") && $this->fecha_insercion->CurrentValue <> $this->fecha_insercion->OldValue)
+			return FALSE;
 		return TRUE;
 	}
 
@@ -1031,6 +1033,8 @@ class cmarca_grid extends cmarca {
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
 		$this->idfabricante->CurrentValue = 1;
 		$this->idfabricante->OldValue = $this->idfabricante->CurrentValue;
+		$this->fecha_insercion->CurrentValue = NULL;
+		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 	}
 
 	// Load form values
@@ -1047,6 +1051,11 @@ class cmarca_grid extends cmarca {
 			$this->idfabricante->setFormValue($objForm->GetValue("x_idfabricante"));
 		}
 		$this->idfabricante->setOldValue($objForm->GetValue("o_idfabricante"));
+		if (!$this->fecha_insercion->FldIsDetailKey) {
+			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
+			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
+		}
+		$this->fecha_insercion->setOldValue($objForm->GetValue("o_fecha_insercion"));
 		if (!$this->idmarca->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idmarca->setFormValue($objForm->GetValue("x_idmarca"));
 	}
@@ -1058,6 +1067,8 @@ class cmarca_grid extends cmarca {
 			$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->idfabricante->CurrentValue = $this->idfabricante->FormValue;
+		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
+		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 	}
 
 	// Load recordset
@@ -1110,6 +1121,7 @@ class cmarca_grid extends cmarca {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idfabricante->setDbValue($rs->fields('idfabricante'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1120,6 +1132,7 @@ class cmarca_grid extends cmarca {
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idfabricante->DbValue = $row['idfabricante'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1165,6 +1178,7 @@ class cmarca_grid extends cmarca {
 		// nombre
 		// idfabricante
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1222,6 +1236,11 @@ class cmarca_grid extends cmarca {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1231,6 +1250,11 @@ class cmarca_grid extends cmarca {
 			$this->idfabricante->LinkCustomAttributes = "";
 			$this->idfabricante->HrefValue = "";
 			$this->idfabricante->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// nombre
@@ -1299,6 +1323,12 @@ class cmarca_grid extends cmarca {
 			$this->idfabricante->EditValue = $arwrk;
 			}
 
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 			// Edit refer script
 			// nombre
 
@@ -1306,6 +1336,9 @@ class cmarca_grid extends cmarca {
 
 			// idfabricante
 			$this->idfabricante->HrefValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
@@ -1374,6 +1407,12 @@ class cmarca_grid extends cmarca {
 			$this->idfabricante->EditValue = $arwrk;
 			}
 
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 			// Edit refer script
 			// nombre
 
@@ -1381,6 +1420,9 @@ class cmarca_grid extends cmarca {
 
 			// idfabricante
 			$this->idfabricante->HrefValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1405,6 +1447,9 @@ class cmarca_grid extends cmarca {
 		}
 		if (!$this->idfabricante->FldIsDetailKey && !is_null($this->idfabricante->FormValue) && $this->idfabricante->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idfabricante->FldCaption(), $this->idfabricante->ReqErrMsg));
+		}
+		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
+			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1529,6 +1574,9 @@ class cmarca_grid extends cmarca {
 			// idfabricante
 			$this->idfabricante->SetDbValueDef($rsnew, $this->idfabricante->CurrentValue, 0, $this->idfabricante->ReadOnly);
 
+			// fecha_insercion
+			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1584,6 +1632,9 @@ class cmarca_grid extends cmarca {
 
 		// idfabricante
 		$this->idfabricante->SetDbValueDef($rsnew, $this->idfabricante->CurrentValue, 0, strval($this->idfabricante->CurrentValue) == "");
+
+		// fecha_insercion
+		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

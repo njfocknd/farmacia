@@ -2,6 +2,7 @@
 
 // nombre
 // idpais
+// estado
 
 ?>
 <?php if ($departamento->Visible) { ?>
@@ -26,6 +27,17 @@
 <span id="el_departamento_idpais" class="form-group">
 <span<?php echo $departamento->idpais->ViewAttributes() ?>>
 <?php echo $departamento->idpais->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($departamento->estado->Visible) { // estado ?>
+		<tr id="r_estado">
+			<td><?php echo $departamento->estado->FldCaption() ?></td>
+			<td<?php echo $departamento->estado->CellAttributes() ?>>
+<span id="el_departamento_estado" class="form-group">
+<span<?php echo $departamento->estado->ViewAttributes() ?>>
+<?php echo $departamento->estado->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

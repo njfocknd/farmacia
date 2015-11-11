@@ -696,6 +696,7 @@ class cempresa_view extends cempresa {
 		$this->direccion->setDbValue($rs->fields('direccion'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -707,6 +708,7 @@ class cempresa_view extends cempresa {
 		$this->direccion->DbValue = $row['direccion'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -731,6 +733,7 @@ class cempresa_view extends cempresa {
 		// direccion
 		// idpais
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -788,6 +791,11 @@ class cempresa_view extends cempresa {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -802,6 +810,11 @@ class cempresa_view extends cempresa {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1196,6 +1209,17 @@ $empresa_view->ShowMessage();
 <span id="el_empresa_idpais" class="form-group">
 <span<?php echo $empresa->idpais->ViewAttributes() ?>>
 <?php echo $empresa->idpais->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($empresa->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_empresa_fecha_insercion"><?php echo $empresa->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $empresa->fecha_insercion->CellAttributes() ?>>
+<span id="el_empresa_fecha_insercion" class="form-group">
+<span<?php echo $empresa->fecha_insercion->ViewAttributes() ?>>
+<?php echo $empresa->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

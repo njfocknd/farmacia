@@ -781,6 +781,7 @@ class csucursal_view extends csucursal {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->credito->setDbValue($rs->fields('credito'));
 		$this->debito->setDbValue($rs->fields('debito'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -795,6 +796,7 @@ class csucursal_view extends csucursal {
 		$this->estado->DbValue = $row['estado'];
 		$this->credito->DbValue = $row['credito'];
 		$this->debito->DbValue = $row['debito'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -830,6 +832,7 @@ class csucursal_view extends csucursal {
 		// estado
 		// credito
 		// debito
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -928,6 +931,11 @@ class csucursal_view extends csucursal {
 			$this->debito->ViewValue = $this->debito->CurrentValue;
 			$this->debito->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idsucursal
 			$this->idsucursal->LinkCustomAttributes = "";
 			$this->idsucursal->HrefValue = "";
@@ -967,6 +975,11 @@ class csucursal_view extends csucursal {
 			$this->debito->LinkCustomAttributes = "";
 			$this->debito->HrefValue = "";
 			$this->debito->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1524,6 +1537,17 @@ $sucursal_view->ShowMessage();
 <span id="el_sucursal_debito" class="form-group">
 <span<?php echo $sucursal->debito->ViewAttributes() ?>>
 <?php echo $sucursal->debito->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_sucursal_fecha_insercion"><?php echo $sucursal->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $sucursal->fecha_insercion->CellAttributes() ?>>
+<span id="el_sucursal_fecha_insercion" class="form-group">
+<span<?php echo $sucursal->fecha_insercion->ViewAttributes() ?>>
+<?php echo $sucursal->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

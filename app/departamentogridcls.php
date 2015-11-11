@@ -743,6 +743,8 @@ class cdepartamento_grid extends cdepartamento {
 			return FALSE;
 		if ($objForm->HasValue("x_idpais") && $objForm->HasValue("o_idpais") && $this->idpais->CurrentValue <> $this->idpais->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
+			return FALSE;
 		return TRUE;
 	}
 
@@ -1031,6 +1033,8 @@ class cdepartamento_grid extends cdepartamento {
 		$this->nombre->OldValue = $this->nombre->CurrentValue;
 		$this->idpais->CurrentValue = 1;
 		$this->idpais->OldValue = $this->idpais->CurrentValue;
+		$this->estado->CurrentValue = "Activo";
+		$this->estado->OldValue = $this->estado->CurrentValue;
 	}
 
 	// Load form values
@@ -1047,6 +1051,10 @@ class cdepartamento_grid extends cdepartamento {
 			$this->idpais->setFormValue($objForm->GetValue("x_idpais"));
 		}
 		$this->idpais->setOldValue($objForm->GetValue("o_idpais"));
+		if (!$this->estado->FldIsDetailKey) {
+			$this->estado->setFormValue($objForm->GetValue("x_estado"));
+		}
+		$this->estado->setOldValue($objForm->GetValue("o_estado"));
 		if (!$this->iddepartamento->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->iddepartamento->setFormValue($objForm->GetValue("x_iddepartamento"));
 	}
@@ -1058,6 +1066,7 @@ class cdepartamento_grid extends cdepartamento {
 			$this->iddepartamento->CurrentValue = $this->iddepartamento->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->idpais->CurrentValue = $this->idpais->FormValue;
+		$this->estado->CurrentValue = $this->estado->FormValue;
 	}
 
 	// Load recordset
@@ -1110,6 +1119,7 @@ class cdepartamento_grid extends cdepartamento {
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1120,6 +1130,7 @@ class cdepartamento_grid extends cdepartamento {
 		$this->nombre->DbValue = $row['nombre'];
 		$this->idpais->DbValue = $row['idpais'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1165,6 +1176,7 @@ class cdepartamento_grid extends cdepartamento {
 		// nombre
 		// idpais
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1221,6 +1233,11 @@ class cdepartamento_grid extends cdepartamento {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
@@ -1230,6 +1247,11 @@ class cdepartamento_grid extends cdepartamento {
 			$this->idpais->LinkCustomAttributes = "";
 			$this->idpais->HrefValue = "";
 			$this->idpais->TooltipValue = "";
+
+			// estado
+			$this->estado->LinkCustomAttributes = "";
+			$this->estado->HrefValue = "";
+			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// nombre
@@ -1296,6 +1318,15 @@ class cdepartamento_grid extends cdepartamento {
 			$this->idpais->EditValue = $arwrk;
 			}
 
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
+
 			// Edit refer script
 			// nombre
 
@@ -1303,6 +1334,9 @@ class cdepartamento_grid extends cdepartamento {
 
 			// idpais
 			$this->idpais->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nombre
@@ -1369,6 +1403,15 @@ class cdepartamento_grid extends cdepartamento {
 			$this->idpais->EditValue = $arwrk;
 			}
 
+			// estado
+			$this->estado->EditAttrs["class"] = "form-control";
+			$this->estado->EditCustomAttributes = "";
+			$arwrk = array();
+			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
+			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
+			$this->estado->EditValue = $arwrk;
+
 			// Edit refer script
 			// nombre
 
@@ -1376,6 +1419,9 @@ class cdepartamento_grid extends cdepartamento {
 
 			// idpais
 			$this->idpais->HrefValue = "";
+
+			// estado
+			$this->estado->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1397,6 +1443,9 @@ class cdepartamento_grid extends cdepartamento {
 			return ($gsFormError == "");
 		if (!$this->idpais->FldIsDetailKey && !is_null($this->idpais->FormValue) && $this->idpais->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpais->FldCaption(), $this->idpais->ReqErrMsg));
+		}
+		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -1521,6 +1570,9 @@ class cdepartamento_grid extends cdepartamento {
 			// idpais
 			$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, $this->idpais->ReadOnly);
 
+			// estado
+			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1576,6 +1628,9 @@ class cdepartamento_grid extends cdepartamento {
 
 		// idpais
 		$this->idpais->SetDbValueDef($rsnew, $this->idpais->CurrentValue, 0, strval($this->idpais->CurrentValue) == "");
+
+		// estado
+		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

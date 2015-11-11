@@ -7,6 +7,7 @@
 // existencia
 // estado
 // precio_venta
+// fecha_insercion
 
 ?>
 <?php if ($producto->Visible) { ?>
@@ -86,6 +87,17 @@
 <span id="el_producto_precio_venta" class="form-group">
 <span<?php echo $producto->precio_venta->ViewAttributes() ?>>
 <?php echo $producto->precio_venta->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+		<tr id="r_fecha_insercion">
+			<td><?php echo $producto->fecha_insercion->FldCaption() ?></td>
+			<td<?php echo $producto->fecha_insercion->CellAttributes() ?>>
+<span id="el_producto_fecha_insercion" class="form-group">
+<span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto->fecha_insercion->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

@@ -408,6 +408,7 @@ class cdepartamento_search extends cdepartamento {
 		$this->BuildSearchUrl($sSrchUrl, $this->nombre); // nombre
 		$this->BuildSearchUrl($sSrchUrl, $this->idpais); // idpais
 		$this->BuildSearchUrl($sSrchUrl, $this->estado); // estado
+		$this->BuildSearchUrl($sSrchUrl, $this->fecha_insercion); // fecha_insercion
 		if ($sSrchUrl <> "") $sSrchUrl .= "&";
 		$sSrchUrl .= "cmd=search";
 		return $sSrchUrl;
@@ -489,6 +490,10 @@ class cdepartamento_search extends cdepartamento {
 		// estado
 		$this->estado->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_estado"));
 		$this->estado->AdvancedSearch->SearchOperator = $objForm->GetValue("z_estado");
+
+		// fecha_insercion
+		$this->fecha_insercion->AdvancedSearch->SearchValue = ew_StripSlashes($objForm->GetValue("x_fecha_insercion"));
+		$this->fecha_insercion->AdvancedSearch->SearchOperator = $objForm->GetValue("z_fecha_insercion");
 	}
 
 	// Render row values based on field settings
@@ -506,6 +511,7 @@ class cdepartamento_search extends cdepartamento {
 		// nombre
 		// idpais
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -562,6 +568,11 @@ class cdepartamento_search extends cdepartamento {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// iddepartamento
 			$this->iddepartamento->LinkCustomAttributes = "";
 			$this->iddepartamento->HrefValue = "";
@@ -581,6 +592,11 @@ class cdepartamento_search extends cdepartamento {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
 			// iddepartamento
@@ -630,6 +646,12 @@ class cdepartamento_search extends cdepartamento {
 			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
+
+			// fecha_insercion
+			$this->fecha_insercion->EditAttrs["class"] = "form-control";
+			$this->fecha_insercion->EditCustomAttributes = "";
+			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha_insercion->AdvancedSearch->SearchValue, 7), 7));
+			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -655,6 +677,9 @@ class cdepartamento_search extends cdepartamento {
 		if (!ew_CheckInteger($this->iddepartamento->AdvancedSearch->SearchValue)) {
 			ew_AddMessage($gsSearchError, $this->iddepartamento->FldErrMsg());
 		}
+		if (!ew_CheckEuroDate($this->fecha_insercion->AdvancedSearch->SearchValue)) {
+			ew_AddMessage($gsSearchError, $this->fecha_insercion->FldErrMsg());
+		}
 
 		// Return validate result
 		$ValidateSearch = ($gsSearchError == "");
@@ -674,6 +699,7 @@ class cdepartamento_search extends cdepartamento {
 		$this->nombre->AdvancedSearch->Load();
 		$this->idpais->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
+		$this->fecha_insercion->AdvancedSearch->Load();
 	}
 
 	// Set up Breadcrumb
@@ -812,6 +838,9 @@ fdepartamentosearch.Validate = function(fobj) {
 	elm = this.GetElements("x" + infix + "_iddepartamento");
 	if (elm && !ew_CheckInteger(elm.value))
 		return this.OnError(elm, "<?php echo ew_JsEncode2($departamento->iddepartamento->FldErrMsg()) ?>");
+	elm = this.GetElements("x" + infix + "_fecha_insercion");
+	if (elm && !ew_CheckEuroDate(elm.value))
+		return this.OnError(elm, "<?php echo ew_JsEncode2($departamento->fecha_insercion->FldErrMsg()) ?>");
 
 	// Set up row object
 	ew_ElementsToRow(fobj);
@@ -938,6 +967,18 @@ if (is_array($departamento->estado->EditValue)) {
 }
 ?>
 </select>
+</span>
+		</div></div>
+	</div>
+<?php } ?>
+<?php if ($departamento->fecha_insercion->Visible) { // fecha_insercion ?>
+	<div id="r_fecha_insercion" class="form-group">
+		<label for="x_fecha_insercion" class="<?php echo $departamento_search->SearchLabelClass ?>"><span id="elh_departamento_fecha_insercion"><?php echo $departamento->fecha_insercion->FldCaption() ?></span>	
+		<p class="form-control-static ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_fecha_insercion" id="z_fecha_insercion" value="="></p>
+		</label>
+		<div class="<?php echo $departamento_search->SearchRightColumnClass ?>"><div<?php echo $departamento->fecha_insercion->CellAttributes() ?>>
+			<span id="el_departamento_fecha_insercion">
+<input type="text" data-field="x_fecha_insercion" name="x_fecha_insercion" id="x_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($departamento->fecha_insercion->PlaceHolder) ?>" value="<?php echo $departamento->fecha_insercion->EditValue ?>"<?php echo $departamento->fecha_insercion->EditAttributes() ?>>
 </span>
 		</div></div>
 	</div>

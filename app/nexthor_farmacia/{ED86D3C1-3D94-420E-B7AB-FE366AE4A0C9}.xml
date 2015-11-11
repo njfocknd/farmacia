@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0"?>
 <configuration date="2015/11/11" author="e.World Technology Ltd.">
-<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/11 00:13:44" languagefolder="phplang" userlevel="0,&quot;Default&quot;,0">
+<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/11 00:50:52" languagefolder="phplang" userlevel="0,&quot;Default&quot;,0">
 <table id="departamento" name="departamento" caption="Departamento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 <table id="empresa" name="empresa" caption="Empresa" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 <table id="fabricante" name="fabricante" caption="Fabricante" userlevel="0,&quot;Default&quot;,0" priv="1"/>
@@ -43,4 +43,5 @@
 <table id="voucher_tarjeta" name="voucher_tarjeta" caption="Voucher Tarjeta" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 <table id="tipo_pago" name="tipo_pago" caption="Tipo Pago" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 <table id="cheque_cliente" name="cheque_cliente" caption="Cheque de Cliente" userlevel="0,&quot;Default&quot;,0" priv="1"/>
+<table id="producto_precio_historial" name="producto_precio_historial" caption="Historal de Precio de Producto" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 </project></configuration>

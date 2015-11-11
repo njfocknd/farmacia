@@ -1,18 +1,17 @@
 <?php
 
 // Global variable for table object
-$serie_documento = NULL;
+$producto_precio_historial = NULL;
 
 //
-// Table class for serie_documento
+// Table class for producto_precio_historial
 //
-class cserie_documento extends cTable {
-	var $idserie_documento;
-	var $idtipo_documento;
-	var $idsucursal;
-	var $serie;
-	var $correlativo;
+class cproducto_precio_historial extends cTable {
+	var $idproducto_precio_historial;
+	var $idproducto;
 	var $fecha;
+	var $precio_venta;
+	var $precio_compra;
 	var $estado;
 	var $fecha_insercion;
 
@@ -24,8 +23,8 @@ class cserie_documento extends cTable {
 
 		// Language object
 		if (!isset($Language)) $Language = new cLanguage();
-		$this->TableVar = 'serie_documento';
-		$this->TableName = 'serie_documento';
+		$this->TableVar = 'producto_precio_historial';
+		$this->TableName = 'producto_precio_historial';
 		$this->TableType = 'TABLE';
 		$this->ExportAll = TRUE;
 		$this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
@@ -40,41 +39,37 @@ class cserie_documento extends cTable {
 		$this->UserIDAllowSecurity = 0; // User ID Allow
 		$this->BasicSearch = new cBasicSearch($this->TableVar);
 
-		// idserie_documento
-		$this->idserie_documento = new cField('serie_documento', 'serie_documento', 'x_idserie_documento', 'idserie_documento', '`idserie_documento`', '`idserie_documento`', 3, -1, FALSE, '`idserie_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idserie_documento->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idserie_documento'] = &$this->idserie_documento;
+		// idproducto_precio_historial
+		$this->idproducto_precio_historial = new cField('producto_precio_historial', 'producto_precio_historial', 'x_idproducto_precio_historial', 'idproducto_precio_historial', '`idproducto_precio_historial`', '`idproducto_precio_historial`', 3, -1, FALSE, '`idproducto_precio_historial`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idproducto_precio_historial->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idproducto_precio_historial'] = &$this->idproducto_precio_historial;
 
-		// idtipo_documento
-		$this->idtipo_documento = new cField('serie_documento', 'serie_documento', 'x_idtipo_documento', 'idtipo_documento', '`idtipo_documento`', '`idtipo_documento`', 3, -1, FALSE, '`idtipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idtipo_documento->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idtipo_documento'] = &$this->idtipo_documento;
-
-		// idsucursal
-		$this->idsucursal = new cField('serie_documento', 'serie_documento', 'x_idsucursal', 'idsucursal', '`idsucursal`', '`idsucursal`', 3, -1, FALSE, '`idsucursal`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idsucursal->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idsucursal'] = &$this->idsucursal;
-
-		// serie
-		$this->serie = new cField('serie_documento', 'serie_documento', 'x_serie', 'serie', '`serie`', '`serie`', 200, -1, FALSE, '`serie`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->fields['serie'] = &$this->serie;
-
-		// correlativo
-		$this->correlativo = new cField('serie_documento', 'serie_documento', 'x_correlativo', 'correlativo', '`correlativo`', '`correlativo`', 3, -1, FALSE, '`correlativo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->correlativo->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['correlativo'] = &$this->correlativo;
+		// idproducto
+		$this->idproducto = new cField('producto_precio_historial', 'producto_precio_historial', 'x_idproducto', 'idproducto', '`idproducto`', '`idproducto`', 3, -1, FALSE, '`idproducto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idproducto->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idproducto'] = &$this->idproducto;
 
 		// fecha
-		$this->fecha = new cField('serie_documento', 'serie_documento', 'x_fecha', 'fecha', '`fecha`', 'DATE_FORMAT(`fecha`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha = new cField('producto_precio_historial', 'producto_precio_historial', 'x_fecha', 'fecha', '`fecha`', 'DATE_FORMAT(`fecha`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha'] = &$this->fecha;
 
+		// precio_venta
+		$this->precio_venta = new cField('producto_precio_historial', 'producto_precio_historial', 'x_precio_venta', 'precio_venta', '`precio_venta`', '`precio_venta`', 131, -1, FALSE, '`precio_venta`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->precio_venta->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['precio_venta'] = &$this->precio_venta;
+
+		// precio_compra
+		$this->precio_compra = new cField('producto_precio_historial', 'producto_precio_historial', 'x_precio_compra', 'precio_compra', '`precio_compra`', '`precio_compra`', 131, -1, FALSE, '`precio_compra`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->precio_compra->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['precio_compra'] = &$this->precio_compra;
+
 		// estado
-		$this->estado = new cField('serie_documento', 'serie_documento', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->estado = new cField('producto_precio_historial', 'producto_precio_historial', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['estado'] = &$this->estado;
 
 		// fecha_insercion
-		$this->fecha_insercion = new cField('serie_documento', 'serie_documento', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion = new cField('producto_precio_historial', 'producto_precio_historial', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}
@@ -96,35 +91,58 @@ class cserie_documento extends cTable {
 		}
 	}
 
-	// Current detail table name
-	function getCurrentDetailTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	// Current master table name
+	function getCurrentMasterTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
 	}
 
-	function setCurrentDetailTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	function setCurrentMasterTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
 	}
 
-	// Get detail url
-	function GetDetailUrl() {
+	// Session master WHERE clause
+	function GetMasterFilter() {
 
-		// Detail url
-		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "documento_debito") {
-			$sDetailUrl = $GLOBALS["documento_debito"]->GetListUrl() . "?showmaster=" . $this->TableVar;
-			$sDetailUrl .= "&fk_idserie_documento=" . urlencode($this->idserie_documento->CurrentValue);
+		// Master filter
+		$sMasterFilter = "";
+		if ($this->getCurrentMasterTable() == "producto") {
+			if ($this->idproducto->getSessionValue() <> "")
+				$sMasterFilter .= "`idproducto`=" . ew_QuotedValue($this->idproducto->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
 		}
-		if ($sDetailUrl == "") {
-			$sDetailUrl = "serie_documentolist.php";
+		return $sMasterFilter;
+	}
+
+	// Session detail WHERE clause
+	function GetDetailFilter() {
+
+		// Detail filter
+		$sDetailFilter = "";
+		if ($this->getCurrentMasterTable() == "producto") {
+			if ($this->idproducto->getSessionValue() <> "")
+				$sDetailFilter .= "`idproducto`=" . ew_QuotedValue($this->idproducto->getSessionValue(), EW_DATATYPE_NUMBER);
+			else
+				return "";
 		}
-		return $sDetailUrl;
+		return $sDetailFilter;
+	}
+
+	// Master filter
+	function SqlMasterFilter_producto() {
+		return "`idproducto`=@idproducto@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_producto() {
+		return "`idproducto`=@idproducto@";
 	}
 
 	// Table level SQL
 	var $_SqlFrom = "";
 
 	function getSqlFrom() { // From
-		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`serie_documento`";
+		return ($this->_SqlFrom <> "") ? $this->_SqlFrom : "`producto_precio_historial`";
 	}
 
 	function SqlFrom() { // For backward compatibility
@@ -192,7 +210,7 @@ class cserie_documento extends cTable {
 	var $_SqlOrderBy = "";
 
 	function getSqlOrderBy() { // Order By
-		return ($this->_SqlOrderBy <> "") ? $this->_SqlOrderBy : "";
+		return ($this->_SqlOrderBy <> "") ? $this->_SqlOrderBy : "`idproducto_precio_historial` DESC";
 	}
 
 	function SqlOrderBy() { // For backward compatibility
@@ -347,7 +365,7 @@ class cserie_documento extends cTable {
 	}
 
 	// Update Table
-	var $UpdateTable = "`serie_documento`";
+	var $UpdateTable = "`producto_precio_historial`";
 
 	// INSERT statement
 	function InsertSQL(&$rs) {
@@ -400,8 +418,8 @@ class cserie_documento extends cTable {
 	function DeleteSQL(&$rs, $where = "") {
 		$sql = "DELETE FROM " . $this->UpdateTable . " WHERE ";
 		if ($rs) {
-			if (array_key_exists('idserie_documento', $rs))
-				ew_AddFilter($where, ew_QuotedName('idserie_documento') . '=' . ew_QuotedValue($rs['idserie_documento'], $this->idserie_documento->FldDataType));
+			if (array_key_exists('idproducto_precio_historial', $rs))
+				ew_AddFilter($where, ew_QuotedName('idproducto_precio_historial') . '=' . ew_QuotedValue($rs['idproducto_precio_historial'], $this->idproducto_precio_historial->FldDataType));
 		}
 		$filter = $this->CurrentFilter;
 		ew_AddFilter($filter, $where);
@@ -420,15 +438,15 @@ class cserie_documento extends cTable {
 
 	// Key filter WHERE clause
 	function SqlKeyFilter() {
-		return "`idserie_documento` = @idserie_documento@";
+		return "`idproducto_precio_historial` = @idproducto_precio_historial@";
 	}
 
 	// Key filter
 	function KeyFilter() {
 		$sKeyFilter = $this->SqlKeyFilter();
-		if (!is_numeric($this->idserie_documento->CurrentValue))
+		if (!is_numeric($this->idproducto_precio_historial->CurrentValue))
 			$sKeyFilter = "0=1"; // Invalid key
-		$sKeyFilter = str_replace("@idserie_documento@", ew_AdjustSql($this->idserie_documento->CurrentValue), $sKeyFilter); // Replace key value
+		$sKeyFilter = str_replace("@idproducto_precio_historial@", ew_AdjustSql($this->idproducto_precio_historial->CurrentValue), $sKeyFilter); // Replace key value
 		return $sKeyFilter;
 	}
 
@@ -442,7 +460,7 @@ class cserie_documento extends cTable {
 		if (@$_SESSION[$name] <> "") {
 			return $_SESSION[$name];
 		} else {
-			return "serie_documentolist.php";
+			return "producto_precio_historiallist.php";
 		}
 	}
 
@@ -452,31 +470,28 @@ class cserie_documento extends cTable {
 
 	// List URL
 	function GetListUrl() {
-		return "serie_documentolist.php";
+		return "producto_precio_historiallist.php";
 	}
 
 	// View URL
 	function GetViewUrl($parm = "") {
 		if ($parm <> "")
-			return $this->KeyUrl("serie_documentoview.php", $this->UrlParm($parm));
+			return $this->KeyUrl("producto_precio_historialview.php", $this->UrlParm($parm));
 		else
-			return $this->KeyUrl("serie_documentoview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+			return $this->KeyUrl("producto_precio_historialview.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 	}
 
 	// Add URL
 	function GetAddUrl($parm = "") {
 		if ($parm <> "")
-			return "serie_documentoadd.php?" . $this->UrlParm($parm);
+			return "producto_precio_historialadd.php?" . $this->UrlParm($parm);
 		else
-			return "serie_documentoadd.php";
+			return "producto_precio_historialadd.php";
 	}
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("serie_documentoedit.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("serie_documentoedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("producto_precio_historialedit.php", $this->UrlParm($parm));
 	}
 
 	// Inline edit URL
@@ -486,10 +501,7 @@ class cserie_documento extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		if ($parm <> "")
-			return $this->KeyUrl("serie_documentoadd.php", $this->UrlParm($parm));
-		else
-			return $this->KeyUrl("serie_documentoadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		return $this->KeyUrl("producto_precio_historialadd.php", $this->UrlParm($parm));
 	}
 
 	// Inline copy URL
@@ -499,15 +511,15 @@ class cserie_documento extends cTable {
 
 	// Delete URL
 	function GetDeleteUrl() {
-		return $this->KeyUrl("serie_documentodelete.php", $this->UrlParm());
+		return $this->KeyUrl("producto_precio_historialdelete.php", $this->UrlParm());
 	}
 
 	// Add key value to URL
 	function KeyUrl($url, $parm = "") {
 		$sUrl = $url . "?";
 		if ($parm <> "") $sUrl .= $parm . "&";
-		if (!is_null($this->idserie_documento->CurrentValue)) {
-			$sUrl .= "idserie_documento=" . urlencode($this->idserie_documento->CurrentValue);
+		if (!is_null($this->idproducto_precio_historial->CurrentValue)) {
+			$sUrl .= "idproducto_precio_historial=" . urlencode($this->idproducto_precio_historial->CurrentValue);
 		} else {
 			return "javascript:alert(ewLanguage.Phrase('InvalidRecord'));";
 		}
@@ -539,7 +551,7 @@ class cserie_documento extends cTable {
 			$arKeys = ew_StripSlashes($_GET["key_m"]);
 			$cnt = count($arKeys);
 		} elseif (isset($_GET)) {
-			$arKeys[] = @$_GET["idserie_documento"]; // idserie_documento
+			$arKeys[] = @$_GET["idproducto_precio_historial"]; // idproducto_precio_historial
 
 			//return $arKeys; // Do not return yet, so the values will also be checked by the following code
 		}
@@ -560,7 +572,7 @@ class cserie_documento extends cTable {
 		$sKeyFilter = "";
 		foreach ($arKeys as $key) {
 			if ($sKeyFilter <> "") $sKeyFilter .= " OR ";
-			$this->idserie_documento->CurrentValue = $key;
+			$this->idproducto_precio_historial->CurrentValue = $key;
 			$sKeyFilter .= "(" . $this->KeyFilter() . ")";
 		}
 		return $sKeyFilter;
@@ -581,12 +593,11 @@ class cserie_documento extends cTable {
 
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
-		$this->idserie_documento->setDbValue($rs->fields('idserie_documento'));
-		$this->idtipo_documento->setDbValue($rs->fields('idtipo_documento'));
-		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
-		$this->serie->setDbValue($rs->fields('serie'));
-		$this->correlativo->setDbValue($rs->fields('correlativo'));
+		$this->idproducto_precio_historial->setDbValue($rs->fields('idproducto_precio_historial'));
+		$this->idproducto->setDbValue($rs->fields('idproducto'));
 		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
+		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -599,89 +610,56 @@ class cserie_documento extends cTable {
 		$this->Row_Rendering();
 
    // Common render codes
-		// idserie_documento
-		// idtipo_documento
-		// idsucursal
-		// serie
-		// correlativo
+		// idproducto_precio_historial
+		// idproducto
 		// fecha
+		// precio_venta
+		// precio_compra
 		// estado
 		// fecha_insercion
-		// idserie_documento
+		// idproducto_precio_historial
 
-		$this->idserie_documento->ViewValue = $this->idserie_documento->CurrentValue;
-		$this->idserie_documento->ViewCustomAttributes = "";
+		$this->idproducto_precio_historial->ViewValue = $this->idproducto_precio_historial->CurrentValue;
+		$this->idproducto_precio_historial->ViewCustomAttributes = "";
 
-		// idtipo_documento
-		if (strval($this->idtipo_documento->CurrentValue) <> "") {
-			$sFilterWrk = "`idtipo_documento`" . ew_SearchString("=", $this->idtipo_documento->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idtipo_documento`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_documento`";
+		// idproducto
+		if (strval($this->idproducto->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
 		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
 		if ($sFilterWrk <> "") {
 			ew_AddFilter($sWhereWrk, $sFilterWrk);
 		}
 
 		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idtipo_documento, $sWhereWrk);
+		$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = $conn->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idtipo_documento->ViewValue = $rswrk->fields('DispFld');
+				$this->idproducto->ViewValue = $rswrk->fields('DispFld');
 				$rswrk->Close();
 			} else {
-				$this->idtipo_documento->ViewValue = $this->idtipo_documento->CurrentValue;
+				$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			}
 		} else {
-			$this->idtipo_documento->ViewValue = NULL;
+			$this->idproducto->ViewValue = NULL;
 		}
-		$this->idtipo_documento->ViewCustomAttributes = "";
-
-		// idsucursal
-		if (strval($this->idsucursal->CurrentValue) <> "") {
-			$sFilterWrk = "`idsucursal`" . ew_SearchString("=", $this->idsucursal->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idsucursal`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `sucursal`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idsucursal, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-		$sSqlWrk .= " ORDER BY `nombre`";
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idsucursal->ViewValue = $rswrk->fields('DispFld');
-				$rswrk->Close();
-			} else {
-				$this->idsucursal->ViewValue = $this->idsucursal->CurrentValue;
-			}
-		} else {
-			$this->idsucursal->ViewValue = NULL;
-		}
-		$this->idsucursal->ViewCustomAttributes = "";
-
-		// serie
-		$this->serie->ViewValue = $this->serie->CurrentValue;
-		$this->serie->ViewCustomAttributes = "";
-
-		// correlativo
-		$this->correlativo->ViewValue = $this->correlativo->CurrentValue;
-		$this->correlativo->ViewCustomAttributes = "";
+		$this->idproducto->ViewCustomAttributes = "";
 
 		// fecha
 		$this->fecha->ViewValue = $this->fecha->CurrentValue;
 		$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
 		$this->fecha->ViewCustomAttributes = "";
+
+		// precio_venta
+		$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
+		$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+		$this->precio_venta->ViewCustomAttributes = "";
+
+		// precio_compra
+		$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
+		$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 2, -2, -2, -2);
+		$this->precio_compra->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -705,35 +683,30 @@ class cserie_documento extends cTable {
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
-		// idserie_documento
-		$this->idserie_documento->LinkCustomAttributes = "";
-		$this->idserie_documento->HrefValue = "";
-		$this->idserie_documento->TooltipValue = "";
+		// idproducto_precio_historial
+		$this->idproducto_precio_historial->LinkCustomAttributes = "";
+		$this->idproducto_precio_historial->HrefValue = "";
+		$this->idproducto_precio_historial->TooltipValue = "";
 
-		// idtipo_documento
-		$this->idtipo_documento->LinkCustomAttributes = "";
-		$this->idtipo_documento->HrefValue = "";
-		$this->idtipo_documento->TooltipValue = "";
-
-		// idsucursal
-		$this->idsucursal->LinkCustomAttributes = "";
-		$this->idsucursal->HrefValue = "";
-		$this->idsucursal->TooltipValue = "";
-
-		// serie
-		$this->serie->LinkCustomAttributes = "";
-		$this->serie->HrefValue = "";
-		$this->serie->TooltipValue = "";
-
-		// correlativo
-		$this->correlativo->LinkCustomAttributes = "";
-		$this->correlativo->HrefValue = "";
-		$this->correlativo->TooltipValue = "";
+		// idproducto
+		$this->idproducto->LinkCustomAttributes = "";
+		$this->idproducto->HrefValue = "";
+		$this->idproducto->TooltipValue = "";
 
 		// fecha
 		$this->fecha->LinkCustomAttributes = "";
 		$this->fecha->HrefValue = "";
 		$this->fecha->TooltipValue = "";
+
+		// precio_venta
+		$this->precio_venta->LinkCustomAttributes = "";
+		$this->precio_venta->HrefValue = "";
+		$this->precio_venta->TooltipValue = "";
+
+		// precio_compra
+		$this->precio_compra->LinkCustomAttributes = "";
+		$this->precio_compra->HrefValue = "";
+		$this->precio_compra->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
@@ -756,37 +729,61 @@ class cserie_documento extends cTable {
 		// Call Row Rendering event
 		$this->Row_Rendering();
 
-		// idserie_documento
-		$this->idserie_documento->EditAttrs["class"] = "form-control";
-		$this->idserie_documento->EditCustomAttributes = "";
-		$this->idserie_documento->EditValue = $this->idserie_documento->CurrentValue;
-		$this->idserie_documento->ViewCustomAttributes = "";
+		// idproducto_precio_historial
+		$this->idproducto_precio_historial->EditAttrs["class"] = "form-control";
+		$this->idproducto_precio_historial->EditCustomAttributes = "";
+		$this->idproducto_precio_historial->EditValue = $this->idproducto_precio_historial->CurrentValue;
+		$this->idproducto_precio_historial->ViewCustomAttributes = "";
 
-		// idtipo_documento
-		$this->idtipo_documento->EditAttrs["class"] = "form-control";
-		$this->idtipo_documento->EditCustomAttributes = "";
+		// idproducto
+		$this->idproducto->EditAttrs["class"] = "form-control";
+		$this->idproducto->EditCustomAttributes = "";
+		if ($this->idproducto->getSessionValue() <> "") {
+			$this->idproducto->CurrentValue = $this->idproducto->getSessionValue();
+		if (strval($this->idproducto->CurrentValue) <> "") {
+			$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+		$sWhereWrk = "";
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
 
-		// idsucursal
-		$this->idsucursal->EditAttrs["class"] = "form-control";
-		$this->idsucursal->EditCustomAttributes = "";
-
-		// serie
-		$this->serie->EditAttrs["class"] = "form-control";
-		$this->serie->EditCustomAttributes = "";
-		$this->serie->EditValue = ew_HtmlEncode($this->serie->CurrentValue);
-		$this->serie->PlaceHolder = ew_RemoveHtml($this->serie->FldCaption());
-
-		// correlativo
-		$this->correlativo->EditAttrs["class"] = "form-control";
-		$this->correlativo->EditCustomAttributes = "";
-		$this->correlativo->EditValue = ew_HtmlEncode($this->correlativo->CurrentValue);
-		$this->correlativo->PlaceHolder = ew_RemoveHtml($this->correlativo->FldCaption());
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idproducto->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
+			}
+		} else {
+			$this->idproducto->ViewValue = NULL;
+		}
+		$this->idproducto->ViewCustomAttributes = "";
+		} else {
+		}
 
 		// fecha
 		$this->fecha->EditAttrs["class"] = "form-control";
 		$this->fecha->EditCustomAttributes = "";
 		$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
 		$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
+
+		// precio_venta
+		$this->precio_venta->EditAttrs["class"] = "form-control";
+		$this->precio_venta->EditCustomAttributes = "";
+		$this->precio_venta->EditValue = ew_HtmlEncode($this->precio_venta->CurrentValue);
+		$this->precio_venta->PlaceHolder = ew_RemoveHtml($this->precio_venta->FldCaption());
+		if (strval($this->precio_venta->EditValue) <> "" && is_numeric($this->precio_venta->EditValue)) $this->precio_venta->EditValue = ew_FormatNumber($this->precio_venta->EditValue, -2, -2, -2, -2);
+
+		// precio_compra
+		$this->precio_compra->EditAttrs["class"] = "form-control";
+		$this->precio_compra->EditCustomAttributes = "";
+		$this->precio_compra->EditValue = ew_HtmlEncode($this->precio_compra->CurrentValue);
+		$this->precio_compra->PlaceHolder = ew_RemoveHtml($this->precio_compra->FldCaption());
+		if (strval($this->precio_compra->EditValue) <> "" && is_numeric($this->precio_compra->EditValue)) $this->precio_compra->EditValue = ew_FormatNumber($this->precio_compra->EditValue, -2, -2, -2, -2);
 
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";
@@ -827,20 +824,19 @@ class cserie_documento extends cTable {
 			if ($Doc->Horizontal) { // Horizontal format, write header
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
-					if ($this->idserie_documento->Exportable) $Doc->ExportCaption($this->idserie_documento);
-					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
-					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
-					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
+					if ($this->idproducto_precio_historial->Exportable) $Doc->ExportCaption($this->idproducto_precio_historial);
+					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
 					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
+					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
+					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
-					if ($this->idserie_documento->Exportable) $Doc->ExportCaption($this->idserie_documento);
-					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
-					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
-					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
-					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
+					if ($this->idproducto_precio_historial->Exportable) $Doc->ExportCaption($this->idproducto_precio_historial);
+					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
 					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
+					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
+					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
@@ -874,20 +870,19 @@ class cserie_documento extends cTable {
 				if (!$Doc->ExportCustom) {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
-						if ($this->idserie_documento->Exportable) $Doc->ExportField($this->idserie_documento);
-						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
-						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
-						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
+						if ($this->idproducto_precio_historial->Exportable) $Doc->ExportField($this->idproducto_precio_historial);
+						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
 						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
+						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
+						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
-						if ($this->idserie_documento->Exportable) $Doc->ExportField($this->idserie_documento);
-						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
-						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
-						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
-						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
+						if ($this->idproducto_precio_historial->Exportable) $Doc->ExportField($this->idproducto_precio_historial);
+						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
 						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
+						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
+						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}

@@ -1112,6 +1112,7 @@ class cregistro_sanitario_grid extends cregistro_sanitario {
 		$this->idpais->setDbValue($rs->fields('idpais'));
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1123,6 +1124,7 @@ class cregistro_sanitario_grid extends cregistro_sanitario {
 		$this->idpais->DbValue = $row['idpais'];
 		$this->idproducto->DbValue = $row['idproducto'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1169,6 +1171,7 @@ class cregistro_sanitario_grid extends cregistro_sanitario {
 		// idpais
 		// idproducto
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1254,6 +1257,11 @@ class cregistro_sanitario_grid extends cregistro_sanitario {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// descripcion
 			$this->descripcion->LinkCustomAttributes = "";

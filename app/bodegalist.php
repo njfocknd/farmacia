@@ -1336,6 +1336,7 @@ class cbodega_list extends cbodega {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idtipo_bodega->setDbValue($rs->fields('idtipo_bodega'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -1347,6 +1348,7 @@ class cbodega_list extends cbodega {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idtipo_bodega->DbValue = $row['idtipo_bodega'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Load old record
@@ -1393,6 +1395,7 @@ class cbodega_list extends cbodega {
 		// idsucursal
 		// idtipo_bodega
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1478,6 +1481,11 @@ class cbodega_list extends cbodega {
 				$this->estado->ViewValue = NULL;
 			}
 			$this->estado->ViewCustomAttributes = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// descripcion
 			$this->descripcion->LinkCustomAttributes = "";

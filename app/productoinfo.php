@@ -16,6 +16,7 @@ class cproducto extends cTable {
 	var $estado;
 	var $precio_venta;
 	var $precio_compra;
+	var $fecha_insercion;
 
 	//
 	// Table class constructor
@@ -83,6 +84,11 @@ class cproducto extends cTable {
 		$this->precio_compra = new cField('producto', 'producto', 'x_precio_compra', 'precio_compra', '`precio_compra`', '`precio_compra`', 131, -1, FALSE, '`precio_compra`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->precio_compra->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
 		$this->fields['precio_compra'] = &$this->precio_compra;
+
+		// fecha_insercion
+		$this->fecha_insercion = new cField('producto', 'producto', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
+		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
 	}
 
 	// Single column sort
@@ -195,6 +201,10 @@ class cproducto extends cTable {
 		}
 		if ($this->getCurrentDetailTable() == "producto_sucursal") {
 			$sDetailUrl = $GLOBALS["producto_sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idproducto=" . urlencode($this->idproducto->CurrentValue);
+		}
+		if ($this->getCurrentDetailTable() == "producto_precio_historial") {
+			$sDetailUrl = $GLOBALS["producto_precio_historial"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idproducto=" . urlencode($this->idproducto->CurrentValue);
 		}
 		if ($sDetailUrl == "") {
@@ -673,6 +683,7 @@ class cproducto extends cTable {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Render list row values
@@ -692,6 +703,7 @@ class cproducto extends cTable {
 		// estado
 		// precio_venta
 		// precio_compra
+		// fecha_insercion
 		// idproducto
 
 		$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
@@ -818,6 +830,11 @@ class cproducto extends cTable {
 		$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
 		$this->precio_compra->ViewCustomAttributes = "";
 
+		// fecha_insercion
+		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+		$this->fecha_insercion->ViewCustomAttributes = "";
+
 		// idproducto
 		$this->idproducto->LinkCustomAttributes = "";
 		$this->idproducto->HrefValue = "";
@@ -862,6 +879,11 @@ class cproducto extends cTable {
 		$this->precio_compra->LinkCustomAttributes = "";
 		$this->precio_compra->HrefValue = "";
 		$this->precio_compra->TooltipValue = "";
+
+		// fecha_insercion
+		$this->fecha_insercion->LinkCustomAttributes = "";
+		$this->fecha_insercion->HrefValue = "";
+		$this->fecha_insercion->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -988,6 +1010,12 @@ class cproducto extends cTable {
 		$this->precio_compra->PlaceHolder = ew_RemoveHtml($this->precio_compra->FldCaption());
 		if (strval($this->precio_compra->EditValue) <> "" && is_numeric($this->precio_compra->EditValue)) $this->precio_compra->EditValue = ew_FormatNumber($this->precio_compra->EditValue, -2, -2, -2, -2);
 
+		// fecha_insercion
+		$this->fecha_insercion->EditAttrs["class"] = "form-control";
+		$this->fecha_insercion->EditCustomAttributes = "";
+		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
+		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -1021,6 +1049,7 @@ class cproducto extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
 					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
 					if ($this->idcategoria->Exportable) $Doc->ExportCaption($this->idcategoria);
@@ -1031,6 +1060,7 @@ class cproducto extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
 					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
+					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1071,6 +1101,7 @@ class cproducto extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
 						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
 						if ($this->idcategoria->Exportable) $Doc->ExportField($this->idcategoria);
@@ -1081,6 +1112,7 @@ class cproducto extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
 						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
+						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}
 					$Doc->EndExportRow();
 				}

@@ -473,6 +473,8 @@
 </menu>
 <menu id="8"><phrase id="menutext" value="Registro Sanitario"/>
 </menu>
+<menu id="113"><phrase id="menutext" value="Historal de Precio de Producto"/>
+</menu>
 <menu id="12"><phrase id="menutext" value="Tipo Bodega"/>
 </menu>
 <menu id="18"><phrase id="menutext" value="Tipo de Documento"/>
@@ -520,6 +522,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="empresa"><phrase id="tblcaption" value="Empresa"/>
 <field id="idempresa"><phrase id="fldcaption" value="idempresa"/>
@@ -536,6 +540,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="fabricante"><phrase id="tblcaption" value="Fabricante"/>
 <field id="idfabricante"><phrase id="fldcaption" value="idfabricante"/>
@@ -549,6 +555,8 @@
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 <table id="marca"><phrase id="tblcaption" value="Marca"/>
@@ -564,6 +572,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="municipio"><phrase id="tblcaption" value="Municipio"/>
 <field id="idmunicipio"><phrase id="fldcaption" value="idmunicipio"/>
@@ -578,6 +588,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="pais"><phrase id="tblcaption" value="País"/>
 <field id="idpais"><phrase id="fldcaption" value="idpais"/>
@@ -589,6 +601,8 @@
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 <table id="producto"><phrase id="tblcaption" value="Producto"/>
@@ -614,6 +628,8 @@
 </field>
 <field id="precio_compra"><phrase id="fldcaption" value="Precio Compra"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="registro_sanitario"><phrase id="tblcaption" value="registro sanitario"/>
 <field id="idregistro_sanitario"><phrase id="fldcaption" value="idregistro sanitario"/>
@@ -629,6 +645,8 @@
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 <table id="sucursal"><phrase id="tblcaption" value="Producto"/>
@@ -652,6 +670,8 @@
 </field>
 <field id="debito"><phrase id="fldcaption" value="debito"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="bodega"><phrase id="tblcaption" value="Bodega"/>
 <field id="idbodega"><phrase id="fldcaption" value="idbodega"/>
@@ -668,6 +688,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="tipo_bodega"><phrase id="tblcaption" value="Producto en Sucursal"/>
 <field id="idtipo_bodega"><phrase id="fldcaption" value="idtipo bodega"/>
@@ -679,6 +701,8 @@
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 <table id="producto_bodega"><phrase id="tblcaption" value="Producto en Bodega"/>
@@ -808,6 +832,8 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
+</field>
 </table>
 <table id="tipo_documento"><phrase id="tblcaption" value="Tipo de Documento"/>
 <field id="idtipo_documento"><phrase id="fldcaption" value="idtipo documento"/>
@@ -819,6 +845,8 @@
 <phrase id="fldtagcaption1" value="Activo"/>
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 <table id="detalle_documento_debito"><phrase id="tblcaption" value="Detalle de Documento"/>
@@ -1441,6 +1469,26 @@
 <phrase id="fldtagcaption2" value="Cobrado"/>
 <phrase id="fldtagvalue3" value="Rechazado"/>
 <phrase id="fldtagcaption3" value="Rechazado"/>
+</field>
+</table>
+<table id="producto_precio_historial"><phrase id="tblcaption" value="Historal de Precio de Producto"/>
+<field id="idproducto_precio_historial"><phrase id="fldcaption" value="idproducto precio historial"/>
+</field>
+<field id="idproducto"><phrase id="fldcaption" value="Producto"/>
+</field>
+<field id="fecha"><phrase id="fldcaption" value="Fecha"/>
+</field>
+<field id="precio_venta"><phrase id="fldcaption" value="Precio Venta"/>
+</field>
+<field id="precio_compra"><phrase id="fldcaption" value="Precio Compra"/>
+</field>
+<field id="estado"><phrase id="fldcaption" value="Estado"/>
+<phrase id="fldtagvalue1" value="Activo"/>
+<phrase id="fldtagcaption1" value="Activo"/>
+<phrase id="fldtagvalue2" value="Inactivo"/>
+<phrase id="fldtagcaption2" value="Inactivo"/>
+</field>
+<field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
 </project>

@@ -50,6 +50,9 @@ fdepartamentogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idpais");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $departamento->idpais->FldCaption(), $departamento->idpais->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_estado");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $departamento->estado->FldCaption(), $departamento->estado->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -67,6 +70,7 @@ fdepartamentogrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idpais", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
 	return true;
 }
 
@@ -171,6 +175,15 @@ $departamento_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="idpais"><div><div id="elh_departamento_idpais" class="departamento_idpais">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $departamento->idpais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($departamento->idpais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($departamento->idpais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($departamento->estado->Visible) { // estado ?>
+	<?php if ($departamento->SortUrl($departamento->estado) == "") { ?>
+		<th data-name="estado"><div id="elh_departamento_estado" class="departamento_estado"><div class="ewTableHeaderCaption"><?php echo $departamento->estado->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="estado"><div><div id="elh_departamento_estado" class="departamento_estado">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $departamento->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($departamento->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($departamento->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -410,6 +423,63 @@ if (@$emptywrk) $departamento->idpais->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($departamento->estado->Visible) { // estado ?>
+		<td data-name="estado"<?php echo $departamento->estado->CellAttributes() ?>>
+<?php if ($departamento->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $departamento_grid->RowCnt ?>_departamento_estado" class="form-group departamento_estado">
+<select data-field="x_estado" id="x<?php echo $departamento_grid->RowIndex ?>_estado" name="x<?php echo $departamento_grid->RowIndex ?>_estado"<?php echo $departamento->estado->EditAttributes() ?>>
+<?php
+if (is_array($departamento->estado->EditValue)) {
+	$arwrk = $departamento->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($departamento->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $departamento->estado->OldValue = "";
+?>
+</select>
+</span>
+<input type="hidden" data-field="x_estado" name="o<?php echo $departamento_grid->RowIndex ?>_estado" id="o<?php echo $departamento_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($departamento->estado->OldValue) ?>">
+<?php } ?>
+<?php if ($departamento->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $departamento_grid->RowCnt ?>_departamento_estado" class="form-group departamento_estado">
+<select data-field="x_estado" id="x<?php echo $departamento_grid->RowIndex ?>_estado" name="x<?php echo $departamento_grid->RowIndex ?>_estado"<?php echo $departamento->estado->EditAttributes() ?>>
+<?php
+if (is_array($departamento->estado->EditValue)) {
+	$arwrk = $departamento->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($departamento->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $departamento->estado->OldValue = "";
+?>
+</select>
+</span>
+<?php } ?>
+<?php if ($departamento->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $departamento->estado->ViewAttributes() ?>>
+<?php echo $departamento->estado->ListViewValue() ?></span>
+<input type="hidden" data-field="x_estado" name="x<?php echo $departamento_grid->RowIndex ?>_estado" id="x<?php echo $departamento_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($departamento->estado->FormValue) ?>">
+<input type="hidden" data-field="x_estado" name="o<?php echo $departamento_grid->RowIndex ?>_estado" id="o<?php echo $departamento_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($departamento->estado->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -521,6 +591,40 @@ if (@$emptywrk) $departamento->idpais->OldValue = "";
 <input type="hidden" data-field="x_idpais" name="x<?php echo $departamento_grid->RowIndex ?>_idpais" id="x<?php echo $departamento_grid->RowIndex ?>_idpais" value="<?php echo ew_HtmlEncode($departamento->idpais->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_idpais" name="o<?php echo $departamento_grid->RowIndex ?>_idpais" id="o<?php echo $departamento_grid->RowIndex ?>_idpais" value="<?php echo ew_HtmlEncode($departamento->idpais->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($departamento->estado->Visible) { // estado ?>
+		<td>
+<?php if ($departamento->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_departamento_estado" class="form-group departamento_estado">
+<select data-field="x_estado" id="x<?php echo $departamento_grid->RowIndex ?>_estado" name="x<?php echo $departamento_grid->RowIndex ?>_estado"<?php echo $departamento->estado->EditAttributes() ?>>
+<?php
+if (is_array($departamento->estado->EditValue)) {
+	$arwrk = $departamento->estado->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($departamento->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $departamento->estado->OldValue = "";
+?>
+</select>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_departamento_estado" class="form-group departamento_estado">
+<span<?php echo $departamento->estado->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $departamento->estado->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_estado" name="x<?php echo $departamento_grid->RowIndex ?>_estado" id="x<?php echo $departamento_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($departamento->estado->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_estado" name="o<?php echo $departamento_grid->RowIndex ?>_estado" id="o<?php echo $departamento_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($departamento->estado->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

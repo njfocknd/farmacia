@@ -708,6 +708,7 @@ class cbodega_view extends cbodega {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idtipo_bodega->setDbValue($rs->fields('idtipo_bodega'));
 		$this->estado->setDbValue($rs->fields('estado'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -719,6 +720,7 @@ class cbodega_view extends cbodega {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idtipo_bodega->DbValue = $row['idtipo_bodega'];
 		$this->estado->DbValue = $row['estado'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -743,6 +745,7 @@ class cbodega_view extends cbodega {
 		// idsucursal
 		// idtipo_bodega
 		// estado
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -829,6 +832,11 @@ class cbodega_view extends cbodega {
 			}
 			$this->estado->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idbodega
 			$this->idbodega->LinkCustomAttributes = "";
 			$this->idbodega->HrefValue = "";
@@ -853,6 +861,11 @@ class cbodega_view extends cbodega {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1327,6 +1340,17 @@ $bodega_view->ShowMessage();
 <span id="el_bodega_estado" class="form-group">
 <span<?php echo $bodega->estado->ViewAttributes() ?>>
 <?php echo $bodega->estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($bodega->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_bodega_fecha_insercion"><?php echo $bodega->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $bodega->fecha_insercion->CellAttributes() ?>>
+<span id="el_bodega_fecha_insercion" class="form-group">
+<span<?php echo $bodega->fecha_insercion->ViewAttributes() ?>>
+<?php echo $bodega->fecha_insercion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

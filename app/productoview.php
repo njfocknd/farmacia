@@ -13,6 +13,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "registro_sanitariogridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_bodegagridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "producto_sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "producto_precio_historialgridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -405,6 +406,14 @@ class cproducto_view extends cproducto {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'producto_precio_historial'
+			if (@$_POST["grid"] == "fproducto_precio_historialgrid") {
+				if (!isset($GLOBALS["producto_precio_historial_grid"])) $GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
+				$GLOBALS["producto_precio_historial_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -584,7 +593,7 @@ class cproducto_view extends cproducto {
 		}
 		$body = "<div class=\"btn-group\">" . $body . "</div>";
 		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_sucursal');
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_precio_historial');
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "registro_sanitario";
@@ -612,7 +621,7 @@ class cproducto_view extends cproducto {
 		}
 		$body = "<div class=\"btn-group\">" . $body . "</div>";
 		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_sucursal');
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_precio_historial');
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "producto_bodega";
@@ -640,10 +649,38 @@ class cproducto_view extends cproducto {
 		}
 		$body = "<div class=\"btn-group\">" . $body . "</div>";
 		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_sucursal');
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_precio_historial');
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "producto_sucursal";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
+		// "detail_producto_precio_historial"
+		$item = &$option->Add("detail_producto_precio_historial");
+		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("producto_precio_historial", "TblCaption");
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("producto_precio_historiallist.php?" . EW_TABLE_SHOW_MASTER . "=producto&fk_idproducto=" . strval($this->idproducto->CurrentValue) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["producto_precio_historial_grid"] && $GLOBALS["producto_precio_historial_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'producto_precio_historial')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=producto_precio_historial")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "producto_precio_historial";
+		}
+		if ($GLOBALS["producto_precio_historial_grid"] && $GLOBALS["producto_precio_historial_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'producto_precio_historial')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=producto_precio_historial")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "producto_precio_historial";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'producto_precio_historial');
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "producto_precio_historial";
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
@@ -786,6 +823,7 @@ class cproducto_view extends cproducto {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
+		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
 
 	// Load DbValue from recordset
@@ -801,6 +839,7 @@ class cproducto_view extends cproducto {
 		$this->estado->DbValue = $row['estado'];
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
+		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
 
 	// Render row values based on field settings
@@ -837,6 +876,7 @@ class cproducto_view extends cproducto {
 		// estado
 		// precio_venta
 		// precio_compra
+		// fecha_insercion
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -965,6 +1005,11 @@ class cproducto_view extends cproducto {
 			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
 			$this->precio_compra->ViewCustomAttributes = "";
 
+			// fecha_insercion
+			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
+			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
+			$this->fecha_insercion->ViewCustomAttributes = "";
+
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
@@ -1009,6 +1054,11 @@ class cproducto_view extends cproducto {
 			$this->precio_compra->LinkCustomAttributes = "";
 			$this->precio_compra->HrefValue = "";
 			$this->precio_compra->TooltipValue = "";
+
+			// fecha_insercion
+			$this->fecha_insercion->LinkCustomAttributes = "";
+			$this->fecha_insercion->HrefValue = "";
+			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1179,6 +1229,24 @@ class cproducto_view extends cproducto {
 				$rsdetail->Close();
 			}
 		}
+
+		// Export detail records (producto_precio_historial)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("producto_precio_historial", explode(",", $this->getCurrentDetailTable()))) {
+			global $producto_precio_historial;
+			if (!isset($producto_precio_historial)) $producto_precio_historial = new cproducto_precio_historial;
+			$rsdetail = $producto_precio_historial->LoadRs($producto_precio_historial->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$producto_precio_historial->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
 		$sFooter = $this->PageFooter;
 		$this->Page_DataRendered($sFooter);
 		$Doc->Text .= $sFooter;
@@ -1313,6 +1381,20 @@ class cproducto_view extends cproducto {
 					$GLOBALS["producto_sucursal_grid"]->idproducto->FldIsDetailKey = TRUE;
 					$GLOBALS["producto_sucursal_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
 					$GLOBALS["producto_sucursal_grid"]->idproducto->setSessionValue($GLOBALS["producto_sucursal_grid"]->idproducto->CurrentValue);
+				}
+			}
+			if (in_array("producto_precio_historial", $DetailTblVar)) {
+				if (!isset($GLOBALS["producto_precio_historial_grid"]))
+					$GLOBALS["producto_precio_historial_grid"] = new cproducto_precio_historial_grid;
+				if ($GLOBALS["producto_precio_historial_grid"]->DetailView) {
+					$GLOBALS["producto_precio_historial_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["producto_precio_historial_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["producto_precio_historial_grid"]->setStartRecordNumber(1);
+					$GLOBALS["producto_precio_historial_grid"]->idproducto->FldIsDetailKey = TRUE;
+					$GLOBALS["producto_precio_historial_grid"]->idproducto->CurrentValue = $this->idproducto->CurrentValue;
+					$GLOBALS["producto_precio_historial_grid"]->idproducto->setSessionValue($GLOBALS["producto_precio_historial_grid"]->idproducto->CurrentValue);
 				}
 			}
 		}
@@ -1596,6 +1678,17 @@ $producto_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
+<?php if ($producto->fecha_insercion->Visible) { // fecha_insercion ?>
+	<tr id="r_fecha_insercion">
+		<td><span id="elh_producto_fecha_insercion"><?php echo $producto->fecha_insercion->FldCaption() ?></span></td>
+		<td<?php echo $producto->fecha_insercion->CellAttributes() ?>>
+<span id="el_producto_fecha_insercion" class="form-group">
+<span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
+<?php echo $producto->fecha_insercion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
 </table>
 <?php
 	if (in_array("registro_sanitario", explode(",", $producto->getCurrentDetailTable())) && $registro_sanitario->DetailView) {
@@ -1620,6 +1713,14 @@ $producto_view->ShowMessage();
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_sucursal", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "producto_sucursalgrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("producto_precio_historial", explode(",", $producto->getCurrentDetailTable())) && $producto_precio_historial->DetailView) {
+?>
+<?php if ($producto->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("producto_precio_historial", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "producto_precio_historialgrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">
