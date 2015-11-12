@@ -8,7 +8,6 @@
 // nombre
 // estado_documento
 // monto
-// fecha_insercion
 // idcliente
 
 ?>
@@ -100,17 +99,6 @@
 <span id="el_documento_debito_monto" class="form-group">
 <span<?php echo $documento_debito->monto->ViewAttributes() ?>>
 <?php echo $documento_debito->monto->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($documento_debito->fecha_insercion->Visible) { // fecha_insercion ?>
-		<tr id="r_fecha_insercion">
-			<td><?php echo $documento_debito->fecha_insercion->FldCaption() ?></td>
-			<td<?php echo $documento_debito->fecha_insercion->CellAttributes() ?>>
-<span id="el_documento_debito_fecha_insercion" class="form-group">
-<span<?php echo $documento_debito->fecha_insercion->ViewAttributes() ?>>
-<?php echo $documento_debito->fecha_insercion->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

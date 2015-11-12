@@ -101,6 +101,10 @@ class cempresa extends cTable {
 			$sDetailUrl = $GLOBALS["sucursal"]->GetListUrl() . "?showmaster=" . $this->TableVar;
 			$sDetailUrl .= "&fk_idempresa=" . urlencode($this->idempresa->CurrentValue);
 		}
+		if ($this->getCurrentDetailTable() == "periodo_contable") {
+			$sDetailUrl = $GLOBALS["periodo_contable"]->GetListUrl() . "?showmaster=" . $this->TableVar;
+			$sDetailUrl .= "&fk_idempresa=" . urlencode($this->idempresa->CurrentValue);
+		}
 		if ($sDetailUrl == "") {
 			$sDetailUrl = "empresalist.php";
 		}

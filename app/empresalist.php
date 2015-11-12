@@ -9,6 +9,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "periodo_contablegridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -397,6 +398,14 @@ class cempresa_list extends cempresa {
 			if (@$_POST["grid"] == "fsucursalgrid") {
 				if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid;
 				$GLOBALS["sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'periodo_contable'
+			if (@$_POST["grid"] == "fperiodo_contablegrid") {
+				if (!isset($GLOBALS["periodo_contable_grid"])) $GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid;
+				$GLOBALS["periodo_contable_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -910,6 +919,14 @@ class cempresa_list extends cempresa {
 		$item->ShowInButtonGroup = FALSE;
 		if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid;
 
+		// "detail_periodo_contable"
+		$item = &$this->ListOptions->Add("detail_periodo_contable");
+		$item->CssStyle = "white-space: nowrap;";
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'periodo_contable') && !$this->ShowMultipleDetails;
+		$item->OnLeft = FALSE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["periodo_contable_grid"])) $GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid;
+
 		// Multiple details
 		if ($this->ShowMultipleDetails) {
 			$item = &$this->ListOptions->Add("details");
@@ -990,6 +1007,31 @@ class cempresa_list extends cempresa {
 			$oListOpt->Body = $body;
 			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
 		}
+
+		// "detail_periodo_contable"
+		$oListOpt = &$this->ListOptions->Items["detail_periodo_contable"];
+		if ($Security->AllowList(CurrentProjectID() . 'periodo_contable')) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("periodo_contable", "TblCaption");
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("periodo_contablelist.php?" . EW_TABLE_SHOW_MASTER . "=empresa&fk_idempresa=" . strval($this->idempresa->CurrentValue) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["periodo_contable_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'periodo_contable')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=periodo_contable")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "periodo_contable";
+			}
+			if ($GLOBALS["periodo_contable_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'periodo_contable')) {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=periodo_contable")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "periodo_contable";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
 		if ($this->ShowMultipleDetails) {
 			$body = $Language->Phrase("MultipleMasterDetails");
 			$body = "<div class=\"btn-group\">";
@@ -1041,6 +1083,13 @@ class cempresa_list extends cempresa {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "sucursal";
+		}
+		$item = &$option->Add("detailadd_periodo_contable");
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddMasterDetailLink")) . "\" href=\"" . ew_HtmlEncode($this->GetAddUrl() . "?" . EW_TABLE_SHOW_DETAIL . "=periodo_contable") . "\">" . $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["periodo_contable"]->TableCaption() . "</a>";
+		$item->Visible = ($GLOBALS["periodo_contable"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'periodo_contable') && $Security->CanAdd());
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "periodo_contable";
 		}
 
 		// Add multiple details

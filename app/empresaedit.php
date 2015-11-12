@@ -9,6 +9,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "periodo_contablegridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -278,6 +279,14 @@ class cempresa_edit extends cempresa {
 			if (@$_POST["grid"] == "fsucursalgrid") {
 				if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid;
 				$GLOBALS["sucursal_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'periodo_contable'
+			if (@$_POST["grid"] == "fperiodo_contablegrid") {
+				if (!isset($GLOBALS["periodo_contable_grid"])) $GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid;
+				$GLOBALS["periodo_contable_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -732,6 +741,10 @@ class cempresa_edit extends cempresa {
 			if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid(); // get detail page object
 			$GLOBALS["sucursal_grid"]->ValidateGridForm();
 		}
+		if (in_array("periodo_contable", $DetailTblVar) && $GLOBALS["periodo_contable"]->DetailEdit) {
+			if (!isset($GLOBALS["periodo_contable_grid"])) $GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid(); // get detail page object
+			$GLOBALS["periodo_contable_grid"]->ValidateGridForm();
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -800,6 +813,10 @@ class cempresa_edit extends cempresa {
 						if (!isset($GLOBALS["sucursal_grid"])) $GLOBALS["sucursal_grid"] = new csucursal_grid(); // Get detail page object
 						$EditRow = $GLOBALS["sucursal_grid"]->GridUpdate();
 					}
+					if (in_array("periodo_contable", $DetailTblVar) && $GLOBALS["periodo_contable"]->DetailEdit) {
+						if (!isset($GLOBALS["periodo_contable_grid"])) $GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid(); // Get detail page object
+						$EditRow = $GLOBALS["periodo_contable_grid"]->GridUpdate();
+					}
 				}
 
 				// Commit/Rollback transaction
@@ -859,6 +876,21 @@ class cempresa_edit extends cempresa {
 					$GLOBALS["sucursal_grid"]->idempresa->FldIsDetailKey = TRUE;
 					$GLOBALS["sucursal_grid"]->idempresa->CurrentValue = $this->idempresa->CurrentValue;
 					$GLOBALS["sucursal_grid"]->idempresa->setSessionValue($GLOBALS["sucursal_grid"]->idempresa->CurrentValue);
+				}
+			}
+			if (in_array("periodo_contable", $DetailTblVar)) {
+				if (!isset($GLOBALS["periodo_contable_grid"]))
+					$GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid;
+				if ($GLOBALS["periodo_contable_grid"]->DetailEdit) {
+					$GLOBALS["periodo_contable_grid"]->CurrentMode = "edit";
+					$GLOBALS["periodo_contable_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["periodo_contable_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["periodo_contable_grid"]->setStartRecordNumber(1);
+					$GLOBALS["periodo_contable_grid"]->idempresa->FldIsDetailKey = TRUE;
+					$GLOBALS["periodo_contable_grid"]->idempresa->CurrentValue = $this->idempresa->CurrentValue;
+					$GLOBALS["periodo_contable_grid"]->idempresa->setSessionValue($GLOBALS["periodo_contable_grid"]->idempresa->CurrentValue);
 				}
 			}
 		}
@@ -1195,6 +1227,14 @@ if (is_array($empresa->estado->EditValue)) {
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("sucursal", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "sucursalgrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("periodo_contable", explode(",", $empresa->getCurrentDetailTable())) && $periodo_contable->DetailEdit) {
+?>
+<?php if ($empresa->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("periodo_contable", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "periodo_contablegrid.php" ?>
 <?php } ?>
 <div class="form-group">
 	<div class="col-sm-offset-2 col-sm-10">

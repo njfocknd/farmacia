@@ -9,6 +9,7 @@ $EW_RELATIVE_PATH = "";
 <?php include_once $EW_RELATIVE_PATH . "empresainfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "usuarioinfo.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "sucursalgridcls.php" ?>
+<?php include_once $EW_RELATIVE_PATH . "periodo_contablegridcls.php" ?>
 <?php include_once $EW_RELATIVE_PATH . "userfn11.php" ?>
 <?php
 
@@ -378,6 +379,14 @@ class cempresa_view extends cempresa {
 				$this->Page_Terminate();
 				exit();
 			}
+
+			// Process auto fill for detail table 'periodo_contable'
+			if (@$_POST["grid"] == "fperiodo_contablegrid") {
+				if (!isset($GLOBALS["periodo_contable_grid"])) $GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid;
+				$GLOBALS["periodo_contable_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -554,10 +563,38 @@ class cempresa_view extends cempresa {
 		}
 		$body = "<div class=\"btn-group\">" . $body . "</div>";
 		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'sucursal');
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'periodo_contable');
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "sucursal";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
+		// "detail_periodo_contable"
+		$item = &$option->Add("detail_periodo_contable");
+		$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("periodo_contable", "TblCaption");
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("periodo_contablelist.php?" . EW_TABLE_SHOW_MASTER . "=empresa&fk_idempresa=" . strval($this->idempresa->CurrentValue) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["periodo_contable_grid"] && $GLOBALS["periodo_contable_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'periodo_contable')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=periodo_contable")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "periodo_contable";
+		}
+		if ($GLOBALS["periodo_contable_grid"] && $GLOBALS["periodo_contable_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'periodo_contable')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=periodo_contable")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "periodo_contable";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'periodo_contable');
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "periodo_contable";
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
@@ -949,6 +986,24 @@ class cempresa_view extends cempresa {
 				$rsdetail->Close();
 			}
 		}
+
+		// Export detail records (periodo_contable)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("periodo_contable", explode(",", $this->getCurrentDetailTable()))) {
+			global $periodo_contable;
+			if (!isset($periodo_contable)) $periodo_contable = new cperiodo_contable;
+			$rsdetail = $periodo_contable->LoadRs($periodo_contable->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$periodo_contable->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
 		$sFooter = $this->PageFooter;
 		$this->Page_DataRendered($sFooter);
 		$Doc->Text .= $sFooter;
@@ -998,6 +1053,20 @@ class cempresa_view extends cempresa {
 					$GLOBALS["sucursal_grid"]->idempresa->FldIsDetailKey = TRUE;
 					$GLOBALS["sucursal_grid"]->idempresa->CurrentValue = $this->idempresa->CurrentValue;
 					$GLOBALS["sucursal_grid"]->idempresa->setSessionValue($GLOBALS["sucursal_grid"]->idempresa->CurrentValue);
+				}
+			}
+			if (in_array("periodo_contable", $DetailTblVar)) {
+				if (!isset($GLOBALS["periodo_contable_grid"]))
+					$GLOBALS["periodo_contable_grid"] = new cperiodo_contable_grid;
+				if ($GLOBALS["periodo_contable_grid"]->DetailView) {
+					$GLOBALS["periodo_contable_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["periodo_contable_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["periodo_contable_grid"]->setStartRecordNumber(1);
+					$GLOBALS["periodo_contable_grid"]->idempresa->FldIsDetailKey = TRUE;
+					$GLOBALS["periodo_contable_grid"]->idempresa->CurrentValue = $this->idempresa->CurrentValue;
+					$GLOBALS["periodo_contable_grid"]->idempresa->setSessionValue($GLOBALS["periodo_contable_grid"]->idempresa->CurrentValue);
 				}
 			}
 		}
@@ -1232,6 +1301,14 @@ $empresa_view->ShowMessage();
 <h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("sucursal", "TblCaption") ?></h4>
 <?php } ?>
 <?php include_once "sucursalgrid.php" ?>
+<?php } ?>
+<?php
+	if (in_array("periodo_contable", explode(",", $empresa->getCurrentDetailTable())) && $periodo_contable->DetailView) {
+?>
+<?php if ($empresa->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("periodo_contable", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "periodo_contablegrid.php" ?>
 <?php } ?>
 </form>
 <script type="text/javascript">

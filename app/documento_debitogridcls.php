@@ -788,8 +788,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			return FALSE;
 		if ($objForm->HasValue("x_monto") && $objForm->HasValue("o_monto") && $this->monto->CurrentValue <> $this->monto->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_fecha_insercion") && $objForm->HasValue("o_fecha_insercion") && $this->fecha_insercion->CurrentValue <> $this->fecha_insercion->OldValue)
-			return FALSE;
 		if ($objForm->HasValue("x_idcliente") && $objForm->HasValue("o_idcliente") && $this->idcliente->CurrentValue <> $this->idcliente->OldValue)
 			return FALSE;
 		return TRUE;
@@ -1094,8 +1092,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 		$this->estado_documento->OldValue = $this->estado_documento->CurrentValue;
 		$this->monto->CurrentValue = 0.00;
 		$this->monto->OldValue = $this->monto->CurrentValue;
-		$this->fecha_insercion->CurrentValue = NULL;
-		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 		$this->idcliente->CurrentValue = 1;
 		$this->idcliente->OldValue = $this->idcliente->CurrentValue;
 	}
@@ -1139,11 +1135,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$this->monto->setFormValue($objForm->GetValue("x_monto"));
 		}
 		$this->monto->setOldValue($objForm->GetValue("o_monto"));
-		if (!$this->fecha_insercion->FldIsDetailKey) {
-			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
-			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
-		}
-		$this->fecha_insercion->setOldValue($objForm->GetValue("o_fecha_insercion"));
 		if (!$this->idcliente->FldIsDetailKey) {
 			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
 		}
@@ -1166,8 +1157,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
 		$this->estado_documento->CurrentValue = $this->estado_documento->FormValue;
 		$this->monto->CurrentValue = $this->monto->FormValue;
-		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
-		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 		$this->idcliente->CurrentValue = $this->idcliente->FormValue;
 	}
 
@@ -1235,6 +1224,15 @@ class cdocumento_debito_grid extends cdocumento_debito {
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->idcliente->setDbValue($rs->fields('idcliente'));
+		$this->importe_bruto->setDbValue($rs->fields('importe_bruto'));
+		$this->importe_descuento->setDbValue($rs->fields('importe_descuento'));
+		$this->importe_exento->setDbValue($rs->fields('importe_exento'));
+		$this->importe_neto->setDbValue($rs->fields('importe_neto'));
+		$this->importe_iva->setDbValue($rs->fields('importe_iva'));
+		$this->importe_otros_impuestos->setDbValue($rs->fields('importe_otros_impuestos'));
+		$this->importe_isr->setDbValue($rs->fields('importe_isr'));
+		$this->importe_total->setDbValue($rs->fields('importe_total'));
+		$this->idfecha_contable->setDbValue($rs->fields('idfecha_contable'));
 	}
 
 	// Load DbValue from recordset
@@ -1259,6 +1257,15 @@ class cdocumento_debito_grid extends cdocumento_debito {
 		$this->monto->DbValue = $row['monto'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 		$this->idcliente->DbValue = $row['idcliente'];
+		$this->importe_bruto->DbValue = $row['importe_bruto'];
+		$this->importe_descuento->DbValue = $row['importe_descuento'];
+		$this->importe_exento->DbValue = $row['importe_exento'];
+		$this->importe_neto->DbValue = $row['importe_neto'];
+		$this->importe_iva->DbValue = $row['importe_iva'];
+		$this->importe_otros_impuestos->DbValue = $row['importe_otros_impuestos'];
+		$this->importe_isr->DbValue = $row['importe_isr'];
+		$this->importe_total->DbValue = $row['importe_total'];
+		$this->idfecha_contable->DbValue = $row['idfecha_contable'];
 	}
 
 	// Load old record
@@ -1322,6 +1329,15 @@ class cdocumento_debito_grid extends cdocumento_debito {
 		// monto
 		// fecha_insercion
 		// idcliente
+		// importe_bruto
+		// importe_descuento
+		// importe_exento
+		// importe_neto
+		// importe_iva
+		// importe_otros_impuestos
+		// importe_isr
+		// importe_total
+		// idfecha_contable
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1453,6 +1469,9 @@ class cdocumento_debito_grid extends cdocumento_debito {
 					case $this->estado_documento->FldTagValue(2):
 						$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->CurrentValue;
 						break;
+					case $this->estado_documento->FldTagValue(3):
+						$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(3) <> "" ? $this->estado_documento->FldTagCaption(3) : $this->estado_documento->CurrentValue;
+						break;
 					default:
 						$this->estado_documento->ViewValue = $this->estado_documento->CurrentValue;
 				}
@@ -1497,8 +1516,97 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idcliente
-			$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			if (strval($this->idcliente->CurrentValue) <> "") {
+				$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idcliente->ViewValue = $rswrk->fields('DispFld');
+					$this->idcliente->ViewValue .= ew_ValueSeparator(1,$this->idcliente) . $rswrk->fields('Disp2Fld');
+					$rswrk->Close();
+				} else {
+					$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+				}
+			} else {
+				$this->idcliente->ViewValue = NULL;
+			}
 			$this->idcliente->ViewCustomAttributes = "";
+
+			// importe_bruto
+			$this->importe_bruto->ViewValue = $this->importe_bruto->CurrentValue;
+			$this->importe_bruto->ViewValue = ew_FormatNumber($this->importe_bruto->ViewValue, 2, -2, -2, -2);
+			$this->importe_bruto->ViewCustomAttributes = "";
+
+			// importe_descuento
+			$this->importe_descuento->ViewValue = $this->importe_descuento->CurrentValue;
+			$this->importe_descuento->ViewValue = ew_FormatNumber($this->importe_descuento->ViewValue, 2, -2, -2, -2);
+			$this->importe_descuento->ViewCustomAttributes = "";
+
+			// importe_exento
+			$this->importe_exento->ViewValue = $this->importe_exento->CurrentValue;
+			$this->importe_exento->ViewValue = ew_FormatNumber($this->importe_exento->ViewValue, 2, -2, -2, -2);
+			$this->importe_exento->ViewCustomAttributes = "";
+
+			// importe_neto
+			$this->importe_neto->ViewValue = $this->importe_neto->CurrentValue;
+			$this->importe_neto->ViewValue = ew_FormatNumber($this->importe_neto->ViewValue, 2, -2, -2, -2);
+			$this->importe_neto->ViewCustomAttributes = "";
+
+			// importe_iva
+			$this->importe_iva->ViewValue = $this->importe_iva->CurrentValue;
+			$this->importe_iva->ViewValue = ew_FormatNumber($this->importe_iva->ViewValue, 2, -2, -2, -2);
+			$this->importe_iva->ViewCustomAttributes = "";
+
+			// importe_otros_impuestos
+			$this->importe_otros_impuestos->ViewValue = $this->importe_otros_impuestos->CurrentValue;
+			$this->importe_otros_impuestos->ViewValue = ew_FormatNumber($this->importe_otros_impuestos->ViewValue, 2, -2, -2, -2);
+			$this->importe_otros_impuestos->ViewCustomAttributes = "";
+
+			// importe_isr
+			$this->importe_isr->ViewValue = $this->importe_isr->CurrentValue;
+			$this->importe_isr->ViewValue = ew_FormatNumber($this->importe_isr->ViewValue, 2, -2, -2, -2);
+			$this->importe_isr->ViewCustomAttributes = "";
+
+			// importe_total
+			$this->importe_total->ViewValue = $this->importe_total->CurrentValue;
+			$this->importe_total->ViewValue = ew_FormatNumber($this->importe_total->ViewValue, 2, -2, -2, -2);
+			$this->importe_total->ViewCustomAttributes = "";
+
+			// idfecha_contable
+			if (strval($this->idfecha_contable->CurrentValue) <> "") {
+				$sFilterWrk = "`idfecha_contable`" . ew_SearchString("=", $this->idfecha_contable->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idfecha_contable`, `fecha` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fecha_contable`";
+			$sWhereWrk = "";
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idfecha_contable, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idfecha_contable->ViewValue = ew_FormatDateTime($rswrk->fields('DispFld'), 7);
+					$rswrk->Close();
+				} else {
+					$this->idfecha_contable->ViewValue = $this->idfecha_contable->CurrentValue;
+				}
+			} else {
+				$this->idfecha_contable->ViewValue = NULL;
+			}
+			$this->idfecha_contable->ViewCustomAttributes = "";
 
 			// idtipo_documento
 			$this->idtipo_documento->LinkCustomAttributes = "";
@@ -1539,11 +1647,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->LinkCustomAttributes = "";
-			$this->fecha_insercion->HrefValue = "";
-			$this->fecha_insercion->TooltipValue = "";
 
 			// idcliente
 			$this->idcliente->LinkCustomAttributes = "";
@@ -1699,6 +1802,7 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$arwrk = array();
 			$arwrk[] = array($this->estado_documento->FldTagValue(1), $this->estado_documento->FldTagCaption(1) <> "" ? $this->estado_documento->FldTagCaption(1) : $this->estado_documento->FldTagValue(1));
 			$arwrk[] = array($this->estado_documento->FldTagValue(2), $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->FldTagValue(2));
+			$arwrk[] = array($this->estado_documento->FldTagValue(3), $this->estado_documento->FldTagCaption(3) <> "" ? $this->estado_documento->FldTagCaption(3) : $this->estado_documento->FldTagValue(3));
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado_documento->EditValue = $arwrk;
 
@@ -1712,17 +1816,32 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$this->monto->OldValue = $this->monto->EditValue;
 			}
 
-			// fecha_insercion
-			$this->fecha_insercion->EditAttrs["class"] = "form-control";
-			$this->fecha_insercion->EditCustomAttributes = "";
-			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
-			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
 			// idcliente
 			$this->idcliente->EditAttrs["class"] = "form-control";
 			$this->idcliente->EditCustomAttributes = "";
-			$this->idcliente->EditValue = ew_HtmlEncode($this->idcliente->CurrentValue);
-			$this->idcliente->PlaceHolder = ew_RemoveHtml($this->idcliente->FldCaption());
+			if (trim(strval($this->idcliente->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `cliente`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idcliente->EditValue = $arwrk;
 
 			// Edit refer script
 			// idtipo_documento
@@ -1749,9 +1868,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 
 			// monto
 			$this->monto->HrefValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->HrefValue = "";
 
 			// idcliente
 			$this->idcliente->HrefValue = "";
@@ -1905,6 +2021,7 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$arwrk = array();
 			$arwrk[] = array($this->estado_documento->FldTagValue(1), $this->estado_documento->FldTagCaption(1) <> "" ? $this->estado_documento->FldTagCaption(1) : $this->estado_documento->FldTagValue(1));
 			$arwrk[] = array($this->estado_documento->FldTagValue(2), $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->FldTagValue(2));
+			$arwrk[] = array($this->estado_documento->FldTagValue(3), $this->estado_documento->FldTagCaption(3) <> "" ? $this->estado_documento->FldTagCaption(3) : $this->estado_documento->FldTagValue(3));
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado_documento->EditValue = $arwrk;
 
@@ -1918,17 +2035,32 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			$this->monto->OldValue = $this->monto->EditValue;
 			}
 
-			// fecha_insercion
-			$this->fecha_insercion->EditAttrs["class"] = "form-control";
-			$this->fecha_insercion->EditCustomAttributes = "";
-			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
-			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
 			// idcliente
 			$this->idcliente->EditAttrs["class"] = "form-control";
 			$this->idcliente->EditCustomAttributes = "";
-			$this->idcliente->EditValue = ew_HtmlEncode($this->idcliente->CurrentValue);
-			$this->idcliente->PlaceHolder = ew_RemoveHtml($this->idcliente->FldCaption());
+			if (trim(strval($this->idcliente->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `cliente`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idcliente->EditValue = $arwrk;
 
 			// Edit refer script
 			// idtipo_documento
@@ -1955,9 +2087,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 
 			// monto
 			$this->monto->HrefValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->HrefValue = "";
 
 			// idcliente
 			$this->idcliente->HrefValue = "";
@@ -2004,14 +2133,8 @@ class cdocumento_debito_grid extends cdocumento_debito {
 		if (!ew_CheckNumber($this->monto->FormValue)) {
 			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
 		}
-		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
-			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
-		}
 		if (!$this->idcliente->FldIsDetailKey && !is_null($this->idcliente->FormValue) && $this->idcliente->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idcliente->FldCaption(), $this->idcliente->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idcliente->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idcliente->FldErrMsg());
 		}
 
 		// Return validate result
@@ -2154,9 +2277,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 			// monto
 			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
 
-			// fecha_insercion
-			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
-
 			// idcliente
 			$this->idcliente->SetDbValueDef($rsnew, $this->idcliente->CurrentValue, 0, $this->idcliente->ReadOnly);
 
@@ -2239,9 +2359,6 @@ class cdocumento_debito_grid extends cdocumento_debito {
 
 		// monto
 		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
-
-		// fecha_insercion
-		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
 
 		// idcliente
 		$this->idcliente->SetDbValueDef($rsnew, $this->idcliente->CurrentValue, 0, strval($this->idcliente->CurrentValue) == "");

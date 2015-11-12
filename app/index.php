@@ -309,6 +309,14 @@ class cdefault {
 			$this->Page_Terminate("cheque_clientelist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'producto_precio_historial'))
 			$this->Page_Terminate("producto_precio_historiallist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'fecha_contable'))
+			$this->Page_Terminate("fecha_contablelist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'meta'))
+			$this->Page_Terminate("metalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'parametros_sistema'))
+			$this->Page_Terminate("parametros_sistemalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'periodo_contable'))
+			$this->Page_Terminate("periodo_contablelist.php");
 		if ($Security->IsLoggedIn()) {
 			$this->setFailureMessage($Language->Phrase("NoPermission") . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
 		} else {

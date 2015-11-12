@@ -29,7 +29,7 @@ define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME . "", TRUE); // Config file name
 define("EW_PROJECT_ID", "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", 'umcdpUayqdCU1m9b', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", '44xMdXl0eyzFMJEK', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/nexthor_farmacia.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -94,7 +94,7 @@ define("EW_MYSQL_CHARSET", "utf8", TRUE);
  * Otherwise, existing users will not be able to login. MD5 hash is
  * irreversible, password will be reset during password recovery.
  */
-define("EW_ENCRYPTED_PASSWORD", TRUE, TRUE); // Use encrypted password
+define("EW_ENCRYPTED_PASSWORD", FALSE, TRUE); // Use encrypted password
 define("EW_CASE_SENSITIVE_PASSWORD", FALSE, TRUE); // Case-sensitive password
 
 /**
@@ -434,7 +434,7 @@ $DEFAULT_N_CS_PRECEDES = &$DEFAULT_LOCALE["n_cs_precedes"];
 $DEFAULT_N_SEP_BY_SPACE = &$DEFAULT_LOCALE["n_sep_by_space"];
 $DEFAULT_P_SIGN_POSN = &$DEFAULT_LOCALE["p_sign_posn"];
 $DEFAULT_N_SIGN_POSN = &$DEFAULT_LOCALE["n_sign_posn"];
-define("EW_DEFAULT_LOCALE", '{"decimal_point":".","thousands_sep":",","int_curr_symbol":"$","currency_symbol":"Q","mon_decimal_point":".","mon_thousands_sep":",","positive_sign":null,"negative_sign":"-","int_frac_digits":2,"frac_digits":2,"p_cs_precedes":true,"p_sep_by_space":false,"n_cs_precedes":true,"n_sep_by_space":false,"p_sign_posn":3,"n_sign_posn":3}', TRUE);
+define("EW_DEFAULT_LOCALE", '{"decimal_point":".","thousands_sep":",","int_curr_symbol":"$","currency_symbol":null,"mon_decimal_point":".","mon_thousands_sep":",","positive_sign":null,"negative_sign":"-","int_frac_digits":2,"frac_digits":2,"p_cs_precedes":true,"p_sep_by_space":false,"n_cs_precedes":true,"n_sep_by_space":false,"p_sign_posn":3,"n_sign_posn":3}', TRUE);
 if (!json_decode(EW_DEFAULT_LOCALE)) // String, not JSON
 	@setlocale(LC_ALL, EW_DEFAULT_LOCALE);
 

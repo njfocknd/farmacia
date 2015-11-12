@@ -25,6 +25,15 @@ class cdocumento_debito extends cTable {
 	var $monto;
 	var $fecha_insercion;
 	var $idcliente;
+	var $importe_bruto;
+	var $importe_descuento;
+	var $importe_exento;
+	var $importe_neto;
+	var $importe_iva;
+	var $importe_otros_impuestos;
+	var $importe_isr;
+	var $importe_total;
+	var $idfecha_contable;
 
 	//
 	// Table class constructor
@@ -130,6 +139,51 @@ class cdocumento_debito extends cTable {
 		$this->idcliente = new cField('documento_debito', 'documento_debito', 'x_idcliente', 'idcliente', '`idcliente`', '`idcliente`', 3, -1, FALSE, '`idcliente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idcliente->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idcliente'] = &$this->idcliente;
+
+		// importe_bruto
+		$this->importe_bruto = new cField('documento_debito', 'documento_debito', 'x_importe_bruto', 'importe_bruto', '`importe_bruto`', '`importe_bruto`', 131, -1, FALSE, '`importe_bruto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_bruto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_bruto'] = &$this->importe_bruto;
+
+		// importe_descuento
+		$this->importe_descuento = new cField('documento_debito', 'documento_debito', 'x_importe_descuento', 'importe_descuento', '`importe_descuento`', '`importe_descuento`', 131, -1, FALSE, '`importe_descuento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_descuento->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_descuento'] = &$this->importe_descuento;
+
+		// importe_exento
+		$this->importe_exento = new cField('documento_debito', 'documento_debito', 'x_importe_exento', 'importe_exento', '`importe_exento`', '`importe_exento`', 131, -1, FALSE, '`importe_exento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_exento->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_exento'] = &$this->importe_exento;
+
+		// importe_neto
+		$this->importe_neto = new cField('documento_debito', 'documento_debito', 'x_importe_neto', 'importe_neto', '`importe_neto`', '`importe_neto`', 131, -1, FALSE, '`importe_neto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_neto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_neto'] = &$this->importe_neto;
+
+		// importe_iva
+		$this->importe_iva = new cField('documento_debito', 'documento_debito', 'x_importe_iva', 'importe_iva', '`importe_iva`', '`importe_iva`', 131, -1, FALSE, '`importe_iva`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_iva->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_iva'] = &$this->importe_iva;
+
+		// importe_otros_impuestos
+		$this->importe_otros_impuestos = new cField('documento_debito', 'documento_debito', 'x_importe_otros_impuestos', 'importe_otros_impuestos', '`importe_otros_impuestos`', '`importe_otros_impuestos`', 131, -1, FALSE, '`importe_otros_impuestos`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_otros_impuestos->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_otros_impuestos'] = &$this->importe_otros_impuestos;
+
+		// importe_isr
+		$this->importe_isr = new cField('documento_debito', 'documento_debito', 'x_importe_isr', 'importe_isr', '`importe_isr`', '`importe_isr`', 131, -1, FALSE, '`importe_isr`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_isr->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_isr'] = &$this->importe_isr;
+
+		// importe_total
+		$this->importe_total = new cField('documento_debito', 'documento_debito', 'x_importe_total', 'importe_total', '`importe_total`', '`importe_total`', 131, -1, FALSE, '`importe_total`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->importe_total->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['importe_total'] = &$this->importe_total;
+
+		// idfecha_contable
+		$this->idfecha_contable = new cField('documento_debito', 'documento_debito', 'x_idfecha_contable', 'idfecha_contable', '`idfecha_contable`', '`idfecha_contable`', 3, -1, FALSE, '`idfecha_contable`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idfecha_contable->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idfecha_contable'] = &$this->idfecha_contable;
 	}
 
 	// Single column sort
@@ -336,7 +390,7 @@ class cdocumento_debito extends cTable {
 	var $_SqlOrderBy = "";
 
 	function getSqlOrderBy() { // Order By
-		return ($this->_SqlOrderBy <> "") ? $this->_SqlOrderBy : "";
+		return ($this->_SqlOrderBy <> "") ? $this->_SqlOrderBy : "`iddocumento_debito` DESC";
 	}
 
 	function SqlOrderBy() { // For backward compatibility
@@ -743,6 +797,15 @@ class cdocumento_debito extends cTable {
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 		$this->idcliente->setDbValue($rs->fields('idcliente'));
+		$this->importe_bruto->setDbValue($rs->fields('importe_bruto'));
+		$this->importe_descuento->setDbValue($rs->fields('importe_descuento'));
+		$this->importe_exento->setDbValue($rs->fields('importe_exento'));
+		$this->importe_neto->setDbValue($rs->fields('importe_neto'));
+		$this->importe_iva->setDbValue($rs->fields('importe_iva'));
+		$this->importe_otros_impuestos->setDbValue($rs->fields('importe_otros_impuestos'));
+		$this->importe_isr->setDbValue($rs->fields('importe_isr'));
+		$this->importe_total->setDbValue($rs->fields('importe_total'));
+		$this->idfecha_contable->setDbValue($rs->fields('idfecha_contable'));
 	}
 
 	// Render list row values
@@ -771,6 +834,15 @@ class cdocumento_debito extends cTable {
 		// monto
 		// fecha_insercion
 		// idcliente
+		// importe_bruto
+		// importe_descuento
+		// importe_exento
+		// importe_neto
+		// importe_iva
+		// importe_otros_impuestos
+		// importe_isr
+		// importe_total
+		// idfecha_contable
 		// iddocumento_debito
 
 		$this->iddocumento_debito->ViewValue = $this->iddocumento_debito->CurrentValue;
@@ -900,6 +972,9 @@ class cdocumento_debito extends cTable {
 				case $this->estado_documento->FldTagValue(2):
 					$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->CurrentValue;
 					break;
+				case $this->estado_documento->FldTagValue(3):
+					$this->estado_documento->ViewValue = $this->estado_documento->FldTagCaption(3) <> "" ? $this->estado_documento->FldTagCaption(3) : $this->estado_documento->CurrentValue;
+					break;
 				default:
 					$this->estado_documento->ViewValue = $this->estado_documento->CurrentValue;
 			}
@@ -944,8 +1019,97 @@ class cdocumento_debito extends cTable {
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
 		// idcliente
-		$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+		if (strval($this->idcliente->CurrentValue) <> "") {
+			$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idcliente->ViewValue = $rswrk->fields('DispFld');
+				$this->idcliente->ViewValue .= ew_ValueSeparator(1,$this->idcliente) . $rswrk->fields('Disp2Fld');
+				$rswrk->Close();
+			} else {
+				$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			}
+		} else {
+			$this->idcliente->ViewValue = NULL;
+		}
 		$this->idcliente->ViewCustomAttributes = "";
+
+		// importe_bruto
+		$this->importe_bruto->ViewValue = $this->importe_bruto->CurrentValue;
+		$this->importe_bruto->ViewValue = ew_FormatNumber($this->importe_bruto->ViewValue, 2, -2, -2, -2);
+		$this->importe_bruto->ViewCustomAttributes = "";
+
+		// importe_descuento
+		$this->importe_descuento->ViewValue = $this->importe_descuento->CurrentValue;
+		$this->importe_descuento->ViewValue = ew_FormatNumber($this->importe_descuento->ViewValue, 2, -2, -2, -2);
+		$this->importe_descuento->ViewCustomAttributes = "";
+
+		// importe_exento
+		$this->importe_exento->ViewValue = $this->importe_exento->CurrentValue;
+		$this->importe_exento->ViewValue = ew_FormatNumber($this->importe_exento->ViewValue, 2, -2, -2, -2);
+		$this->importe_exento->ViewCustomAttributes = "";
+
+		// importe_neto
+		$this->importe_neto->ViewValue = $this->importe_neto->CurrentValue;
+		$this->importe_neto->ViewValue = ew_FormatNumber($this->importe_neto->ViewValue, 2, -2, -2, -2);
+		$this->importe_neto->ViewCustomAttributes = "";
+
+		// importe_iva
+		$this->importe_iva->ViewValue = $this->importe_iva->CurrentValue;
+		$this->importe_iva->ViewValue = ew_FormatNumber($this->importe_iva->ViewValue, 2, -2, -2, -2);
+		$this->importe_iva->ViewCustomAttributes = "";
+
+		// importe_otros_impuestos
+		$this->importe_otros_impuestos->ViewValue = $this->importe_otros_impuestos->CurrentValue;
+		$this->importe_otros_impuestos->ViewValue = ew_FormatNumber($this->importe_otros_impuestos->ViewValue, 2, -2, -2, -2);
+		$this->importe_otros_impuestos->ViewCustomAttributes = "";
+
+		// importe_isr
+		$this->importe_isr->ViewValue = $this->importe_isr->CurrentValue;
+		$this->importe_isr->ViewValue = ew_FormatNumber($this->importe_isr->ViewValue, 2, -2, -2, -2);
+		$this->importe_isr->ViewCustomAttributes = "";
+
+		// importe_total
+		$this->importe_total->ViewValue = $this->importe_total->CurrentValue;
+		$this->importe_total->ViewValue = ew_FormatNumber($this->importe_total->ViewValue, 2, -2, -2, -2);
+		$this->importe_total->ViewCustomAttributes = "";
+
+		// idfecha_contable
+		if (strval($this->idfecha_contable->CurrentValue) <> "") {
+			$sFilterWrk = "`idfecha_contable`" . ew_SearchString("=", $this->idfecha_contable->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idfecha_contable`, `fecha` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fecha_contable`";
+		$sWhereWrk = "";
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idfecha_contable, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idfecha_contable->ViewValue = ew_FormatDateTime($rswrk->fields('DispFld'), 7);
+				$rswrk->Close();
+			} else {
+				$this->idfecha_contable->ViewValue = $this->idfecha_contable->CurrentValue;
+			}
+		} else {
+			$this->idfecha_contable->ViewValue = NULL;
+		}
+		$this->idfecha_contable->ViewCustomAttributes = "";
 
 		// iddocumento_debito
 		$this->iddocumento_debito->LinkCustomAttributes = "";
@@ -1036,6 +1200,51 @@ class cdocumento_debito extends cTable {
 		$this->idcliente->LinkCustomAttributes = "";
 		$this->idcliente->HrefValue = "";
 		$this->idcliente->TooltipValue = "";
+
+		// importe_bruto
+		$this->importe_bruto->LinkCustomAttributes = "";
+		$this->importe_bruto->HrefValue = "";
+		$this->importe_bruto->TooltipValue = "";
+
+		// importe_descuento
+		$this->importe_descuento->LinkCustomAttributes = "";
+		$this->importe_descuento->HrefValue = "";
+		$this->importe_descuento->TooltipValue = "";
+
+		// importe_exento
+		$this->importe_exento->LinkCustomAttributes = "";
+		$this->importe_exento->HrefValue = "";
+		$this->importe_exento->TooltipValue = "";
+
+		// importe_neto
+		$this->importe_neto->LinkCustomAttributes = "";
+		$this->importe_neto->HrefValue = "";
+		$this->importe_neto->TooltipValue = "";
+
+		// importe_iva
+		$this->importe_iva->LinkCustomAttributes = "";
+		$this->importe_iva->HrefValue = "";
+		$this->importe_iva->TooltipValue = "";
+
+		// importe_otros_impuestos
+		$this->importe_otros_impuestos->LinkCustomAttributes = "";
+		$this->importe_otros_impuestos->HrefValue = "";
+		$this->importe_otros_impuestos->TooltipValue = "";
+
+		// importe_isr
+		$this->importe_isr->LinkCustomAttributes = "";
+		$this->importe_isr->HrefValue = "";
+		$this->importe_isr->TooltipValue = "";
+
+		// importe_total
+		$this->importe_total->LinkCustomAttributes = "";
+		$this->importe_total->HrefValue = "";
+		$this->importe_total->TooltipValue = "";
+
+		// idfecha_contable
+		$this->idfecha_contable->LinkCustomAttributes = "";
+		$this->idfecha_contable->HrefValue = "";
+		$this->idfecha_contable->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -1206,6 +1415,7 @@ class cdocumento_debito extends cTable {
 		$arwrk = array();
 		$arwrk[] = array($this->estado_documento->FldTagValue(1), $this->estado_documento->FldTagCaption(1) <> "" ? $this->estado_documento->FldTagCaption(1) : $this->estado_documento->FldTagValue(1));
 		$arwrk[] = array($this->estado_documento->FldTagValue(2), $this->estado_documento->FldTagCaption(2) <> "" ? $this->estado_documento->FldTagCaption(2) : $this->estado_documento->FldTagValue(2));
+		$arwrk[] = array($this->estado_documento->FldTagValue(3), $this->estado_documento->FldTagCaption(3) <> "" ? $this->estado_documento->FldTagCaption(3) : $this->estado_documento->FldTagValue(3));
 		array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 		$this->estado_documento->EditValue = $arwrk;
 
@@ -1246,8 +1456,66 @@ class cdocumento_debito extends cTable {
 		// idcliente
 		$this->idcliente->EditAttrs["class"] = "form-control";
 		$this->idcliente->EditCustomAttributes = "";
-		$this->idcliente->EditValue = ew_HtmlEncode($this->idcliente->CurrentValue);
-		$this->idcliente->PlaceHolder = ew_RemoveHtml($this->idcliente->FldCaption());
+
+		// importe_bruto
+		$this->importe_bruto->EditAttrs["class"] = "form-control";
+		$this->importe_bruto->EditCustomAttributes = "";
+		$this->importe_bruto->EditValue = ew_HtmlEncode($this->importe_bruto->CurrentValue);
+		$this->importe_bruto->PlaceHolder = ew_RemoveHtml($this->importe_bruto->FldCaption());
+		if (strval($this->importe_bruto->EditValue) <> "" && is_numeric($this->importe_bruto->EditValue)) $this->importe_bruto->EditValue = ew_FormatNumber($this->importe_bruto->EditValue, -2, -2, -2, -2);
+
+		// importe_descuento
+		$this->importe_descuento->EditAttrs["class"] = "form-control";
+		$this->importe_descuento->EditCustomAttributes = "";
+		$this->importe_descuento->EditValue = ew_HtmlEncode($this->importe_descuento->CurrentValue);
+		$this->importe_descuento->PlaceHolder = ew_RemoveHtml($this->importe_descuento->FldCaption());
+		if (strval($this->importe_descuento->EditValue) <> "" && is_numeric($this->importe_descuento->EditValue)) $this->importe_descuento->EditValue = ew_FormatNumber($this->importe_descuento->EditValue, -2, -2, -2, -2);
+
+		// importe_exento
+		$this->importe_exento->EditAttrs["class"] = "form-control";
+		$this->importe_exento->EditCustomAttributes = "";
+		$this->importe_exento->EditValue = ew_HtmlEncode($this->importe_exento->CurrentValue);
+		$this->importe_exento->PlaceHolder = ew_RemoveHtml($this->importe_exento->FldCaption());
+		if (strval($this->importe_exento->EditValue) <> "" && is_numeric($this->importe_exento->EditValue)) $this->importe_exento->EditValue = ew_FormatNumber($this->importe_exento->EditValue, -2, -2, -2, -2);
+
+		// importe_neto
+		$this->importe_neto->EditAttrs["class"] = "form-control";
+		$this->importe_neto->EditCustomAttributes = "";
+		$this->importe_neto->EditValue = ew_HtmlEncode($this->importe_neto->CurrentValue);
+		$this->importe_neto->PlaceHolder = ew_RemoveHtml($this->importe_neto->FldCaption());
+		if (strval($this->importe_neto->EditValue) <> "" && is_numeric($this->importe_neto->EditValue)) $this->importe_neto->EditValue = ew_FormatNumber($this->importe_neto->EditValue, -2, -2, -2, -2);
+
+		// importe_iva
+		$this->importe_iva->EditAttrs["class"] = "form-control";
+		$this->importe_iva->EditCustomAttributes = "";
+		$this->importe_iva->EditValue = ew_HtmlEncode($this->importe_iva->CurrentValue);
+		$this->importe_iva->PlaceHolder = ew_RemoveHtml($this->importe_iva->FldCaption());
+		if (strval($this->importe_iva->EditValue) <> "" && is_numeric($this->importe_iva->EditValue)) $this->importe_iva->EditValue = ew_FormatNumber($this->importe_iva->EditValue, -2, -2, -2, -2);
+
+		// importe_otros_impuestos
+		$this->importe_otros_impuestos->EditAttrs["class"] = "form-control";
+		$this->importe_otros_impuestos->EditCustomAttributes = "";
+		$this->importe_otros_impuestos->EditValue = ew_HtmlEncode($this->importe_otros_impuestos->CurrentValue);
+		$this->importe_otros_impuestos->PlaceHolder = ew_RemoveHtml($this->importe_otros_impuestos->FldCaption());
+		if (strval($this->importe_otros_impuestos->EditValue) <> "" && is_numeric($this->importe_otros_impuestos->EditValue)) $this->importe_otros_impuestos->EditValue = ew_FormatNumber($this->importe_otros_impuestos->EditValue, -2, -2, -2, -2);
+
+		// importe_isr
+		$this->importe_isr->EditAttrs["class"] = "form-control";
+		$this->importe_isr->EditCustomAttributes = "";
+		$this->importe_isr->EditValue = ew_HtmlEncode($this->importe_isr->CurrentValue);
+		$this->importe_isr->PlaceHolder = ew_RemoveHtml($this->importe_isr->FldCaption());
+		if (strval($this->importe_isr->EditValue) <> "" && is_numeric($this->importe_isr->EditValue)) $this->importe_isr->EditValue = ew_FormatNumber($this->importe_isr->EditValue, -2, -2, -2, -2);
+
+		// importe_total
+		$this->importe_total->EditAttrs["class"] = "form-control";
+		$this->importe_total->EditCustomAttributes = "";
+		$this->importe_total->EditValue = ew_HtmlEncode($this->importe_total->CurrentValue);
+		$this->importe_total->PlaceHolder = ew_RemoveHtml($this->importe_total->FldCaption());
+		if (strval($this->importe_total->EditValue) <> "" && is_numeric($this->importe_total->EditValue)) $this->importe_total->EditValue = ew_FormatNumber($this->importe_total->EditValue, -2, -2, -2, -2);
+
+		// idfecha_contable
+		$this->idfecha_contable->EditAttrs["class"] = "form-control";
+		$this->idfecha_contable->EditCustomAttributes = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -1291,6 +1559,15 @@ class cdocumento_debito extends cTable {
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
+					if ($this->importe_bruto->Exportable) $Doc->ExportCaption($this->importe_bruto);
+					if ($this->importe_descuento->Exportable) $Doc->ExportCaption($this->importe_descuento);
+					if ($this->importe_exento->Exportable) $Doc->ExportCaption($this->importe_exento);
+					if ($this->importe_neto->Exportable) $Doc->ExportCaption($this->importe_neto);
+					if ($this->importe_iva->Exportable) $Doc->ExportCaption($this->importe_iva);
+					if ($this->importe_otros_impuestos->Exportable) $Doc->ExportCaption($this->importe_otros_impuestos);
+					if ($this->importe_isr->Exportable) $Doc->ExportCaption($this->importe_isr);
+					if ($this->importe_total->Exportable) $Doc->ExportCaption($this->importe_total);
+					if ($this->idfecha_contable->Exportable) $Doc->ExportCaption($this->idfecha_contable);
 				} else {
 					if ($this->iddocumento_debito->Exportable) $Doc->ExportCaption($this->iddocumento_debito);
 					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
@@ -1310,6 +1587,15 @@ class cdocumento_debito extends cTable {
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
+					if ($this->importe_bruto->Exportable) $Doc->ExportCaption($this->importe_bruto);
+					if ($this->importe_descuento->Exportable) $Doc->ExportCaption($this->importe_descuento);
+					if ($this->importe_exento->Exportable) $Doc->ExportCaption($this->importe_exento);
+					if ($this->importe_neto->Exportable) $Doc->ExportCaption($this->importe_neto);
+					if ($this->importe_iva->Exportable) $Doc->ExportCaption($this->importe_iva);
+					if ($this->importe_otros_impuestos->Exportable) $Doc->ExportCaption($this->importe_otros_impuestos);
+					if ($this->importe_isr->Exportable) $Doc->ExportCaption($this->importe_isr);
+					if ($this->importe_total->Exportable) $Doc->ExportCaption($this->importe_total);
+					if ($this->idfecha_contable->Exportable) $Doc->ExportCaption($this->idfecha_contable);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1359,6 +1645,15 @@ class cdocumento_debito extends cTable {
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
+						if ($this->importe_bruto->Exportable) $Doc->ExportField($this->importe_bruto);
+						if ($this->importe_descuento->Exportable) $Doc->ExportField($this->importe_descuento);
+						if ($this->importe_exento->Exportable) $Doc->ExportField($this->importe_exento);
+						if ($this->importe_neto->Exportable) $Doc->ExportField($this->importe_neto);
+						if ($this->importe_iva->Exportable) $Doc->ExportField($this->importe_iva);
+						if ($this->importe_otros_impuestos->Exportable) $Doc->ExportField($this->importe_otros_impuestos);
+						if ($this->importe_isr->Exportable) $Doc->ExportField($this->importe_isr);
+						if ($this->importe_total->Exportable) $Doc->ExportField($this->importe_total);
+						if ($this->idfecha_contable->Exportable) $Doc->ExportField($this->idfecha_contable);
 					} else {
 						if ($this->iddocumento_debito->Exportable) $Doc->ExportField($this->iddocumento_debito);
 						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
@@ -1378,6 +1673,15 @@ class cdocumento_debito extends cTable {
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
+						if ($this->importe_bruto->Exportable) $Doc->ExportField($this->importe_bruto);
+						if ($this->importe_descuento->Exportable) $Doc->ExportField($this->importe_descuento);
+						if ($this->importe_exento->Exportable) $Doc->ExportField($this->importe_exento);
+						if ($this->importe_neto->Exportable) $Doc->ExportField($this->importe_neto);
+						if ($this->importe_iva->Exportable) $Doc->ExportField($this->importe_iva);
+						if ($this->importe_otros_impuestos->Exportable) $Doc->ExportField($this->importe_otros_impuestos);
+						if ($this->importe_isr->Exportable) $Doc->ExportField($this->importe_isr);
+						if ($this->importe_total->Exportable) $Doc->ExportField($this->importe_total);
+						if ($this->idfecha_contable->Exportable) $Doc->ExportField($this->idfecha_contable);
 					}
 					$Doc->EndExportRow();
 				}

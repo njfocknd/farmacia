@@ -1145,6 +1145,13 @@ class cdetalle_documento_debito_grid extends cdetalle_documento_debito {
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->importe_descuento->setDbValue($rs->fields('importe_descuento'));
+		$this->importe_bruto->setDbValue($rs->fields('importe_bruto'));
+		$this->importe_exento->setDbValue($rs->fields('importe_exento'));
+		$this->importe_neto->setDbValue($rs->fields('importe_neto'));
+		$this->importe_iva->setDbValue($rs->fields('importe_iva'));
+		$this->importe_otros_impuestos->setDbValue($rs->fields('importe_otros_impuestos'));
+		$this->importe_total->setDbValue($rs->fields('importe_total'));
 	}
 
 	// Load DbValue from recordset
@@ -1160,6 +1167,13 @@ class cdetalle_documento_debito_grid extends cdetalle_documento_debito {
 		$this->monto->DbValue = $row['monto'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->importe_descuento->DbValue = $row['importe_descuento'];
+		$this->importe_bruto->DbValue = $row['importe_bruto'];
+		$this->importe_exento->DbValue = $row['importe_exento'];
+		$this->importe_neto->DbValue = $row['importe_neto'];
+		$this->importe_iva->DbValue = $row['importe_iva'];
+		$this->importe_otros_impuestos->DbValue = $row['importe_otros_impuestos'];
+		$this->importe_total->DbValue = $row['importe_total'];
 	}
 
 	// Load old record
@@ -1218,6 +1232,13 @@ class cdetalle_documento_debito_grid extends cdetalle_documento_debito {
 		// monto
 		// estado
 		// fecha_insercion
+		// importe_descuento
+		// importe_bruto
+		// importe_exento
+		// importe_neto
+		// importe_iva
+		// importe_otros_impuestos
+		// importe_total
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1346,6 +1367,34 @@ class cdetalle_documento_debito_grid extends cdetalle_documento_debito {
 			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// importe_descuento
+			$this->importe_descuento->ViewValue = $this->importe_descuento->CurrentValue;
+			$this->importe_descuento->ViewCustomAttributes = "";
+
+			// importe_bruto
+			$this->importe_bruto->ViewValue = $this->importe_bruto->CurrentValue;
+			$this->importe_bruto->ViewCustomAttributes = "";
+
+			// importe_exento
+			$this->importe_exento->ViewValue = $this->importe_exento->CurrentValue;
+			$this->importe_exento->ViewCustomAttributes = "";
+
+			// importe_neto
+			$this->importe_neto->ViewValue = $this->importe_neto->CurrentValue;
+			$this->importe_neto->ViewCustomAttributes = "";
+
+			// importe_iva
+			$this->importe_iva->ViewValue = $this->importe_iva->CurrentValue;
+			$this->importe_iva->ViewCustomAttributes = "";
+
+			// importe_otros_impuestos
+			$this->importe_otros_impuestos->ViewValue = $this->importe_otros_impuestos->CurrentValue;
+			$this->importe_otros_impuestos->ViewCustomAttributes = "";
+
+			// importe_total
+			$this->importe_total->ViewValue = $this->importe_total->CurrentValue;
+			$this->importe_total->ViewCustomAttributes = "";
 
 			// iddocumento_debito
 			$this->iddocumento_debito->LinkCustomAttributes = "";

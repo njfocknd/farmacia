@@ -71,15 +71,9 @@ fdocumento_debitogrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_monto");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_debito->monto->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_fecha_insercion");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_debito->fecha_insercion->FldErrMsg()) ?>");
 			elm = this.GetElements("x" + infix + "_idcliente");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_debito->idcliente->FldCaption(), $documento_debito->idcliente->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idcliente");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_debito->idcliente->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -103,7 +97,6 @@ fdocumento_debitogrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "estado_documento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "monto", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idcliente", false)) return false;
 	return true;
 }
@@ -126,6 +119,7 @@ fdocumento_debitogrid.ValidateRequired = false;
 // Dynamic selection lists
 fdocumento_debitogrid.Lists["x_idtipo_documento"] = {"LinkField":"x_idtipo_documento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fdocumento_debitogrid.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fdocumento_debitogrid.Lists["x_idcliente"] = {"LinkField":"x_idcliente","Ajax":true,"AutoFill":false,"DisplayFields":["x_nit","x_nombre_factura","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>
@@ -264,15 +258,6 @@ $documento_debito_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="monto"><div><div id="elh_documento_debito_monto" class="documento_debito_monto">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_debito->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_debito->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_debito->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($documento_debito->fecha_insercion->Visible) { // fecha_insercion ?>
-	<?php if ($documento_debito->SortUrl($documento_debito->fecha_insercion) == "") { ?>
-		<th data-name="fecha_insercion"><div id="elh_documento_debito_fecha_insercion" class="documento_debito_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $documento_debito->fecha_insercion->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercion"><div><div id="elh_documento_debito_fecha_insercion" class="documento_debito_fecha_insercion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_debito->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_debito->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_debito->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -773,38 +758,85 @@ if (@$emptywrk) $documento_debito->estado_documento->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($documento_debito->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td data-name="fecha_insercion"<?php echo $documento_debito->fecha_insercion->CellAttributes() ?>>
-<?php if ($documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $documento_debito_grid->RowCnt ?>_documento_debito_fecha_insercion" class="form-group documento_debito_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->PlaceHolder) ?>" value="<?php echo $documento_debito->fecha_insercion->EditValue ?>"<?php echo $documento_debito->fecha_insercion->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->OldValue) ?>">
-<?php } ?>
-<?php if ($documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $documento_debito_grid->RowCnt ?>_documento_debito_fecha_insercion" class="form-group documento_debito_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->PlaceHolder) ?>" value="<?php echo $documento_debito->fecha_insercion->EditValue ?>"<?php echo $documento_debito->fecha_insercion->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $documento_debito->fecha_insercion->ViewAttributes() ?>>
-<?php echo $documento_debito->fecha_insercion->ListViewValue() ?></span>
-<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->FormValue) ?>">
-<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
 	<?php if ($documento_debito->idcliente->Visible) { // idcliente ?>
 		<td data-name="idcliente"<?php echo $documento_debito->idcliente->CellAttributes() ?>>
 <?php if ($documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
 <span id="el<?php echo $documento_debito_grid->RowCnt ?>_documento_debito_idcliente" class="form-group documento_debito_idcliente">
-<input type="text" data-field="x_idcliente" name="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento_debito->idcliente->PlaceHolder) ?>" value="<?php echo $documento_debito->idcliente->EditValue ?>"<?php echo $documento_debito->idcliente->EditAttributes() ?>>
+<select data-field="x_idcliente" id="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" name="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente"<?php echo $documento_debito->idcliente->EditAttributes() ?>>
+<?php
+if (is_array($documento_debito->idcliente->EditValue)) {
+	$arwrk = $documento_debito->idcliente->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($documento_debito->idcliente->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$documento_debito->idcliente) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $documento_debito->idcliente->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $documento_debito->Lookup_Selecting($documento_debito->idcliente, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="s_x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcliente` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <input type="hidden" data-field="x_idcliente" name="o<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="o<?php echo $documento_debito_grid->RowIndex ?>_idcliente" value="<?php echo ew_HtmlEncode($documento_debito->idcliente->OldValue) ?>">
 <?php } ?>
 <?php if ($documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
 <span id="el<?php echo $documento_debito_grid->RowCnt ?>_documento_debito_idcliente" class="form-group documento_debito_idcliente">
-<input type="text" data-field="x_idcliente" name="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento_debito->idcliente->PlaceHolder) ?>" value="<?php echo $documento_debito->idcliente->EditValue ?>"<?php echo $documento_debito->idcliente->EditAttributes() ?>>
+<select data-field="x_idcliente" id="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" name="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente"<?php echo $documento_debito->idcliente->EditAttributes() ?>>
+<?php
+if (is_array($documento_debito->idcliente->EditValue)) {
+	$arwrk = $documento_debito->idcliente->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($documento_debito->idcliente->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$documento_debito->idcliente) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $documento_debito->idcliente->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $documento_debito->Lookup_Selecting($documento_debito->idcliente, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="s_x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcliente` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } ?>
 <?php if ($documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
@@ -1087,27 +1119,45 @@ if (@$emptywrk) $documento_debito->estado_documento->OldValue = "";
 <input type="hidden" data-field="x_monto" name="o<?php echo $documento_debito_grid->RowIndex ?>_monto" id="o<?php echo $documento_debito_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($documento_debito->monto->OldValue) ?>">
 </td>
 	<?php } ?>
-	<?php if ($documento_debito->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td>
-<?php if ($documento_debito->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_documento_debito_fecha_insercion" class="form-group documento_debito_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->PlaceHolder) ?>" value="<?php echo $documento_debito->fecha_insercion->EditValue ?>"<?php echo $documento_debito->fecha_insercion->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_documento_debito_fecha_insercion" class="form-group documento_debito_fecha_insercion">
-<span<?php echo $documento_debito->fecha_insercion->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $documento_debito->fecha_insercion->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $documento_debito_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($documento_debito->fecha_insercion->OldValue) ?>">
-</td>
-	<?php } ?>
 	<?php if ($documento_debito->idcliente->Visible) { // idcliente ?>
 		<td>
 <?php if ($documento_debito->CurrentAction <> "F") { ?>
 <span id="el$rowindex$_documento_debito_idcliente" class="form-group documento_debito_idcliente">
-<input type="text" data-field="x_idcliente" name="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" size="30" placeholder="<?php echo ew_HtmlEncode($documento_debito->idcliente->PlaceHolder) ?>" value="<?php echo $documento_debito->idcliente->EditValue ?>"<?php echo $documento_debito->idcliente->EditAttributes() ?>>
+<select data-field="x_idcliente" id="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" name="x<?php echo $documento_debito_grid->RowIndex ?>_idcliente"<?php echo $documento_debito->idcliente->EditAttributes() ?>>
+<?php
+if (is_array($documento_debito->idcliente->EditValue)) {
+	$arwrk = $documento_debito->idcliente->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($documento_debito->idcliente->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+<?php if ($arwrk[$rowcntwrk][2] <> "") { ?>
+<?php echo ew_ValueSeparator(1,$documento_debito->idcliente) ?><?php echo $arwrk[$rowcntwrk][2] ?>
+<?php } ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $documento_debito->idcliente->OldValue = "";
+?>
+</select>
+<?php
+ $sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
+ $sWhereWrk = "";
+ $lookuptblfilter = "`estado` = 'Activo'";
+ if (strval($lookuptblfilter) <> "") {
+ 	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+ }
+
+ // Call Lookup selecting
+ $documento_debito->Lookup_Selecting($documento_debito->idcliente, $sWhereWrk);
+ if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" id="s_x<?php echo $documento_debito_grid->RowIndex ?>_idcliente" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idcliente` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php } else { ?>
 <span id="el$rowindex$_documento_debito_idcliente" class="form-group documento_debito_idcliente">
