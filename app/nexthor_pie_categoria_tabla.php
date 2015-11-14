@@ -59,8 +59,7 @@ function fncImprimirHtml($arr_datos)
                 chart.write("chartdiv");
             }
         </script>
-   
-        <div id="chartdiv" style="width:1000px; height:800px;"></div>
+		<div id="chartdiv" style="width:700px; height:500px;"></div>
 		
 <script>fncIniciarGrafica();</script>
 </center>
