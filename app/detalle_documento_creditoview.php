@@ -616,6 +616,7 @@ class cdetalle_documento_credito_view extends cdetalle_documento_credito {
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->bandera_maestro->setDbValue($rs->fields('bandera_maestro'));
 	}
 
 	// Load DbValue from recordset
@@ -631,6 +632,7 @@ class cdetalle_documento_credito_view extends cdetalle_documento_credito {
 		$this->monto->DbValue = $row['monto'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->bandera_maestro->DbValue = $row['bandera_maestro'];
 	}
 
 	// Render row values based on field settings
@@ -667,6 +669,7 @@ class cdetalle_documento_credito_view extends cdetalle_documento_credito {
 		// monto
 		// estado
 		// fecha_insercion
+		// bandera_maestro
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 

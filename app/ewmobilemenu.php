@@ -3,12 +3,12 @@
 
 // Generate all menu items
 $RootMenu->IsRoot = TRUE;
-$RootMenu->AddMenuItem(107, "mmci_Administracif3n_de_Aplicacif3n", $Language->MenuPhrase("107", "MenuText"), "", -1, "", IsLoggedIn(), FALSE, TRUE);
+$RootMenu->AddMenuItem(10, "mmci_Cate1logos", $Language->MenuPhrase("10", "MenuText"), "", -1, "", IsLoggedIn(), FALSE, TRUE);
+$RootMenu->AddMenuItem(107, "mmci_Administracif3n_de_Aplicacif3n", $Language->MenuPhrase("107", "MenuText"), "", 10, "", IsLoggedIn(), FALSE, TRUE);
 $RootMenu->AddMenuItem(69, "mmi_userlevels", $Language->MenuPhrase("69", "MenuText"), "userlevelslist.php", 107, "", (@$_SESSION[EW_SESSION_USER_LEVEL] & EW_ALLOW_ADMIN) == EW_ALLOW_ADMIN, FALSE);
 $RootMenu->AddMenuItem(70, "mmi_audittrail", $Language->MenuPhrase("70", "MenuText"), "audittraillist.php", 107, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}audittrail'), FALSE);
 $RootMenu->AddMenuItem(67, "mmi_usuario", $Language->MenuPhrase("67", "MenuText"), "usuariolist.php", 107, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}usuario'), FALSE);
 $RootMenu->AddMenuItem(117, "mmi_parametros_sistema", $Language->MenuPhrase("117", "MenuText"), "parametros_sistemalist.php", 107, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}parametros_sistema'), FALSE);
-$RootMenu->AddMenuItem(10, "mmci_Cate1logos", $Language->MenuPhrase("10", "MenuText"), "", -1, "", IsLoggedIn(), FALSE, TRUE);
 $RootMenu->AddMenuItem(6, "mmi_pais", $Language->MenuPhrase("6", "MenuText"), "paislist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}pais'), FALSE);
 $RootMenu->AddMenuItem(1, "mmi_departamento", $Language->MenuPhrase("1", "MenuText"), "departamentolist.php?cmd=resetall", 6, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}departamento'), FALSE);
 $RootMenu->AddMenuItem(5, "mmi_municipio", $Language->MenuPhrase("5", "MenuText"), "municipiolist.php?cmd=resetall", 1, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}municipio'), FALSE);
@@ -47,6 +47,8 @@ $RootMenu->AddMenuItem(30, "mmi_proveedor", $Language->MenuPhrase("30", "MenuTex
 $RootMenu->AddMenuItem(60, "mmci_Pagos", $Language->MenuPhrase("60", "MenuText"), "", -1, "", IsLoggedIn(), FALSE, TRUE);
 $RootMenu->AddMenuItem(27, "mmi_pago_cliente", $Language->MenuPhrase("27", "MenuText"), "pago_clientelist.php?cmd=resetall", 60, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}pago_cliente'), FALSE);
 $RootMenu->AddMenuItem(28, "mmi_pago_proveedor", $Language->MenuPhrase("28", "MenuText"), "pago_proveedorlist.php?cmd=resetall", 60, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}pago_proveedor'), FALSE);
+$RootMenu->AddMenuItem(167, "mmci_Reportes", $Language->MenuPhrase("167", "MenuText"), "reporte_cuenta_por_cobrar.php", -1, "", IsLoggedIn(), FALSE, TRUE);
+$RootMenu->AddMenuItem(168, "mmci_Venta_Mostrador", $Language->MenuPhrase("168", "MenuText"), "factura.php", -1, "", IsLoggedIn(), FALSE, TRUE);
 $RootMenu->AddMenuItem(-2, "mmi_changepwd", $Language->Phrase("ChangePwd"), "changepwd.php", -1, "", IsLoggedIn() && !IsSysAdmin());
 $RootMenu->AddMenuItem(-1, "mmi_logout", $Language->Phrase("Logout"), "logout.php", -1, "", IsLoggedIn());
 $RootMenu->AddMenuItem(-1, "mmi_login", $Language->Phrase("Login"), "login.php", -1, "", !IsLoggedIn() && substr(@$_SERVER["URL"], -1 * strlen("login.php")) <> "login.php");

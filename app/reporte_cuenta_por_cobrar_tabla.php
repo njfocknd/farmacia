@@ -141,8 +141,7 @@ function fncImprimirHtml($arr_datos)
 	echo "</tfoot></tbody></table>";
 }
 
-require_once('nexthor/php/app_db_config.php');
-require_once('nexthor/php/dbops.php');
+
 $MyOps = new DBOps($usr_name,$usr_pwd,$target_db,$target_host);
 if (isset($_POST["anio"])&&isset($_POST["mes"])&&isset($_POST["reporte_cuenta_por_cobrar"]))
 	{

@@ -852,7 +852,7 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 	<?php if ($producto->foto->Visible) { // foto ?>
 		<td data-name="foto"<?php echo $producto->foto->CellAttributes() ?>>
 <?php if ($producto_grid->RowAction == "insert") { // Add record ?>
-<span id="el<?php echo $producto_grid->RowCnt ?>_producto_foto" class="form-group producto_foto">
+<span id="el$rowindex$_producto_foto" class="form-group producto_foto">
 <div id="fd_x<?php echo $producto_grid->RowIndex ?>_foto">
 <span title="<?php echo $producto->foto->FldTitle() ? $producto->foto->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($producto->foto->ReadOnly || $producto->foto->Disabled) echo " hide"; ?>">
 	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>

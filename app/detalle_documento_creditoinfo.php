@@ -16,6 +16,7 @@ class cdetalle_documento_credito extends cTable {
 	var $monto;
 	var $estado;
 	var $fecha_insercion;
+	var $bandera_maestro;
 
 	//
 	// Table class constructor
@@ -84,6 +85,10 @@ class cdetalle_documento_credito extends cTable {
 		$this->fecha_insercion = new cField('detalle_documento_credito', 'detalle_documento_credito', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
+
+		// bandera_maestro
+		$this->bandera_maestro = new cField('detalle_documento_credito', 'detalle_documento_credito', 'x_bandera_maestro', 'bandera_maestro', '`bandera_maestro`', '`bandera_maestro`', 202, -1, FALSE, '`bandera_maestro`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['bandera_maestro'] = &$this->bandera_maestro;
 	}
 
 	// Single column sort
@@ -614,6 +619,7 @@ class cdetalle_documento_credito extends cTable {
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->bandera_maestro->setDbValue($rs->fields('bandera_maestro'));
 	}
 
 	// Render list row values
@@ -633,8 +639,11 @@ class cdetalle_documento_credito extends cTable {
 		// monto
 		// estado
 		// fecha_insercion
-		// iddetalle_documento_credito
+		// bandera_maestro
 
+		$this->bandera_maestro->CellCssStyle = "white-space: nowrap;";
+
+		// iddetalle_documento_credito
 		$this->iddetalle_documento_credito->ViewValue = $this->iddetalle_documento_credito->CurrentValue;
 		$this->iddetalle_documento_credito->ViewCustomAttributes = "";
 
@@ -767,6 +776,23 @@ class cdetalle_documento_credito extends cTable {
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
+		// bandera_maestro
+		if (strval($this->bandera_maestro->CurrentValue) <> "") {
+			switch ($this->bandera_maestro->CurrentValue) {
+				case $this->bandera_maestro->FldTagValue(1):
+					$this->bandera_maestro->ViewValue = $this->bandera_maestro->FldTagCaption(1) <> "" ? $this->bandera_maestro->FldTagCaption(1) : $this->bandera_maestro->CurrentValue;
+					break;
+				case $this->bandera_maestro->FldTagValue(2):
+					$this->bandera_maestro->ViewValue = $this->bandera_maestro->FldTagCaption(2) <> "" ? $this->bandera_maestro->FldTagCaption(2) : $this->bandera_maestro->CurrentValue;
+					break;
+				default:
+					$this->bandera_maestro->ViewValue = $this->bandera_maestro->CurrentValue;
+			}
+		} else {
+			$this->bandera_maestro->ViewValue = NULL;
+		}
+		$this->bandera_maestro->ViewCustomAttributes = "";
+
 		// iddetalle_documento_credito
 		$this->iddetalle_documento_credito->LinkCustomAttributes = "";
 		$this->iddetalle_documento_credito->HrefValue = "";
@@ -811,6 +837,11 @@ class cdetalle_documento_credito extends cTable {
 		$this->fecha_insercion->LinkCustomAttributes = "";
 		$this->fecha_insercion->HrefValue = "";
 		$this->fecha_insercion->TooltipValue = "";
+
+		// bandera_maestro
+		$this->bandera_maestro->LinkCustomAttributes = "";
+		$this->bandera_maestro->HrefValue = "";
+		$this->bandera_maestro->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -907,6 +938,13 @@ class cdetalle_documento_credito extends cTable {
 		$this->fecha_insercion->EditCustomAttributes = "";
 		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
+
+		// bandera_maestro
+		$this->bandera_maestro->EditCustomAttributes = "";
+		$arwrk = array();
+		$arwrk[] = array($this->bandera_maestro->FldTagValue(1), $this->bandera_maestro->FldTagCaption(1) <> "" ? $this->bandera_maestro->FldTagCaption(1) : $this->bandera_maestro->FldTagValue(1));
+		$arwrk[] = array($this->bandera_maestro->FldTagValue(2), $this->bandera_maestro->FldTagCaption(2) <> "" ? $this->bandera_maestro->FldTagCaption(2) : $this->bandera_maestro->FldTagValue(2));
+		$this->bandera_maestro->EditValue = $arwrk;
 
 		// Call Row Rendered event
 		$this->Row_Rendered();

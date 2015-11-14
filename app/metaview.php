@@ -612,6 +612,7 @@ class cmeta_view extends cmeta {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idperiodo_contable->setDbValue($rs->fields('idperiodo_contable'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -624,6 +625,7 @@ class cmeta_view extends cmeta {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idperiodo_contable->DbValue = $row['idperiodo_contable'];
 		$this->monto->DbValue = $row['monto'];
+		$this->cantidad->DbValue = $row['cantidad'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -653,6 +655,7 @@ class cmeta_view extends cmeta {
 		// idsucursal
 		// idperiodo_contable
 		// monto
+		// cantidad
 		// estado
 		// fecha_insercion
 
@@ -722,6 +725,11 @@ class cmeta_view extends cmeta {
 			$this->monto->ViewValue = ew_FormatCurrency($this->monto->ViewValue, 2, -2, -2, -2);
 			$this->monto->ViewCustomAttributes = "";
 
+			// cantidad
+			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+			$this->cantidad->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -763,6 +771,11 @@ class cmeta_view extends cmeta {
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
+
+			// cantidad
+			$this->cantidad->LinkCustomAttributes = "";
+			$this->cantidad->HrefValue = "";
+			$this->cantidad->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -1175,6 +1188,17 @@ $meta_view->ShowMessage();
 <span id="el_meta_monto" class="form-group">
 <span<?php echo $meta->monto->ViewAttributes() ?>>
 <?php echo $meta->monto->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($meta->cantidad->Visible) { // cantidad ?>
+	<tr id="r_cantidad">
+		<td><span id="elh_meta_cantidad"><?php echo $meta->cantidad->FldCaption() ?></span></td>
+		<td<?php echo $meta->cantidad->CellAttributes() ?>>
+<span id="el_meta_cantidad" class="form-group">
+<span<?php echo $meta->cantidad->ViewAttributes() ?>>
+<?php echo $meta->cantidad->ViewValue ?></span>
 </span>
 </td>
 	</tr>

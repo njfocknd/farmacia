@@ -729,6 +729,8 @@ class cmeta_grid extends cmeta {
 			return FALSE;
 		if ($objForm->HasValue("x_monto") && $objForm->HasValue("o_monto") && $this->monto->CurrentValue <> $this->monto->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_cantidad") && $objForm->HasValue("o_cantidad") && $this->cantidad->CurrentValue <> $this->cantidad->OldValue)
+			return FALSE;
 		return TRUE;
 	}
 
@@ -1018,8 +1020,10 @@ class cmeta_grid extends cmeta {
 		$this->idsucursal->OldValue = $this->idsucursal->CurrentValue;
 		$this->idperiodo_contable->CurrentValue = 1;
 		$this->idperiodo_contable->OldValue = $this->idperiodo_contable->CurrentValue;
-		$this->monto->CurrentValue = NULL;
+		$this->monto->CurrentValue = 0.00;
 		$this->monto->OldValue = $this->monto->CurrentValue;
+		$this->cantidad->CurrentValue = 0;
+		$this->cantidad->OldValue = $this->cantidad->CurrentValue;
 	}
 
 	// Load form values
@@ -1040,6 +1044,10 @@ class cmeta_grid extends cmeta {
 			$this->monto->setFormValue($objForm->GetValue("x_monto"));
 		}
 		$this->monto->setOldValue($objForm->GetValue("o_monto"));
+		if (!$this->cantidad->FldIsDetailKey) {
+			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
+		}
+		$this->cantidad->setOldValue($objForm->GetValue("o_cantidad"));
 		if (!$this->idmeta->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idmeta->setFormValue($objForm->GetValue("x_idmeta"));
 	}
@@ -1052,6 +1060,7 @@ class cmeta_grid extends cmeta {
 		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
 		$this->idperiodo_contable->CurrentValue = $this->idperiodo_contable->FormValue;
 		$this->monto->CurrentValue = $this->monto->FormValue;
+		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
 	}
 
 	// Load recordset
@@ -1104,6 +1113,7 @@ class cmeta_grid extends cmeta {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idperiodo_contable->setDbValue($rs->fields('idperiodo_contable'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -1116,6 +1126,7 @@ class cmeta_grid extends cmeta {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idperiodo_contable->DbValue = $row['idperiodo_contable'];
 		$this->monto->DbValue = $row['monto'];
+		$this->cantidad->DbValue = $row['cantidad'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -1167,6 +1178,7 @@ class cmeta_grid extends cmeta {
 		// idsucursal
 		// idperiodo_contable
 		// monto
+		// cantidad
 		// estado
 		// fecha_insercion
 
@@ -1236,6 +1248,11 @@ class cmeta_grid extends cmeta {
 			$this->monto->ViewValue = ew_FormatCurrency($this->monto->ViewValue, 2, -2, -2, -2);
 			$this->monto->ViewCustomAttributes = "";
 
+			// cantidad
+			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+			$this->cantidad->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -1272,6 +1289,11 @@ class cmeta_grid extends cmeta {
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
+
+			// cantidad
+			$this->cantidad->LinkCustomAttributes = "";
+			$this->cantidad->HrefValue = "";
+			$this->cantidad->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idsucursal
@@ -1365,6 +1387,12 @@ class cmeta_grid extends cmeta {
 			$this->monto->OldValue = $this->monto->EditValue;
 			}
 
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
 			// Edit refer script
 			// idsucursal
 
@@ -1375,6 +1403,9 @@ class cmeta_grid extends cmeta {
 
 			// monto
 			$this->monto->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// idsucursal
@@ -1468,6 +1499,12 @@ class cmeta_grid extends cmeta {
 			$this->monto->OldValue = $this->monto->EditValue;
 			}
 
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
 			// Edit refer script
 			// idsucursal
 
@@ -1478,6 +1515,9 @@ class cmeta_grid extends cmeta {
 
 			// monto
 			$this->monto->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1508,6 +1548,12 @@ class cmeta_grid extends cmeta {
 		}
 		if (!ew_CheckNumber($this->monto->FormValue)) {
 			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
+		}
+		if (!$this->cantidad->FldIsDetailKey && !is_null($this->cantidad->FormValue) && $this->cantidad->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->cantidad->FldCaption(), $this->cantidad->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->cantidad->FormValue)) {
+			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1630,6 +1676,9 @@ class cmeta_grid extends cmeta {
 			// monto
 			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
 
+			// cantidad
+			$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, $this->cantidad->ReadOnly);
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1684,7 +1733,10 @@ class cmeta_grid extends cmeta {
 		$this->idperiodo_contable->SetDbValueDef($rsnew, $this->idperiodo_contable->CurrentValue, 0, strval($this->idperiodo_contable->CurrentValue) == "");
 
 		// monto
-		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, FALSE);
+		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
+
+		// cantidad
+		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

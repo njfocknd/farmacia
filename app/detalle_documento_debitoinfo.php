@@ -23,6 +23,7 @@ class cdetalle_documento_debito extends cTable {
 	var $importe_iva;
 	var $importe_otros_impuestos;
 	var $importe_total;
+	var $bandera_maestro;
 
 	//
 	// Table class constructor
@@ -126,6 +127,10 @@ class cdetalle_documento_debito extends cTable {
 		$this->importe_total = new cField('detalle_documento_debito', 'detalle_documento_debito', 'x_importe_total', 'importe_total', '`importe_total`', '`importe_total`', 131, -1, FALSE, '`importe_total`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->importe_total->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
 		$this->fields['importe_total'] = &$this->importe_total;
+
+		// bandera_maestro
+		$this->bandera_maestro = new cField('detalle_documento_debito', 'detalle_documento_debito', 'x_bandera_maestro', 'bandera_maestro', '`bandera_maestro`', '`bandera_maestro`', 202, -1, FALSE, '`bandera_maestro`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['bandera_maestro'] = &$this->bandera_maestro;
 	}
 
 	// Single column sort
@@ -663,6 +668,7 @@ class cdetalle_documento_debito extends cTable {
 		$this->importe_iva->setDbValue($rs->fields('importe_iva'));
 		$this->importe_otros_impuestos->setDbValue($rs->fields('importe_otros_impuestos'));
 		$this->importe_total->setDbValue($rs->fields('importe_total'));
+		$this->bandera_maestro->setDbValue($rs->fields('bandera_maestro'));
 	}
 
 	// Render list row values
@@ -689,8 +695,11 @@ class cdetalle_documento_debito extends cTable {
 		// importe_iva
 		// importe_otros_impuestos
 		// importe_total
-		// iddetalle_documento_debito
+		// bandera_maestro
 
+		$this->bandera_maestro->CellCssStyle = "white-space: nowrap;";
+
+		// iddetalle_documento_debito
 		$this->iddetalle_documento_debito->ViewValue = $this->iddetalle_documento_debito->CurrentValue;
 		$this->iddetalle_documento_debito->ViewCustomAttributes = "";
 
@@ -850,6 +859,23 @@ class cdetalle_documento_debito extends cTable {
 		$this->importe_total->ViewValue = $this->importe_total->CurrentValue;
 		$this->importe_total->ViewCustomAttributes = "";
 
+		// bandera_maestro
+		if (strval($this->bandera_maestro->CurrentValue) <> "") {
+			switch ($this->bandera_maestro->CurrentValue) {
+				case $this->bandera_maestro->FldTagValue(1):
+					$this->bandera_maestro->ViewValue = $this->bandera_maestro->FldTagCaption(1) <> "" ? $this->bandera_maestro->FldTagCaption(1) : $this->bandera_maestro->CurrentValue;
+					break;
+				case $this->bandera_maestro->FldTagValue(2):
+					$this->bandera_maestro->ViewValue = $this->bandera_maestro->FldTagCaption(2) <> "" ? $this->bandera_maestro->FldTagCaption(2) : $this->bandera_maestro->CurrentValue;
+					break;
+				default:
+					$this->bandera_maestro->ViewValue = $this->bandera_maestro->CurrentValue;
+			}
+		} else {
+			$this->bandera_maestro->ViewValue = NULL;
+		}
+		$this->bandera_maestro->ViewCustomAttributes = "";
+
 		// iddetalle_documento_debito
 		$this->iddetalle_documento_debito->LinkCustomAttributes = "";
 		$this->iddetalle_documento_debito->HrefValue = "";
@@ -929,6 +955,11 @@ class cdetalle_documento_debito extends cTable {
 		$this->importe_total->LinkCustomAttributes = "";
 		$this->importe_total->HrefValue = "";
 		$this->importe_total->TooltipValue = "";
+
+		// bandera_maestro
+		$this->bandera_maestro->LinkCustomAttributes = "";
+		$this->bandera_maestro->HrefValue = "";
+		$this->bandera_maestro->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -1074,6 +1105,13 @@ class cdetalle_documento_debito extends cTable {
 		$this->importe_total->EditValue = ew_HtmlEncode($this->importe_total->CurrentValue);
 		$this->importe_total->PlaceHolder = ew_RemoveHtml($this->importe_total->FldCaption());
 		if (strval($this->importe_total->EditValue) <> "" && is_numeric($this->importe_total->EditValue)) $this->importe_total->EditValue = ew_FormatNumber($this->importe_total->EditValue, -2, -1, -2, 0);
+
+		// bandera_maestro
+		$this->bandera_maestro->EditCustomAttributes = "";
+		$arwrk = array();
+		$arwrk[] = array($this->bandera_maestro->FldTagValue(1), $this->bandera_maestro->FldTagCaption(1) <> "" ? $this->bandera_maestro->FldTagCaption(1) : $this->bandera_maestro->FldTagValue(1));
+		$arwrk[] = array($this->bandera_maestro->FldTagValue(2), $this->bandera_maestro->FldTagCaption(2) <> "" ? $this->bandera_maestro->FldTagCaption(2) : $this->bandera_maestro->FldTagValue(2));
+		$this->bandera_maestro->EditValue = $arwrk;
 
 		// Call Row Rendered event
 		$this->Row_Rendered();

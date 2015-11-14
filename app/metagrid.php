@@ -59,6 +59,12 @@ fmetagrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_monto");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($meta->monto->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $meta->cantidad->FldCaption(), $meta->cantidad->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($meta->cantidad->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -77,6 +83,7 @@ fmetagrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "idsucursal", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idperiodo_contable", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "monto", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "cantidad", false)) return false;
 	return true;
 }
 
@@ -191,6 +198,15 @@ $meta_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="monto"><div><div id="elh_meta_monto" class="meta_monto">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $meta->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($meta->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($meta->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($meta->cantidad->Visible) { // cantidad ?>
+	<?php if ($meta->SortUrl($meta->cantidad) == "") { ?>
+		<th data-name="cantidad"><div id="elh_meta_cantidad" class="meta_cantidad"><div class="ewTableHeaderCaption"><?php echo $meta->cantidad->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="cantidad"><div><div id="elh_meta_cantidad" class="meta_cantidad">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $meta->cantidad->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($meta->cantidad->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($meta->cantidad->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -515,6 +531,27 @@ if (@$emptywrk) $meta->idperiodo_contable->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($meta->cantidad->Visible) { // cantidad ?>
+		<td data-name="cantidad"<?php echo $meta->cantidad->CellAttributes() ?>>
+<?php if ($meta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $meta_grid->RowCnt ?>_meta_cantidad" class="form-group meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $meta_grid->RowIndex ?>_cantidad" id="x<?php echo $meta_grid->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $meta_grid->RowIndex ?>_cantidad" id="o<?php echo $meta_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->OldValue) ?>">
+<?php } ?>
+<?php if ($meta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $meta_grid->RowCnt ?>_meta_cantidad" class="form-group meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $meta_grid->RowIndex ?>_cantidad" id="x<?php echo $meta_grid->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($meta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $meta->cantidad->ViewAttributes() ?>>
+<?php echo $meta->cantidad->ListViewValue() ?></span>
+<input type="hidden" data-field="x_cantidad" name="x<?php echo $meta_grid->RowIndex ?>_cantidad" id="x<?php echo $meta_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->FormValue) ?>">
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $meta_grid->RowIndex ?>_cantidad" id="o<?php echo $meta_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->OldValue) ?>">
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -674,6 +711,22 @@ if (@$emptywrk) $meta->idperiodo_contable->OldValue = "";
 <input type="hidden" data-field="x_monto" name="x<?php echo $meta_grid->RowIndex ?>_monto" id="x<?php echo $meta_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($meta->monto->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_monto" name="o<?php echo $meta_grid->RowIndex ?>_monto" id="o<?php echo $meta_grid->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($meta->monto->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($meta->cantidad->Visible) { // cantidad ?>
+		<td>
+<?php if ($meta->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_meta_cantidad" class="form-group meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $meta_grid->RowIndex ?>_cantidad" id="x<?php echo $meta_grid->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_meta_cantidad" class="form-group meta_cantidad">
+<span<?php echo $meta->cantidad->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $meta->cantidad->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_cantidad" name="x<?php echo $meta_grid->RowIndex ?>_cantidad" id="x<?php echo $meta_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $meta_grid->RowIndex ?>_cantidad" id="o<?php echo $meta_grid->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

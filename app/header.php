@@ -146,7 +146,5 @@ var EW_CSS_FLIP = <?php echo (EW_CSS_FLIP) ? "true" : "false" ?>;
 	<div id="ewContentTable" class="ewContentTable">
 		<div id="ewContentRow">
 			<div id="ewContentColumn" class="ewContentColumn">
-				<!-- right column (begin) -->
-				<h4 class="<?php echo $gsSiteTitleClass ?>"><?php echo $Language->ProjectPhrase("BodyTitle") ?></h4>
 <?php } ?>
 <?php } ?>

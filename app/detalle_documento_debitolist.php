@@ -1545,6 +1545,7 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		$this->importe_iva->setDbValue($rs->fields('importe_iva'));
 		$this->importe_otros_impuestos->setDbValue($rs->fields('importe_otros_impuestos'));
 		$this->importe_total->setDbValue($rs->fields('importe_total'));
+		$this->bandera_maestro->setDbValue($rs->fields('bandera_maestro'));
 	}
 
 	// Load DbValue from recordset
@@ -1567,6 +1568,7 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		$this->importe_iva->DbValue = $row['importe_iva'];
 		$this->importe_otros_impuestos->DbValue = $row['importe_otros_impuestos'];
 		$this->importe_total->DbValue = $row['importe_total'];
+		$this->bandera_maestro->DbValue = $row['bandera_maestro'];
 	}
 
 	// Load old record
@@ -1632,7 +1634,9 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		// importe_iva
 		// importe_otros_impuestos
 		// importe_total
+		// bandera_maestro
 
+		$this->bandera_maestro->CellCssStyle = "white-space: nowrap;";
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// iddetalle_documento_debito

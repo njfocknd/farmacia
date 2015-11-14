@@ -11,6 +11,7 @@ class cmeta extends cTable {
 	var $idsucursal;
 	var $idperiodo_contable;
 	var $monto;
+	var $cantidad;
 	var $estado;
 	var $fecha_insercion;
 
@@ -57,6 +58,11 @@ class cmeta extends cTable {
 		$this->monto = new cField('meta', 'meta', 'x_monto', 'monto', '`monto`', '`monto`', 131, -1, FALSE, '`monto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->monto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
 		$this->fields['monto'] = &$this->monto;
+
+		// cantidad
+		$this->cantidad = new cField('meta', 'meta', 'x_cantidad', 'cantidad', '`cantidad`', '`cantidad`', 3, -1, FALSE, '`cantidad`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->cantidad->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['cantidad'] = &$this->cantidad;
 
 		// estado
 		$this->estado = new cField('meta', 'meta', 'x_estado', 'estado', '`estado`', '`estado`', 202, -1, FALSE, '`estado`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
@@ -591,6 +597,7 @@ class cmeta extends cTable {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idperiodo_contable->setDbValue($rs->fields('idperiodo_contable'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -607,6 +614,7 @@ class cmeta extends cTable {
 		// idsucursal
 		// idperiodo_contable
 		// monto
+		// cantidad
 		// estado
 		// fecha_insercion
 		// idmeta
@@ -674,6 +682,11 @@ class cmeta extends cTable {
 		$this->monto->ViewValue = ew_FormatCurrency($this->monto->ViewValue, 2, -2, -2, -2);
 		$this->monto->ViewCustomAttributes = "";
 
+		// cantidad
+		$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+		$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+		$this->cantidad->ViewCustomAttributes = "";
+
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
 			switch ($this->estado->CurrentValue) {
@@ -715,6 +728,11 @@ class cmeta extends cTable {
 		$this->monto->LinkCustomAttributes = "";
 		$this->monto->HrefValue = "";
 		$this->monto->TooltipValue = "";
+
+		// cantidad
+		$this->cantidad->LinkCustomAttributes = "";
+		$this->cantidad->HrefValue = "";
+		$this->cantidad->TooltipValue = "";
 
 		// estado
 		$this->estado->LinkCustomAttributes = "";
@@ -786,6 +804,12 @@ class cmeta extends cTable {
 		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
 		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
 
+		// cantidad
+		$this->cantidad->EditAttrs["class"] = "form-control";
+		$this->cantidad->EditCustomAttributes = "";
+		$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+		$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";
 		$this->estado->EditCustomAttributes = "";
@@ -829,6 +853,7 @@ class cmeta extends cTable {
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
 					if ($this->idperiodo_contable->Exportable) $Doc->ExportCaption($this->idperiodo_contable);
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
+					if ($this->cantidad->Exportable) $Doc->ExportCaption($this->cantidad);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				} else {
@@ -836,6 +861,7 @@ class cmeta extends cTable {
 					if ($this->idsucursal->Exportable) $Doc->ExportCaption($this->idsucursal);
 					if ($this->idperiodo_contable->Exportable) $Doc->ExportCaption($this->idperiodo_contable);
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
+					if ($this->cantidad->Exportable) $Doc->ExportCaption($this->cantidad);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
 				}
@@ -873,6 +899,7 @@ class cmeta extends cTable {
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
 						if ($this->idperiodo_contable->Exportable) $Doc->ExportField($this->idperiodo_contable);
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
+						if ($this->cantidad->Exportable) $Doc->ExportField($this->cantidad);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					} else {
@@ -880,6 +907,7 @@ class cmeta extends cTable {
 						if ($this->idsucursal->Exportable) $Doc->ExportField($this->idsucursal);
 						if ($this->idperiodo_contable->Exportable) $Doc->ExportField($this->idperiodo_contable);
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
+						if ($this->cantidad->Exportable) $Doc->ExportField($this->cantidad);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
 					}

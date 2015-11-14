@@ -430,8 +430,8 @@ class cmeta_add extends cmeta {
 	function LoadDefaultValues() {
 		$this->idsucursal->CurrentValue = 1;
 		$this->idperiodo_contable->CurrentValue = 1;
-		$this->monto->CurrentValue = NULL;
-		$this->monto->OldValue = $this->monto->CurrentValue;
+		$this->monto->CurrentValue = 0.00;
+		$this->cantidad->CurrentValue = 0;
 	}
 
 	// Load form values
@@ -448,6 +448,9 @@ class cmeta_add extends cmeta {
 		if (!$this->monto->FldIsDetailKey) {
 			$this->monto->setFormValue($objForm->GetValue("x_monto"));
 		}
+		if (!$this->cantidad->FldIsDetailKey) {
+			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
+		}
 	}
 
 	// Restore form values
@@ -457,6 +460,7 @@ class cmeta_add extends cmeta {
 		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
 		$this->idperiodo_contable->CurrentValue = $this->idperiodo_contable->FormValue;
 		$this->monto->CurrentValue = $this->monto->FormValue;
+		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
 	}
 
 	// Load row based on key values
@@ -492,6 +496,7 @@ class cmeta_add extends cmeta {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idperiodo_contable->setDbValue($rs->fields('idperiodo_contable'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -504,6 +509,7 @@ class cmeta_add extends cmeta {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idperiodo_contable->DbValue = $row['idperiodo_contable'];
 		$this->monto->DbValue = $row['monto'];
+		$this->cantidad->DbValue = $row['cantidad'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -549,6 +555,7 @@ class cmeta_add extends cmeta {
 		// idsucursal
 		// idperiodo_contable
 		// monto
+		// cantidad
 		// estado
 		// fecha_insercion
 
@@ -618,6 +625,11 @@ class cmeta_add extends cmeta {
 			$this->monto->ViewValue = ew_FormatCurrency($this->monto->ViewValue, 2, -2, -2, -2);
 			$this->monto->ViewCustomAttributes = "";
 
+			// cantidad
+			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+			$this->cantidad->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -654,6 +666,11 @@ class cmeta_add extends cmeta {
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
+
+			// cantidad
+			$this->cantidad->LinkCustomAttributes = "";
+			$this->cantidad->HrefValue = "";
+			$this->cantidad->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idsucursal
@@ -743,6 +760,12 @@ class cmeta_add extends cmeta {
 			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
 			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
 
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
 			// Edit refer script
 			// idsucursal
 
@@ -753,6 +776,9 @@ class cmeta_add extends cmeta {
 
 			// monto
 			$this->monto->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -787,6 +813,12 @@ class cmeta_add extends cmeta {
 		if (!ew_CheckNumber($this->monto->FormValue)) {
 			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
 		}
+		if (!$this->cantidad->FldIsDetailKey && !is_null($this->cantidad->FormValue) && $this->cantidad->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->cantidad->FldCaption(), $this->cantidad->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->cantidad->FormValue)) {
+			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
+		}
 
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
@@ -817,7 +849,10 @@ class cmeta_add extends cmeta {
 		$this->idperiodo_contable->SetDbValueDef($rsnew, $this->idperiodo_contable->CurrentValue, 0, strval($this->idperiodo_contable->CurrentValue) == "");
 
 		// monto
-		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, FALSE);
+		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
+
+		// cantidad
+		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1031,6 +1066,12 @@ fmetaadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_monto");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($meta->monto->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $meta->cantidad->FldCaption(), $meta->cantidad->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($meta->cantidad->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1189,6 +1230,16 @@ $sSqlWrk .= " ORDER BY `mes`";
 <input type="text" data-field="x_monto" name="x_monto" id="x_monto" size="30" placeholder="<?php echo ew_HtmlEncode($meta->monto->PlaceHolder) ?>" value="<?php echo $meta->monto->EditValue ?>"<?php echo $meta->monto->EditAttributes() ?>>
 </span>
 <?php echo $meta->monto->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($meta->cantidad->Visible) { // cantidad ?>
+	<div id="r_cantidad" class="form-group">
+		<label id="elh_meta_cantidad" for="x_cantidad" class="col-sm-2 control-label ewLabel"><?php echo $meta->cantidad->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $meta->cantidad->CellAttributes() ?>>
+<span id="el_meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x_cantidad" id="x_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<?php echo $meta->cantidad->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

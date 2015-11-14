@@ -51,7 +51,7 @@ class cfecha_contable extends cTable {
 		$this->fields['idperiodo_contable'] = &$this->idperiodo_contable;
 
 		// fecha
-		$this->fecha = new cField('fecha_contable', 'fecha_contable', 'x_fecha', 'fecha', '`fecha`', 'DATE_FORMAT(`fecha`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fecha = new cField('fecha_contable', 'fecha_contable', 'x_fecha', 'fecha', '`fecha`', 'DATE_FORMAT(`fecha`, \'%d/%m/%Y\')', 133, 7, FALSE, '`fecha`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha'] = &$this->fecha;
 

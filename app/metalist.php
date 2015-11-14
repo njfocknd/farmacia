@@ -929,6 +929,8 @@ class cmeta_list extends cmeta {
 			return FALSE;
 		if ($objForm->HasValue("x_monto") && $objForm->HasValue("o_monto") && $this->monto->CurrentValue <> $this->monto->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_cantidad") && $objForm->HasValue("o_cantidad") && $this->cantidad->CurrentValue <> $this->cantidad->OldValue)
+			return FALSE;
 		return TRUE;
 	}
 
@@ -1010,6 +1012,7 @@ class cmeta_list extends cmeta {
 			$this->UpdateSort($this->idsucursal); // idsucursal
 			$this->UpdateSort($this->idperiodo_contable); // idperiodo_contable
 			$this->UpdateSort($this->monto); // monto
+			$this->UpdateSort($this->cantidad); // cantidad
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -1050,6 +1053,7 @@ class cmeta_list extends cmeta {
 				$this->idsucursal->setSort("");
 				$this->idperiodo_contable->setSort("");
 				$this->monto->setSort("");
+				$this->cantidad->setSort("");
 			}
 
 			// Reset start position
@@ -1406,8 +1410,10 @@ class cmeta_list extends cmeta {
 		$this->idsucursal->OldValue = $this->idsucursal->CurrentValue;
 		$this->idperiodo_contable->CurrentValue = 1;
 		$this->idperiodo_contable->OldValue = $this->idperiodo_contable->CurrentValue;
-		$this->monto->CurrentValue = NULL;
+		$this->monto->CurrentValue = 0.00;
 		$this->monto->OldValue = $this->monto->CurrentValue;
+		$this->cantidad->CurrentValue = 0;
+		$this->cantidad->OldValue = $this->cantidad->CurrentValue;
 	}
 
 	// Load form values
@@ -1427,6 +1433,10 @@ class cmeta_list extends cmeta {
 			$this->monto->setFormValue($objForm->GetValue("x_monto"));
 		}
 		$this->monto->setOldValue($objForm->GetValue("o_monto"));
+		if (!$this->cantidad->FldIsDetailKey) {
+			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
+		}
+		$this->cantidad->setOldValue($objForm->GetValue("o_cantidad"));
 		if (!$this->idmeta->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idmeta->setFormValue($objForm->GetValue("x_idmeta"));
 	}
@@ -1439,6 +1449,7 @@ class cmeta_list extends cmeta {
 		$this->idsucursal->CurrentValue = $this->idsucursal->FormValue;
 		$this->idperiodo_contable->CurrentValue = $this->idperiodo_contable->FormValue;
 		$this->monto->CurrentValue = $this->monto->FormValue;
+		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
 	}
 
 	// Load recordset
@@ -1491,6 +1502,7 @@ class cmeta_list extends cmeta {
 		$this->idsucursal->setDbValue($rs->fields('idsucursal'));
 		$this->idperiodo_contable->setDbValue($rs->fields('idperiodo_contable'));
 		$this->monto->setDbValue($rs->fields('monto'));
+		$this->cantidad->setDbValue($rs->fields('cantidad'));
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
 	}
@@ -1503,6 +1515,7 @@ class cmeta_list extends cmeta {
 		$this->idsucursal->DbValue = $row['idsucursal'];
 		$this->idperiodo_contable->DbValue = $row['idperiodo_contable'];
 		$this->monto->DbValue = $row['monto'];
+		$this->cantidad->DbValue = $row['cantidad'];
 		$this->estado->DbValue = $row['estado'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
 	}
@@ -1554,6 +1567,7 @@ class cmeta_list extends cmeta {
 		// idsucursal
 		// idperiodo_contable
 		// monto
+		// cantidad
 		// estado
 		// fecha_insercion
 
@@ -1623,6 +1637,11 @@ class cmeta_list extends cmeta {
 			$this->monto->ViewValue = ew_FormatCurrency($this->monto->ViewValue, 2, -2, -2, -2);
 			$this->monto->ViewCustomAttributes = "";
 
+			// cantidad
+			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+			$this->cantidad->ViewCustomAttributes = "";
+
 			// estado
 			if (strval($this->estado->CurrentValue) <> "") {
 				switch ($this->estado->CurrentValue) {
@@ -1659,6 +1678,11 @@ class cmeta_list extends cmeta {
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
+
+			// cantidad
+			$this->cantidad->LinkCustomAttributes = "";
+			$this->cantidad->HrefValue = "";
+			$this->cantidad->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idsucursal
@@ -1752,6 +1776,12 @@ class cmeta_list extends cmeta {
 			$this->monto->OldValue = $this->monto->EditValue;
 			}
 
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
 			// Edit refer script
 			// idsucursal
 
@@ -1762,6 +1792,9 @@ class cmeta_list extends cmeta {
 
 			// monto
 			$this->monto->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// idsucursal
@@ -1855,6 +1888,12 @@ class cmeta_list extends cmeta {
 			$this->monto->OldValue = $this->monto->EditValue;
 			}
 
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
 			// Edit refer script
 			// idsucursal
 
@@ -1865,6 +1904,9 @@ class cmeta_list extends cmeta {
 
 			// monto
 			$this->monto->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1898,6 +1940,12 @@ class cmeta_list extends cmeta {
 		}
 		if (!ew_CheckNumber($this->monto->FormValue)) {
 			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
+		}
+		if (!$this->cantidad->FldIsDetailKey && !is_null($this->cantidad->FormValue) && $this->cantidad->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->cantidad->FldCaption(), $this->cantidad->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->cantidad->FormValue)) {
+			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
 		}
 
 		// Return validate result
@@ -2020,6 +2068,9 @@ class cmeta_list extends cmeta {
 			// monto
 			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
 
+			// cantidad
+			$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, $this->cantidad->ReadOnly);
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -2069,7 +2120,10 @@ class cmeta_list extends cmeta {
 		$this->idperiodo_contable->SetDbValueDef($rsnew, $this->idperiodo_contable->CurrentValue, 0, strval($this->idperiodo_contable->CurrentValue) == "");
 
 		// monto
-		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, FALSE);
+		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
+
+		// cantidad
+		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -2497,6 +2551,12 @@ fmetalist.Validate = function() {
 			elm = this.GetElements("x" + infix + "_monto");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($meta->monto->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $meta->cantidad->FldCaption(), $meta->cantidad->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($meta->cantidad->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -2519,6 +2579,7 @@ fmetalist.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "idsucursal", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idperiodo_contable", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "monto", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "cantidad", false)) return false;
 	return true;
 }
 
@@ -2662,6 +2723,15 @@ $meta_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="monto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $meta->SortUrl($meta->monto) ?>',1);"><div id="elh_meta_monto" class="meta_monto">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $meta->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($meta->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($meta->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($meta->cantidad->Visible) { // cantidad ?>
+	<?php if ($meta->SortUrl($meta->cantidad) == "") { ?>
+		<th data-name="cantidad"><div id="elh_meta_cantidad" class="meta_cantidad"><div class="ewTableHeaderCaption"><?php echo $meta->cantidad->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="cantidad"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $meta->SortUrl($meta->cantidad) ?>',1);"><div id="elh_meta_cantidad" class="meta_cantidad">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $meta->cantidad->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($meta->cantidad->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($meta->cantidad->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -2980,6 +3050,25 @@ $sSqlWrk .= " ORDER BY `mes`";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($meta->cantidad->Visible) { // cantidad ?>
+		<td data-name="cantidad"<?php echo $meta->cantidad->CellAttributes() ?>>
+<?php if ($meta->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $meta_list->RowCnt ?>_meta_cantidad" class="form-group meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $meta_list->RowIndex ?>_cantidad" id="x<?php echo $meta_list->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $meta_list->RowIndex ?>_cantidad" id="o<?php echo $meta_list->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->OldValue) ?>">
+<?php } ?>
+<?php if ($meta->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $meta_list->RowCnt ?>_meta_cantidad" class="form-group meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $meta_list->RowIndex ?>_cantidad" id="x<?php echo $meta_list->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($meta->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $meta->cantidad->ViewAttributes() ?>>
+<?php echo $meta->cantidad->ListViewValue() ?></span>
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -3115,6 +3204,14 @@ $sSqlWrk .= " ORDER BY `mes`";
 <input type="text" data-field="x_monto" name="x<?php echo $meta_list->RowIndex ?>_monto" id="x<?php echo $meta_list->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($meta->monto->PlaceHolder) ?>" value="<?php echo $meta->monto->EditValue ?>"<?php echo $meta->monto->EditAttributes() ?>>
 </span>
 <input type="hidden" data-field="x_monto" name="o<?php echo $meta_list->RowIndex ?>_monto" id="o<?php echo $meta_list->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($meta->monto->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($meta->cantidad->Visible) { // cantidad ?>
+		<td>
+<span id="el$rowindex$_meta_cantidad" class="form-group meta_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $meta_list->RowIndex ?>_cantidad" id="x<?php echo $meta_list->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($meta->cantidad->PlaceHolder) ?>" value="<?php echo $meta->cantidad->EditValue ?>"<?php echo $meta->cantidad->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $meta_list->RowIndex ?>_cantidad" id="o<?php echo $meta_list->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($meta->cantidad->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

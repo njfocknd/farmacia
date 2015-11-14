@@ -29,7 +29,7 @@ define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME . "", TRUE); // Config file name
 define("EW_PROJECT_ID", "{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", '44xMdXl0eyzFMJEK', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", 'PQeqfrump4j6qvQO', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/nexthor_farmacia.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -46,16 +46,10 @@ define("EW_TMP_IMAGE_FONT", "DejaVuSans", TRUE); // Font for temp files
 $EW_FONT_PATH = realpath('./phpfont');
 
 // Database connection info
-// define("EW_CONN_HOST", 'nexthordb.cquvmppcukva.us-west-2.rds.amazonaws.com', TRUE);
-// define("EW_CONN_PORT", 3306, TRUE);
-// define("EW_CONN_USER", 'dbadmin', TRUE);
-// define("EW_CONN_PASS", '23Nexthor23', TRUE);
-// define("EW_CONN_DB", 'nexthor_empresa', TRUE);
-
-define("EW_CONN_HOST", 'localhost', TRUE);
+define("EW_CONN_HOST", 'nexthordb.cquvmppcukva.us-west-2.rds.amazonaws.com', TRUE);
 define("EW_CONN_PORT", 3306, TRUE);
-define("EW_CONN_USER", 'root', TRUE);
-define("EW_CONN_PASS", '', TRUE);
+define("EW_CONN_USER", 'dbadmin', TRUE);
+define("EW_CONN_PASS", '23Nexthor23', TRUE);
 define("EW_CONN_DB", 'nexthor_empresa', TRUE);
 
 // ADODB (Access/SQL Server)
@@ -68,6 +62,8 @@ define("EW_CODEPAGE", 65001, TRUE); // Code page
  * functions are enabled and your encoding is supported. See PHP manual for
  * details.
  */
+ define("EW_MENUBAR_BRAND", "<IMG SRC='nexthor/image/nexthor.png'  WIDTH=90 >", TRUE);  
+define("EW_MENUBAR_BRAND_HYPERLINK", "http://nexthor.com/", TRUE);
 define("EW_ENCODING", "UTF-8", TRUE); // Character encoding
 define("EW_IS_DOUBLE_BYTE", in_array(EW_ENCODING, array("GBK", "BIG5", "SHIFT_JIS")), TRUE); // Double-byte character encoding
 define("EW_FILE_SYSTEM_ENCODING", "", TRUE); // File system encoding
@@ -283,7 +279,7 @@ define("EW_MAX_EMAIL_SENT_COUNT", 3, TRUE);
 define("EW_EXPORT_EMAIL_COUNTER", EW_SESSION_STATUS . "_EmailCounter", TRUE);
 
 // File upload
-define("EW_UPLOAD_DEST_PATH", "", TRUE); // Upload destination path (relative to app root)
+define("EW_UPLOAD_DEST_PATH", "/upload/", TRUE); // Upload destination path (relative to app root)
 define("EW_UPLOAD_URL", "ewupload11.php", TRUE); // Upload URL
 define("EW_UPLOAD_TEMP_FOLDER_PREFIX", "temp__", TRUE); // Upload temp folders prefix
 define("EW_UPLOAD_TEMP_FOLDER_TIME_LIMIT", 1440, TRUE); // Upload temp folder time limit (minutes)

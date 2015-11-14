@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0"?>
-<configuration date="2015/11/13" author="e.World Technology Ltd.">
-<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/13 19:36:04" languagefolder="phplang" userlevel="0,&quot;Default&quot;,0">
+<configuration date="2015/11/14" author="e.World Technology Ltd.">
+<project id="{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}" file="E:\wamp\www\nexthor_farmacia\fuente\nexthor_farmacia.pmp" name="nexthor_farmacia" product="PHPMaker" version="11.0" datetime="2015/11/14 02:16:53" languagefolder="phplang" userlevel="0,&quot;Default&quot;,0">
 <table id="departamento" name="departamento" caption="Departamento" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 <table id="empresa" name="empresa" caption="Empresa" userlevel="0,&quot;Default&quot;,0" priv="1"/>
 <table id="fabricante" name="fabricante" caption="Fabricante" userlevel="0,&quot;Default&quot;,0" priv="1"/>
