@@ -872,7 +872,7 @@ class cmeta_grid extends cmeta {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
 		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
@@ -1605,44 +1605,6 @@ class cmeta_grid extends cmeta {
 	function EditRow() {
 		global $conn, $Security, $Language;
 		$sFilter = $this->KeyFilter();
-		if ($this->idsucursal->CurrentValue <> "") { // Check field with unique index
-			$sFilterChk = "(`idsucursal` = " . ew_AdjustSql($this->idsucursal->CurrentValue) . ")";
-			$sFilterChk .= " AND NOT (" . $sFilter . ")";
-			$this->CurrentFilter = $sFilterChk;
-			$sSqlChk = $this->SQL();
-			$conn->raiseErrorFn = 'ew_ErrorFn';
-			$rsChk = $conn->Execute($sSqlChk);
-			$conn->raiseErrorFn = '';
-			if ($rsChk === FALSE) {
-				return FALSE;
-			} elseif (!$rsChk->EOF) {
-				$sIdxErrMsg = str_replace("%f", $this->idsucursal->FldCaption(), $Language->Phrase("DupIndex"));
-				$sIdxErrMsg = str_replace("%v", $this->idsucursal->CurrentValue, $sIdxErrMsg);
-				$this->setFailureMessage($sIdxErrMsg);
-				$rsChk->Close();
-				return FALSE;
-			}
-			$rsChk->Close();
-		}
-		if ($this->idperiodo_contable->CurrentValue <> "") { // Check field with unique index
-			$sFilterChk = "(`idperiodo_contable` = " . ew_AdjustSql($this->idperiodo_contable->CurrentValue) . ")";
-			$sFilterChk .= " AND NOT (" . $sFilter . ")";
-			$this->CurrentFilter = $sFilterChk;
-			$sSqlChk = $this->SQL();
-			$conn->raiseErrorFn = 'ew_ErrorFn';
-			$rsChk = $conn->Execute($sSqlChk);
-			$conn->raiseErrorFn = '';
-			if ($rsChk === FALSE) {
-				return FALSE;
-			} elseif (!$rsChk->EOF) {
-				$sIdxErrMsg = str_replace("%f", $this->idperiodo_contable->FldCaption(), $Language->Phrase("DupIndex"));
-				$sIdxErrMsg = str_replace("%v", $this->idperiodo_contable->CurrentValue, $sIdxErrMsg);
-				$this->setFailureMessage($sIdxErrMsg);
-				$rsChk->Close();
-				return FALSE;
-			}
-			$rsChk->Close();
-		}
 		$this->CurrentFilter = $sFilter;
 		$sSql = $this->SQL();
 		$conn->raiseErrorFn = 'ew_ErrorFn';
@@ -1708,28 +1670,6 @@ class cmeta_grid extends cmeta {
 			if ($this->getCurrentMasterTable() == "periodo_contable") {
 				$this->idperiodo_contable->CurrentValue = $this->idperiodo_contable->getSessionValue();
 			}
-		if ($this->idsucursal->CurrentValue <> "") { // Check field with unique index
-			$sFilter = "(idsucursal = " . ew_AdjustSql($this->idsucursal->CurrentValue) . ")";
-			$rsChk = $this->LoadRs($sFilter);
-			if ($rsChk && !$rsChk->EOF) {
-				$sIdxErrMsg = str_replace("%f", $this->idsucursal->FldCaption(), $Language->Phrase("DupIndex"));
-				$sIdxErrMsg = str_replace("%v", $this->idsucursal->CurrentValue, $sIdxErrMsg);
-				$this->setFailureMessage($sIdxErrMsg);
-				$rsChk->Close();
-				return FALSE;
-			}
-		}
-		if ($this->idperiodo_contable->CurrentValue <> "") { // Check field with unique index
-			$sFilter = "(idperiodo_contable = " . ew_AdjustSql($this->idperiodo_contable->CurrentValue) . ")";
-			$rsChk = $this->LoadRs($sFilter);
-			if ($rsChk && !$rsChk->EOF) {
-				$sIdxErrMsg = str_replace("%f", $this->idperiodo_contable->FldCaption(), $Language->Phrase("DupIndex"));
-				$sIdxErrMsg = str_replace("%v", $this->idperiodo_contable->CurrentValue, $sIdxErrMsg);
-				$this->setFailureMessage($sIdxErrMsg);
-				$rsChk->Close();
-				return FALSE;
-			}
-		}
 
 		// Load db values from rsold
 		if ($rsold) {

@@ -881,9 +881,6 @@ class csucursal_list extends csucursal {
 			$this->UpdateSort($this->nombre); // nombre
 			$this->UpdateSort($this->idmunicipio); // idmunicipio
 			$this->UpdateSort($this->idempresa); // idempresa
-			$this->UpdateSort($this->credito); // credito
-			$this->UpdateSort($this->debito); // debito
-			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -927,9 +924,6 @@ class csucursal_list extends csucursal {
 				$this->nombre->setSort("");
 				$this->idmunicipio->setSort("");
 				$this->idempresa->setSort("");
-				$this->credito->setSort("");
-				$this->debito->setSort("");
-				$this->fecha_insercion->setSort("");
 			}
 
 			// Reset start position
@@ -1003,9 +997,9 @@ class csucursal_list extends csucursal {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
-		$this->ListOptions->UseButtonGroup = TRUE;
+		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
 			$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->ButtonClass = "btn-sm"; // Class for button group
@@ -1476,14 +1470,6 @@ class csucursal_list extends csucursal {
 		$this->InlineCopyUrl = $this->GetInlineCopyUrl();
 		$this->DeleteUrl = $this->GetDeleteUrl();
 
-		// Convert decimal values if posted back
-		if ($this->credito->FormValue == $this->credito->CurrentValue && is_numeric(ew_StrToFloat($this->credito->CurrentValue)))
-			$this->credito->CurrentValue = ew_StrToFloat($this->credito->CurrentValue);
-
-		// Convert decimal values if posted back
-		if ($this->debito->FormValue == $this->debito->CurrentValue && is_numeric(ew_StrToFloat($this->debito->CurrentValue)))
-			$this->debito->CurrentValue = ew_StrToFloat($this->debito->CurrentValue);
-
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -1614,21 +1600,6 @@ class csucursal_list extends csucursal {
 			$this->idempresa->LinkCustomAttributes = "";
 			$this->idempresa->HrefValue = "";
 			$this->idempresa->TooltipValue = "";
-
-			// credito
-			$this->credito->LinkCustomAttributes = "";
-			$this->credito->HrefValue = "";
-			$this->credito->TooltipValue = "";
-
-			// debito
-			$this->debito->LinkCustomAttributes = "";
-			$this->debito->HrefValue = "";
-			$this->debito->TooltipValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->LinkCustomAttributes = "";
-			$this->fecha_insercion->HrefValue = "";
-			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -2170,33 +2141,6 @@ $sucursal_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($sucursal->credito->Visible) { // credito ?>
-	<?php if ($sucursal->SortUrl($sucursal->credito) == "") { ?>
-		<th data-name="credito"><div id="elh_sucursal_credito" class="sucursal_credito"><div class="ewTableHeaderCaption"><?php echo $sucursal->credito->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="credito"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->credito) ?>',1);"><div id="elh_sucursal_credito" class="sucursal_credito">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->credito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->credito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->credito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($sucursal->debito->Visible) { // debito ?>
-	<?php if ($sucursal->SortUrl($sucursal->debito) == "") { ?>
-		<th data-name="debito"><div id="elh_sucursal_debito" class="sucursal_debito"><div class="ewTableHeaderCaption"><?php echo $sucursal->debito->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="debito"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->debito) ?>',1);"><div id="elh_sucursal_debito" class="sucursal_debito">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->debito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->debito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->debito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
-	<?php if ($sucursal->SortUrl($sucursal->fecha_insercion) == "") { ?>
-		<th data-name="fecha_insercion"><div id="elh_sucursal_fecha_insercion" class="sucursal_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $sucursal->fecha_insercion->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $sucursal->SortUrl($sucursal->fecha_insercion) ?>',1);"><div id="elh_sucursal_fecha_insercion" class="sucursal_fecha_insercion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $sucursal->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($sucursal->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($sucursal->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2278,24 +2222,6 @@ $sucursal_list->ListOptions->Render("body", "left", $sucursal_list->RowCnt);
 		<td data-name="idempresa"<?php echo $sucursal->idempresa->CellAttributes() ?>>
 <span<?php echo $sucursal->idempresa->ViewAttributes() ?>>
 <?php echo $sucursal->idempresa->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($sucursal->credito->Visible) { // credito ?>
-		<td data-name="credito"<?php echo $sucursal->credito->CellAttributes() ?>>
-<span<?php echo $sucursal->credito->ViewAttributes() ?>>
-<?php echo $sucursal->credito->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($sucursal->debito->Visible) { // debito ?>
-		<td data-name="debito"<?php echo $sucursal->debito->CellAttributes() ?>>
-<span<?php echo $sucursal->debito->ViewAttributes() ?>>
-<?php echo $sucursal->debito->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td data-name="fecha_insercion"<?php echo $sucursal->fecha_insercion->CellAttributes() ?>>
-<span<?php echo $sucursal->fecha_insercion->ViewAttributes() ?>>
-<?php echo $sucursal->fecha_insercion->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

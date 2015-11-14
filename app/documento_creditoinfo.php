@@ -753,6 +753,8 @@ class cdocumento_credito extends cTable {
 
 		// monto
 		$this->monto->ViewValue = $this->monto->CurrentValue;
+		$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+		$this->monto->CellCssStyle .= "text-align: right;";
 		$this->monto->ViewCustomAttributes = "";
 
 		// fecha_insercion
@@ -761,7 +763,31 @@ class cdocumento_credito extends cTable {
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
 		// idproveedor
-		$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+		if (strval($this->idproveedor->CurrentValue) <> "") {
+			$sFilterWrk = "`idproveedor`" . ew_SearchString("=", $this->idproveedor->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idproveedor`, `nombre_factura` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `proveedor`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idproveedor, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idproveedor->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			}
+		} else {
+			$this->idproveedor->ViewValue = NULL;
+		}
 		$this->idproveedor->ViewCustomAttributes = "";
 
 		// iddocumento_credito
@@ -896,7 +922,7 @@ class cdocumento_credito extends cTable {
 		$this->monto->EditCustomAttributes = "";
 		$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
 		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
 
 		// fecha_insercion
 		$this->fecha_insercion->EditAttrs["class"] = "form-control";
@@ -907,8 +933,6 @@ class cdocumento_credito extends cTable {
 		// idproveedor
 		$this->idproveedor->EditAttrs["class"] = "form-control";
 		$this->idproveedor->EditCustomAttributes = "";
-		$this->idproveedor->EditValue = ew_HtmlEncode($this->idproveedor->CurrentValue);
-		$this->idproveedor->PlaceHolder = ew_RemoveHtml($this->idproveedor->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();

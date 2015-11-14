@@ -784,14 +784,20 @@ class cdetalle_documento_debito extends cTable {
 
 		// cantidad
 		$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+		$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+		$this->cantidad->CellCssStyle .= "text-align: right;";
 		$this->cantidad->ViewCustomAttributes = "";
 
 		// precio
 		$this->precio->ViewValue = $this->precio->CurrentValue;
+		$this->precio->ViewValue = ew_FormatNumber($this->precio->ViewValue, 2, -2, -2, -2);
+		$this->precio->CellCssStyle .= "text-align: right;";
 		$this->precio->ViewCustomAttributes = "";
 
 		// monto
 		$this->monto->ViewValue = $this->monto->CurrentValue;
+		$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+		$this->monto->CellCssStyle .= "text-align: right;";
 		$this->monto->ViewCustomAttributes = "";
 
 		// estado
@@ -996,14 +1002,14 @@ class cdetalle_documento_debito extends cTable {
 		$this->precio->EditCustomAttributes = "";
 		$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
 		$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
-		if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -1, -2, 0);
+		if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -2, -2, -2);
 
 		// monto
 		$this->monto->EditAttrs["class"] = "form-control";
 		$this->monto->EditCustomAttributes = "";
 		$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
 		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
 
 		// estado
 		$this->estado->EditAttrs["class"] = "form-control";

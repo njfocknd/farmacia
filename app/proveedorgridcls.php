@@ -889,7 +889,7 @@ class cproveedor_grid extends cproveedor {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
 		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
@@ -1538,6 +1538,27 @@ class cproveedor_grid extends cproveedor {
 			// email
 			$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, NULL, $this->_email->ReadOnly);
 
+			// Check referential integrity for master table 'persona'
+			$bValidMasterRecord = TRUE;
+			$sMasterFilter = $this->SqlMasterFilter_persona();
+			$KeyValue = isset($rsnew['idpersona']) ? $rsnew['idpersona'] : $rsold['idpersona'];
+			if (strval($KeyValue) <> "") {
+				$sMasterFilter = str_replace("@idpersona@", ew_AdjustSql($KeyValue), $sMasterFilter);
+			} else {
+				$bValidMasterRecord = FALSE;
+			}
+			if ($bValidMasterRecord) {
+				$rsmaster = $GLOBALS["persona"]->LoadRs($sMasterFilter);
+				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+				$rsmaster->Close();
+			}
+			if (!$bValidMasterRecord) {
+				$sRelatedRecordMsg = str_replace("%t", "persona", $Language->Phrase("RelatedRecordRequired"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				$rs->Close();
+				return FALSE;
+			}
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1581,6 +1602,25 @@ class cproveedor_grid extends cproveedor {
 			if ($this->getCurrentMasterTable() == "persona") {
 				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
 			}
+
+		// Check referential integrity for master table 'persona'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_persona();
+		if ($this->idpersona->getSessionValue() <> "") {
+			$sMasterFilter = str_replace("@idpersona@", ew_AdjustSql($this->idpersona->getSessionValue()), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			$rsmaster = $GLOBALS["persona"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "persona", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
 
 		// Load db values from rsold
 		if ($rsold) {

@@ -50,9 +50,6 @@ fclientegrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idpersona");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cliente->idpersona->FldCaption(), $cliente->idpersona->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_tributa");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cliente->tributa->FldCaption(), $cliente->tributa->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -72,8 +69,6 @@ fclientegrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "nit", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombre_factura", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "direccion_factura", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "telefono", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "tributa", false)) return false;
 	return true;
 }
 
@@ -196,24 +191,6 @@ $cliente_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="direccion_factura"><div><div id="elh_cliente_direccion_factura" class="cliente_direccion_factura">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->direccion_factura->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cliente->direccion_factura->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->direccion_factura->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cliente->telefono->Visible) { // telefono ?>
-	<?php if ($cliente->SortUrl($cliente->telefono) == "") { ?>
-		<th data-name="telefono"><div id="elh_cliente_telefono" class="cliente_telefono"><div class="ewTableHeaderCaption"><?php echo $cliente->telefono->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="telefono"><div><div id="elh_cliente_telefono" class="cliente_telefono">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->telefono->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cliente->telefono->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->telefono->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cliente->tributa->Visible) { // tributa ?>
-	<?php if ($cliente->SortUrl($cliente->tributa) == "") { ?>
-		<th data-name="tributa"><div id="elh_cliente_tributa" class="cliente_tributa"><div class="ewTableHeaderCaption"><?php echo $cliente->tributa->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="tributa"><div><div id="elh_cliente_tributa" class="cliente_tributa">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->tributa->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cliente->tributa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->tributa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -495,90 +472,6 @@ if (@$emptywrk) $cliente->idpersona->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($cliente->telefono->Visible) { // telefono ?>
-		<td data-name="telefono"<?php echo $cliente->telefono->CellAttributes() ?>>
-<?php if ($cliente->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cliente_grid->RowCnt ?>_cliente_telefono" class="form-group cliente_telefono">
-<input type="text" data-field="x_telefono" name="x<?php echo $cliente_grid->RowIndex ?>_telefono" id="x<?php echo $cliente_grid->RowIndex ?>_telefono" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->telefono->PlaceHolder) ?>" value="<?php echo $cliente->telefono->EditValue ?>"<?php echo $cliente->telefono->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_telefono" name="o<?php echo $cliente_grid->RowIndex ?>_telefono" id="o<?php echo $cliente_grid->RowIndex ?>_telefono" value="<?php echo ew_HtmlEncode($cliente->telefono->OldValue) ?>">
-<?php } ?>
-<?php if ($cliente->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cliente_grid->RowCnt ?>_cliente_telefono" class="form-group cliente_telefono">
-<input type="text" data-field="x_telefono" name="x<?php echo $cliente_grid->RowIndex ?>_telefono" id="x<?php echo $cliente_grid->RowIndex ?>_telefono" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->telefono->PlaceHolder) ?>" value="<?php echo $cliente->telefono->EditValue ?>"<?php echo $cliente->telefono->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($cliente->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cliente->telefono->ViewAttributes() ?>>
-<?php echo $cliente->telefono->ListViewValue() ?></span>
-<input type="hidden" data-field="x_telefono" name="x<?php echo $cliente_grid->RowIndex ?>_telefono" id="x<?php echo $cliente_grid->RowIndex ?>_telefono" value="<?php echo ew_HtmlEncode($cliente->telefono->FormValue) ?>">
-<input type="hidden" data-field="x_telefono" name="o<?php echo $cliente_grid->RowIndex ?>_telefono" id="o<?php echo $cliente_grid->RowIndex ?>_telefono" value="<?php echo ew_HtmlEncode($cliente->telefono->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($cliente->tributa->Visible) { // tributa ?>
-		<td data-name="tributa"<?php echo $cliente->tributa->CellAttributes() ?>>
-<?php if ($cliente->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $cliente_grid->RowCnt ?>_cliente_tributa" class="form-group cliente_tributa">
-<div id="tp_x<?php echo $cliente_grid->RowIndex ?>_tributa" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa" value="{value}"<?php echo $cliente->tributa->EditAttributes() ?>></div>
-<div id="dsl_x<?php echo $cliente_grid->RowIndex ?>_tributa" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cliente->tributa->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cliente->tributa->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_tributa" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cliente->tributa->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-if (@$emptywrk) $cliente->tributa->OldValue = "";
-?>
-</div>
-</span>
-<input type="hidden" data-field="x_tributa" name="o<?php echo $cliente_grid->RowIndex ?>_tributa" id="o<?php echo $cliente_grid->RowIndex ?>_tributa" value="<?php echo ew_HtmlEncode($cliente->tributa->OldValue) ?>">
-<?php } ?>
-<?php if ($cliente->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $cliente_grid->RowCnt ?>_cliente_tributa" class="form-group cliente_tributa">
-<div id="tp_x<?php echo $cliente_grid->RowIndex ?>_tributa" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa" value="{value}"<?php echo $cliente->tributa->EditAttributes() ?>></div>
-<div id="dsl_x<?php echo $cliente_grid->RowIndex ?>_tributa" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cliente->tributa->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cliente->tributa->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_tributa" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cliente->tributa->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-if (@$emptywrk) $cliente->tributa->OldValue = "";
-?>
-</div>
-</span>
-<?php } ?>
-<?php if ($cliente->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $cliente->tributa->ViewAttributes() ?>>
-<?php echo $cliente->tributa->ListViewValue() ?></span>
-<input type="hidden" data-field="x_tributa" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa" value="<?php echo ew_HtmlEncode($cliente->tributa->FormValue) ?>">
-<input type="hidden" data-field="x_tributa" name="o<?php echo $cliente_grid->RowIndex ?>_tributa" id="o<?php echo $cliente_grid->RowIndex ?>_tributa" value="<?php echo ew_HtmlEncode($cliente->tributa->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -722,59 +615,6 @@ if (@$emptywrk) $cliente->idpersona->OldValue = "";
 <input type="hidden" data-field="x_direccion_factura" name="x<?php echo $cliente_grid->RowIndex ?>_direccion_factura" id="x<?php echo $cliente_grid->RowIndex ?>_direccion_factura" value="<?php echo ew_HtmlEncode($cliente->direccion_factura->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_direccion_factura" name="o<?php echo $cliente_grid->RowIndex ?>_direccion_factura" id="o<?php echo $cliente_grid->RowIndex ?>_direccion_factura" value="<?php echo ew_HtmlEncode($cliente->direccion_factura->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cliente->telefono->Visible) { // telefono ?>
-		<td>
-<?php if ($cliente->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cliente_telefono" class="form-group cliente_telefono">
-<input type="text" data-field="x_telefono" name="x<?php echo $cliente_grid->RowIndex ?>_telefono" id="x<?php echo $cliente_grid->RowIndex ?>_telefono" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->telefono->PlaceHolder) ?>" value="<?php echo $cliente->telefono->EditValue ?>"<?php echo $cliente->telefono->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cliente_telefono" class="form-group cliente_telefono">
-<span<?php echo $cliente->telefono->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cliente->telefono->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_telefono" name="x<?php echo $cliente_grid->RowIndex ?>_telefono" id="x<?php echo $cliente_grid->RowIndex ?>_telefono" value="<?php echo ew_HtmlEncode($cliente->telefono->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_telefono" name="o<?php echo $cliente_grid->RowIndex ?>_telefono" id="o<?php echo $cliente_grid->RowIndex ?>_telefono" value="<?php echo ew_HtmlEncode($cliente->telefono->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($cliente->tributa->Visible) { // tributa ?>
-		<td>
-<?php if ($cliente->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_cliente_tributa" class="form-group cliente_tributa">
-<div id="tp_x<?php echo $cliente_grid->RowIndex ?>_tributa" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa" value="{value}"<?php echo $cliente->tributa->EditAttributes() ?>></div>
-<div id="dsl_x<?php echo $cliente_grid->RowIndex ?>_tributa" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cliente->tributa->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cliente->tributa->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_tributa" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cliente->tributa->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-if (@$emptywrk) $cliente->tributa->OldValue = "";
-?>
-</div>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_cliente_tributa" class="form-group cliente_tributa">
-<span<?php echo $cliente->tributa->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $cliente->tributa->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_tributa" name="x<?php echo $cliente_grid->RowIndex ?>_tributa" id="x<?php echo $cliente_grid->RowIndex ?>_tributa" value="<?php echo ew_HtmlEncode($cliente->tributa->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_tributa" name="o<?php echo $cliente_grid->RowIndex ?>_tributa" id="o<?php echo $cliente_grid->RowIndex ?>_tributa" value="<?php echo ew_HtmlEncode($cliente->tributa->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

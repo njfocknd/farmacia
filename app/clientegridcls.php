@@ -747,10 +747,6 @@ class ccliente_grid extends ccliente {
 			return FALSE;
 		if ($objForm->HasValue("x_direccion_factura") && $objForm->HasValue("o_direccion_factura") && $this->direccion_factura->CurrentValue <> $this->direccion_factura->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_telefono") && $objForm->HasValue("o_telefono") && $this->telefono->CurrentValue <> $this->telefono->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_tributa") && $objForm->HasValue("o_tributa") && $this->tributa->CurrentValue <> $this->tributa->OldValue)
-			return FALSE;
 		return TRUE;
 	}
 
@@ -893,7 +889,7 @@ class ccliente_grid extends ccliente {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
 		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
@@ -1043,10 +1039,6 @@ class ccliente_grid extends ccliente {
 		$this->nombre_factura->OldValue = $this->nombre_factura->CurrentValue;
 		$this->direccion_factura->CurrentValue = NULL;
 		$this->direccion_factura->OldValue = $this->direccion_factura->CurrentValue;
-		$this->telefono->CurrentValue = NULL;
-		$this->telefono->OldValue = $this->telefono->CurrentValue;
-		$this->tributa->CurrentValue = "Si";
-		$this->tributa->OldValue = $this->tributa->CurrentValue;
 	}
 
 	// Load form values
@@ -1071,14 +1063,6 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->setFormValue($objForm->GetValue("x_direccion_factura"));
 		}
 		$this->direccion_factura->setOldValue($objForm->GetValue("o_direccion_factura"));
-		if (!$this->telefono->FldIsDetailKey) {
-			$this->telefono->setFormValue($objForm->GetValue("x_telefono"));
-		}
-		$this->telefono->setOldValue($objForm->GetValue("o_telefono"));
-		if (!$this->tributa->FldIsDetailKey) {
-			$this->tributa->setFormValue($objForm->GetValue("x_tributa"));
-		}
-		$this->tributa->setOldValue($objForm->GetValue("o_tributa"));
 		if (!$this->idcliente->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
 	}
@@ -1092,8 +1076,6 @@ class ccliente_grid extends ccliente {
 		$this->nit->CurrentValue = $this->nit->FormValue;
 		$this->nombre_factura->CurrentValue = $this->nombre_factura->FormValue;
 		$this->direccion_factura->CurrentValue = $this->direccion_factura->FormValue;
-		$this->telefono->CurrentValue = $this->telefono->FormValue;
-		$this->tributa->CurrentValue = $this->tributa->FormValue;
 	}
 
 	// Load recordset
@@ -1354,16 +1336,6 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->LinkCustomAttributes = "";
 			$this->direccion_factura->HrefValue = "";
 			$this->direccion_factura->TooltipValue = "";
-
-			// telefono
-			$this->telefono->LinkCustomAttributes = "";
-			$this->telefono->HrefValue = "";
-			$this->telefono->TooltipValue = "";
-
-			// tributa
-			$this->tributa->LinkCustomAttributes = "";
-			$this->tributa->HrefValue = "";
-			$this->tributa->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// idpersona
@@ -1443,19 +1415,6 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
 			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
 
-			// telefono
-			$this->telefono->EditAttrs["class"] = "form-control";
-			$this->telefono->EditCustomAttributes = "";
-			$this->telefono->EditValue = ew_HtmlEncode($this->telefono->CurrentValue);
-			$this->telefono->PlaceHolder = ew_RemoveHtml($this->telefono->FldCaption());
-
-			// tributa
-			$this->tributa->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->tributa->FldTagValue(1), $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->FldTagValue(1));
-			$arwrk[] = array($this->tributa->FldTagValue(2), $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->FldTagValue(2));
-			$this->tributa->EditValue = $arwrk;
-
 			// Edit refer script
 			// idpersona
 
@@ -1469,12 +1428,6 @@ class ccliente_grid extends ccliente {
 
 			// direccion_factura
 			$this->direccion_factura->HrefValue = "";
-
-			// telefono
-			$this->telefono->HrefValue = "";
-
-			// tributa
-			$this->tributa->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// idpersona
@@ -1554,19 +1507,6 @@ class ccliente_grid extends ccliente {
 			$this->direccion_factura->EditValue = ew_HtmlEncode($this->direccion_factura->CurrentValue);
 			$this->direccion_factura->PlaceHolder = ew_RemoveHtml($this->direccion_factura->FldCaption());
 
-			// telefono
-			$this->telefono->EditAttrs["class"] = "form-control";
-			$this->telefono->EditCustomAttributes = "";
-			$this->telefono->EditValue = ew_HtmlEncode($this->telefono->CurrentValue);
-			$this->telefono->PlaceHolder = ew_RemoveHtml($this->telefono->FldCaption());
-
-			// tributa
-			$this->tributa->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->tributa->FldTagValue(1), $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->FldTagValue(1));
-			$arwrk[] = array($this->tributa->FldTagValue(2), $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->FldTagValue(2));
-			$this->tributa->EditValue = $arwrk;
-
 			// Edit refer script
 			// idpersona
 
@@ -1580,12 +1520,6 @@ class ccliente_grid extends ccliente {
 
 			// direccion_factura
 			$this->direccion_factura->HrefValue = "";
-
-			// telefono
-			$this->telefono->HrefValue = "";
-
-			// tributa
-			$this->tributa->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1607,9 +1541,6 @@ class ccliente_grid extends ccliente {
 			return ($gsFormError == "");
 		if (!$this->idpersona->FldIsDetailKey && !is_null($this->idpersona->FormValue) && $this->idpersona->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idpersona->FldCaption(), $this->idpersona->ReqErrMsg));
-		}
-		if ($this->tributa->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->tributa->FldCaption(), $this->tributa->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -1740,11 +1671,26 @@ class ccliente_grid extends ccliente {
 			// direccion_factura
 			$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, $this->direccion_factura->ReadOnly);
 
-			// telefono
-			$this->telefono->SetDbValueDef($rsnew, $this->telefono->CurrentValue, NULL, $this->telefono->ReadOnly);
-
-			// tributa
-			$this->tributa->SetDbValueDef($rsnew, $this->tributa->CurrentValue, "", $this->tributa->ReadOnly);
+			// Check referential integrity for master table 'persona'
+			$bValidMasterRecord = TRUE;
+			$sMasterFilter = $this->SqlMasterFilter_persona();
+			$KeyValue = isset($rsnew['idpersona']) ? $rsnew['idpersona'] : $rsold['idpersona'];
+			if (strval($KeyValue) <> "") {
+				$sMasterFilter = str_replace("@idpersona@", ew_AdjustSql($KeyValue), $sMasterFilter);
+			} else {
+				$bValidMasterRecord = FALSE;
+			}
+			if ($bValidMasterRecord) {
+				$rsmaster = $GLOBALS["persona"]->LoadRs($sMasterFilter);
+				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+				$rsmaster->Close();
+			}
+			if (!$bValidMasterRecord) {
+				$sRelatedRecordMsg = str_replace("%t", "persona", $Language->Phrase("RelatedRecordRequired"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				$rs->Close();
+				return FALSE;
+			}
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1790,6 +1736,25 @@ class ccliente_grid extends ccliente {
 				$this->idpersona->CurrentValue = $this->idpersona->getSessionValue();
 			}
 
+		// Check referential integrity for master table 'persona'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_persona();
+		if (strval($this->idpersona->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@idpersona@", ew_AdjustSql($this->idpersona->CurrentValue), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			$rsmaster = $GLOBALS["persona"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "persona", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
+
 		// Load db values from rsold
 		if ($rsold) {
 			$this->LoadDbValues($rsold);
@@ -1807,12 +1772,6 @@ class ccliente_grid extends ccliente {
 
 		// direccion_factura
 		$this->direccion_factura->SetDbValueDef($rsnew, $this->direccion_factura->CurrentValue, NULL, FALSE);
-
-		// telefono
-		$this->telefono->SetDbValueDef($rsnew, $this->telefono->CurrentValue, NULL, FALSE);
-
-		// tributa
-		$this->tributa->SetDbValueDef($rsnew, $this->tributa->CurrentValue, "", strval($this->tributa->CurrentValue) == "");
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

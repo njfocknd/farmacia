@@ -868,8 +868,6 @@ class ccliente_list extends ccliente {
 			$this->UpdateSort($this->nit); // nit
 			$this->UpdateSort($this->nombre_factura); // nombre_factura
 			$this->UpdateSort($this->direccion_factura); // direccion_factura
-			$this->UpdateSort($this->telefono); // telefono
-			$this->UpdateSort($this->tributa); // tributa
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -914,8 +912,6 @@ class ccliente_list extends ccliente {
 				$this->nit->setSort("");
 				$this->nombre_factura->setSort("");
 				$this->direccion_factura->setSort("");
-				$this->telefono->setSort("");
-				$this->tributa->setSort("");
 			}
 
 			// Reset start position
@@ -973,9 +969,9 @@ class ccliente_list extends ccliente {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
-		$this->ListOptions->UseButtonGroup = TRUE;
+		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
 			$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->ButtonClass = "btn-sm"; // Class for button group
@@ -1533,16 +1529,6 @@ class ccliente_list extends ccliente {
 			$this->direccion_factura->LinkCustomAttributes = "";
 			$this->direccion_factura->HrefValue = "";
 			$this->direccion_factura->TooltipValue = "";
-
-			// telefono
-			$this->telefono->LinkCustomAttributes = "";
-			$this->telefono->HrefValue = "";
-			$this->telefono->TooltipValue = "";
-
-			// tributa
-			$this->tributa->LinkCustomAttributes = "";
-			$this->tributa->HrefValue = "";
-			$this->tributa->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -2092,24 +2078,6 @@ $cliente_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($cliente->telefono->Visible) { // telefono ?>
-	<?php if ($cliente->SortUrl($cliente->telefono) == "") { ?>
-		<th data-name="telefono"><div id="elh_cliente_telefono" class="cliente_telefono"><div class="ewTableHeaderCaption"><?php echo $cliente->telefono->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="telefono"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cliente->SortUrl($cliente->telefono) ?>',1);"><div id="elh_cliente_telefono" class="cliente_telefono">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->telefono->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cliente->telefono->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->telefono->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($cliente->tributa->Visible) { // tributa ?>
-	<?php if ($cliente->SortUrl($cliente->tributa) == "") { ?>
-		<th data-name="tributa"><div id="elh_cliente_tributa" class="cliente_tributa"><div class="ewTableHeaderCaption"><?php echo $cliente->tributa->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="tributa"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cliente->SortUrl($cliente->tributa) ?>',1);"><div id="elh_cliente_tributa" class="cliente_tributa">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cliente->tributa->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($cliente->tributa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cliente->tributa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2197,18 +2165,6 @@ $cliente_list->ListOptions->Render("body", "left", $cliente_list->RowCnt);
 		<td data-name="direccion_factura"<?php echo $cliente->direccion_factura->CellAttributes() ?>>
 <span<?php echo $cliente->direccion_factura->ViewAttributes() ?>>
 <?php echo $cliente->direccion_factura->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cliente->telefono->Visible) { // telefono ?>
-		<td data-name="telefono"<?php echo $cliente->telefono->CellAttributes() ?>>
-<span<?php echo $cliente->telefono->ViewAttributes() ?>>
-<?php echo $cliente->telefono->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($cliente->tributa->Visible) { // tributa ?>
-		<td data-name="tributa"<?php echo $cliente->tributa->CellAttributes() ?>>
-<span<?php echo $cliente->tributa->ViewAttributes() ?>>
-<?php echo $cliente->tributa->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -669,14 +669,21 @@ class cdetalle_documento_credito_add extends cdetalle_documento_credito {
 
 			// cantidad
 			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+			$this->cantidad->CellCssStyle .= "text-align: right;";
 			$this->cantidad->ViewCustomAttributes = "";
 
 			// precio
 			$this->precio->ViewValue = $this->precio->CurrentValue;
+			$this->precio->ViewValue = ew_FormatNumber($this->precio->ViewValue, 2, -2, -2, -2);
+			$this->precio->CssStyle = "font-weight: bold;";
+			$this->precio->CellCssStyle .= "text-align: right;";
 			$this->precio->ViewCustomAttributes = "";
 
 			// monto
 			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+			$this->monto->CellCssStyle .= "text-align: right;";
 			$this->monto->ViewCustomAttributes = "";
 
 			// estado
@@ -854,7 +861,7 @@ class cdetalle_documento_credito_add extends cdetalle_documento_credito {
 			$this->precio->EditCustomAttributes = "";
 			$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
 			$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
-			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -1, -2, 0);
+			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) $this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -2, -2, -2);
 
 			// Edit refer script
 			// iddocumento_credito

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" standalone="yes"?>
-<ew-language date="2015/11/12" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
+<ew-language date="2015/11/13" version="11.0.0" id="es" name="Spanish" desc="Spanish" author="Eddy Velasquez">
 	<locale>
 		<phrase id="locale" value=""/><!-- *** system locale for this language -->
 		<phrase id="use_system_locale" value="0"/><!-- *** change to "0" to disable system locale and use the following settings *** -->
@@ -455,12 +455,6 @@
 </menu>
 <menu id="4"><phrase id="menutext" value="Marca"/>
 </menu>
-<menu id="7"><phrase id="menutext" value="Producto"/>
-</menu>
-<menu id="8"><phrase id="menutext" value="Registro Sanitario"/>
-</menu>
-<menu id="113"><phrase id="menutext" value="Historal de Precio de Producto"/>
-</menu>
 <menu id="12"><phrase id="menutext" value="Tipo Bodega"/>
 </menu>
 <menu id="18"><phrase id="menutext" value="Tipo de Documento"/>
@@ -489,6 +483,12 @@
 </menu>
 <menu id="114"><phrase id="menutext" value="Fecha Contable"/>
 </menu>
+<menu id="7"><phrase id="menutext" value="Producto"/>
+</menu>
+<menu id="8"><phrase id="menutext" value="Registro Sanitario"/>
+</menu>
+<menu id="113"><phrase id="menutext" value="Historal de Precio de Producto"/>
+</menu>
 <menu id="62"><phrase id="menutext" value="Documentos"/>
 </menu>
 <menu id="23"><phrase id="menutext" value="Documento Movimiento"/>
@@ -511,7 +511,7 @@
 </menu>
 <menu id="25"><phrase id="menutext" value="Cliente"/>
 </menu>
-<menu id="30"><phrase id="menutext" value="proveedor"/>
+<menu id="30"><phrase id="menutext" value="Proveedor"/>
 </menu>
 <menu id="60"><phrase id="menutext" value="Pagos"/>
 </menu>
@@ -640,6 +640,10 @@
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
+<field id="codigo_barra"><phrase id="fldcaption" value="codigo barra"/>
+</field>
+<field id="foto"><phrase id="fldcaption" value="Foto"/>
+</field>
 </table>
 <table id="registro_sanitario"><phrase id="tblcaption" value="registro sanitario"/>
 <field id="idregistro_sanitario"><phrase id="fldcaption" value="idregistro sanitario"/>
@@ -659,7 +663,7 @@
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
 </table>
-<table id="sucursal"><phrase id="tblcaption" value="Producto"/>
+<table id="sucursal"><phrase id="tblcaption" value="Sucursal"/>
 <field id="idsucursal"><phrase id="fldcaption" value="idsucursal"/>
 </field>
 <field id="nombre"><phrase id="fldcaption" value="Nombre"/>
@@ -676,9 +680,9 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="credito"><phrase id="fldcaption" value="credito"/>
+<field id="credito"><phrase id="fldcaption" value="Crédito"/>
 </field>
-<field id="debito"><phrase id="fldcaption" value="debito"/>
+<field id="debito"><phrase id="fldcaption" value="Débito"/>
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
@@ -844,6 +848,10 @@
 </field>
 <field id="idfecha_contable"><phrase id="fldcaption" value="Fecha Contable"/>
 </field>
+<field id="idmoneda"><phrase id="fldcaption" value="Moneda"/>
+</field>
+<field id="tasa_cambio"><phrase id="fldcaption" value="Tasa Cambio"/>
+</field>
 </table>
 <table id="serie_documento"><phrase id="tblcaption" value="Serie de Documento"/>
 <field id="idserie_documento"><phrase id="fldcaption" value="idserie documento"/>
@@ -952,7 +960,7 @@
 </field>
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha de Inserción"/>
 </field>
-<field id="idproveedor"><phrase id="fldcaption" value="idproveedor"/>
+<field id="idproveedor"><phrase id="fldcaption" value="Proveedor"/>
 </field>
 </table>
 <table id="detalle_documento_credito"><phrase id="tblcaption" value="Detalle de Documento de Ingreso"/>
@@ -1088,9 +1096,9 @@
 <phrase id="fldtagvalue2" value="Inactivo"/>
 <phrase id="fldtagcaption2" value="Inactivo"/>
 </field>
-<field id="telefono"><phrase id="fldcaption" value="telefono"/>
+<field id="telefono"><phrase id="fldcaption" value="Teléfono"/>
 </field>
-<field id="tributa"><phrase id="fldcaption" value="tributa"/>
+<field id="tributa"><phrase id="fldcaption" value="Tributa"/>
 <phrase id="fldtagvalue1" value="Si"/>
 <phrase id="fldtagcaption1" value="Si"/>
 <phrase id="fldtagvalue2" value="No"/>
@@ -1211,7 +1219,7 @@
 <field id="fecha_insercion"><phrase id="fldcaption" value="Fecha Inserción"/>
 </field>
 </table>
-<table id="proveedor"><phrase id="tblcaption" value="Pagos de Clientes"/>
+<table id="proveedor"><phrase id="tblcaption" value="Proveedor"/>
 <field id="idproveedor"><phrase id="fldcaption" value="idproveedor"/>
 </field>
 <field id="idpersona"><phrase id="fldcaption" value="Persona"/>

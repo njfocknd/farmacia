@@ -5,12 +5,8 @@
 // serie
 // correlativo
 // fecha
-// observaciones
 // estado_documento
-// estado
 // monto
-// fecha_insercion
-// idproveedor
 
 ?>
 <?php if ($documento_credito->Visible) { ?>
@@ -72,17 +68,6 @@
 </td>
 		</tr>
 <?php } ?>
-<?php if ($documento_credito->observaciones->Visible) { // observaciones ?>
-		<tr id="r_observaciones">
-			<td><?php echo $documento_credito->observaciones->FldCaption() ?></td>
-			<td<?php echo $documento_credito->observaciones->CellAttributes() ?>>
-<span id="el_documento_credito_observaciones" class="form-group">
-<span<?php echo $documento_credito->observaciones->ViewAttributes() ?>>
-<?php echo $documento_credito->observaciones->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
 <?php if ($documento_credito->estado_documento->Visible) { // estado_documento ?>
 		<tr id="r_estado_documento">
 			<td><?php echo $documento_credito->estado_documento->FldCaption() ?></td>
@@ -94,17 +79,6 @@
 </td>
 		</tr>
 <?php } ?>
-<?php if ($documento_credito->estado->Visible) { // estado ?>
-		<tr id="r_estado">
-			<td><?php echo $documento_credito->estado->FldCaption() ?></td>
-			<td<?php echo $documento_credito->estado->CellAttributes() ?>>
-<span id="el_documento_credito_estado" class="form-group">
-<span<?php echo $documento_credito->estado->ViewAttributes() ?>>
-<?php echo $documento_credito->estado->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
 <?php if ($documento_credito->monto->Visible) { // monto ?>
 		<tr id="r_monto">
 			<td><?php echo $documento_credito->monto->FldCaption() ?></td>
@@ -112,28 +86,6 @@
 <span id="el_documento_credito_monto" class="form-group">
 <span<?php echo $documento_credito->monto->ViewAttributes() ?>>
 <?php echo $documento_credito->monto->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($documento_credito->fecha_insercion->Visible) { // fecha_insercion ?>
-		<tr id="r_fecha_insercion">
-			<td><?php echo $documento_credito->fecha_insercion->FldCaption() ?></td>
-			<td<?php echo $documento_credito->fecha_insercion->CellAttributes() ?>>
-<span id="el_documento_credito_fecha_insercion" class="form-group">
-<span<?php echo $documento_credito->fecha_insercion->ViewAttributes() ?>>
-<?php echo $documento_credito->fecha_insercion->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($documento_credito->idproveedor->Visible) { // idproveedor ?>
-		<tr id="r_idproveedor">
-			<td><?php echo $documento_credito->idproveedor->FldCaption() ?></td>
-			<td<?php echo $documento_credito->idproveedor->CellAttributes() ?>>
-<span id="el_documento_credito_idproveedor" class="form-group">
-<span<?php echo $documento_credito->idproveedor->ViewAttributes() ?>>
-<?php echo $documento_credito->idproveedor->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

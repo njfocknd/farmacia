@@ -5,10 +5,11 @@
 // serie
 // correlativo
 // fecha
+// idcliente
 // nombre
 // estado_documento
+// idmoneda
 // monto
-// idcliente
 
 ?>
 <?php if ($documento_debito->Visible) { ?>
@@ -70,6 +71,17 @@
 </td>
 		</tr>
 <?php } ?>
+<?php if ($documento_debito->idcliente->Visible) { // idcliente ?>
+		<tr id="r_idcliente">
+			<td><?php echo $documento_debito->idcliente->FldCaption() ?></td>
+			<td<?php echo $documento_debito->idcliente->CellAttributes() ?>>
+<span id="el_documento_debito_idcliente" class="form-group">
+<span<?php echo $documento_debito->idcliente->ViewAttributes() ?>>
+<?php echo $documento_debito->idcliente->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
 <?php if ($documento_debito->nombre->Visible) { // nombre ?>
 		<tr id="r_nombre">
 			<td><?php echo $documento_debito->nombre->FldCaption() ?></td>
@@ -92,6 +104,17 @@
 </td>
 		</tr>
 <?php } ?>
+<?php if ($documento_debito->idmoneda->Visible) { // idmoneda ?>
+		<tr id="r_idmoneda">
+			<td><?php echo $documento_debito->idmoneda->FldCaption() ?></td>
+			<td<?php echo $documento_debito->idmoneda->CellAttributes() ?>>
+<span id="el_documento_debito_idmoneda" class="form-group">
+<span<?php echo $documento_debito->idmoneda->ViewAttributes() ?>>
+<?php echo $documento_debito->idmoneda->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
 <?php if ($documento_debito->monto->Visible) { // monto ?>
 		<tr id="r_monto">
 			<td><?php echo $documento_debito->monto->FldCaption() ?></td>
@@ -99,17 +122,6 @@
 <span id="el_documento_debito_monto" class="form-group">
 <span<?php echo $documento_debito->monto->ViewAttributes() ?>>
 <?php echo $documento_debito->monto->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($documento_debito->idcliente->Visible) { // idcliente ?>
-		<tr id="r_idcliente">
-			<td><?php echo $documento_debito->idcliente->FldCaption() ?></td>
-			<td<?php echo $documento_debito->idcliente->CellAttributes() ?>>
-<span id="el_documento_debito_idcliente" class="form-group">
-<span<?php echo $documento_debito->idcliente->ViewAttributes() ?>>
-<?php echo $documento_debito->idcliente->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

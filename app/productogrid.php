@@ -47,6 +47,9 @@ fproductogrid.Validate = function() {
 		var checkrow = (gridinsert) ? !this.EmptyRow(infix) : true;
 		if (checkrow) {
 			addcnt++;
+			elm = this.GetElements("x" + infix + "_codigo_barra");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->codigo_barra->FldCaption(), $producto->codigo_barra->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_idcategoria");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->idcategoria->FldCaption(), $producto->idcategoria->ReqErrMsg)) ?>");
@@ -92,6 +95,7 @@ fproductogrid.Validate = function() {
 // Check empty row
 fproductogrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
+	if (ew_ValueChanged(fobj, infix, "codigo_barra", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idcategoria", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "idmarca", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombre", false)) return false;
@@ -100,6 +104,7 @@ fproductogrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "precio_venta", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "foto", false)) return false;
 	return true;
 }
 
@@ -191,6 +196,15 @@ $producto_grid->RenderListOptions();
 // Render list options (header, left)
 $producto_grid->ListOptions->Render("header", "left");
 ?>
+<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+	<?php if ($producto->SortUrl($producto->codigo_barra) == "") { ?>
+		<th data-name="codigo_barra"><div id="elh_producto_codigo_barra" class="producto_codigo_barra"><div class="ewTableHeaderCaption"><?php echo $producto->codigo_barra->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="codigo_barra"><div><div id="elh_producto_codigo_barra" class="producto_codigo_barra">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->codigo_barra->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->codigo_barra->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->codigo_barra->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 	<?php if ($producto->SortUrl($producto->idcategoria) == "") { ?>
 		<th data-name="idcategoria"><div id="elh_producto_idcategoria" class="producto_idcategoria"><div class="ewTableHeaderCaption"><?php echo $producto->idcategoria->FldCaption() ?></div></div></th>
@@ -260,6 +274,15 @@ $producto_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="fecha_insercion"><div><div id="elh_producto_fecha_insercion" class="producto_fecha_insercion">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
+<?php if ($producto->foto->Visible) { // foto ?>
+	<?php if ($producto->SortUrl($producto->foto) == "") { ?>
+		<th data-name="foto"><div id="elh_producto_foto" class="producto_foto"><div class="ewTableHeaderCaption"><?php echo $producto->foto->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="foto"><div><div id="elh_producto_foto" class="producto_foto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->foto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto->foto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->foto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -372,6 +395,34 @@ while ($producto_grid->RecCnt < $producto_grid->StopRec) {
 // Render list options (body, left)
 $producto_grid->ListOptions->Render("body", "left", $producto_grid->RowCnt);
 ?>
+	<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+		<td data-name="codigo_barra"<?php echo $producto->codigo_barra->CellAttributes() ?>>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_codigo_barra" class="form-group producto_codigo_barra">
+<input type="text" data-field="x_codigo_barra" name="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto->codigo_barra->PlaceHolder) ?>" value="<?php echo $producto->codigo_barra->EditValue ?>"<?php echo $producto->codigo_barra->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_codigo_barra" name="o<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="o<?php echo $producto_grid->RowIndex ?>_codigo_barra" value="<?php echo ew_HtmlEncode($producto->codigo_barra->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_codigo_barra" class="form-group producto_codigo_barra">
+<input type="text" data-field="x_codigo_barra" name="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto->codigo_barra->PlaceHolder) ?>" value="<?php echo $producto->codigo_barra->EditValue ?>"<?php echo $producto->codigo_barra->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span<?php echo $producto->codigo_barra->ViewAttributes() ?>>
+<?php echo $producto->codigo_barra->ListViewValue() ?></span>
+<input type="hidden" data-field="x_codigo_barra" name="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" value="<?php echo ew_HtmlEncode($producto->codigo_barra->FormValue) ?>">
+<input type="hidden" data-field="x_codigo_barra" name="o<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="o<?php echo $producto_grid->RowIndex ?>_codigo_barra" value="<?php echo ew_HtmlEncode($producto->codigo_barra->OldValue) ?>">
+<?php } ?>
+<a id="<?php echo $producto_grid->PageObjName . "_row_" . $producto_grid->RowCnt ?>"></a></td>
+	<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
+<input type="hidden" data-field="x_idproducto" name="o<?php echo $producto_grid->RowIndex ?>_idproducto" id="o<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->OldValue) ?>">
+<?php } ?>
+<?php if ($producto->RowType == EW_ROWTYPE_EDIT || $producto->CurrentMode == "edit") { ?>
+<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
+<?php } ?>
 	<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 		<td data-name="idcategoria"<?php echo $producto->idcategoria->CellAttributes() ?>>
 <?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -469,15 +520,8 @@ if (@$emptywrk) $producto->idcategoria->OldValue = "";
 <input type="hidden" data-field="x_idcategoria" name="x<?php echo $producto_grid->RowIndex ?>_idcategoria" id="x<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->FormValue) ?>">
 <input type="hidden" data-field="x_idcategoria" name="o<?php echo $producto_grid->RowIndex ?>_idcategoria" id="o<?php echo $producto_grid->RowIndex ?>_idcategoria" value="<?php echo ew_HtmlEncode($producto->idcategoria->OldValue) ?>">
 <?php } ?>
-<a id="<?php echo $producto_grid->PageObjName . "_row_" . $producto_grid->RowCnt ?>"></a></td>
+</td>
 	<?php } ?>
-<?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
-<input type="hidden" data-field="x_idproducto" name="o<?php echo $producto_grid->RowIndex ?>_idproducto" id="o<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->OldValue) ?>">
-<?php } ?>
-<?php if ($producto->RowType == EW_ROWTYPE_EDIT || $producto->CurrentMode == "edit") { ?>
-<input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto->idproducto->CurrentValue) ?>">
-<?php } ?>
 	<?php if ($producto->idmarca->Visible) { // idmarca ?>
 		<td data-name="idmarca"<?php echo $producto->idmarca->CellAttributes() ?>>
 <?php if ($producto->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -805,6 +849,50 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($producto->foto->Visible) { // foto ?>
+		<td data-name="foto"<?php echo $producto->foto->CellAttributes() ?>>
+<?php if ($producto_grid->RowAction == "insert") { // Add record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_foto" class="form-group producto_foto">
+<div id="fd_x<?php echo $producto_grid->RowIndex ?>_foto">
+<span title="<?php echo $producto->foto->FldTitle() ? $producto->foto->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($producto->foto->ReadOnly || $producto->foto->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-field="x_foto" name="x<?php echo $producto_grid->RowIndex ?>_foto" id="x<?php echo $producto_grid->RowIndex ?>_foto">
+</span>
+<input type="hidden" name="fn_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fn_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fa_x<?php echo $producto_grid->RowIndex ?>_foto" value="0">
+<input type="hidden" name="fs_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fs_x<?php echo $producto_grid->RowIndex ?>_foto" value="45">
+<input type="hidden" name="fx_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fx_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fm_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x<?php echo $producto_grid->RowIndex ?>_foto" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<input type="hidden" data-field="x_foto" name="o<?php echo $producto_grid->RowIndex ?>_foto" id="o<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo ew_HtmlEncode($producto->foto->OldValue) ?>">
+<?php } elseif ($producto->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span>
+<?php echo ew_GetFileViewTag($producto->foto, $producto->foto->ListViewValue()) ?>
+</span>
+<?php } else  { // Edit record ?>
+<span id="el<?php echo $producto_grid->RowCnt ?>_producto_foto" class="form-group producto_foto">
+<div id="fd_x<?php echo $producto_grid->RowIndex ?>_foto">
+<span title="<?php echo $producto->foto->FldTitle() ? $producto->foto->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($producto->foto->ReadOnly || $producto->foto->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-field="x_foto" name="x<?php echo $producto_grid->RowIndex ?>_foto" id="x<?php echo $producto_grid->RowIndex ?>_foto">
+</span>
+<input type="hidden" name="fn_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fn_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->Upload->FileName ?>">
+<?php if (@$_POST["fa_x<?php echo $producto_grid->RowIndex ?>_foto"] == "0") { ?>
+<input type="hidden" name="fa_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fa_x<?php echo $producto_grid->RowIndex ?>_foto" value="0">
+<?php } else { ?>
+<input type="hidden" name="fa_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fa_x<?php echo $producto_grid->RowIndex ?>_foto" value="1">
+<?php } ?>
+<input type="hidden" name="fs_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fs_x<?php echo $producto_grid->RowIndex ?>_foto" value="45">
+<input type="hidden" name="fx_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fx_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fm_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x<?php echo $producto_grid->RowIndex ?>_foto" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<?php } ?>
+</td>
+	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -847,6 +935,22 @@ fproductogrid.UpdateOpts(<?php echo $producto_grid->RowIndex ?>);
 // Render list options (body, left)
 $producto_grid->ListOptions->Render("body", "left", $producto_grid->RowIndex);
 ?>
+	<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+		<td>
+<?php if ($producto->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_producto_codigo_barra" class="form-group producto_codigo_barra">
+<input type="text" data-field="x_codigo_barra" name="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto->codigo_barra->PlaceHolder) ?>" value="<?php echo $producto->codigo_barra->EditValue ?>"<?php echo $producto->codigo_barra->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_producto_codigo_barra" class="form-group producto_codigo_barra">
+<span<?php echo $producto->codigo_barra->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $producto->codigo_barra->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-field="x_codigo_barra" name="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="x<?php echo $producto_grid->RowIndex ?>_codigo_barra" value="<?php echo ew_HtmlEncode($producto->codigo_barra->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-field="x_codigo_barra" name="o<?php echo $producto_grid->RowIndex ?>_codigo_barra" id="o<?php echo $producto_grid->RowIndex ?>_codigo_barra" value="<?php echo ew_HtmlEncode($producto->codigo_barra->OldValue) ?>">
+</td>
+	<?php } ?>
 	<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 		<td>
 <?php if ($producto->CurrentAction <> "F") { ?>
@@ -1102,6 +1206,25 @@ if (@$emptywrk) $producto->estado->OldValue = "";
 <input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto->fecha_insercion->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($producto->foto->Visible) { // foto ?>
+		<td>
+<span id="el$rowindex$_producto_foto" class="form-group producto_foto">
+<div id="fd_x<?php echo $producto_grid->RowIndex ?>_foto">
+<span title="<?php echo $producto->foto->FldTitle() ? $producto->foto->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($producto->foto->ReadOnly || $producto->foto->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-field="x_foto" name="x<?php echo $producto_grid->RowIndex ?>_foto" id="x<?php echo $producto_grid->RowIndex ?>_foto">
+</span>
+<input type="hidden" name="fn_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fn_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fa_x<?php echo $producto_grid->RowIndex ?>_foto" value="0">
+<input type="hidden" name="fs_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fs_x<?php echo $producto_grid->RowIndex ?>_foto" value="45">
+<input type="hidden" name="fx_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fx_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?php echo $producto_grid->RowIndex ?>_foto" id= "fm_x<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo $producto->foto->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x<?php echo $producto_grid->RowIndex ?>_foto" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<input type="hidden" data-field="x_foto" name="o<?php echo $producto_grid->RowIndex ?>_foto" id="o<?php echo $producto_grid->RowIndex ?>_foto" value="<?php echo ew_HtmlEncode($producto->foto->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

@@ -416,6 +416,22 @@ class cpersona extends cTable {
 	// Update
 	function Update(&$rs, $where = "", $rsold = NULL) {
 		global $conn;
+
+		// Cascade update detail field 'idpersona'
+		if (!is_null($rsold) && (isset($rs['idpersona']) && $rsold['idpersona'] <> $rs['idpersona'])) {
+			if (!isset($GLOBALS["cliente"])) $GLOBALS["cliente"] = new ccliente();
+			$rscascade = array();
+			$rscascade['idpersona'] = $rs['idpersona']; 
+			$GLOBALS["cliente"]->Update($rscascade, "`idpersona` = " . ew_QuotedValue($rsold['idpersona'], EW_DATATYPE_NUMBER));
+		}
+
+		// Cascade update detail field 'idpersona'
+		if (!is_null($rsold) && (isset($rs['idpersona']) && $rsold['idpersona'] <> $rs['idpersona'])) {
+			if (!isset($GLOBALS["proveedor"])) $GLOBALS["proveedor"] = new cproveedor();
+			$rscascade = array();
+			$rscascade['idpersona'] = $rs['idpersona']; 
+			$GLOBALS["proveedor"]->Update($rscascade, "`idpersona` = " . ew_QuotedValue($rsold['idpersona'], EW_DATATYPE_NUMBER));
+		}
 		return $conn->Execute($this->UpdateSQL($rs, $where));
 	}
 
@@ -438,6 +454,16 @@ class cpersona extends cTable {
 	// Delete
 	function Delete(&$rs, $where = "") {
 		global $conn;
+
+		// Cascade delete detail table 'cliente'
+		if (!isset($GLOBALS["cliente"])) $GLOBALS["cliente"] = new ccliente();
+		$rscascade = array();
+		$GLOBALS["cliente"]->Delete($rscascade, "`idpersona` = " . ew_QuotedValue($rs['idpersona'], EW_DATATYPE_NUMBER));
+
+		// Cascade delete detail table 'proveedor'
+		if (!isset($GLOBALS["proveedor"])) $GLOBALS["proveedor"] = new cproveedor();
+		$rscascade = array();
+		$GLOBALS["proveedor"]->Delete($rscascade, "`idpersona` = " . ew_QuotedValue($rs['idpersona'], EW_DATATYPE_NUMBER));
 		return $conn->Execute($this->DeleteSQL($rs, $where));
 	}
 

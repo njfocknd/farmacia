@@ -603,7 +603,7 @@ class cdocumento_credito_view extends cdocumento_credito {
 		$option = &$options["action"];
 		$option->DropDownButtonPhrase = $Language->Phrase("ButtonActions");
 		$option->UseImageAndText = TRUE;
-		$option->UseDropDownButton = FALSE;
+		$option->UseDropDownButton = TRUE;
 		$option->UseButtonGroup = TRUE;
 		$item = &$option->Add($option->GroupOptionName);
 		$item->Body = "";
@@ -875,6 +875,8 @@ class cdocumento_credito_view extends cdocumento_credito {
 
 			// monto
 			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+			$this->monto->CellCssStyle .= "text-align: right;";
 			$this->monto->ViewCustomAttributes = "";
 
 			// fecha_insercion
@@ -883,7 +885,31 @@ class cdocumento_credito_view extends cdocumento_credito {
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idproveedor
-			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			if (strval($this->idproveedor->CurrentValue) <> "") {
+				$sFilterWrk = "`idproveedor`" . ew_SearchString("=", $this->idproveedor->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproveedor`, `nombre_factura` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `proveedor`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproveedor, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproveedor->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+				}
+			} else {
+				$this->idproveedor->ViewValue = NULL;
+			}
 			$this->idproveedor->ViewCustomAttributes = "";
 
 			// iddocumento_credito
@@ -1277,6 +1303,7 @@ fdocumento_creditoview.ValidateRequired = false;
 // Dynamic selection lists
 fdocumento_creditoview.Lists["x_idtipo_documento"] = {"LinkField":"x_idtipo_documento","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 fdocumento_creditoview.Lists["x_idsucursal"] = {"LinkField":"x_idsucursal","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
+fdocumento_creditoview.Lists["x_idproveedor"] = {"LinkField":"x_idproveedor","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre_factura","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
 // Form object for search
 </script>

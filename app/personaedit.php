@@ -503,10 +503,6 @@ class cpersona_edit extends cpersona {
 		if (!$this->estado->FldIsDetailKey) {
 			$this->estado->setFormValue($objForm->GetValue("x_estado"));
 		}
-		if (!$this->fecha_insercion->FldIsDetailKey) {
-			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
-			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
-		}
 		if (!$this->idpersona->FldIsDetailKey)
 			$this->idpersona->setFormValue($objForm->GetValue("x_idpersona"));
 	}
@@ -527,8 +523,6 @@ class cpersona_edit extends cpersona {
 		$this->_email->CurrentValue = $this->_email->FormValue;
 		$this->sexo->CurrentValue = $this->sexo->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
-		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
-		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 	}
 
 	// Load row based on key values
@@ -781,11 +775,6 @@ class cpersona_edit extends cpersona {
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->LinkCustomAttributes = "";
-			$this->fecha_insercion->HrefValue = "";
-			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// tipo_persona
@@ -879,12 +868,6 @@ class cpersona_edit extends cpersona {
 			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
 			$this->estado->EditValue = $arwrk;
 
-			// fecha_insercion
-			$this->fecha_insercion->EditAttrs["class"] = "form-control";
-			$this->fecha_insercion->EditCustomAttributes = "";
-			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
-			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
 			// Edit refer script
 			// tipo_persona
 
@@ -916,9 +899,6 @@ class cpersona_edit extends cpersona {
 
 			// estado
 			$this->estado->HrefValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -958,9 +938,6 @@ class cpersona_edit extends cpersona {
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
-			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
 		}
 
 		// Validate detail grid
@@ -1039,9 +1016,6 @@ class cpersona_edit extends cpersona {
 
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
-
-			// fecha_insercion
-			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1335,9 +1309,6 @@ fpersonaedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $persona->estado->FldCaption(), $persona->estado->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_fecha_insercion");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($persona->fecha_insercion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1583,16 +1554,6 @@ if (is_array($persona->estado->EditValue)) {
 </select>
 </span>
 <?php echo $persona->estado->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($persona->fecha_insercion->Visible) { // fecha_insercion ?>
-	<div id="r_fecha_insercion" class="form-group">
-		<label id="elh_persona_fecha_insercion" for="x_fecha_insercion" class="col-sm-2 control-label ewLabel"><?php echo $persona->fecha_insercion->FldCaption() ?></label>
-		<div class="col-sm-10"><div<?php echo $persona->fecha_insercion->CellAttributes() ?>>
-<span id="el_persona_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x_fecha_insercion" id="x_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($persona->fecha_insercion->PlaceHolder) ?>" value="<?php echo $persona->fecha_insercion->EditValue ?>"<?php echo $persona->fecha_insercion->EditAttributes() ?>>
-</span>
-<?php echo $persona->fecha_insercion->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

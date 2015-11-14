@@ -21,9 +21,6 @@ $RootMenu->AddMenuItem(13, "mmi_producto_bodega", $Language->MenuPhrase("13", "M
 $RootMenu->AddMenuItem(15, "mmi_producto_historial", $Language->MenuPhrase("15", "MenuText"), "producto_historiallist.php?cmd=resetall", 13, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto_historial'), FALSE);
 $RootMenu->AddMenuItem(3, "mmi_fabricante", $Language->MenuPhrase("3", "MenuText"), "fabricantelist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}fabricante'), FALSE);
 $RootMenu->AddMenuItem(4, "mmi_marca", $Language->MenuPhrase("4", "MenuText"), "marcalist.php?cmd=resetall", 3, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}marca'), FALSE);
-$RootMenu->AddMenuItem(7, "mmi_producto", $Language->MenuPhrase("7", "MenuText"), "productolist.php?cmd=resetall", 4, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto'), FALSE);
-$RootMenu->AddMenuItem(8, "mmi_registro_sanitario", $Language->MenuPhrase("8", "MenuText"), "registro_sanitariolist.php?cmd=resetall", 7, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}registro_sanitario'), FALSE);
-$RootMenu->AddMenuItem(113, "mmi_producto_precio_historial", $Language->MenuPhrase("113", "MenuText"), "producto_precio_historiallist.php?cmd=resetall", 7, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto_precio_historial'), FALSE);
 $RootMenu->AddMenuItem(12, "mmi_tipo_bodega", $Language->MenuPhrase("12", "MenuText"), "tipo_bodegalist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_bodega'), FALSE);
 $RootMenu->AddMenuItem(18, "mmi_tipo_documento", $Language->MenuPhrase("18", "MenuText"), "tipo_documentolist.php", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}tipo_documento'), FALSE);
 $RootMenu->AddMenuItem(17, "mmi_serie_documento", $Language->MenuPhrase("17", "MenuText"), "serie_documentolist.php", 18, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}serie_documento'), FALSE);
@@ -37,6 +34,9 @@ $RootMenu->AddMenuItem(108, "mmi_categoria", $Language->MenuPhrase("108", "MenuT
 $RootMenu->AddMenuItem(118, "mmi_periodo_contable", $Language->MenuPhrase("118", "MenuText"), "periodo_contablelist.php?cmd=resetall", 10, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}periodo_contable'), FALSE);
 $RootMenu->AddMenuItem(116, "mmi_meta", $Language->MenuPhrase("116", "MenuText"), "metalist.php?cmd=resetall", 118, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}meta'), FALSE);
 $RootMenu->AddMenuItem(114, "mmi_fecha_contable", $Language->MenuPhrase("114", "MenuText"), "fecha_contablelist.php?cmd=resetall", 118, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}fecha_contable'), FALSE);
+$RootMenu->AddMenuItem(7, "mmi_producto", $Language->MenuPhrase("7", "MenuText"), "productolist.php?cmd=resetall", -1, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto'), FALSE);
+$RootMenu->AddMenuItem(8, "mmi_registro_sanitario", $Language->MenuPhrase("8", "MenuText"), "registro_sanitariolist.php?cmd=resetall", 7, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}registro_sanitario'), FALSE);
+$RootMenu->AddMenuItem(113, "mmi_producto_precio_historial", $Language->MenuPhrase("113", "MenuText"), "producto_precio_historiallist.php?cmd=resetall", 7, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}producto_precio_historial'), FALSE);
 $RootMenu->AddMenuItem(62, "mmci_Documentos", $Language->MenuPhrase("62", "MenuText"), "", -1, "", IsLoggedIn(), FALSE, TRUE);
 $RootMenu->AddMenuItem(23, "mmi_documento_movimiento", $Language->MenuPhrase("23", "MenuText"), "documento_movimientolist.php", 62, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}documento_movimiento'), FALSE);
 $RootMenu->AddMenuItem(20, "mmi_documento_credito", $Language->MenuPhrase("20", "MenuText"), "documento_creditolist.php", 62, "", AllowListMenu('{ED86D3C1-3D94-420E-B7AB-FE366AE4A0C9}documento_credito'), FALSE);

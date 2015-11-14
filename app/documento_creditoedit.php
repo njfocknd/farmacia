@@ -714,6 +714,8 @@ class cdocumento_credito_edit extends cdocumento_credito {
 
 			// monto
 			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+			$this->monto->CellCssStyle .= "text-align: right;";
 			$this->monto->ViewCustomAttributes = "";
 
 			// fecha_insercion
@@ -722,7 +724,31 @@ class cdocumento_credito_edit extends cdocumento_credito {
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idproveedor
-			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			if (strval($this->idproveedor->CurrentValue) <> "") {
+				$sFilterWrk = "`idproveedor`" . ew_SearchString("=", $this->idproveedor->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproveedor`, `nombre_factura` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `proveedor`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproveedor, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproveedor->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+				}
+			} else {
+				$this->idproveedor->ViewValue = NULL;
+			}
 			$this->idproveedor->ViewCustomAttributes = "";
 
 			// serie
@@ -813,13 +839,34 @@ class cdocumento_credito_edit extends cdocumento_credito {
 			$this->monto->EditCustomAttributes = "";
 			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
 			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
 
 			// idproveedor
 			$this->idproveedor->EditAttrs["class"] = "form-control";
 			$this->idproveedor->EditCustomAttributes = "";
-			$this->idproveedor->EditValue = ew_HtmlEncode($this->idproveedor->CurrentValue);
-			$this->idproveedor->PlaceHolder = ew_RemoveHtml($this->idproveedor->FldCaption());
+			if (trim(strval($this->idproveedor->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idproveedor`" . ew_SearchString("=", $this->idproveedor->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idproveedor`, `nombre_factura` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `proveedor`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproveedor, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idproveedor->EditValue = $arwrk;
 
 			// Edit refer script
 			// serie
@@ -891,9 +938,6 @@ class cdocumento_credito_edit extends cdocumento_credito {
 		}
 		if (!$this->idproveedor->FldIsDetailKey && !is_null($this->idproveedor->FormValue) && $this->idproveedor->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idproveedor->FldCaption(), $this->idproveedor->ReqErrMsg));
-		}
-		if (!ew_CheckInteger($this->idproveedor->FormValue)) {
-			ew_AddMessage($gsFormError, $this->idproveedor->FldErrMsg());
 		}
 
 		// Validate detail grid
@@ -1242,9 +1286,6 @@ fdocumento_creditoedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_idproveedor");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $documento_credito->idproveedor->FldCaption(), $documento_credito->idproveedor->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_idproveedor");
-			if (elm && !ew_CheckInteger(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($documento_credito->idproveedor->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1281,8 +1322,9 @@ fdocumento_creditoedit.ValidateRequired = false;
 <?php } ?>
 
 // Dynamic selection lists
-// Form object for search
+fdocumento_creditoedit.Lists["x_idproveedor"] = {"LinkField":"x_idproveedor","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre_factura","","",""],"ParentFields":[],"FilterFields":[],"Options":[]};
 
+// Form object for search
 </script>
 <script type="text/javascript">
 
@@ -1418,7 +1460,37 @@ if (is_array($documento_credito->estado->EditValue)) {
 		<label id="elh_documento_credito_idproveedor" for="x_idproveedor" class="col-sm-2 control-label ewLabel"><?php echo $documento_credito->idproveedor->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="col-sm-10"><div<?php echo $documento_credito->idproveedor->CellAttributes() ?>>
 <span id="el_documento_credito_idproveedor">
-<input type="text" data-field="x_idproveedor" name="x_idproveedor" id="x_idproveedor" size="30" placeholder="<?php echo ew_HtmlEncode($documento_credito->idproveedor->PlaceHolder) ?>" value="<?php echo $documento_credito->idproveedor->EditValue ?>"<?php echo $documento_credito->idproveedor->EditAttributes() ?>>
+<select data-field="x_idproveedor" id="x_idproveedor" name="x_idproveedor"<?php echo $documento_credito->idproveedor->EditAttributes() ?>>
+<?php
+if (is_array($documento_credito->idproveedor->EditValue)) {
+	$arwrk = $documento_credito->idproveedor->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($documento_credito->idproveedor->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idproveedor`, `nombre_factura` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `proveedor`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$documento_credito->Lookup_Selecting($documento_credito->idproveedor, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+?>
+<input type="hidden" name="s_x_idproveedor" id="s_x_idproveedor" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproveedor` = {filter_value}"); ?>&amp;t0=3">
 </span>
 <?php echo $documento_credito->idproveedor->CustomMsg ?></div></div>
 	</div>

@@ -780,6 +780,8 @@ class cproducto_grid extends cproducto {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
+		if ($objForm->HasValue("x_codigo_barra") && $objForm->HasValue("o_codigo_barra") && $this->codigo_barra->CurrentValue <> $this->codigo_barra->OldValue)
+			return FALSE;
 		if ($objForm->HasValue("x_idcategoria") && $objForm->HasValue("o_idcategoria") && $this->idcategoria->CurrentValue <> $this->idcategoria->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_idmarca") && $objForm->HasValue("o_idmarca") && $this->idmarca->CurrentValue <> $this->idmarca->OldValue)
@@ -795,6 +797,8 @@ class cproducto_grid extends cproducto {
 		if ($objForm->HasValue("x_precio_venta") && $objForm->HasValue("o_precio_venta") && $this->precio_venta->CurrentValue <> $this->precio_venta->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_fecha_insercion") && $objForm->HasValue("o_fecha_insercion") && $this->fecha_insercion->CurrentValue <> $this->fecha_insercion->OldValue)
+			return FALSE;
+		if (!ew_Empty($this->foto->Upload->Value))
 			return FALSE;
 		return TRUE;
 	}
@@ -939,7 +943,7 @@ class cproducto_grid extends cproducto {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
 		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
@@ -1077,10 +1081,15 @@ class cproducto_grid extends cproducto {
 		global $objForm, $Language;
 
 		// Get upload data
+		$this->foto->Upload->Index = $objForm->Index;
+		$this->foto->Upload->UploadFile();
+		$this->foto->CurrentValue = $this->foto->Upload->FileName;
 	}
 
 	// Load default values
 	function LoadDefaultValues() {
+		$this->codigo_barra->CurrentValue = "1";
+		$this->codigo_barra->OldValue = $this->codigo_barra->CurrentValue;
 		$this->idcategoria->CurrentValue = 1;
 		$this->idcategoria->OldValue = $this->idcategoria->CurrentValue;
 		$this->idmarca->CurrentValue = 1;
@@ -1097,6 +1106,9 @@ class cproducto_grid extends cproducto {
 		$this->precio_venta->OldValue = $this->precio_venta->CurrentValue;
 		$this->fecha_insercion->CurrentValue = NULL;
 		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
+		$this->foto->Upload->DbValue = NULL;
+		$this->foto->OldValue = $this->foto->Upload->DbValue;
+		$this->foto->Upload->Index = $this->RowIndex;
 	}
 
 	// Load form values
@@ -1105,6 +1117,11 @@ class cproducto_grid extends cproducto {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
+		$this->GetUploadFiles(); // Get upload files
+		if (!$this->codigo_barra->FldIsDetailKey) {
+			$this->codigo_barra->setFormValue($objForm->GetValue("x_codigo_barra"));
+		}
+		$this->codigo_barra->setOldValue($objForm->GetValue("o_codigo_barra"));
 		if (!$this->idcategoria->FldIsDetailKey) {
 			$this->idcategoria->setFormValue($objForm->GetValue("x_idcategoria"));
 		}
@@ -1147,6 +1164,7 @@ class cproducto_grid extends cproducto {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->idproducto->CurrentValue = $this->idproducto->FormValue;
+		$this->codigo_barra->CurrentValue = $this->codigo_barra->FormValue;
 		$this->idcategoria->CurrentValue = $this->idcategoria->FormValue;
 		$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
@@ -1205,6 +1223,7 @@ class cproducto_grid extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->codigo_barra->setDbValue($rs->fields('codigo_barra'));
 		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
@@ -1214,6 +1233,9 @@ class cproducto_grid extends cproducto {
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->foto->Upload->DbValue = $rs->fields('foto');
+		$this->foto->CurrentValue = $this->foto->Upload->DbValue;
+		$this->foto->Upload->Index = $this->RowIndex;
 	}
 
 	// Load DbValue from recordset
@@ -1221,6 +1243,7 @@ class cproducto_grid extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->codigo_barra->DbValue = $row['codigo_barra'];
 		$this->idcategoria->DbValue = $row['idcategoria'];
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
@@ -1230,6 +1253,7 @@ class cproducto_grid extends cproducto {
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->foto->Upload->DbValue = $row['foto'];
 	}
 
 	// Load old record
@@ -1276,6 +1300,7 @@ class cproducto_grid extends cproducto {
 
 		// Common render codes for all row types
 		// idproducto
+		// codigo_barra
 		// idcategoria
 		// idmarca
 		// nombre
@@ -1285,12 +1310,17 @@ class cproducto_grid extends cproducto {
 		// precio_venta
 		// precio_compra
 		// fecha_insercion
+		// foto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idproducto
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->ViewValue = $this->codigo_barra->CurrentValue;
+			$this->codigo_barra->ViewCustomAttributes = "";
 
 			// idcategoria
 			if (strval($this->idcategoria->CurrentValue) <> "") {
@@ -1384,6 +1414,8 @@ class cproducto_grid extends cproducto {
 
 			// existencia
 			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewValue = ew_FormatNumber($this->existencia->ViewValue, 0, -2, -2, -2);
+			$this->existencia->CellCssStyle .= "text-align: right;";
 			$this->existencia->ViewCustomAttributes = "";
 
 			// estado
@@ -1405,18 +1437,41 @@ class cproducto_grid extends cproducto {
 
 			// precio_venta
 			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
-			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewValue = ew_FormatNumber($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->CellCssStyle .= "text-align: right;";
 			$this->precio_venta->ViewCustomAttributes = "";
 
 			// precio_compra
 			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
-			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+			$this->precio_compra->ViewValue = ew_FormatNumber($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->CellCssStyle .= "text-align: right;";
 			$this->precio_compra->ViewCustomAttributes = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->ViewValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->ViewValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->ViewValue = "";
+			}
+			$this->foto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->LinkCustomAttributes = "";
+			$this->codigo_barra->HrefValue = "";
+			$this->codigo_barra->TooltipValue = "";
 
 			// idcategoria
 			$this->idcategoria->LinkCustomAttributes = "";
@@ -1457,8 +1512,31 @@ class cproducto_grid extends cproducto {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// foto
+			$this->foto->LinkCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
+			$this->foto->TooltipValue = "";
+			if ($this->foto->UseColorbox) {
+				$this->foto->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->foto->LinkAttrs["data-rel"] = "producto_x" . $this->RowCnt . "_foto";
+				$this->foto->LinkAttrs["class"] = "ewLightbox";
+			}
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
+			// codigo_barra
+			$this->codigo_barra->EditAttrs["class"] = "form-control";
+			$this->codigo_barra->EditCustomAttributes = "";
+			$this->codigo_barra->EditValue = ew_HtmlEncode($this->codigo_barra->CurrentValue);
+			$this->codigo_barra->PlaceHolder = ew_RemoveHtml($this->codigo_barra->FldCaption());
+
 			// idcategoria
 			$this->idcategoria->EditAttrs["class"] = "form-control";
 			$this->idcategoria->EditCustomAttributes = "";
@@ -1642,9 +1720,32 @@ class cproducto_grid extends cproducto {
 			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
-			// Edit refer script
-			// idcategoria
+			// foto
+			$this->foto->EditAttrs["class"] = "form-control";
+			$this->foto->EditCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->EditValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->EditValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->EditValue = "";
+			}
+			if (!ew_Empty($this->foto->CurrentValue))
+				$this->foto->Upload->FileName = $this->foto->CurrentValue;
+			if (is_numeric($this->RowIndex) && !$this->EventCancelled) ew_RenderUploadField($this->foto, $this->RowIndex);
 
+			// Edit refer script
+			// codigo_barra
+
+			$this->codigo_barra->HrefValue = "";
+
+			// idcategoria
 			$this->idcategoria->HrefValue = "";
 
 			// idmarca
@@ -1667,8 +1768,24 @@ class cproducto_grid extends cproducto {
 
 			// fecha_insercion
 			$this->fecha_insercion->HrefValue = "";
+
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
+			// codigo_barra
+			$this->codigo_barra->EditAttrs["class"] = "form-control";
+			$this->codigo_barra->EditCustomAttributes = "";
+			$this->codigo_barra->EditValue = ew_HtmlEncode($this->codigo_barra->CurrentValue);
+			$this->codigo_barra->PlaceHolder = ew_RemoveHtml($this->codigo_barra->FldCaption());
+
 			// idcategoria
 			$this->idcategoria->EditAttrs["class"] = "form-control";
 			$this->idcategoria->EditCustomAttributes = "";
@@ -1852,9 +1969,32 @@ class cproducto_grid extends cproducto {
 			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
-			// Edit refer script
-			// idcategoria
+			// foto
+			$this->foto->EditAttrs["class"] = "form-control";
+			$this->foto->EditCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->EditValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->EditValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->EditValue = "";
+			}
+			if (!ew_Empty($this->foto->CurrentValue))
+				$this->foto->Upload->FileName = $this->foto->CurrentValue;
+			if (is_numeric($this->RowIndex) && !$this->EventCancelled) ew_RenderUploadField($this->foto, $this->RowIndex);
 
+			// Edit refer script
+			// codigo_barra
+
+			$this->codigo_barra->HrefValue = "";
+
+			// idcategoria
 			$this->idcategoria->HrefValue = "";
 
 			// idmarca
@@ -1877,6 +2017,16 @@ class cproducto_grid extends cproducto {
 
 			// fecha_insercion
 			$this->fecha_insercion->HrefValue = "";
+
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1896,6 +2046,9 @@ class cproducto_grid extends cproducto {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
+		if (!$this->codigo_barra->FldIsDetailKey && !is_null($this->codigo_barra->FormValue) && $this->codigo_barra->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->codigo_barra->FldCaption(), $this->codigo_barra->ReqErrMsg));
+		}
 		if (!$this->idcategoria->FldIsDetailKey && !is_null($this->idcategoria->FormValue) && $this->idcategoria->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idcategoria->FldCaption(), $this->idcategoria->ReqErrMsg));
 		}
@@ -2043,6 +2196,9 @@ class cproducto_grid extends cproducto {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
+			// codigo_barra
+			$this->codigo_barra->SetDbValueDef($rsnew, $this->codigo_barra->CurrentValue, "", $this->codigo_barra->ReadOnly);
+
 			// idcategoria
 			$this->idcategoria->SetDbValueDef($rsnew, $this->idcategoria->CurrentValue, 0, $this->idcategoria->ReadOnly);
 
@@ -2067,6 +2223,23 @@ class cproducto_grid extends cproducto {
 			// fecha_insercion
 			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
 
+			// foto
+			if (!($this->foto->ReadOnly) && !$this->foto->Upload->KeepFile) {
+				$this->foto->Upload->DbValue = $rsold['foto']; // Get original value
+				if ($this->foto->Upload->FileName == "") {
+					$rsnew['foto'] = NULL;
+				} else {
+					$rsnew['foto'] = $this->foto->Upload->FileName;
+				}
+				$this->foto->ImageWidth = 0; // Resize width
+				$this->foto->ImageHeight = 500; // Resize height
+			}
+			if (!$this->foto->Upload->KeepFile) {
+				if (!ew_Empty($this->foto->Upload->Value)) {
+					$rsnew['foto'] = ew_UploadFileNameEx(ew_UploadPathEx(TRUE, $this->foto->UploadPath), $rsnew['foto']); // Get new file name
+				}
+			}
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -2077,6 +2250,12 @@ class cproducto_grid extends cproducto {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
+					if (!$this->foto->Upload->KeepFile) {
+						if (!ew_Empty($this->foto->Upload->Value)) {
+							$this->foto->Upload->Resize($this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+							$this->foto->Upload->SaveToFile($this->foto->UploadPath, $rsnew['foto'], TRUE);
+						}
+					}
 				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -2099,6 +2278,9 @@ class cproducto_grid extends cproducto {
 			$this->WriteAuditTrailOnEdit($rsold, $rsnew);
 		}
 		$rs->Close();
+
+		// foto
+		ew_CleanUploadTempPath($this->foto, $this->foto->Upload->Index);
 		return $EditRow;
 	}
 
@@ -2119,6 +2301,9 @@ class cproducto_grid extends cproducto {
 			$this->LoadDbValues($rsold);
 		}
 		$rsnew = array();
+
+		// codigo_barra
+		$this->codigo_barra->SetDbValueDef($rsnew, $this->codigo_barra->CurrentValue, "", strval($this->codigo_barra->CurrentValue) == "");
 
 		// idcategoria
 		$this->idcategoria->SetDbValueDef($rsnew, $this->idcategoria->CurrentValue, 0, strval($this->idcategoria->CurrentValue) == "");
@@ -2144,6 +2329,23 @@ class cproducto_grid extends cproducto {
 		// fecha_insercion
 		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
 
+		// foto
+		if (!$this->foto->Upload->KeepFile) {
+			$this->foto->Upload->DbValue = ""; // No need to delete old file
+			if ($this->foto->Upload->FileName == "") {
+				$rsnew['foto'] = NULL;
+			} else {
+				$rsnew['foto'] = $this->foto->Upload->FileName;
+			}
+			$this->foto->ImageWidth = 0; // Resize width
+			$this->foto->ImageHeight = 500; // Resize height
+		}
+		if (!$this->foto->Upload->KeepFile) {
+			if (!ew_Empty($this->foto->Upload->Value)) {
+				$rsnew['foto'] = ew_UploadFileNameEx(ew_UploadPathEx(TRUE, $this->foto->UploadPath), $rsnew['foto']); // Get new file name
+			}
+		}
+
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
 		$bInsertRow = $this->Row_Inserting($rs, $rsnew);
@@ -2152,6 +2354,12 @@ class cproducto_grid extends cproducto {
 			$AddRow = $this->Insert($rsnew);
 			$conn->raiseErrorFn = '';
 			if ($AddRow) {
+				if (!$this->foto->Upload->KeepFile) {
+					if (!ew_Empty($this->foto->Upload->Value)) {
+						$this->foto->Upload->Resize($this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+						$this->foto->Upload->SaveToFile($this->foto->UploadPath, $rsnew['foto'], TRUE);
+					}
+				}
 			}
 		} else {
 			if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -2178,6 +2386,9 @@ class cproducto_grid extends cproducto {
 			$this->Row_Inserted($rs, $rsnew);
 			$this->WriteAuditTrailOnAdd($rsnew);
 		}
+
+		// foto
+		ew_CleanUploadTempPath($this->foto, $this->foto->Upload->Index);
 		return $AddRow;
 	}
 

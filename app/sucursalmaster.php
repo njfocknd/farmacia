@@ -3,9 +3,6 @@
 // nombre
 // idmunicipio
 // idempresa
-// credito
-// debito
-// fecha_insercion
 
 ?>
 <?php if ($sucursal->Visible) { ?>
@@ -41,39 +38,6 @@
 <span id="el_sucursal_idempresa" class="form-group">
 <span<?php echo $sucursal->idempresa->ViewAttributes() ?>>
 <?php echo $sucursal->idempresa->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($sucursal->credito->Visible) { // credito ?>
-		<tr id="r_credito">
-			<td><?php echo $sucursal->credito->FldCaption() ?></td>
-			<td<?php echo $sucursal->credito->CellAttributes() ?>>
-<span id="el_sucursal_credito" class="form-group">
-<span<?php echo $sucursal->credito->ViewAttributes() ?>>
-<?php echo $sucursal->credito->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($sucursal->debito->Visible) { // debito ?>
-		<tr id="r_debito">
-			<td><?php echo $sucursal->debito->FldCaption() ?></td>
-			<td<?php echo $sucursal->debito->CellAttributes() ?>>
-<span id="el_sucursal_debito" class="form-group">
-<span<?php echo $sucursal->debito->ViewAttributes() ?>>
-<?php echo $sucursal->debito->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($sucursal->fecha_insercion->Visible) { // fecha_insercion ?>
-		<tr id="r_fecha_insercion">
-			<td><?php echo $sucursal->fecha_insercion->FldCaption() ?></td>
-			<td<?php echo $sucursal->fecha_insercion->CellAttributes() ?>>
-<span id="el_sucursal_fecha_insercion" class="form-group">
-<span<?php echo $sucursal->fecha_insercion->ViewAttributes() ?>>
-<?php echo $sucursal->fecha_insercion->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

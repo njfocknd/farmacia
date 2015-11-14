@@ -14,6 +14,7 @@ class cdocumento_debito extends cTable {
 	var $serie;
 	var $correlativo;
 	var $fecha;
+	var $idcliente;
 	var $nombre;
 	var $direccion;
 	var $nit;
@@ -22,9 +23,9 @@ class cdocumento_debito extends cTable {
 	var $estado;
 	var $fecha_anulacion;
 	var $motivo_anulacion;
+	var $idmoneda;
 	var $monto;
 	var $fecha_insercion;
-	var $idcliente;
 	var $importe_bruto;
 	var $importe_descuento;
 	var $importe_exento;
@@ -34,6 +35,7 @@ class cdocumento_debito extends cTable {
 	var $importe_isr;
 	var $importe_total;
 	var $idfecha_contable;
+	var $tasa_cambio;
 
 	//
 	// Table class constructor
@@ -50,9 +52,9 @@ class cdocumento_debito extends cTable {
 		$this->ExportPageBreakCount = 0; // Page break per every n record (PDF only)
 		$this->ExportPageOrientation = "portrait"; // Page orientation (PDF only)
 		$this->ExportPageSize = "a4"; // Page size (PDF only)
-		$this->DetailAdd = TRUE; // Allow detail add
-		$this->DetailEdit = TRUE; // Allow detail edit
-		$this->DetailView = TRUE; // Allow detail view
+		$this->DetailAdd = FALSE; // Allow detail add
+		$this->DetailEdit = FALSE; // Allow detail edit
+		$this->DetailView = FALSE; // Allow detail view
 		$this->ShowMultipleDetails = FALSE; // Show multiple details
 		$this->GridAddRowCount = 5;
 		$this->AllowAddDeleteRow = ew_AllowAddDeleteRow(); // Allow add/delete row
@@ -92,6 +94,11 @@ class cdocumento_debito extends cTable {
 		$this->fecha->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha'] = &$this->fecha;
 
+		// idcliente
+		$this->idcliente = new cField('documento_debito', 'documento_debito', 'x_idcliente', 'idcliente', '`idcliente`', '`idcliente`', 3, -1, FALSE, '`idcliente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idcliente->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idcliente'] = &$this->idcliente;
+
 		// nombre
 		$this->nombre = new cField('documento_debito', 'documento_debito', 'x_nombre', 'nombre', '`nombre`', '`nombre`', 200, -1, FALSE, '`nombre`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['nombre'] = &$this->nombre;
@@ -125,6 +132,11 @@ class cdocumento_debito extends cTable {
 		$this->motivo_anulacion = new cField('documento_debito', 'documento_debito', 'x_motivo_anulacion', 'motivo_anulacion', '`motivo_anulacion`', '`motivo_anulacion`', 200, -1, FALSE, '`motivo_anulacion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fields['motivo_anulacion'] = &$this->motivo_anulacion;
 
+		// idmoneda
+		$this->idmoneda = new cField('documento_debito', 'documento_debito', 'x_idmoneda', 'idmoneda', '`idmoneda`', '`idmoneda`', 3, -1, FALSE, '`idmoneda`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->idmoneda->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['idmoneda'] = &$this->idmoneda;
+
 		// monto
 		$this->monto = new cField('documento_debito', 'documento_debito', 'x_monto', 'monto', '`monto`', '`monto`', 131, -1, FALSE, '`monto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->monto->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
@@ -134,11 +146,6 @@ class cdocumento_debito extends cTable {
 		$this->fecha_insercion = new cField('documento_debito', 'documento_debito', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
-
-		// idcliente
-		$this->idcliente = new cField('documento_debito', 'documento_debito', 'x_idcliente', 'idcliente', '`idcliente`', '`idcliente`', 3, -1, FALSE, '`idcliente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
-		$this->idcliente->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['idcliente'] = &$this->idcliente;
 
 		// importe_bruto
 		$this->importe_bruto = new cField('documento_debito', 'documento_debito', 'x_importe_bruto', 'importe_bruto', '`importe_bruto`', '`importe_bruto`', 131, -1, FALSE, '`importe_bruto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
@@ -184,6 +191,11 @@ class cdocumento_debito extends cTable {
 		$this->idfecha_contable = new cField('documento_debito', 'documento_debito', 'x_idfecha_contable', 'idfecha_contable', '`idfecha_contable`', '`idfecha_contable`', 3, -1, FALSE, '`idfecha_contable`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idfecha_contable->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idfecha_contable'] = &$this->idfecha_contable;
+
+		// tasa_cambio
+		$this->tasa_cambio = new cField('documento_debito', 'documento_debito', 'x_tasa_cambio', 'tasa_cambio', '`tasa_cambio`', '`tasa_cambio`', 131, -1, FALSE, '`tasa_cambio`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->tasa_cambio->FldDefaultErrMsg = $Language->Phrase("IncorrectFloat");
+		$this->fields['tasa_cambio'] = &$this->tasa_cambio;
 	}
 
 	// Single column sort
@@ -786,6 +798,7 @@ class cdocumento_debito extends cTable {
 		$this->serie->setDbValue($rs->fields('serie'));
 		$this->correlativo->setDbValue($rs->fields('correlativo'));
 		$this->fecha->setDbValue($rs->fields('fecha'));
+		$this->idcliente->setDbValue($rs->fields('idcliente'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
 		$this->direccion->setDbValue($rs->fields('direccion'));
 		$this->nit->setDbValue($rs->fields('nit'));
@@ -794,9 +807,9 @@ class cdocumento_debito extends cTable {
 		$this->estado->setDbValue($rs->fields('estado'));
 		$this->fecha_anulacion->setDbValue($rs->fields('fecha_anulacion'));
 		$this->motivo_anulacion->setDbValue($rs->fields('motivo_anulacion'));
+		$this->idmoneda->setDbValue($rs->fields('idmoneda'));
 		$this->monto->setDbValue($rs->fields('monto'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
-		$this->idcliente->setDbValue($rs->fields('idcliente'));
 		$this->importe_bruto->setDbValue($rs->fields('importe_bruto'));
 		$this->importe_descuento->setDbValue($rs->fields('importe_descuento'));
 		$this->importe_exento->setDbValue($rs->fields('importe_exento'));
@@ -806,6 +819,7 @@ class cdocumento_debito extends cTable {
 		$this->importe_isr->setDbValue($rs->fields('importe_isr'));
 		$this->importe_total->setDbValue($rs->fields('importe_total'));
 		$this->idfecha_contable->setDbValue($rs->fields('idfecha_contable'));
+		$this->tasa_cambio->setDbValue($rs->fields('tasa_cambio'));
 	}
 
 	// Render list row values
@@ -823,6 +837,7 @@ class cdocumento_debito extends cTable {
 		// serie
 		// correlativo
 		// fecha
+		// idcliente
 		// nombre
 		// direccion
 		// nit
@@ -831,9 +846,9 @@ class cdocumento_debito extends cTable {
 		// estado
 		// fecha_anulacion
 		// motivo_anulacion
+		// idmoneda
 		// monto
 		// fecha_insercion
-		// idcliente
 		// importe_bruto
 		// importe_descuento
 		// importe_exento
@@ -843,6 +858,7 @@ class cdocumento_debito extends cTable {
 		// importe_isr
 		// importe_total
 		// idfecha_contable
+		// tasa_cambio
 		// iddocumento_debito
 
 		$this->iddocumento_debito->ViewValue = $this->iddocumento_debito->CurrentValue;
@@ -947,6 +963,35 @@ class cdocumento_debito extends cTable {
 		$this->fecha->ViewValue = ew_FormatDateTime($this->fecha->ViewValue, 7);
 		$this->fecha->ViewCustomAttributes = "";
 
+		// idcliente
+		if (strval($this->idcliente->CurrentValue) <> "") {
+			$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
+		$sWhereWrk = "";
+		$lookuptblfilter = "`estado` = 'Activo'";
+		if (strval($lookuptblfilter) <> "") {
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		}
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idcliente->ViewValue = $rswrk->fields('DispFld');
+				$this->idcliente->ViewValue .= ew_ValueSeparator(1,$this->idcliente) . $rswrk->fields('Disp2Fld');
+				$rswrk->Close();
+			} else {
+				$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
+			}
+		} else {
+			$this->idcliente->ViewValue = NULL;
+		}
+		$this->idcliente->ViewCustomAttributes = "";
+
 		// nombre
 		$this->nombre->ViewValue = $this->nombre->CurrentValue;
 		$this->nombre->ViewCustomAttributes = "";
@@ -1009,43 +1054,40 @@ class cdocumento_debito extends cTable {
 		$this->motivo_anulacion->ViewValue = $this->motivo_anulacion->CurrentValue;
 		$this->motivo_anulacion->ViewCustomAttributes = "";
 
+		// idmoneda
+		if (strval($this->idmoneda->CurrentValue) <> "") {
+			$sFilterWrk = "`idmoneda`" . ew_SearchString("=", $this->idmoneda->CurrentValue, EW_DATATYPE_NUMBER);
+		$sSqlWrk = "SELECT `idmoneda`, `simbolo` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `moneda`";
+		$sWhereWrk = "";
+		if ($sFilterWrk <> "") {
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+		}
+
+		// Call Lookup selecting
+		$this->Lookup_Selecting($this->idmoneda, $sWhereWrk);
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = $conn->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$this->idmoneda->ViewValue = $rswrk->fields('DispFld');
+				$rswrk->Close();
+			} else {
+				$this->idmoneda->ViewValue = $this->idmoneda->CurrentValue;
+			}
+		} else {
+			$this->idmoneda->ViewValue = NULL;
+		}
+		$this->idmoneda->ViewCustomAttributes = "";
+
 		// monto
 		$this->monto->ViewValue = $this->monto->CurrentValue;
+		$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+		$this->monto->CellCssStyle .= "text-align: right;";
 		$this->monto->ViewCustomAttributes = "";
 
 		// fecha_insercion
 		$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
-
-		// idcliente
-		if (strval($this->idcliente->CurrentValue) <> "") {
-			$sFilterWrk = "`idcliente`" . ew_SearchString("=", $this->idcliente->CurrentValue, EW_DATATYPE_NUMBER);
-		$sSqlWrk = "SELECT `idcliente`, `nit` AS `DispFld`, `nombre_factura` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `cliente`";
-		$sWhereWrk = "";
-		$lookuptblfilter = "`estado` = 'Activo'";
-		if (strval($lookuptblfilter) <> "") {
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		}
-		if ($sFilterWrk <> "") {
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-		}
-
-		// Call Lookup selecting
-		$this->Lookup_Selecting($this->idcliente, $sWhereWrk);
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = $conn->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$this->idcliente->ViewValue = $rswrk->fields('DispFld');
-				$this->idcliente->ViewValue .= ew_ValueSeparator(1,$this->idcliente) . $rswrk->fields('Disp2Fld');
-				$rswrk->Close();
-			} else {
-				$this->idcliente->ViewValue = $this->idcliente->CurrentValue;
-			}
-		} else {
-			$this->idcliente->ViewValue = NULL;
-		}
-		$this->idcliente->ViewCustomAttributes = "";
 
 		// importe_bruto
 		$this->importe_bruto->ViewValue = $this->importe_bruto->CurrentValue;
@@ -1111,6 +1153,10 @@ class cdocumento_debito extends cTable {
 		}
 		$this->idfecha_contable->ViewCustomAttributes = "";
 
+		// tasa_cambio
+		$this->tasa_cambio->ViewValue = $this->tasa_cambio->CurrentValue;
+		$this->tasa_cambio->ViewCustomAttributes = "";
+
 		// iddocumento_debito
 		$this->iddocumento_debito->LinkCustomAttributes = "";
 		$this->iddocumento_debito->HrefValue = "";
@@ -1145,6 +1191,11 @@ class cdocumento_debito extends cTable {
 		$this->fecha->LinkCustomAttributes = "";
 		$this->fecha->HrefValue = "";
 		$this->fecha->TooltipValue = "";
+
+		// idcliente
+		$this->idcliente->LinkCustomAttributes = "";
+		$this->idcliente->HrefValue = "";
+		$this->idcliente->TooltipValue = "";
 
 		// nombre
 		$this->nombre->LinkCustomAttributes = "";
@@ -1186,6 +1237,11 @@ class cdocumento_debito extends cTable {
 		$this->motivo_anulacion->HrefValue = "";
 		$this->motivo_anulacion->TooltipValue = "";
 
+		// idmoneda
+		$this->idmoneda->LinkCustomAttributes = "";
+		$this->idmoneda->HrefValue = "";
+		$this->idmoneda->TooltipValue = "";
+
 		// monto
 		$this->monto->LinkCustomAttributes = "";
 		$this->monto->HrefValue = "";
@@ -1195,11 +1251,6 @@ class cdocumento_debito extends cTable {
 		$this->fecha_insercion->LinkCustomAttributes = "";
 		$this->fecha_insercion->HrefValue = "";
 		$this->fecha_insercion->TooltipValue = "";
-
-		// idcliente
-		$this->idcliente->LinkCustomAttributes = "";
-		$this->idcliente->HrefValue = "";
-		$this->idcliente->TooltipValue = "";
 
 		// importe_bruto
 		$this->importe_bruto->LinkCustomAttributes = "";
@@ -1245,6 +1296,11 @@ class cdocumento_debito extends cTable {
 		$this->idfecha_contable->LinkCustomAttributes = "";
 		$this->idfecha_contable->HrefValue = "";
 		$this->idfecha_contable->TooltipValue = "";
+
+		// tasa_cambio
+		$this->tasa_cambio->LinkCustomAttributes = "";
+		$this->tasa_cambio->HrefValue = "";
+		$this->tasa_cambio->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -1385,6 +1441,10 @@ class cdocumento_debito extends cTable {
 		$this->fecha->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha->CurrentValue, 7));
 		$this->fecha->PlaceHolder = ew_RemoveHtml($this->fecha->FldCaption());
 
+		// idcliente
+		$this->idcliente->EditAttrs["class"] = "form-control";
+		$this->idcliente->EditCustomAttributes = "";
+
 		// nombre
 		$this->nombre->EditAttrs["class"] = "form-control";
 		$this->nombre->EditCustomAttributes = "";
@@ -1440,22 +1500,22 @@ class cdocumento_debito extends cTable {
 		$this->motivo_anulacion->EditValue = ew_HtmlEncode($this->motivo_anulacion->CurrentValue);
 		$this->motivo_anulacion->PlaceHolder = ew_RemoveHtml($this->motivo_anulacion->FldCaption());
 
+		// idmoneda
+		$this->idmoneda->EditAttrs["class"] = "form-control";
+		$this->idmoneda->EditCustomAttributes = "";
+
 		// monto
 		$this->monto->EditAttrs["class"] = "form-control";
 		$this->monto->EditCustomAttributes = "";
 		$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
 		$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
-		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -1, -2, 0);
+		if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) $this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
 
 		// fecha_insercion
 		$this->fecha_insercion->EditAttrs["class"] = "form-control";
 		$this->fecha_insercion->EditCustomAttributes = "";
 		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
-		// idcliente
-		$this->idcliente->EditAttrs["class"] = "form-control";
-		$this->idcliente->EditCustomAttributes = "";
 
 		// importe_bruto
 		$this->importe_bruto->EditAttrs["class"] = "form-control";
@@ -1517,6 +1577,13 @@ class cdocumento_debito extends cTable {
 		$this->idfecha_contable->EditAttrs["class"] = "form-control";
 		$this->idfecha_contable->EditCustomAttributes = "";
 
+		// tasa_cambio
+		$this->tasa_cambio->EditAttrs["class"] = "form-control";
+		$this->tasa_cambio->EditCustomAttributes = "";
+		$this->tasa_cambio->EditValue = ew_HtmlEncode($this->tasa_cambio->CurrentValue);
+		$this->tasa_cambio->PlaceHolder = ew_RemoveHtml($this->tasa_cambio->FldCaption());
+		if (strval($this->tasa_cambio->EditValue) <> "" && is_numeric($this->tasa_cambio->EditValue)) $this->tasa_cambio->EditValue = ew_FormatNumber($this->tasa_cambio->EditValue, -2, -1, -2, 0);
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -1548,6 +1615,7 @@ class cdocumento_debito extends cTable {
 					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
 					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
 					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
+					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
 					if ($this->nit->Exportable) $Doc->ExportCaption($this->nit);
@@ -1556,9 +1624,9 @@ class cdocumento_debito extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_anulacion->Exportable) $Doc->ExportCaption($this->fecha_anulacion);
 					if ($this->motivo_anulacion->Exportable) $Doc->ExportCaption($this->motivo_anulacion);
+					if ($this->idmoneda->Exportable) $Doc->ExportCaption($this->idmoneda);
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
-					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
 					if ($this->importe_bruto->Exportable) $Doc->ExportCaption($this->importe_bruto);
 					if ($this->importe_descuento->Exportable) $Doc->ExportCaption($this->importe_descuento);
 					if ($this->importe_exento->Exportable) $Doc->ExportCaption($this->importe_exento);
@@ -1568,6 +1636,7 @@ class cdocumento_debito extends cTable {
 					if ($this->importe_isr->Exportable) $Doc->ExportCaption($this->importe_isr);
 					if ($this->importe_total->Exportable) $Doc->ExportCaption($this->importe_total);
 					if ($this->idfecha_contable->Exportable) $Doc->ExportCaption($this->idfecha_contable);
+					if ($this->tasa_cambio->Exportable) $Doc->ExportCaption($this->tasa_cambio);
 				} else {
 					if ($this->iddocumento_debito->Exportable) $Doc->ExportCaption($this->iddocumento_debito);
 					if ($this->idtipo_documento->Exportable) $Doc->ExportCaption($this->idtipo_documento);
@@ -1576,6 +1645,7 @@ class cdocumento_debito extends cTable {
 					if ($this->serie->Exportable) $Doc->ExportCaption($this->serie);
 					if ($this->correlativo->Exportable) $Doc->ExportCaption($this->correlativo);
 					if ($this->fecha->Exportable) $Doc->ExportCaption($this->fecha);
+					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
 					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
 					if ($this->nit->Exportable) $Doc->ExportCaption($this->nit);
@@ -1584,9 +1654,9 @@ class cdocumento_debito extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 					if ($this->fecha_anulacion->Exportable) $Doc->ExportCaption($this->fecha_anulacion);
 					if ($this->motivo_anulacion->Exportable) $Doc->ExportCaption($this->motivo_anulacion);
+					if ($this->idmoneda->Exportable) $Doc->ExportCaption($this->idmoneda);
 					if ($this->monto->Exportable) $Doc->ExportCaption($this->monto);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
-					if ($this->idcliente->Exportable) $Doc->ExportCaption($this->idcliente);
 					if ($this->importe_bruto->Exportable) $Doc->ExportCaption($this->importe_bruto);
 					if ($this->importe_descuento->Exportable) $Doc->ExportCaption($this->importe_descuento);
 					if ($this->importe_exento->Exportable) $Doc->ExportCaption($this->importe_exento);
@@ -1596,6 +1666,7 @@ class cdocumento_debito extends cTable {
 					if ($this->importe_isr->Exportable) $Doc->ExportCaption($this->importe_isr);
 					if ($this->importe_total->Exportable) $Doc->ExportCaption($this->importe_total);
 					if ($this->idfecha_contable->Exportable) $Doc->ExportCaption($this->idfecha_contable);
+					if ($this->tasa_cambio->Exportable) $Doc->ExportCaption($this->tasa_cambio);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1634,6 +1705,7 @@ class cdocumento_debito extends cTable {
 						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
 						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
 						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
+						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
 						if ($this->nit->Exportable) $Doc->ExportField($this->nit);
@@ -1642,9 +1714,9 @@ class cdocumento_debito extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_anulacion->Exportable) $Doc->ExportField($this->fecha_anulacion);
 						if ($this->motivo_anulacion->Exportable) $Doc->ExportField($this->motivo_anulacion);
+						if ($this->idmoneda->Exportable) $Doc->ExportField($this->idmoneda);
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
-						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
 						if ($this->importe_bruto->Exportable) $Doc->ExportField($this->importe_bruto);
 						if ($this->importe_descuento->Exportable) $Doc->ExportField($this->importe_descuento);
 						if ($this->importe_exento->Exportable) $Doc->ExportField($this->importe_exento);
@@ -1654,6 +1726,7 @@ class cdocumento_debito extends cTable {
 						if ($this->importe_isr->Exportable) $Doc->ExportField($this->importe_isr);
 						if ($this->importe_total->Exportable) $Doc->ExportField($this->importe_total);
 						if ($this->idfecha_contable->Exportable) $Doc->ExportField($this->idfecha_contable);
+						if ($this->tasa_cambio->Exportable) $Doc->ExportField($this->tasa_cambio);
 					} else {
 						if ($this->iddocumento_debito->Exportable) $Doc->ExportField($this->iddocumento_debito);
 						if ($this->idtipo_documento->Exportable) $Doc->ExportField($this->idtipo_documento);
@@ -1662,6 +1735,7 @@ class cdocumento_debito extends cTable {
 						if ($this->serie->Exportable) $Doc->ExportField($this->serie);
 						if ($this->correlativo->Exportable) $Doc->ExportField($this->correlativo);
 						if ($this->fecha->Exportable) $Doc->ExportField($this->fecha);
+						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
 						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
 						if ($this->nit->Exportable) $Doc->ExportField($this->nit);
@@ -1670,9 +1744,9 @@ class cdocumento_debito extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 						if ($this->fecha_anulacion->Exportable) $Doc->ExportField($this->fecha_anulacion);
 						if ($this->motivo_anulacion->Exportable) $Doc->ExportField($this->motivo_anulacion);
+						if ($this->idmoneda->Exportable) $Doc->ExportField($this->idmoneda);
 						if ($this->monto->Exportable) $Doc->ExportField($this->monto);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
-						if ($this->idcliente->Exportable) $Doc->ExportField($this->idcliente);
 						if ($this->importe_bruto->Exportable) $Doc->ExportField($this->importe_bruto);
 						if ($this->importe_descuento->Exportable) $Doc->ExportField($this->importe_descuento);
 						if ($this->importe_exento->Exportable) $Doc->ExportField($this->importe_exento);
@@ -1682,6 +1756,7 @@ class cdocumento_debito extends cTable {
 						if ($this->importe_isr->Exportable) $Doc->ExportField($this->importe_isr);
 						if ($this->importe_total->Exportable) $Doc->ExportField($this->importe_total);
 						if ($this->idfecha_contable->Exportable) $Doc->ExportField($this->idfecha_contable);
+						if ($this->tasa_cambio->Exportable) $Doc->ExportField($this->tasa_cambio);
 					}
 					$Doc->EndExportRow();
 				}

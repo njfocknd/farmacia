@@ -83,6 +83,9 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 	var $GridEditUrl;
 	var $MultiDeleteUrl;
 	var $MultiUpdateUrl;
+	var $AuditTrailOnAdd = TRUE;
+	var $AuditTrailOnEdit = TRUE;
+	var $AuditTrailOnDelete = TRUE;
 
 	// Message
 	function getMessage() {
@@ -331,6 +334,9 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		if ($Security->IsLoggedIn()) $Security->LoadUserID();
 		$Security->UserID_Loaded();
 
+		// Create form object
+		$objForm = new cFormObj();
+
 		// Get export parameters
 		$custom = "";
 		if (@$_GET["export"] <> "") {
@@ -527,6 +533,55 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 			if ($this->Export == "")
 				$this->SetupBreadcrumb();
 
+			// Check QueryString parameters
+			if (@$_GET["a"] <> "") {
+				$this->CurrentAction = $_GET["a"];
+
+				// Clear inline mode
+				if ($this->CurrentAction == "cancel")
+					$this->ClearInlineMode();
+
+				// Switch to grid edit mode
+				if ($this->CurrentAction == "gridedit")
+					$this->GridEditMode();
+
+				// Switch to grid add mode
+				if ($this->CurrentAction == "gridadd")
+					$this->GridAddMode();
+			} else {
+				if (@$_POST["a_list"] <> "") {
+					$this->CurrentAction = $_POST["a_list"]; // Get action
+
+					// Grid Update
+					if (($this->CurrentAction == "gridupdate" || $this->CurrentAction == "gridoverwrite") && @$_SESSION[EW_SESSION_INLINE_MODE] == "gridedit") {
+						if ($this->ValidateGridForm()) {
+							$bGridUpdate = $this->GridUpdate();
+						} else {
+							$bGridUpdate = FALSE;
+							$this->setFailureMessage($gsFormError);
+						}
+						if (!$bGridUpdate) {
+							$this->EventCancelled = TRUE;
+							$this->CurrentAction = "gridedit"; // Stay in Grid Edit mode
+						}
+					}
+
+					// Grid Insert
+					if ($this->CurrentAction == "gridinsert" && @$_SESSION[EW_SESSION_INLINE_MODE] == "gridadd") {
+						if ($this->ValidateGridForm()) {
+							$bGridInsert = $this->GridInsert();
+						} else {
+							$bGridInsert = FALSE;
+							$this->setFailureMessage($gsFormError);
+						}
+						if (!$bGridInsert) {
+							$this->EventCancelled = TRUE;
+							$this->CurrentAction = "gridadd"; // Stay in Grid Add mode
+						}
+					}
+				}
+			}
+
 			// Hide list options
 			if ($this->Export <> "") {
 				$this->ListOptions->HideAllOptions(array("sequence"));
@@ -546,6 +601,14 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 			if ($this->Export <> "") {
 				foreach ($this->OtherOptions as &$option)
 					$option->HideAllOptions();
+			}
+
+			// Show grid delete link for grid add / grid edit
+			if ($this->AllowAddDeleteRow) {
+				if ($this->CurrentAction == "gridadd" || $this->CurrentAction == "gridedit") {
+					$item = $this->ListOptions->GetItem("griddelete");
+					if ($item) $item->Visible = TRUE;
+				}
 			}
 
 			// Set up sorting order
@@ -613,6 +676,129 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		$this->SetupSearchOptions();
 	}
 
+	//  Exit inline mode
+	function ClearInlineMode() {
+		$this->precio->FormValue = ""; // Clear form value
+		$this->monto->FormValue = ""; // Clear form value
+		$this->LastAction = $this->CurrentAction; // Save last action
+		$this->CurrentAction = ""; // Clear action
+		$_SESSION[EW_SESSION_INLINE_MODE] = ""; // Clear inline mode
+	}
+
+	// Switch to Grid Add mode
+	function GridAddMode() {
+		$_SESSION[EW_SESSION_INLINE_MODE] = "gridadd"; // Enabled grid add
+	}
+
+	// Switch to Grid Edit mode
+	function GridEditMode() {
+		$_SESSION[EW_SESSION_INLINE_MODE] = "gridedit"; // Enable grid edit
+	}
+
+	// Perform update to grid
+	function GridUpdate() {
+		global $conn, $Language, $objForm, $gsFormError;
+		$bGridUpdate = TRUE;
+
+		// Get old recordset
+		$this->CurrentFilter = $this->BuildKeyFilter();
+		if ($this->CurrentFilter == "")
+			$this->CurrentFilter = "0=1";
+		$sSql = $this->SQL();
+		if ($rs = $conn->Execute($sSql)) {
+			$rsold = $rs->GetRows();
+			$rs->Close();
+		}
+
+		// Call Grid Updating event
+		if (!$this->Grid_Updating($rsold)) {
+			if ($this->getFailureMessage() == "")
+				$this->setFailureMessage($Language->Phrase("GridEditCancelled")); // Set grid edit cancelled message
+			return FALSE;
+		}
+
+		// Begin transaction
+		$conn->BeginTrans();
+		if ($this->AuditTrailOnEdit) $this->WriteAuditTrailDummy($Language->Phrase("BatchUpdateBegin")); // Batch update begin
+		$sKey = "";
+
+		// Update row index and get row key
+		$objForm->Index = -1;
+		$rowcnt = strval($objForm->GetValue($this->FormKeyCountName));
+		if ($rowcnt == "" || !is_numeric($rowcnt))
+			$rowcnt = 0;
+
+		// Update all rows based on key
+		for ($rowindex = 1; $rowindex <= $rowcnt; $rowindex++) {
+			$objForm->Index = $rowindex;
+			$rowkey = strval($objForm->GetValue($this->FormKeyName));
+			$rowaction = strval($objForm->GetValue($this->FormActionName));
+
+			// Load all values and keys
+			if ($rowaction <> "insertdelete") { // Skip insert then deleted rows
+				$this->LoadFormValues(); // Get form values
+				if ($rowaction == "" || $rowaction == "edit" || $rowaction == "delete") {
+					$bGridUpdate = $this->SetupKeyValues($rowkey); // Set up key values
+				} else {
+					$bGridUpdate = TRUE;
+				}
+
+				// Skip empty row
+				if ($rowaction == "insert" && $this->EmptyRow()) {
+
+					// No action required
+				// Validate form and insert/update/delete record
+
+				} elseif ($bGridUpdate) {
+					if ($rowaction == "delete") {
+						$this->CurrentFilter = $this->KeyFilter();
+						$bGridUpdate = $this->DeleteRows(); // Delete this row
+					} else if (!$this->ValidateForm()) {
+						$bGridUpdate = FALSE; // Form error, reset action
+						$this->setFailureMessage($gsFormError);
+					} else {
+						if ($rowaction == "insert") {
+							$bGridUpdate = $this->AddRow(); // Insert this row
+						} else {
+							if ($rowkey <> "") {
+								$this->SendEmail = FALSE; // Do not send email on update success
+								$bGridUpdate = $this->EditRow(); // Update this row
+							}
+						} // End update
+					}
+				}
+				if ($bGridUpdate) {
+					if ($sKey <> "") $sKey .= ", ";
+					$sKey .= $rowkey;
+				} else {
+					break;
+				}
+			}
+		}
+		if ($bGridUpdate) {
+			$conn->CommitTrans(); // Commit transaction
+
+			// Get new recordset
+			if ($rs = $conn->Execute($sSql)) {
+				$rsnew = $rs->GetRows();
+				$rs->Close();
+			}
+
+			// Call Grid_Updated event
+			$this->Grid_Updated($rsold, $rsnew);
+			if ($this->AuditTrailOnEdit) $this->WriteAuditTrailDummy($Language->Phrase("BatchUpdateSuccess")); // Batch update success
+			if ($this->getSuccessMessage() == "")
+				$this->setSuccessMessage($Language->Phrase("UpdateSuccess")); // Set up update success message
+			$this->ClearInlineMode(); // Clear inline edit mode
+		} else {
+			$conn->RollbackTrans(); // Rollback transaction
+			if ($this->AuditTrailOnEdit) $this->WriteAuditTrailDummy($Language->Phrase("BatchUpdateRollback")); // Batch update rollback
+			if ($this->getFailureMessage() == "")
+				$this->setFailureMessage($Language->Phrase("UpdateFailed")); // Set update failed message
+		}
+		return $bGridUpdate;
+	}
+
 	// Build filter for all keys
 	function BuildKeyFilter() {
 		global $objForm;
@@ -649,6 +835,185 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 				return FALSE;
 		}
 		return TRUE;
+	}
+
+	// Perform Grid Add
+	function GridInsert() {
+		global $conn, $Language, $objForm, $gsFormError;
+		$rowindex = 1;
+		$bGridInsert = FALSE;
+
+		// Call Grid Inserting event
+		if (!$this->Grid_Inserting()) {
+			if ($this->getFailureMessage() == "") {
+				$this->setFailureMessage($Language->Phrase("GridAddCancelled")); // Set grid add cancelled message
+			}
+			return FALSE;
+		}
+
+		// Begin transaction
+		$conn->BeginTrans();
+
+		// Init key filter
+		$sWrkFilter = "";
+		$addcnt = 0;
+		if ($this->AuditTrailOnAdd) $this->WriteAuditTrailDummy($Language->Phrase("BatchInsertBegin")); // Batch insert begin
+		$sKey = "";
+
+		// Get row count
+		$objForm->Index = -1;
+		$rowcnt = strval($objForm->GetValue($this->FormKeyCountName));
+		if ($rowcnt == "" || !is_numeric($rowcnt))
+			$rowcnt = 0;
+
+		// Insert all rows
+		for ($rowindex = 1; $rowindex <= $rowcnt; $rowindex++) {
+
+			// Load current row values
+			$objForm->Index = $rowindex;
+			$rowaction = strval($objForm->GetValue($this->FormActionName));
+			if ($rowaction <> "" && $rowaction <> "insert")
+				continue; // Skip
+			$this->LoadFormValues(); // Get form values
+			if (!$this->EmptyRow()) {
+				$addcnt++;
+				$this->SendEmail = FALSE; // Do not send email on insert success
+
+				// Validate form
+				if (!$this->ValidateForm()) {
+					$bGridInsert = FALSE; // Form error, reset action
+					$this->setFailureMessage($gsFormError);
+				} else {
+					$bGridInsert = $this->AddRow($this->OldRecordset); // Insert this row
+				}
+				if ($bGridInsert) {
+					if ($sKey <> "") $sKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
+					$sKey .= $this->iddetalle_documento_debito->CurrentValue;
+
+					// Add filter for this record
+					$sFilter = $this->KeyFilter();
+					if ($sWrkFilter <> "") $sWrkFilter .= " OR ";
+					$sWrkFilter .= $sFilter;
+				} else {
+					break;
+				}
+			}
+		}
+		if ($addcnt == 0) { // No record inserted
+			$this->setFailureMessage($Language->Phrase("NoAddRecord"));
+			$bGridInsert = FALSE;
+		}
+		if ($bGridInsert) {
+			$conn->CommitTrans(); // Commit transaction
+
+			// Get new recordset
+			$this->CurrentFilter = $sWrkFilter;
+			$sSql = $this->SQL();
+			if ($rs = $conn->Execute($sSql)) {
+				$rsnew = $rs->GetRows();
+				$rs->Close();
+			}
+
+			// Call Grid_Inserted event
+			$this->Grid_Inserted($rsnew);
+			if ($this->AuditTrailOnAdd) $this->WriteAuditTrailDummy($Language->Phrase("BatchInsertSuccess")); // Batch insert success
+			if ($this->getSuccessMessage() == "")
+				$this->setSuccessMessage($Language->Phrase("InsertSuccess")); // Set up insert success message
+			$this->ClearInlineMode(); // Clear grid add mode
+		} else {
+			$conn->RollbackTrans(); // Rollback transaction
+			if ($this->AuditTrailOnAdd) $this->WriteAuditTrailDummy($Language->Phrase("BatchInsertRollback")); // Batch insert rollback
+			if ($this->getFailureMessage() == "") {
+				$this->setFailureMessage($Language->Phrase("InsertFailed")); // Set insert failed message
+			}
+		}
+		return $bGridInsert;
+	}
+
+	// Check if empty row
+	function EmptyRow() {
+		global $objForm;
+		if ($objForm->HasValue("x_iddocumento_debito") && $objForm->HasValue("o_iddocumento_debito") && $this->iddocumento_debito->CurrentValue <> $this->iddocumento_debito->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_idproducto") && $objForm->HasValue("o_idproducto") && $this->idproducto->CurrentValue <> $this->idproducto->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_idbodega") && $objForm->HasValue("o_idbodega") && $this->idbodega->CurrentValue <> $this->idbodega->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_cantidad") && $objForm->HasValue("o_cantidad") && $this->cantidad->CurrentValue <> $this->cantidad->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_precio") && $objForm->HasValue("o_precio") && $this->precio->CurrentValue <> $this->precio->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_monto") && $objForm->HasValue("o_monto") && $this->monto->CurrentValue <> $this->monto->OldValue)
+			return FALSE;
+		return TRUE;
+	}
+
+	// Validate grid form
+	function ValidateGridForm() {
+		global $objForm;
+
+		// Get row count
+		$objForm->Index = -1;
+		$rowcnt = strval($objForm->GetValue($this->FormKeyCountName));
+		if ($rowcnt == "" || !is_numeric($rowcnt))
+			$rowcnt = 0;
+
+		// Validate all records
+		for ($rowindex = 1; $rowindex <= $rowcnt; $rowindex++) {
+
+			// Load current row values
+			$objForm->Index = $rowindex;
+			$rowaction = strval($objForm->GetValue($this->FormActionName));
+			if ($rowaction <> "delete" && $rowaction <> "insertdelete") {
+				$this->LoadFormValues(); // Get form values
+				if ($rowaction == "insert" && $this->EmptyRow()) {
+
+					// Ignore
+				} else if (!$this->ValidateForm()) {
+					return FALSE;
+				}
+			}
+		}
+		return TRUE;
+	}
+
+	// Get all form values of the grid
+	function GetGridFormValues() {
+		global $objForm;
+
+		// Get row count
+		$objForm->Index = -1;
+		$rowcnt = strval($objForm->GetValue($this->FormKeyCountName));
+		if ($rowcnt == "" || !is_numeric($rowcnt))
+			$rowcnt = 0;
+		$rows = array();
+
+		// Loop through all records
+		for ($rowindex = 1; $rowindex <= $rowcnt; $rowindex++) {
+
+			// Load current row values
+			$objForm->Index = $rowindex;
+			$rowaction = strval($objForm->GetValue($this->FormActionName));
+			if ($rowaction <> "delete" && $rowaction <> "insertdelete") {
+				$this->LoadFormValues(); // Get form values
+				if ($rowaction == "insert" && $this->EmptyRow()) {
+
+					// Ignore
+				} else {
+					$rows[] = $this->GetFieldValues("FormValue"); // Return row as array
+				}
+			}
+		}
+		return $rows; // Return as array of array
+	}
+
+	// Restore form values for current row
+	function RestoreCurrentRowFormValues($idx) {
+		global $objForm;
+
+		// Get row based on current index
+		$objForm->Index = $idx;
+		$this->LoadFormValues(); // Load form values
 	}
 
 	// Set up sort parameters
@@ -718,6 +1083,14 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 	function SetupListOptions() {
 		global $Security, $Language;
 
+		// "griddelete"
+		if ($this->AllowAddDeleteRow) {
+			$item = &$this->ListOptions->Add("griddelete");
+			$item->CssStyle = "white-space: nowrap;";
+			$item->OnLeft = FALSE;
+			$item->Visible = FALSE; // Default hidden
+		}
+
 		// Add group option item
 		$item = &$this->ListOptions->Add($this->ListOptions->GroupOptionName);
 		$item->Body = "";
@@ -746,9 +1119,9 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
-		$this->ListOptions->UseButtonGroup = TRUE;
+		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
 			$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->ButtonClass = "btn-sm"; // Class for button group
@@ -764,6 +1137,38 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 	function RenderListOptions() {
 		global $Security, $Language, $objForm;
 		$this->ListOptions->LoadDefault();
+
+		// Set up row action and key
+		if (is_numeric($this->RowIndex) && $this->CurrentMode <> "view") {
+			$objForm->Index = $this->RowIndex;
+			$ActionName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormActionName);
+			$OldKeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormOldKeyName);
+			$KeyName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormKeyName);
+			$BlankRowName = str_replace("k_", "k" . $this->RowIndex . "_", $this->FormBlankRowName);
+			if ($this->RowAction <> "")
+				$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $ActionName . "\" id=\"" . $ActionName . "\" value=\"" . $this->RowAction . "\">";
+			if ($this->RowAction == "delete") {
+				$rowkey = $objForm->GetValue($this->FormKeyName);
+				$this->SetupKeyValues($rowkey);
+			}
+			if ($this->RowAction == "insert" && $this->CurrentAction == "F" && $this->EmptyRow())
+				$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $BlankRowName . "\" id=\"" . $BlankRowName . "\" value=\"1\">";
+		}
+
+		// "delete"
+		if ($this->AllowAddDeleteRow) {
+			if ($this->CurrentAction == "gridadd" || $this->CurrentAction == "gridedit") {
+				$option = &$this->ListOptions;
+				$option->UseButtonGroup = TRUE; // Use button group for grid delete button
+				$option->UseImageAndText = TRUE; // Use image and text for grid delete button
+				$oListOpt = &$option->Items["griddelete"];
+				if (is_numeric($this->RowIndex) && ($this->RowAction == "" || $this->RowAction == "edit")) { // Do not allow delete existing record
+					$oListOpt->Body = "&nbsp;";
+				} else {
+					$oListOpt->Body = "<a class=\"ewGridLink ewGridDelete\" title=\"" . ew_HtmlTitle($Language->Phrase("DeleteLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("DeleteLink")) . "\" href=\"javascript:void(0);\" onclick=\"ew_DeleteGridRow(this, " . $this->RowIndex . ");\">" . $Language->Phrase("DeleteLink") . "</a>";
+				}
+			}
+		}
 
 		// "view"
 		$oListOpt = &$this->ListOptions->Items["view"];
@@ -783,6 +1188,9 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
 		$oListOpt->Body = "<input type=\"checkbox\" name=\"key_m[]\" value=\"" . ew_HtmlEncode($this->iddetalle_documento_debito->CurrentValue) . "\" onclick='ew_ClickMultiCheckbox(event, this);'>";
+		if ($this->CurrentAction == "gridedit" && is_numeric($this->RowIndex)) {
+			$this->MultiSelectKey .= "<input type=\"hidden\" name=\"" . $KeyName . "\" id=\"" . $KeyName . "\" value=\"" . $this->iddetalle_documento_debito->CurrentValue . "\">";
+		}
 		$this->RenderListOptionsExt();
 
 		// Call ListOptions_Rendered event
@@ -799,6 +1207,15 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		$item = &$option->Add("add");
 		$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddLink")) . "\" href=\"" . ew_HtmlEncode($this->AddUrl) . "\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
+		$item = &$option->Add("gridadd");
+		$item->Body = "<a class=\"ewAddEdit ewGridAdd\" title=\"" . ew_HtmlTitle($Language->Phrase("GridAddLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("GridAddLink")) . "\" href=\"" . ew_HtmlEncode($this->GridAddUrl) . "\">" . $Language->Phrase("GridAddLink") . "</a>";
+		$item->Visible = ($this->GridAddUrl <> "" && $Security->CanAdd());
+
+		// Add grid edit
+		$option = $options["addedit"];
+		$item = &$option->Add("gridedit");
+		$item->Body = "<a class=\"ewAddEdit ewGridEdit\" title=\"" . ew_HtmlTitle($Language->Phrase("GridEditLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("GridEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GridEditUrl) . "\">" . $Language->Phrase("GridEditLink") . "</a>";
+		$item->Visible = ($this->GridEditUrl <> "" && $Security->CanEdit());
 		$option = $options["action"];
 
 		// Set up options default
@@ -820,6 +1237,7 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 	function RenderOtherOptions() {
 		global $Language, $Security;
 		$options = &$this->OtherOptions;
+		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "gridedit") { // Not grid add/edit mode
 			$option = &$options["action"];
 			foreach ($this->CustomActions as $action => $name) {
 
@@ -839,6 +1257,54 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 				$item = &$option->GetItem("multiupdate");
 				if ($item) $item->Visible = FALSE;
 			}
+		} else { // Grid add/edit mode
+
+			// Hide all options first
+			foreach ($options as &$option)
+				$option->HideAllOptions();
+			if ($this->CurrentAction == "gridadd") {
+				if ($this->AllowAddDeleteRow) {
+
+					// Add add blank row
+					$option = &$options["addedit"];
+					$option->UseDropDownButton = FALSE;
+					$option->UseImageAndText = TRUE;
+					$item = &$option->Add("addblankrow");
+					$item->Body = "<a class=\"ewAddEdit ewAddBlankRow\" title=\"" . ew_HtmlTitle($Language->Phrase("AddBlankRow")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddBlankRow")) . "\" href=\"javascript:void(0);\" onclick=\"ew_AddGridRow(this);\">" . $Language->Phrase("AddBlankRow") . "</a>";
+					$item->Visible = $Security->CanAdd();
+				}
+				$option = &$options["action"];
+				$option->UseDropDownButton = FALSE;
+				$option->UseImageAndText = TRUE;
+
+				// Add grid insert
+				$item = &$option->Add("gridinsert");
+				$item->Body = "<a class=\"ewAction ewGridInsert\" title=\"" . ew_HtmlTitle($Language->Phrase("GridInsertLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("GridInsertLink")) . "\" href=\"\" onclick=\"return ewForms(this).Submit();\">" . $Language->Phrase("GridInsertLink") . "</a>";
+
+				// Add grid cancel
+				$item = &$option->Add("gridcancel");
+				$item->Body = "<a class=\"ewAction ewGridCancel\" title=\"" . ew_HtmlTitle($Language->Phrase("GridCancelLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("GridCancelLink")) . "\" href=\"" . $this->PageUrl() . "a=cancel\">" . $Language->Phrase("GridCancelLink") . "</a>";
+			}
+			if ($this->CurrentAction == "gridedit") {
+				if ($this->AllowAddDeleteRow) {
+
+					// Add add blank row
+					$option = &$options["addedit"];
+					$option->UseDropDownButton = FALSE;
+					$option->UseImageAndText = TRUE;
+					$item = &$option->Add("addblankrow");
+					$item->Body = "<a class=\"ewAddEdit ewAddBlankRow\" title=\"" . ew_HtmlTitle($Language->Phrase("AddBlankRow")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("AddBlankRow")) . "\" href=\"javascript:void(0);\" onclick=\"ew_AddGridRow(this);\">" . $Language->Phrase("AddBlankRow") . "</a>";
+					$item->Visible = $Security->CanAdd();
+				}
+				$option = &$options["action"];
+				$option->UseDropDownButton = FALSE;
+				$option->UseImageAndText = TRUE;
+					$item = &$option->Add("gridsave");
+					$item->Body = "<a class=\"ewAction ewGridSave\" title=\"" . ew_HtmlTitle($Language->Phrase("GridSaveLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("GridSaveLink")) . "\" href=\"\" onclick=\"return ewForms(this).Submit();\">" . $Language->Phrase("GridSaveLink") . "</a>";
+					$item = &$option->Add("gridcancel");
+					$item->Body = "<a class=\"ewAction ewGridCancel\" title=\"" . ew_HtmlTitle($Language->Phrase("GridCancelLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("GridCancelLink")) . "\" href=\"" . $this->PageUrl() . "a=cancel\">" . $Language->Phrase("GridCancelLink") . "</a>";
+			}
+		}
 	}
 
 	// Process custom action
@@ -953,6 +1419,68 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 			$this->StartRec = intval(($this->StartRec-1)/$this->DisplayRecs)*$this->DisplayRecs+1; // Point to page boundary
 			$this->setStartRecordNumber($this->StartRec);
 		}
+	}
+
+	// Load default values
+	function LoadDefaultValues() {
+		$this->iddocumento_debito->CurrentValue = 1;
+		$this->iddocumento_debito->OldValue = $this->iddocumento_debito->CurrentValue;
+		$this->idproducto->CurrentValue = 1;
+		$this->idproducto->OldValue = $this->idproducto->CurrentValue;
+		$this->idbodega->CurrentValue = 1;
+		$this->idbodega->OldValue = $this->idbodega->CurrentValue;
+		$this->cantidad->CurrentValue = 0;
+		$this->cantidad->OldValue = $this->cantidad->CurrentValue;
+		$this->precio->CurrentValue = 0.00;
+		$this->precio->OldValue = $this->precio->CurrentValue;
+		$this->monto->CurrentValue = 0.00;
+		$this->monto->OldValue = $this->monto->CurrentValue;
+	}
+
+	// Load form values
+	function LoadFormValues() {
+
+		// Load from form
+		global $objForm;
+		if (!$this->iddocumento_debito->FldIsDetailKey) {
+			$this->iddocumento_debito->setFormValue($objForm->GetValue("x_iddocumento_debito"));
+		}
+		$this->iddocumento_debito->setOldValue($objForm->GetValue("o_iddocumento_debito"));
+		if (!$this->idproducto->FldIsDetailKey) {
+			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
+		}
+		$this->idproducto->setOldValue($objForm->GetValue("o_idproducto"));
+		if (!$this->idbodega->FldIsDetailKey) {
+			$this->idbodega->setFormValue($objForm->GetValue("x_idbodega"));
+		}
+		$this->idbodega->setOldValue($objForm->GetValue("o_idbodega"));
+		if (!$this->cantidad->FldIsDetailKey) {
+			$this->cantidad->setFormValue($objForm->GetValue("x_cantidad"));
+		}
+		$this->cantidad->setOldValue($objForm->GetValue("o_cantidad"));
+		if (!$this->precio->FldIsDetailKey) {
+			$this->precio->setFormValue($objForm->GetValue("x_precio"));
+		}
+		$this->precio->setOldValue($objForm->GetValue("o_precio"));
+		if (!$this->monto->FldIsDetailKey) {
+			$this->monto->setFormValue($objForm->GetValue("x_monto"));
+		}
+		$this->monto->setOldValue($objForm->GetValue("o_monto"));
+		if (!$this->iddetalle_documento_debito->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->iddetalle_documento_debito->setFormValue($objForm->GetValue("x_iddetalle_documento_debito"));
+	}
+
+	// Restore form values
+	function RestoreFormValues() {
+		global $objForm;
+		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->iddetalle_documento_debito->CurrentValue = $this->iddetalle_documento_debito->FormValue;
+		$this->iddocumento_debito->CurrentValue = $this->iddocumento_debito->FormValue;
+		$this->idproducto->CurrentValue = $this->idproducto->FormValue;
+		$this->idbodega->CurrentValue = $this->idbodega->FormValue;
+		$this->cantidad->CurrentValue = $this->cantidad->FormValue;
+		$this->precio->CurrentValue = $this->precio->FormValue;
+		$this->monto->CurrentValue = $this->monto->FormValue;
 	}
 
 	// Load recordset
@@ -1201,14 +1729,20 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 
 			// cantidad
 			$this->cantidad->ViewValue = $this->cantidad->CurrentValue;
+			$this->cantidad->ViewValue = ew_FormatNumber($this->cantidad->ViewValue, 0, -2, -2, -2);
+			$this->cantidad->CellCssStyle .= "text-align: right;";
 			$this->cantidad->ViewCustomAttributes = "";
 
 			// precio
 			$this->precio->ViewValue = $this->precio->CurrentValue;
+			$this->precio->ViewValue = ew_FormatNumber($this->precio->ViewValue, 2, -2, -2, -2);
+			$this->precio->CellCssStyle .= "text-align: right;";
 			$this->precio->ViewCustomAttributes = "";
 
 			// monto
 			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+			$this->monto->CellCssStyle .= "text-align: right;";
 			$this->monto->ViewCustomAttributes = "";
 
 			// estado
@@ -1290,11 +1824,616 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
+		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
+
+			// iddocumento_debito
+			$this->iddocumento_debito->EditAttrs["class"] = "form-control";
+			$this->iddocumento_debito->EditCustomAttributes = "";
+			if ($this->iddocumento_debito->getSessionValue() <> "") {
+				$this->iddocumento_debito->CurrentValue = $this->iddocumento_debito->getSessionValue();
+				$this->iddocumento_debito->OldValue = $this->iddocumento_debito->CurrentValue;
+			if (strval($this->iddocumento_debito->CurrentValue) <> "") {
+				$sFilterWrk = "`iddocumento_debito`" . ew_SearchString("=", $this->iddocumento_debito->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_debito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddocumento_debito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `correlativo`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->iddocumento_debito->ViewValue = $rswrk->fields('DispFld');
+					$this->iddocumento_debito->ViewValue .= ew_ValueSeparator(2,$this->iddocumento_debito) . $rswrk->fields('Disp3Fld');
+					$rswrk->Close();
+				} else {
+					$this->iddocumento_debito->ViewValue = $this->iddocumento_debito->CurrentValue;
+				}
+			} else {
+				$this->iddocumento_debito->ViewValue = NULL;
+			}
+			$this->iddocumento_debito->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->iddocumento_debito->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`iddocumento_debito`" . ew_SearchString("=", $this->iddocumento_debito->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `documento_debito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddocumento_debito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `correlativo`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->iddocumento_debito->EditValue = $arwrk;
+			}
+
+			// idproducto
+			$this->idproducto->EditAttrs["class"] = "form-control";
+			$this->idproducto->EditCustomAttributes = "";
+			if (trim(strval($this->idproducto->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idproducto->EditValue = $arwrk;
+
+			// idbodega
+			$this->idbodega->EditAttrs["class"] = "form-control";
+			$this->idbodega->EditCustomAttributes = "";
+			if (trim(strval($this->idbodega->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `bodega`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbodega, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `descripcion`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idbodega->EditValue = $arwrk;
+
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
+			// precio
+			$this->precio->EditAttrs["class"] = "form-control";
+			$this->precio->EditCustomAttributes = "";
+			$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
+			$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
+			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) {
+			$this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -2, -2, -2);
+			$this->precio->OldValue = $this->precio->EditValue;
+			}
+
+			// monto
+			$this->monto->EditAttrs["class"] = "form-control";
+			$this->monto->EditCustomAttributes = "";
+			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
+			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) {
+			$this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
+			$this->monto->OldValue = $this->monto->EditValue;
+			}
+
+			// Edit refer script
+			// iddocumento_debito
+
+			$this->iddocumento_debito->HrefValue = "";
+
+			// idproducto
+			$this->idproducto->HrefValue = "";
+
+			// idbodega
+			$this->idbodega->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
+
+			// precio
+			$this->precio->HrefValue = "";
+
+			// monto
+			$this->monto->HrefValue = "";
+		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
+
+			// iddocumento_debito
+			$this->iddocumento_debito->EditAttrs["class"] = "form-control";
+			$this->iddocumento_debito->EditCustomAttributes = "";
+			if ($this->iddocumento_debito->getSessionValue() <> "") {
+				$this->iddocumento_debito->CurrentValue = $this->iddocumento_debito->getSessionValue();
+				$this->iddocumento_debito->OldValue = $this->iddocumento_debito->CurrentValue;
+			if (strval($this->iddocumento_debito->CurrentValue) <> "") {
+				$sFilterWrk = "`iddocumento_debito`" . ew_SearchString("=", $this->iddocumento_debito->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_debito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddocumento_debito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `correlativo`";
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->iddocumento_debito->ViewValue = $rswrk->fields('DispFld');
+					$this->iddocumento_debito->ViewValue .= ew_ValueSeparator(2,$this->iddocumento_debito) . $rswrk->fields('Disp3Fld');
+					$rswrk->Close();
+				} else {
+					$this->iddocumento_debito->ViewValue = $this->iddocumento_debito->CurrentValue;
+				}
+			} else {
+				$this->iddocumento_debito->ViewValue = NULL;
+			}
+			$this->iddocumento_debito->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->iddocumento_debito->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`iddocumento_debito`" . ew_SearchString("=", $this->iddocumento_debito->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `documento_debito`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->iddocumento_debito, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `correlativo`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->iddocumento_debito->EditValue = $arwrk;
+			}
+
+			// idproducto
+			$this->idproducto->EditAttrs["class"] = "form-control";
+			$this->idproducto->EditCustomAttributes = "";
+			if (trim(strval($this->idproducto->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idproducto`" . ew_SearchString("=", $this->idproducto->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `producto`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproducto, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idproducto->EditValue = $arwrk;
+
+			// idbodega
+			$this->idbodega->EditAttrs["class"] = "form-control";
+			$this->idbodega->EditCustomAttributes = "";
+			if (trim(strval($this->idbodega->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`idbodega`" . ew_SearchString("=", $this->idbodega->CurrentValue, EW_DATATYPE_NUMBER);
+			}
+			$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `bodega`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idbodega, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `descripcion`";
+			$rswrk = $conn->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect"), "", "", "", "", "", "", ""));
+			$this->idbodega->EditValue = $arwrk;
+
+			// cantidad
+			$this->cantidad->EditAttrs["class"] = "form-control";
+			$this->cantidad->EditCustomAttributes = "";
+			$this->cantidad->EditValue = ew_HtmlEncode($this->cantidad->CurrentValue);
+			$this->cantidad->PlaceHolder = ew_RemoveHtml($this->cantidad->FldCaption());
+
+			// precio
+			$this->precio->EditAttrs["class"] = "form-control";
+			$this->precio->EditCustomAttributes = "";
+			$this->precio->EditValue = ew_HtmlEncode($this->precio->CurrentValue);
+			$this->precio->PlaceHolder = ew_RemoveHtml($this->precio->FldCaption());
+			if (strval($this->precio->EditValue) <> "" && is_numeric($this->precio->EditValue)) {
+			$this->precio->EditValue = ew_FormatNumber($this->precio->EditValue, -2, -2, -2, -2);
+			$this->precio->OldValue = $this->precio->EditValue;
+			}
+
+			// monto
+			$this->monto->EditAttrs["class"] = "form-control";
+			$this->monto->EditCustomAttributes = "";
+			$this->monto->EditValue = ew_HtmlEncode($this->monto->CurrentValue);
+			$this->monto->PlaceHolder = ew_RemoveHtml($this->monto->FldCaption());
+			if (strval($this->monto->EditValue) <> "" && is_numeric($this->monto->EditValue)) {
+			$this->monto->EditValue = ew_FormatNumber($this->monto->EditValue, -2, -2, -2, -2);
+			$this->monto->OldValue = $this->monto->EditValue;
+			}
+
+			// Edit refer script
+			// iddocumento_debito
+
+			$this->iddocumento_debito->HrefValue = "";
+
+			// idproducto
+			$this->idproducto->HrefValue = "";
+
+			// idbodega
+			$this->idbodega->HrefValue = "";
+
+			// cantidad
+			$this->cantidad->HrefValue = "";
+
+			// precio
+			$this->precio->HrefValue = "";
+
+			// monto
+			$this->monto->HrefValue = "";
+		}
+		if ($this->RowType == EW_ROWTYPE_ADD ||
+			$this->RowType == EW_ROWTYPE_EDIT ||
+			$this->RowType == EW_ROWTYPE_SEARCH) { // Add / Edit / Search row
+			$this->SetupFieldTitles();
 		}
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Validate form
+	function ValidateForm() {
+		global $Language, $gsFormError;
+
+		// Initialize form error message
+		$gsFormError = "";
+
+		// Check if validation required
+		if (!EW_SERVER_VALIDATE)
+			return ($gsFormError == "");
+		if (!$this->iddocumento_debito->FldIsDetailKey && !is_null($this->iddocumento_debito->FormValue) && $this->iddocumento_debito->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->iddocumento_debito->FldCaption(), $this->iddocumento_debito->ReqErrMsg));
+		}
+		if (!$this->idproducto->FldIsDetailKey && !is_null($this->idproducto->FormValue) && $this->idproducto->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idproducto->FldCaption(), $this->idproducto->ReqErrMsg));
+		}
+		if (!$this->idbodega->FldIsDetailKey && !is_null($this->idbodega->FormValue) && $this->idbodega->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->idbodega->FldCaption(), $this->idbodega->ReqErrMsg));
+		}
+		if (!$this->cantidad->FldIsDetailKey && !is_null($this->cantidad->FormValue) && $this->cantidad->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->cantidad->FldCaption(), $this->cantidad->ReqErrMsg));
+		}
+		if (!ew_CheckInteger($this->cantidad->FormValue)) {
+			ew_AddMessage($gsFormError, $this->cantidad->FldErrMsg());
+		}
+		if (!$this->precio->FldIsDetailKey && !is_null($this->precio->FormValue) && $this->precio->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->precio->FldCaption(), $this->precio->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->precio->FormValue)) {
+			ew_AddMessage($gsFormError, $this->precio->FldErrMsg());
+		}
+		if (!$this->monto->FldIsDetailKey && !is_null($this->monto->FormValue) && $this->monto->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->monto->FldCaption(), $this->monto->ReqErrMsg));
+		}
+		if (!ew_CheckNumber($this->monto->FormValue)) {
+			ew_AddMessage($gsFormError, $this->monto->FldErrMsg());
+		}
+
+		// Return validate result
+		$ValidateForm = ($gsFormError == "");
+
+		// Call Form_CustomValidate event
+		$sFormCustomError = "";
+		$ValidateForm = $ValidateForm && $this->Form_CustomValidate($sFormCustomError);
+		if ($sFormCustomError <> "") {
+			ew_AddMessage($gsFormError, $sFormCustomError);
+		}
+		return $ValidateForm;
+	}
+
+	//
+	// Delete records based on current filter
+	//
+	function DeleteRows() {
+		global $conn, $Language, $Security;
+		if (!$Security->CanDelete()) {
+			$this->setFailureMessage($Language->Phrase("NoDeletePermission")); // No delete permission
+			return FALSE;
+		}
+		$DeleteRows = TRUE;
+		$sSql = $this->SQL();
+		$conn->raiseErrorFn = 'ew_ErrorFn';
+		$rs = $conn->Execute($sSql);
+		$conn->raiseErrorFn = '';
+		if ($rs === FALSE) {
+			return FALSE;
+		} elseif ($rs->EOF) {
+			$this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
+			$rs->Close();
+			return FALSE;
+
+		//} else {
+		//	$this->LoadRowValues($rs); // Load row values
+
+		}
+		$rows = ($rs) ? $rs->GetRows() : array();
+		if ($this->AuditTrailOnDelete) $this->WriteAuditTrailDummy($Language->Phrase("BatchDeleteBegin")); // Batch delete begin
+
+		// Clone old rows
+		$rsold = $rows;
+		if ($rs)
+			$rs->Close();
+
+		// Call row deleting event
+		if ($DeleteRows) {
+			foreach ($rsold as $row) {
+				$DeleteRows = $this->Row_Deleting($row);
+				if (!$DeleteRows) break;
+			}
+		}
+		if ($DeleteRows) {
+			$sKey = "";
+			foreach ($rsold as $row) {
+				$sThisKey = "";
+				if ($sThisKey <> "") $sThisKey .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
+				$sThisKey .= $row['iddetalle_documento_debito'];
+				$conn->raiseErrorFn = 'ew_ErrorFn';
+				$DeleteRows = $this->Delete($row); // Delete
+				$conn->raiseErrorFn = '';
+				if ($DeleteRows === FALSE)
+					break;
+				if ($sKey <> "") $sKey .= ", ";
+				$sKey .= $sThisKey;
+			}
+		} else {
+
+			// Set up error message
+			if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
+
+				// Use the message, do nothing
+			} elseif ($this->CancelMessage <> "") {
+				$this->setFailureMessage($this->CancelMessage);
+				$this->CancelMessage = "";
+			} else {
+				$this->setFailureMessage($Language->Phrase("DeleteCancelled"));
+			}
+		}
+		if ($DeleteRows) {
+			if ($DeleteRows) {
+				foreach ($rsold as $row)
+					$this->WriteAuditTrailOnDelete($row);
+			}
+		} else {
+		}
+
+		// Call Row Deleted event
+		if ($DeleteRows) {
+			foreach ($rsold as $row) {
+				$this->Row_Deleted($row);
+			}
+		}
+		return $DeleteRows;
+	}
+
+	// Update record based on key values
+	function EditRow() {
+		global $conn, $Security, $Language;
+		$sFilter = $this->KeyFilter();
+		$this->CurrentFilter = $sFilter;
+		$sSql = $this->SQL();
+		$conn->raiseErrorFn = 'ew_ErrorFn';
+		$rs = $conn->Execute($sSql);
+		$conn->raiseErrorFn = '';
+		if ($rs === FALSE)
+			return FALSE;
+		if ($rs->EOF) {
+			$EditRow = FALSE; // Update Failed
+		} else {
+
+			// Save old values
+			$rsold = &$rs->fields;
+			$this->LoadDbValues($rsold);
+			$rsnew = array();
+
+			// iddocumento_debito
+			$this->iddocumento_debito->SetDbValueDef($rsnew, $this->iddocumento_debito->CurrentValue, 0, $this->iddocumento_debito->ReadOnly);
+
+			// idproducto
+			$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, $this->idproducto->ReadOnly);
+
+			// idbodega
+			$this->idbodega->SetDbValueDef($rsnew, $this->idbodega->CurrentValue, 0, $this->idbodega->ReadOnly);
+
+			// cantidad
+			$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, $this->cantidad->ReadOnly);
+
+			// precio
+			$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, $this->precio->ReadOnly);
+
+			// monto
+			$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, $this->monto->ReadOnly);
+
+			// Call Row Updating event
+			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
+			if ($bUpdateRow) {
+				$conn->raiseErrorFn = 'ew_ErrorFn';
+				if (count($rsnew) > 0)
+					$EditRow = $this->Update($rsnew, "", $rsold);
+				else
+					$EditRow = TRUE; // No field to update
+				$conn->raiseErrorFn = '';
+				if ($EditRow) {
+				}
+			} else {
+				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
+
+					// Use the message, do nothing
+				} elseif ($this->CancelMessage <> "") {
+					$this->setFailureMessage($this->CancelMessage);
+					$this->CancelMessage = "";
+				} else {
+					$this->setFailureMessage($Language->Phrase("UpdateCancelled"));
+				}
+				$EditRow = FALSE;
+			}
+		}
+
+		// Call Row_Updated event
+		if ($EditRow)
+			$this->Row_Updated($rsold, $rsnew);
+		if ($EditRow) {
+			$this->WriteAuditTrailOnEdit($rsold, $rsnew);
+		}
+		$rs->Close();
+		return $EditRow;
+	}
+
+	// Add record
+	function AddRow($rsold = NULL) {
+		global $conn, $Language, $Security;
+
+		// Load db values from rsold
+		if ($rsold) {
+			$this->LoadDbValues($rsold);
+		}
+		$rsnew = array();
+
+		// iddocumento_debito
+		$this->iddocumento_debito->SetDbValueDef($rsnew, $this->iddocumento_debito->CurrentValue, 0, strval($this->iddocumento_debito->CurrentValue) == "");
+
+		// idproducto
+		$this->idproducto->SetDbValueDef($rsnew, $this->idproducto->CurrentValue, 0, strval($this->idproducto->CurrentValue) == "");
+
+		// idbodega
+		$this->idbodega->SetDbValueDef($rsnew, $this->idbodega->CurrentValue, 0, strval($this->idbodega->CurrentValue) == "");
+
+		// cantidad
+		$this->cantidad->SetDbValueDef($rsnew, $this->cantidad->CurrentValue, 0, strval($this->cantidad->CurrentValue) == "");
+
+		// precio
+		$this->precio->SetDbValueDef($rsnew, $this->precio->CurrentValue, 0, strval($this->precio->CurrentValue) == "");
+
+		// monto
+		$this->monto->SetDbValueDef($rsnew, $this->monto->CurrentValue, 0, strval($this->monto->CurrentValue) == "");
+
+		// Call Row Inserting event
+		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
+		$bInsertRow = $this->Row_Inserting($rs, $rsnew);
+		if ($bInsertRow) {
+			$conn->raiseErrorFn = 'ew_ErrorFn';
+			$AddRow = $this->Insert($rsnew);
+			$conn->raiseErrorFn = '';
+			if ($AddRow) {
+			}
+		} else {
+			if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
+
+				// Use the message, do nothing
+			} elseif ($this->CancelMessage <> "") {
+				$this->setFailureMessage($this->CancelMessage);
+				$this->CancelMessage = "";
+			} else {
+				$this->setFailureMessage($Language->Phrase("InsertCancelled"));
+			}
+			$AddRow = FALSE;
+		}
+
+		// Get insert id if necessary
+		if ($AddRow) {
+			$this->iddetalle_documento_debito->setDbValue($conn->Insert_ID());
+			$rsnew['iddetalle_documento_debito'] = $this->iddetalle_documento_debito->DbValue;
+		}
+		if ($AddRow) {
+
+			// Call Row Inserted event
+			$rs = ($rsold == NULL) ? NULL : $rsold->fields;
+			$this->Row_Inserted($rs, $rsnew);
+			$this->WriteAuditTrailOnAdd($rsnew);
+		}
+		return $AddRow;
 	}
 
 	// Set up export options
@@ -1512,6 +2651,112 @@ class cdetalle_documento_debito_list extends cdetalle_documento_debito {
 		ew_WriteAuditTrail("log", ew_StdCurrentDateTime(), ew_ScriptName(), $usr, $typ, $table, "", "", "", "");
 	}
 
+	// Write Audit Trail (add page)
+	function WriteAuditTrailOnAdd(&$rs) {
+		if (!$this->AuditTrailOnAdd) return;
+		$table = 'detalle_documento_debito';
+
+		// Get key value
+		$key = "";
+		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
+		$key .= $rs['iddetalle_documento_debito'];
+
+		// Write Audit Trail
+		$dt = ew_StdCurrentDateTime();
+		$id = ew_ScriptName();
+	  $usr = CurrentUserID();
+		foreach (array_keys($rs) as $fldname) {
+			if ($this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
+				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) {
+					if (EW_AUDIT_TRAIL_TO_DATABASE)
+						$newvalue = $rs[$fldname];
+					else
+						$newvalue = "[MEMO]"; // Memo Field
+				} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) {
+					$newvalue = "[XML]"; // XML Field
+				} else {
+					$newvalue = $rs[$fldname];
+				}
+				ew_WriteAuditTrail("log", $dt, $id, $usr, "A", $table, $fldname, $key, "", $newvalue);
+			}
+		}
+	}
+
+	// Write Audit Trail (edit page)
+	function WriteAuditTrailOnEdit(&$rsold, &$rsnew) {
+		if (!$this->AuditTrailOnEdit) return;
+		$table = 'detalle_documento_debito';
+
+		// Get key value
+		$key = "";
+		if ($key <> "") $key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
+		$key .= $rsold['iddetalle_documento_debito'];
+
+		// Write Audit Trail
+		$dt = ew_StdCurrentDateTime();
+		$id = ew_ScriptName();
+	  $usr = CurrentUserID();
+		foreach (array_keys($rsnew) as $fldname) {
+			if ($this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
+				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_DATE) { // DateTime field
+					$modified = (ew_FormatDateTime($rsold[$fldname], 0) <> ew_FormatDateTime($rsnew[$fldname], 0));
+				} else {
+					$modified = !ew_CompareValue($rsold[$fldname], $rsnew[$fldname]);
+				}
+				if ($modified) {
+					if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) { // Memo field
+						if (EW_AUDIT_TRAIL_TO_DATABASE) {
+							$oldvalue = $rsold[$fldname];
+							$newvalue = $rsnew[$fldname];
+						} else {
+							$oldvalue = "[MEMO]";
+							$newvalue = "[MEMO]";
+						}
+					} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) { // XML field
+						$oldvalue = "[XML]";
+						$newvalue = "[XML]";
+					} else {
+						$oldvalue = $rsold[$fldname];
+						$newvalue = $rsnew[$fldname];
+					}
+					ew_WriteAuditTrail("log", $dt, $id, $usr, "U", $table, $fldname, $key, $oldvalue, $newvalue);
+				}
+			}
+		}
+	}
+
+	// Write Audit Trail (delete page)
+	function WriteAuditTrailOnDelete(&$rs) {
+		if (!$this->AuditTrailOnDelete) return;
+		$table = 'detalle_documento_debito';
+
+		// Get key value
+		$key = "";
+		if ($key <> "")
+			$key .= $GLOBALS["EW_COMPOSITE_KEY_SEPARATOR"];
+		$key .= $rs['iddetalle_documento_debito'];
+
+		// Write Audit Trail
+		$dt = ew_StdCurrentDateTime();
+		$id = ew_ScriptName();
+	  $curUser = CurrentUserID();
+		foreach (array_keys($rs) as $fldname) {
+			if (array_key_exists($fldname, $this->fields) && $this->fields[$fldname]->FldDataType <> EW_DATATYPE_BLOB) { // Ignore BLOB fields
+				if ($this->fields[$fldname]->FldDataType == EW_DATATYPE_MEMO) {
+					if (EW_AUDIT_TRAIL_TO_DATABASE)
+						$oldvalue = $rs[$fldname];
+					else
+						$oldvalue = "[MEMO]"; // Memo field
+				} elseif ($this->fields[$fldname]->FldDataType == EW_DATATYPE_XML) {
+					$oldvalue = "[XML]"; // XML field
+				} else {
+					$oldvalue = $rs[$fldname];
+				}
+				ew_WriteAuditTrail("log", $dt, $id, $curUser, "D", $table, $fldname, $key, $oldvalue, "");
+			}
+		}
+	}
+
 	// Page Load event
 	function Page_Load() {
 
@@ -1663,6 +2908,80 @@ var EW_PAGE_ID = detalle_documento_debito_list.PageID; // For backward compatibi
 var fdetalle_documento_debitolist = new ew_Form("fdetalle_documento_debitolist");
 fdetalle_documento_debitolist.FormKeyCountName = '<?php echo $detalle_documento_debito_list->FormKeyCountName ?>';
 
+// Validate form
+fdetalle_documento_debitolist.Validate = function() {
+	if (!this.ValidateRequired)
+		return true; // Ignore validation
+	var $ = jQuery, fobj = this.GetForm(), $fobj = $(fobj);
+	this.PostAutoSuggest();
+	if ($fobj.find("#a_confirm").val() == "F")
+		return true;
+	var elm, felm, uelm, addcnt = 0;
+	var $k = $fobj.find("#" + this.FormKeyCountName); // Get key_count
+	var rowcnt = ($k[0]) ? parseInt($k.val(), 10) : 1;
+	var startcnt = (rowcnt == 0) ? 0 : 1; // Check rowcnt == 0 => Inline-Add
+	var gridinsert = $fobj.find("#a_list").val() == "gridinsert";
+	for (var i = startcnt; i <= rowcnt; i++) {
+		var infix = ($k[0]) ? String(i) : "";
+		$fobj.data("rowindex", infix);
+		var checkrow = (gridinsert) ? !this.EmptyRow(infix) : true;
+		if (checkrow) {
+			addcnt++;
+			elm = this.GetElements("x" + infix + "_iddocumento_debito");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_debito->iddocumento_debito->FldCaption(), $detalle_documento_debito->iddocumento_debito->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idproducto");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_debito->idproducto->FldCaption(), $detalle_documento_debito->idproducto->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_idbodega");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_debito->idbodega->FldCaption(), $detalle_documento_debito->idbodega->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_debito->cantidad->FldCaption(), $detalle_documento_debito->cantidad->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_cantidad");
+			if (elm && !ew_CheckInteger(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_debito->cantidad->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_debito->precio->FldCaption(), $detalle_documento_debito->precio->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_precio");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_debito->precio->FldErrMsg()) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $detalle_documento_debito->monto->FldCaption(), $detalle_documento_debito->monto->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_monto");
+			if (elm && !ew_CheckNumber(elm.value))
+				return this.OnError(elm, "<?php echo ew_JsEncode2($detalle_documento_debito->monto->FldErrMsg()) ?>");
+
+			// Set up row object
+			ew_ElementsToRow(fobj);
+
+			// Fire Form_CustomValidate event
+			if (!this.Form_CustomValidate(fobj))
+				return false;
+		} // End Grid Add checking
+	}
+	if (gridinsert && addcnt == 0) { // No row added
+		alert(ewLanguage.Phrase("NoAddRecord"));
+		return false;
+	}
+	return true;
+}
+
+// Check empty row
+fdetalle_documento_debitolist.EmptyRow = function(infix) {
+	var fobj = this.Form;
+	if (ew_ValueChanged(fobj, infix, "iddocumento_debito", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "idproducto", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "idbodega", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "cantidad", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "precio", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "monto", false)) return false;
+	return true;
+}
+
 // Form_CustomValidate event
 fdetalle_documento_debitolist.Form_CustomValidate = 
  function(fobj) { // DO NOT CHANGE THIS LINE!
@@ -1721,6 +3040,13 @@ if ($detalle_documento_debito_list->DbMasterFilter <> "" && $detalle_documento_d
 ?>
 <?php } ?>
 <?php
+if ($detalle_documento_debito->CurrentAction == "gridadd") {
+	$detalle_documento_debito->CurrentFilter = "0=1";
+	$detalle_documento_debito_list->StartRec = 1;
+	$detalle_documento_debito_list->DisplayRecs = $detalle_documento_debito->GridAddRowCount;
+	$detalle_documento_debito_list->TotalRecs = $detalle_documento_debito_list->DisplayRecs;
+	$detalle_documento_debito_list->StopRec = $detalle_documento_debito_list->DisplayRecs;
+} else {
 	$bSelectLimit = EW_SELECT_LIMIT;
 	if ($bSelectLimit) {
 		$detalle_documento_debito_list->TotalRecs = $detalle_documento_debito->SelectRecordCount();
@@ -1745,6 +3071,7 @@ if ($detalle_documento_debito_list->DbMasterFilter <> "" && $detalle_documento_d
 		else
 			$detalle_documento_debito_list->setWarningMessage($Language->Phrase("NoRecord"));
 	}
+}
 $detalle_documento_debito_list->RenderOtherOptions();
 ?>
 <?php $detalle_documento_debito_list->ShowPageHeader(); ?>
@@ -1845,6 +3172,15 @@ if ($detalle_documento_debito->ExportAll && $detalle_documento_debito->Export <>
 	else
 		$detalle_documento_debito_list->StopRec = $detalle_documento_debito_list->TotalRecs;
 }
+
+// Restore number of post back records
+if ($objForm) {
+	$objForm->Index = -1;
+	if ($objForm->HasValue($detalle_documento_debito_list->FormKeyCountName) && ($detalle_documento_debito->CurrentAction == "gridadd" || $detalle_documento_debito->CurrentAction == "gridedit" || $detalle_documento_debito->CurrentAction == "F")) {
+		$detalle_documento_debito_list->KeyCount = $objForm->GetValue($detalle_documento_debito_list->FormKeyCountName);
+		$detalle_documento_debito_list->StopRec = $detalle_documento_debito_list->StartRec + $detalle_documento_debito_list->KeyCount - 1;
+	}
+}
 $detalle_documento_debito_list->RecCnt = $detalle_documento_debito_list->StartRec - 1;
 if ($detalle_documento_debito_list->Recordset && !$detalle_documento_debito_list->Recordset->EOF) {
 	$detalle_documento_debito_list->Recordset->MoveFirst();
@@ -1859,10 +3195,24 @@ if ($detalle_documento_debito_list->Recordset && !$detalle_documento_debito_list
 $detalle_documento_debito->RowType = EW_ROWTYPE_AGGREGATEINIT;
 $detalle_documento_debito->ResetAttrs();
 $detalle_documento_debito_list->RenderRow();
+if ($detalle_documento_debito->CurrentAction == "gridadd")
+	$detalle_documento_debito_list->RowIndex = 0;
+if ($detalle_documento_debito->CurrentAction == "gridedit")
+	$detalle_documento_debito_list->RowIndex = 0;
 while ($detalle_documento_debito_list->RecCnt < $detalle_documento_debito_list->StopRec) {
 	$detalle_documento_debito_list->RecCnt++;
 	if (intval($detalle_documento_debito_list->RecCnt) >= intval($detalle_documento_debito_list->StartRec)) {
 		$detalle_documento_debito_list->RowCnt++;
+		if ($detalle_documento_debito->CurrentAction == "gridadd" || $detalle_documento_debito->CurrentAction == "gridedit" || $detalle_documento_debito->CurrentAction == "F") {
+			$detalle_documento_debito_list->RowIndex++;
+			$objForm->Index = $detalle_documento_debito_list->RowIndex;
+			if ($objForm->HasValue($detalle_documento_debito_list->FormActionName))
+				$detalle_documento_debito_list->RowAction = strval($objForm->GetValue($detalle_documento_debito_list->FormActionName));
+			elseif ($detalle_documento_debito->CurrentAction == "gridadd")
+				$detalle_documento_debito_list->RowAction = "insert";
+			else
+				$detalle_documento_debito_list->RowAction = "";
+		}
 
 		// Set up key count
 		$detalle_documento_debito_list->KeyCount = $detalle_documento_debito_list->RowIndex;
@@ -1871,10 +3221,28 @@ while ($detalle_documento_debito_list->RecCnt < $detalle_documento_debito_list->
 		$detalle_documento_debito->ResetAttrs();
 		$detalle_documento_debito->CssClass = "";
 		if ($detalle_documento_debito->CurrentAction == "gridadd") {
+			$detalle_documento_debito_list->LoadDefaultValues(); // Load default values
 		} else {
 			$detalle_documento_debito_list->LoadRowValues($detalle_documento_debito_list->Recordset); // Load row values
 		}
 		$detalle_documento_debito->RowType = EW_ROWTYPE_VIEW; // Render view
+		if ($detalle_documento_debito->CurrentAction == "gridadd") // Grid add
+			$detalle_documento_debito->RowType = EW_ROWTYPE_ADD; // Render add
+		if ($detalle_documento_debito->CurrentAction == "gridadd" && $detalle_documento_debito->EventCancelled && !$objForm->HasValue("k_blankrow")) // Insert failed
+			$detalle_documento_debito_list->RestoreCurrentRowFormValues($detalle_documento_debito_list->RowIndex); // Restore form values
+		if ($detalle_documento_debito->CurrentAction == "gridedit") { // Grid edit
+			if ($detalle_documento_debito->EventCancelled) {
+				$detalle_documento_debito_list->RestoreCurrentRowFormValues($detalle_documento_debito_list->RowIndex); // Restore form values
+			}
+			if ($detalle_documento_debito_list->RowAction == "insert")
+				$detalle_documento_debito->RowType = EW_ROWTYPE_ADD; // Render add
+			else
+				$detalle_documento_debito->RowType = EW_ROWTYPE_EDIT; // Render edit
+		}
+		if ($detalle_documento_debito->CurrentAction == "gridedit" && ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT || $detalle_documento_debito->RowType == EW_ROWTYPE_ADD) && $detalle_documento_debito->EventCancelled) // Update failed
+			$detalle_documento_debito_list->RestoreCurrentRowFormValues($detalle_documento_debito_list->RowIndex); // Restore form values
+		if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) // Edit row
+			$detalle_documento_debito_list->EditRowCnt++;
 
 		// Set up row id / data-rowindex
 		$detalle_documento_debito->RowAttrs = array_merge($detalle_documento_debito->RowAttrs, array('data-rowindex'=>$detalle_documento_debito_list->RowCnt, 'id'=>'r' . $detalle_documento_debito_list->RowCnt . '_detalle_documento_debito', 'data-rowtype'=>$detalle_documento_debito->RowType));
@@ -1884,6 +3252,9 @@ while ($detalle_documento_debito_list->RecCnt < $detalle_documento_debito_list->
 
 		// Render list options
 		$detalle_documento_debito_list->RenderListOptions();
+
+		// Skip delete row / empty row for confirm page
+		if ($detalle_documento_debito_list->RowAction <> "delete" && $detalle_documento_debito_list->RowAction <> "insertdelete" && !($detalle_documento_debito_list->RowAction == "insert" && $detalle_documento_debito->CurrentAction == "F" && $detalle_documento_debito_list->EmptyRow())) {
 ?>
 	<tr<?php echo $detalle_documento_debito->RowAttributes() ?>>
 <?php
@@ -1893,38 +3264,331 @@ $detalle_documento_debito_list->ListOptions->Render("body", "left", $detalle_doc
 ?>
 	<?php if ($detalle_documento_debito->iddocumento_debito->Visible) { // iddocumento_debito ?>
 		<td data-name="iddocumento_debito"<?php echo $detalle_documento_debito->iddocumento_debito->CellAttributes() ?>>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<?php if ($detalle_documento_debito->iddocumento_debito->getSessionValue() <> "") { ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_iddocumento_debito" class="form-group detalle_documento_debito_iddocumento_debito">
+<span<?php echo $detalle_documento_debito->iddocumento_debito->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $detalle_documento_debito->iddocumento_debito->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddocumento_debito->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_iddocumento_debito" class="form-group detalle_documento_debito_iddocumento_debito">
+<select data-field="x_iddocumento_debito" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito"<?php echo $detalle_documento_debito->iddocumento_debito->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->iddocumento_debito->EditValue)) {
+	$arwrk = $detalle_documento_debito->iddocumento_debito->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->iddocumento_debito->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->iddocumento_debito->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_debito`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->iddocumento_debito, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `correlativo`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`iddocumento_debito` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<input type="hidden" data-field="x_iddocumento_debito" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddocumento_debito->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<?php if ($detalle_documento_debito->iddocumento_debito->getSessionValue() <> "") { ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_iddocumento_debito" class="form-group detalle_documento_debito_iddocumento_debito">
+<span<?php echo $detalle_documento_debito->iddocumento_debito->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $detalle_documento_debito->iddocumento_debito->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddocumento_debito->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_iddocumento_debito" class="form-group detalle_documento_debito_iddocumento_debito">
+<select data-field="x_iddocumento_debito" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito"<?php echo $detalle_documento_debito->iddocumento_debito->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->iddocumento_debito->EditValue)) {
+	$arwrk = $detalle_documento_debito->iddocumento_debito->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->iddocumento_debito->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->iddocumento_debito->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_debito`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->iddocumento_debito, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `correlativo`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`iddocumento_debito` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
 <span<?php echo $detalle_documento_debito->iddocumento_debito->ViewAttributes() ?>>
 <?php echo $detalle_documento_debito->iddocumento_debito->ListViewValue() ?></span>
+<?php } ?>
 <a id="<?php echo $detalle_documento_debito_list->PageObjName . "_row_" . $detalle_documento_debito_list->RowCnt ?>"></a></td>
 	<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<input type="hidden" data-field="x_iddetalle_documento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddetalle_documento_debito" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddetalle_documento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddetalle_documento_debito->CurrentValue) ?>">
+<input type="hidden" data-field="x_iddetalle_documento_debito" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_iddetalle_documento_debito" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_iddetalle_documento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddetalle_documento_debito->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT || $detalle_documento_debito->CurrentMode == "edit") { ?>
+<input type="hidden" data-field="x_iddetalle_documento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddetalle_documento_debito" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddetalle_documento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddetalle_documento_debito->CurrentValue) ?>">
+<?php } ?>
 	<?php if ($detalle_documento_debito->idproducto->Visible) { // idproducto ?>
 		<td data-name="idproducto"<?php echo $detalle_documento_debito->idproducto->CellAttributes() ?>>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_idproducto" class="form-group detalle_documento_debito_idproducto">
+<select data-field="x_idproducto" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto"<?php echo $detalle_documento_debito->idproducto->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->idproducto->EditValue)) {
+	$arwrk = $detalle_documento_debito->idproducto->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->idproducto->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->idproducto->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->idproducto, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<input type="hidden" data-field="x_idproducto" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($detalle_documento_debito->idproducto->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_idproducto" class="form-group detalle_documento_debito_idproducto">
+<select data-field="x_idproducto" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto"<?php echo $detalle_documento_debito->idproducto->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->idproducto->EditValue)) {
+	$arwrk = $detalle_documento_debito->idproducto->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->idproducto->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->idproducto->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->idproducto, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
 <span<?php echo $detalle_documento_debito->idproducto->ViewAttributes() ?>>
 <?php echo $detalle_documento_debito->idproducto->ListViewValue() ?></span>
+<?php } ?>
 </td>
 	<?php } ?>
 	<?php if ($detalle_documento_debito->idbodega->Visible) { // idbodega ?>
 		<td data-name="idbodega"<?php echo $detalle_documento_debito->idbodega->CellAttributes() ?>>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_idbodega" class="form-group detalle_documento_debito_idbodega">
+<select data-field="x_idbodega" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega"<?php echo $detalle_documento_debito->idbodega->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->idbodega->EditValue)) {
+	$arwrk = $detalle_documento_debito->idbodega->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->idbodega->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->idbodega->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->idbodega, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `descripcion`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbodega` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<input type="hidden" data-field="x_idbodega" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" value="<?php echo ew_HtmlEncode($detalle_documento_debito->idbodega->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_idbodega" class="form-group detalle_documento_debito_idbodega">
+<select data-field="x_idbodega" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega"<?php echo $detalle_documento_debito->idbodega->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->idbodega->EditValue)) {
+	$arwrk = $detalle_documento_debito->idbodega->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->idbodega->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->idbodega->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->idbodega, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `descripcion`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbodega` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
 <span<?php echo $detalle_documento_debito->idbodega->ViewAttributes() ?>>
 <?php echo $detalle_documento_debito->idbodega->ListViewValue() ?></span>
+<?php } ?>
 </td>
 	<?php } ?>
 	<?php if ($detalle_documento_debito->cantidad->Visible) { // cantidad ?>
 		<td data-name="cantidad"<?php echo $detalle_documento_debito->cantidad->CellAttributes() ?>>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_cantidad" class="form-group detalle_documento_debito_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->cantidad->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->cantidad->EditValue ?>"<?php echo $detalle_documento_debito->cantidad->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($detalle_documento_debito->cantidad->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_cantidad" class="form-group detalle_documento_debito_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->cantidad->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->cantidad->EditValue ?>"<?php echo $detalle_documento_debito->cantidad->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
 <span<?php echo $detalle_documento_debito->cantidad->ViewAttributes() ?>>
 <?php echo $detalle_documento_debito->cantidad->ListViewValue() ?></span>
+<?php } ?>
 </td>
 	<?php } ?>
 	<?php if ($detalle_documento_debito->precio->Visible) { // precio ?>
 		<td data-name="precio"<?php echo $detalle_documento_debito->precio->CellAttributes() ?>>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_precio" class="form-group detalle_documento_debito_precio">
+<input type="text" data-field="x_precio" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->precio->EditValue ?>"<?php echo $detalle_documento_debito->precio->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_precio" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_debito->precio->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_precio" class="form-group detalle_documento_debito_precio">
+<input type="text" data-field="x_precio" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->precio->EditValue ?>"<?php echo $detalle_documento_debito->precio->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
 <span<?php echo $detalle_documento_debito->precio->ViewAttributes() ?>>
 <?php echo $detalle_documento_debito->precio->ListViewValue() ?></span>
+<?php } ?>
 </td>
 	<?php } ?>
 	<?php if ($detalle_documento_debito->monto->Visible) { // monto ?>
 		<td data-name="monto"<?php echo $detalle_documento_debito->monto->CellAttributes() ?>>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_monto" class="form-group detalle_documento_debito_monto">
+<input type="text" data-field="x_monto" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->monto->EditValue ?>"<?php echo $detalle_documento_debito->monto->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_monto" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_debito->monto->OldValue) ?>">
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $detalle_documento_debito_list->RowCnt ?>_detalle_documento_debito_monto" class="form-group detalle_documento_debito_monto">
+<input type="text" data-field="x_monto" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->monto->EditValue ?>"<?php echo $detalle_documento_debito->monto->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_VIEW) { // View record ?>
 <span<?php echo $detalle_documento_debito->monto->ViewAttributes() ?>>
 <?php echo $detalle_documento_debito->monto->ListViewValue() ?></span>
+<?php } ?>
 </td>
 	<?php } ?>
 <?php
@@ -1933,14 +3597,218 @@ $detalle_documento_debito_list->ListOptions->Render("body", "left", $detalle_doc
 $detalle_documento_debito_list->ListOptions->Render("body", "right", $detalle_documento_debito_list->RowCnt);
 ?>
 	</tr>
+<?php if ($detalle_documento_debito->RowType == EW_ROWTYPE_ADD || $detalle_documento_debito->RowType == EW_ROWTYPE_EDIT) { ?>
+<script type="text/javascript">
+fdetalle_documento_debitolist.UpdateOpts(<?php echo $detalle_documento_debito_list->RowIndex ?>);
+</script>
+<?php } ?>
 <?php
 	}
+	} // End delete row checking
 	if ($detalle_documento_debito->CurrentAction <> "gridadd")
-		$detalle_documento_debito_list->Recordset->MoveNext();
+		if (!$detalle_documento_debito_list->Recordset->EOF) $detalle_documento_debito_list->Recordset->MoveNext();
+}
+?>
+<?php
+	if ($detalle_documento_debito->CurrentAction == "gridadd" || $detalle_documento_debito->CurrentAction == "gridedit") {
+		$detalle_documento_debito_list->RowIndex = '$rowindex$';
+		$detalle_documento_debito_list->LoadDefaultValues();
+
+		// Set row properties
+		$detalle_documento_debito->ResetAttrs();
+		$detalle_documento_debito->RowAttrs = array_merge($detalle_documento_debito->RowAttrs, array('data-rowindex'=>$detalle_documento_debito_list->RowIndex, 'id'=>'r0_detalle_documento_debito', 'data-rowtype'=>EW_ROWTYPE_ADD));
+		ew_AppendClass($detalle_documento_debito->RowAttrs["class"], "ewTemplate");
+		$detalle_documento_debito->RowType = EW_ROWTYPE_ADD;
+
+		// Render row
+		$detalle_documento_debito_list->RenderRow();
+
+		// Render list options
+		$detalle_documento_debito_list->RenderListOptions();
+		$detalle_documento_debito_list->StartRowCnt = 0;
+?>
+	<tr<?php echo $detalle_documento_debito->RowAttributes() ?>>
+<?php
+
+// Render list options (body, left)
+$detalle_documento_debito_list->ListOptions->Render("body", "left", $detalle_documento_debito_list->RowIndex);
+?>
+	<?php if ($detalle_documento_debito->iddocumento_debito->Visible) { // iddocumento_debito ?>
+		<td>
+<?php if ($detalle_documento_debito->iddocumento_debito->getSessionValue() <> "") { ?>
+<span id="el$rowindex$_detalle_documento_debito_iddocumento_debito" class="form-group detalle_documento_debito_iddocumento_debito">
+<span<?php echo $detalle_documento_debito->iddocumento_debito->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $detalle_documento_debito->iddocumento_debito->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddocumento_debito->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el$rowindex$_detalle_documento_debito_iddocumento_debito" class="form-group detalle_documento_debito_iddocumento_debito">
+<select data-field="x_iddocumento_debito" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito"<?php echo $detalle_documento_debito->iddocumento_debito->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->iddocumento_debito->EditValue)) {
+	$arwrk = $detalle_documento_debito->iddocumento_debito->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->iddocumento_debito->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->iddocumento_debito->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `iddocumento_debito`, `serie` AS `DispFld`, '' AS `Disp2Fld`, `correlativo` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `documento_debito`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->iddocumento_debito, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `correlativo`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`iddocumento_debito` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<?php } ?>
+<input type="hidden" data-field="x_iddocumento_debito" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_iddocumento_debito" value="<?php echo ew_HtmlEncode($detalle_documento_debito->iddocumento_debito->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_debito->idproducto->Visible) { // idproducto ?>
+		<td>
+<span id="el$rowindex$_detalle_documento_debito_idproducto" class="form-group detalle_documento_debito_idproducto">
+<select data-field="x_idproducto" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto"<?php echo $detalle_documento_debito->idproducto->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->idproducto->EditValue)) {
+	$arwrk = $detalle_documento_debito->idproducto->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->idproducto->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->idproducto->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idproducto`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `producto`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->idproducto, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `nombre`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idproducto` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<input type="hidden" data-field="x_idproducto" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($detalle_documento_debito->idproducto->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_debito->idbodega->Visible) { // idbodega ?>
+		<td>
+<span id="el$rowindex$_detalle_documento_debito_idbodega" class="form-group detalle_documento_debito_idbodega">
+<select data-field="x_idbodega" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega"<?php echo $detalle_documento_debito->idbodega->EditAttributes() ?>>
+<?php
+if (is_array($detalle_documento_debito->idbodega->EditValue)) {
+	$arwrk = $detalle_documento_debito->idbodega->EditValue;
+	$rowswrk = count($arwrk);
+	$emptywrk = TRUE;
+	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
+		$selwrk = (strval($detalle_documento_debito->idbodega->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
+		if ($selwrk <> "") $emptywrk = FALSE;
+?>
+<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
+<?php echo $arwrk[$rowcntwrk][1] ?>
+</option>
+<?php
+	}
+}
+if (@$emptywrk) $detalle_documento_debito->idbodega->OldValue = "";
+?>
+</select>
+<?php
+$sSqlWrk = "SELECT `idbodega`, `descripcion` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `bodega`";
+$sWhereWrk = "";
+$lookuptblfilter = "`estado` = 'Activo'";
+if (strval($lookuptblfilter) <> "") {
+	ew_AddFilter($sWhereWrk, $lookuptblfilter);
+}
+
+// Call Lookup selecting
+$detalle_documento_debito->Lookup_Selecting($detalle_documento_debito->idbodega, $sWhereWrk);
+if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+$sSqlWrk .= " ORDER BY `descripcion`";
+?>
+<input type="hidden" name="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" id="s_x<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" value="s=<?php echo ew_Encrypt($sSqlWrk) ?>&amp;f0=<?php echo ew_Encrypt("`idbodega` = {filter_value}"); ?>&amp;t0=3">
+</span>
+<input type="hidden" data-field="x_idbodega" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_idbodega" value="<?php echo ew_HtmlEncode($detalle_documento_debito->idbodega->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_debito->cantidad->Visible) { // cantidad ?>
+		<td>
+<span id="el$rowindex$_detalle_documento_debito_cantidad" class="form-group detalle_documento_debito_cantidad">
+<input type="text" data-field="x_cantidad" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->cantidad->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->cantidad->EditValue ?>"<?php echo $detalle_documento_debito->cantidad->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_cantidad" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_cantidad" value="<?php echo ew_HtmlEncode($detalle_documento_debito->cantidad->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_debito->precio->Visible) { // precio ?>
+		<td>
+<span id="el$rowindex$_detalle_documento_debito_precio" class="form-group detalle_documento_debito_precio">
+<input type="text" data-field="x_precio" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->precio->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->precio->EditValue ?>"<?php echo $detalle_documento_debito->precio->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_precio" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_precio" value="<?php echo ew_HtmlEncode($detalle_documento_debito->precio->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($detalle_documento_debito->monto->Visible) { // monto ?>
+		<td>
+<span id="el$rowindex$_detalle_documento_debito_monto" class="form-group detalle_documento_debito_monto">
+<input type="text" data-field="x_monto" name="x<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" id="x<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" size="30" placeholder="<?php echo ew_HtmlEncode($detalle_documento_debito->monto->PlaceHolder) ?>" value="<?php echo $detalle_documento_debito->monto->EditValue ?>"<?php echo $detalle_documento_debito->monto->EditAttributes() ?>>
+</span>
+<input type="hidden" data-field="x_monto" name="o<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" id="o<?php echo $detalle_documento_debito_list->RowIndex ?>_monto" value="<?php echo ew_HtmlEncode($detalle_documento_debito->monto->OldValue) ?>">
+</td>
+	<?php } ?>
+<?php
+
+// Render list options (body, right)
+$detalle_documento_debito_list->ListOptions->Render("body", "right", $detalle_documento_debito_list->RowCnt);
+?>
+<script type="text/javascript">
+fdetalle_documento_debitolist.UpdateOpts(<?php echo $detalle_documento_debito_list->RowIndex ?>);
+</script>
+	</tr>
+<?php
 }
 ?>
 </tbody>
 </table>
+<?php } ?>
+<?php if ($detalle_documento_debito->CurrentAction == "gridadd") { ?>
+<input type="hidden" name="a_list" id="a_list" value="gridinsert">
+<input type="hidden" name="<?php echo $detalle_documento_debito_list->FormKeyCountName ?>" id="<?php echo $detalle_documento_debito_list->FormKeyCountName ?>" value="<?php echo $detalle_documento_debito_list->KeyCount ?>">
+<?php echo $detalle_documento_debito_list->MultiSelectKey ?>
+<?php } ?>
+<?php if ($detalle_documento_debito->CurrentAction == "gridedit") { ?>
+<input type="hidden" name="a_list" id="a_list" value="gridupdate">
+<input type="hidden" name="<?php echo $detalle_documento_debito_list->FormKeyCountName ?>" id="<?php echo $detalle_documento_debito_list->FormKeyCountName ?>" value="<?php echo $detalle_documento_debito_list->KeyCount ?>">
+<?php echo $detalle_documento_debito_list->MultiSelectKey ?>
 <?php } ?>
 <?php if ($detalle_documento_debito->CurrentAction == "") { ?>
 <input type="hidden" name="a_list" id="a_list" value="">

@@ -488,9 +488,6 @@ class ccliente_edit extends ccliente {
 		if (!$this->telefono->FldIsDetailKey) {
 			$this->telefono->setFormValue($objForm->GetValue("x_telefono"));
 		}
-		if (!$this->tributa->FldIsDetailKey) {
-			$this->tributa->setFormValue($objForm->GetValue("x_tributa"));
-		}
 		if (!$this->idcliente->FldIsDetailKey)
 			$this->idcliente->setFormValue($objForm->GetValue("x_idcliente"));
 	}
@@ -506,7 +503,6 @@ class ccliente_edit extends ccliente {
 		$this->_email->CurrentValue = $this->_email->FormValue;
 		$this->estado->CurrentValue = $this->estado->FormValue;
 		$this->telefono->CurrentValue = $this->telefono->FormValue;
-		$this->tributa->CurrentValue = $this->tributa->FormValue;
 	}
 
 	// Load row based on key values
@@ -732,11 +728,6 @@ class ccliente_edit extends ccliente {
 			$this->telefono->LinkCustomAttributes = "";
 			$this->telefono->HrefValue = "";
 			$this->telefono->TooltipValue = "";
-
-			// tributa
-			$this->tributa->LinkCustomAttributes = "";
-			$this->tributa->HrefValue = "";
-			$this->tributa->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// nit
@@ -778,13 +769,6 @@ class ccliente_edit extends ccliente {
 			$this->telefono->EditValue = ew_HtmlEncode($this->telefono->CurrentValue);
 			$this->telefono->PlaceHolder = ew_RemoveHtml($this->telefono->FldCaption());
 
-			// tributa
-			$this->tributa->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->tributa->FldTagValue(1), $this->tributa->FldTagCaption(1) <> "" ? $this->tributa->FldTagCaption(1) : $this->tributa->FldTagValue(1));
-			$arwrk[] = array($this->tributa->FldTagValue(2), $this->tributa->FldTagCaption(2) <> "" ? $this->tributa->FldTagCaption(2) : $this->tributa->FldTagValue(2));
-			$this->tributa->EditValue = $arwrk;
-
 			// Edit refer script
 			// nit
 
@@ -804,9 +788,6 @@ class ccliente_edit extends ccliente {
 
 			// telefono
 			$this->telefono->HrefValue = "";
-
-			// tributa
-			$this->tributa->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -834,9 +815,6 @@ class ccliente_edit extends ccliente {
 		}
 		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-		if ($this->tributa->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->tributa->FldCaption(), $this->tributa->ReqErrMsg));
 		}
 
 		// Validate detail grid
@@ -900,8 +878,26 @@ class ccliente_edit extends ccliente {
 			// telefono
 			$this->telefono->SetDbValueDef($rsnew, $this->telefono->CurrentValue, NULL, $this->telefono->ReadOnly);
 
-			// tributa
-			$this->tributa->SetDbValueDef($rsnew, $this->tributa->CurrentValue, "", $this->tributa->ReadOnly);
+			// Check referential integrity for master table 'persona'
+			$bValidMasterRecord = TRUE;
+			$sMasterFilter = $this->SqlMasterFilter_persona();
+			$KeyValue = isset($rsnew['idpersona']) ? $rsnew['idpersona'] : $rsold['idpersona'];
+			if (strval($KeyValue) <> "") {
+				$sMasterFilter = str_replace("@idpersona@", ew_AdjustSql($KeyValue), $sMasterFilter);
+			} else {
+				$bValidMasterRecord = FALSE;
+			}
+			if ($bValidMasterRecord) {
+				$rsmaster = $GLOBALS["persona"]->LoadRs($sMasterFilter);
+				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+				$rsmaster->Close();
+			}
+			if (!$bValidMasterRecord) {
+				$sRelatedRecordMsg = str_replace("%t", "persona", $Language->Phrase("RelatedRecordRequired"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				$rs->Close();
+				return FALSE;
+			}
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -1207,9 +1203,6 @@ fclienteedit.Validate = function() {
 			elm = this.GetElements("x" + infix + "_estado");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cliente->estado->FldCaption(), $cliente->estado->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_tributa");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cliente->tributa->FldCaption(), $cliente->tributa->ReqErrMsg)) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -1344,36 +1337,6 @@ if (is_array($cliente->estado->EditValue)) {
 <input type="text" data-field="x_telefono" name="x_telefono" id="x_telefono" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($cliente->telefono->PlaceHolder) ?>" value="<?php echo $cliente->telefono->EditValue ?>"<?php echo $cliente->telefono->EditAttributes() ?>>
 </span>
 <?php echo $cliente->telefono->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($cliente->tributa->Visible) { // tributa ?>
-	<div id="r_tributa" class="form-group">
-		<label id="elh_cliente_tributa" class="col-sm-2 control-label ewLabel"><?php echo $cliente->tributa->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="col-sm-10"><div<?php echo $cliente->tributa->CellAttributes() ?>>
-<span id="el_cliente_tributa">
-<div id="tp_x_tributa" class="<?php echo EW_ITEM_TEMPLATE_CLASSNAME ?>"><input type="radio" name="x_tributa" id="x_tributa" value="{value}"<?php echo $cliente->tributa->EditAttributes() ?>></div>
-<div id="dsl_x_tributa" data-repeatcolumn="5" class="ewItemList">
-<?php
-$arwrk = $cliente->tributa->EditValue;
-if (is_array($arwrk)) {
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($cliente->tributa->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " checked=\"checked\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-
-		// Note: No spacing within the LABEL tag
-?>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 1) ?>
-<label class="radio-inline"><input type="radio" data-field="x_tributa" name="x_tributa" id="x_tributa_<?php echo $rowcntwrk ?>" value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?><?php echo $cliente->tributa->EditAttributes() ?>><?php echo $arwrk[$rowcntwrk][1] ?></label>
-<?php echo ew_RepeatColumnTable($rowswrk, $rowcntwrk, 5, 2) ?>
-<?php
-	}
-}
-?>
-</div>
-</span>
-<?php echo $cliente->tributa->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

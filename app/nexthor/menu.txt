@@ -1,0 +1,2 @@
+define("EW_MENUBAR_BRAND", "<img src='nexthor/image/nexthor.png' alt='Smiley face' height='24' width='100'>", TRUE);  
+define("EW_MENUBAR_BRAND_HYPERLINK", "nexthor.com", TRUE);  

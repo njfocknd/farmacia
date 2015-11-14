@@ -859,6 +859,25 @@ class cproveedor_add extends cproveedor {
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
 
+		// Check referential integrity for master table 'persona'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_persona();
+		if (strval($this->idpersona->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@idpersona@", ew_AdjustSql($this->idpersona->CurrentValue), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			$rsmaster = $GLOBALS["persona"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "persona", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
+
 		// Begin transaction
 		if ($this->getCurrentDetailTable() <> "")
 			$conn->BeginTrans();

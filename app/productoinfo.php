@@ -8,6 +8,7 @@ $producto = NULL;
 //
 class cproducto extends cTable {
 	var $idproducto;
+	var $codigo_barra;
 	var $idcategoria;
 	var $idmarca;
 	var $nombre;
@@ -17,6 +18,7 @@ class cproducto extends cTable {
 	var $precio_venta;
 	var $precio_compra;
 	var $fecha_insercion;
+	var $foto;
 
 	//
 	// Table class constructor
@@ -46,6 +48,10 @@ class cproducto extends cTable {
 		$this->idproducto = new cField('producto', 'producto', 'x_idproducto', 'idproducto', '`idproducto`', '`idproducto`', 3, -1, FALSE, '`idproducto`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->idproducto->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['idproducto'] = &$this->idproducto;
+
+		// codigo_barra
+		$this->codigo_barra = new cField('producto', 'producto', 'x_codigo_barra', 'codigo_barra', '`codigo_barra`', '`codigo_barra`', 200, -1, FALSE, '`codigo_barra`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
+		$this->fields['codigo_barra'] = &$this->codigo_barra;
 
 		// idcategoria
 		$this->idcategoria = new cField('producto', 'producto', 'x_idcategoria', 'idcategoria', '`idcategoria`', '`idcategoria`', 3, -1, FALSE, '`idcategoria`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
@@ -89,6 +95,12 @@ class cproducto extends cTable {
 		$this->fecha_insercion = new cField('producto', 'producto', 'x_fecha_insercion', 'fecha_insercion', '`fecha_insercion`', 'DATE_FORMAT(`fecha_insercion`, \'%d/%m/%Y\')', 135, 7, FALSE, '`fecha_insercion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT');
 		$this->fecha_insercion->FldDefaultErrMsg = str_replace("%s", "/", $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_insercion'] = &$this->fecha_insercion;
+
+		// foto
+		$this->foto = new cField('producto', 'producto', 'x_foto', 'foto', '`foto`', '`foto`', 200, -1, TRUE, '`foto`', FALSE, FALSE, FALSE, 'IMAGE');
+		$this->foto->ImageResize = TRUE;
+		$this->foto->ResizeQuality = EW_THUMBNAIL_DEFAULT_QUALITY;
+		$this->fields['foto'] = &$this->foto;
 	}
 
 	// Single column sort
@@ -675,6 +687,7 @@ class cproducto extends cTable {
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->codigo_barra->setDbValue($rs->fields('codigo_barra'));
 		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
@@ -684,6 +697,7 @@ class cproducto extends cTable {
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->foto->Upload->DbValue = $rs->fields('foto');
 	}
 
 	// Render list row values
@@ -695,6 +709,7 @@ class cproducto extends cTable {
 
    // Common render codes
 		// idproducto
+		// codigo_barra
 		// idcategoria
 		// idmarca
 		// nombre
@@ -704,10 +719,15 @@ class cproducto extends cTable {
 		// precio_venta
 		// precio_compra
 		// fecha_insercion
+		// foto
 		// idproducto
 
 		$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 		$this->idproducto->ViewCustomAttributes = "";
+
+		// codigo_barra
+		$this->codigo_barra->ViewValue = $this->codigo_barra->CurrentValue;
+		$this->codigo_barra->ViewCustomAttributes = "";
 
 		// idcategoria
 		if (strval($this->idcategoria->CurrentValue) <> "") {
@@ -801,6 +821,8 @@ class cproducto extends cTable {
 
 		// existencia
 		$this->existencia->ViewValue = $this->existencia->CurrentValue;
+		$this->existencia->ViewValue = ew_FormatNumber($this->existencia->ViewValue, 0, -2, -2, -2);
+		$this->existencia->CellCssStyle .= "text-align: right;";
 		$this->existencia->ViewCustomAttributes = "";
 
 		// estado
@@ -822,12 +844,14 @@ class cproducto extends cTable {
 
 		// precio_venta
 		$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
-		$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+		$this->precio_venta->ViewValue = ew_FormatNumber($this->precio_venta->ViewValue, 2, -2, -2, -2);
+		$this->precio_venta->CellCssStyle .= "text-align: right;";
 		$this->precio_venta->ViewCustomAttributes = "";
 
 		// precio_compra
 		$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
-		$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+		$this->precio_compra->ViewValue = ew_FormatNumber($this->precio_compra->ViewValue, 2, -2, -2, -2);
+		$this->precio_compra->CellCssStyle .= "text-align: right;";
 		$this->precio_compra->ViewCustomAttributes = "";
 
 		// fecha_insercion
@@ -835,10 +859,31 @@ class cproducto extends cTable {
 		$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 		$this->fecha_insercion->ViewCustomAttributes = "";
 
+		// foto
+		if (!ew_Empty($this->foto->Upload->DbValue)) {
+			$this->foto->ImageWidth = 0;
+			$this->foto->ImageHeight = 50;
+			$this->foto->ImageAlt = $this->foto->FldAlt();
+			$this->foto->ViewValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+			if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+				$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+				ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+				$this->foto->ViewValue = ew_TmpImage($tmpimage);
+			}
+		} else {
+			$this->foto->ViewValue = "";
+		}
+		$this->foto->ViewCustomAttributes = "";
+
 		// idproducto
 		$this->idproducto->LinkCustomAttributes = "";
 		$this->idproducto->HrefValue = "";
 		$this->idproducto->TooltipValue = "";
+
+		// codigo_barra
+		$this->codigo_barra->LinkCustomAttributes = "";
+		$this->codigo_barra->HrefValue = "";
+		$this->codigo_barra->TooltipValue = "";
 
 		// idcategoria
 		$this->idcategoria->LinkCustomAttributes = "";
@@ -885,6 +930,23 @@ class cproducto extends cTable {
 		$this->fecha_insercion->HrefValue = "";
 		$this->fecha_insercion->TooltipValue = "";
 
+		// foto
+		$this->foto->LinkCustomAttributes = "";
+		if (!ew_Empty($this->foto->Upload->DbValue)) {
+			$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+			$this->foto->LinkAttrs["target"] = ""; // Add target
+			if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+		} else {
+			$this->foto->HrefValue = "";
+		}
+		$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
+		$this->foto->TooltipValue = "";
+		if ($this->foto->UseColorbox) {
+			$this->foto->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+			$this->foto->LinkAttrs["data-rel"] = "producto_x_foto";
+			$this->foto->LinkAttrs["class"] = "ewLightbox";
+		}
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -901,6 +963,12 @@ class cproducto extends cTable {
 		$this->idproducto->EditCustomAttributes = "";
 		$this->idproducto->EditValue = $this->idproducto->CurrentValue;
 		$this->idproducto->ViewCustomAttributes = "";
+
+		// codigo_barra
+		$this->codigo_barra->EditAttrs["class"] = "form-control";
+		$this->codigo_barra->EditCustomAttributes = "";
+		$this->codigo_barra->EditValue = ew_HtmlEncode($this->codigo_barra->CurrentValue);
+		$this->codigo_barra->PlaceHolder = ew_RemoveHtml($this->codigo_barra->FldCaption());
 
 		// idcategoria
 		$this->idcategoria->EditAttrs["class"] = "form-control";
@@ -1016,6 +1084,25 @@ class cproducto extends cTable {
 		$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
 		$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
 
+		// foto
+		$this->foto->EditAttrs["class"] = "form-control";
+		$this->foto->EditCustomAttributes = "";
+		if (!ew_Empty($this->foto->Upload->DbValue)) {
+			$this->foto->ImageWidth = 0;
+			$this->foto->ImageHeight = 50;
+			$this->foto->ImageAlt = $this->foto->FldAlt();
+			$this->foto->EditValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+			if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+				$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+				ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+				$this->foto->EditValue = ew_TmpImage($tmpimage);
+			}
+		} else {
+			$this->foto->EditValue = "";
+		}
+		if (!ew_Empty($this->foto->CurrentValue))
+			$this->foto->Upload->FileName = $this->foto->CurrentValue;
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 	}
@@ -1041,6 +1128,7 @@ class cproducto extends cTable {
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->codigo_barra->Exportable) $Doc->ExportCaption($this->codigo_barra);
 					if ($this->idcategoria->Exportable) $Doc->ExportCaption($this->idcategoria);
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
@@ -1050,8 +1138,10 @@ class cproducto extends cTable {
 					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
 					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->foto->Exportable) $Doc->ExportCaption($this->foto);
 				} else {
 					if ($this->idproducto->Exportable) $Doc->ExportCaption($this->idproducto);
+					if ($this->codigo_barra->Exportable) $Doc->ExportCaption($this->codigo_barra);
 					if ($this->idcategoria->Exportable) $Doc->ExportCaption($this->idcategoria);
 					if ($this->idmarca->Exportable) $Doc->ExportCaption($this->idmarca);
 					if ($this->nombre->Exportable) $Doc->ExportCaption($this->nombre);
@@ -1061,6 +1151,7 @@ class cproducto extends cTable {
 					if ($this->precio_venta->Exportable) $Doc->ExportCaption($this->precio_venta);
 					if ($this->precio_compra->Exportable) $Doc->ExportCaption($this->precio_compra);
 					if ($this->fecha_insercion->Exportable) $Doc->ExportCaption($this->fecha_insercion);
+					if ($this->foto->Exportable) $Doc->ExportCaption($this->foto);
 				}
 				$Doc->EndExportRow();
 			}
@@ -1093,6 +1184,7 @@ class cproducto extends cTable {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->codigo_barra->Exportable) $Doc->ExportField($this->codigo_barra);
 						if ($this->idcategoria->Exportable) $Doc->ExportField($this->idcategoria);
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
@@ -1102,8 +1194,10 @@ class cproducto extends cTable {
 						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
 						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->foto->Exportable) $Doc->ExportField($this->foto);
 					} else {
 						if ($this->idproducto->Exportable) $Doc->ExportField($this->idproducto);
+						if ($this->codigo_barra->Exportable) $Doc->ExportField($this->codigo_barra);
 						if ($this->idcategoria->Exportable) $Doc->ExportField($this->idcategoria);
 						if ($this->idmarca->Exportable) $Doc->ExportField($this->idmarca);
 						if ($this->nombre->Exportable) $Doc->ExportField($this->nombre);
@@ -1113,6 +1207,7 @@ class cproducto extends cTable {
 						if ($this->precio_venta->Exportable) $Doc->ExportField($this->precio_venta);
 						if ($this->precio_compra->Exportable) $Doc->ExportField($this->precio_compra);
 						if ($this->fecha_insercion->Exportable) $Doc->ExportField($this->fecha_insercion);
+						if ($this->foto->Exportable) $Doc->ExportField($this->foto);
 					}
 					$Doc->EndExportRow();
 				}

@@ -1,5 +1,6 @@
 <?php
 
+// codigo_barra
 // idcategoria
 // idmarca
 // nombre
@@ -8,12 +9,24 @@
 // estado
 // precio_venta
 // fecha_insercion
+// foto
 
 ?>
 <?php if ($producto->Visible) { ?>
 <!-- <h4 class="ewMasterCaption"><?php echo $producto->TableCaption() ?></h4> -->
 <table id="tbl_productomaster" class="table table-bordered table-striped ewViewTable">
 	<tbody>
+<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+		<tr id="r_codigo_barra">
+			<td><?php echo $producto->codigo_barra->FldCaption() ?></td>
+			<td<?php echo $producto->codigo_barra->CellAttributes() ?>>
+<span id="el_producto_codigo_barra" class="form-group">
+<span<?php echo $producto->codigo_barra->ViewAttributes() ?>>
+<?php echo $producto->codigo_barra->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
 <?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 		<tr id="r_idcategoria">
 			<td><?php echo $producto->idcategoria->FldCaption() ?></td>
@@ -98,6 +111,18 @@
 <span id="el_producto_fecha_insercion" class="form-group">
 <span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
 <?php echo $producto->fecha_insercion->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($producto->foto->Visible) { // foto ?>
+		<tr id="r_foto">
+			<td><?php echo $producto->foto->FldCaption() ?></td>
+			<td<?php echo $producto->foto->CellAttributes() ?>>
+<span id="el_producto_foto" class="form-group">
+<span>
+<?php echo ew_GetFileViewTag($producto->foto, $producto->foto->ListViewValue()) ?>
+</span>
 </span>
 </td>
 		</tr>

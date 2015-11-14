@@ -494,6 +494,9 @@ class cproducto_edit extends cproducto {
 		global $objForm, $Language;
 
 		// Get upload data
+		$this->foto->Upload->Index = $objForm->Index;
+		$this->foto->Upload->UploadFile();
+		$this->foto->CurrentValue = $this->foto->Upload->FileName;
 	}
 
 	// Load form values
@@ -501,6 +504,10 @@ class cproducto_edit extends cproducto {
 
 		// Load from form
 		global $objForm;
+		$this->GetUploadFiles(); // Get upload files
+		if (!$this->codigo_barra->FldIsDetailKey) {
+			$this->codigo_barra->setFormValue($objForm->GetValue("x_codigo_barra"));
+		}
 		if (!$this->idcategoria->FldIsDetailKey) {
 			$this->idcategoria->setFormValue($objForm->GetValue("x_idcategoria"));
 		}
@@ -531,6 +538,7 @@ class cproducto_edit extends cproducto {
 		global $objForm;
 		$this->LoadRow();
 		$this->idproducto->CurrentValue = $this->idproducto->FormValue;
+		$this->codigo_barra->CurrentValue = $this->codigo_barra->FormValue;
 		$this->idcategoria->CurrentValue = $this->idcategoria->FormValue;
 		$this->idmarca->CurrentValue = $this->idmarca->FormValue;
 		$this->nombre->CurrentValue = $this->nombre->FormValue;
@@ -570,6 +578,7 @@ class cproducto_edit extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->codigo_barra->setDbValue($rs->fields('codigo_barra'));
 		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
@@ -579,6 +588,8 @@ class cproducto_edit extends cproducto {
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->foto->Upload->DbValue = $rs->fields('foto');
+		$this->foto->CurrentValue = $this->foto->Upload->DbValue;
 	}
 
 	// Load DbValue from recordset
@@ -586,6 +597,7 @@ class cproducto_edit extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->codigo_barra->DbValue = $row['codigo_barra'];
 		$this->idcategoria->DbValue = $row['idcategoria'];
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
@@ -595,6 +607,7 @@ class cproducto_edit extends cproducto {
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->foto->Upload->DbValue = $row['foto'];
 	}
 
 	// Render row values based on field settings
@@ -617,6 +630,7 @@ class cproducto_edit extends cproducto {
 
 		// Common render codes for all row types
 		// idproducto
+		// codigo_barra
 		// idcategoria
 		// idmarca
 		// nombre
@@ -626,12 +640,17 @@ class cproducto_edit extends cproducto {
 		// precio_venta
 		// precio_compra
 		// fecha_insercion
+		// foto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idproducto
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->ViewValue = $this->codigo_barra->CurrentValue;
+			$this->codigo_barra->ViewCustomAttributes = "";
 
 			// idcategoria
 			if (strval($this->idcategoria->CurrentValue) <> "") {
@@ -725,6 +744,8 @@ class cproducto_edit extends cproducto {
 
 			// existencia
 			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewValue = ew_FormatNumber($this->existencia->ViewValue, 0, -2, -2, -2);
+			$this->existencia->CellCssStyle .= "text-align: right;";
 			$this->existencia->ViewCustomAttributes = "";
 
 			// estado
@@ -746,18 +767,41 @@ class cproducto_edit extends cproducto {
 
 			// precio_venta
 			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
-			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewValue = ew_FormatNumber($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->CellCssStyle .= "text-align: right;";
 			$this->precio_venta->ViewCustomAttributes = "";
 
 			// precio_compra
 			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
-			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+			$this->precio_compra->ViewValue = ew_FormatNumber($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->CellCssStyle .= "text-align: right;";
 			$this->precio_compra->ViewCustomAttributes = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->ViewValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->ViewValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->ViewValue = "";
+			}
+			$this->foto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->LinkCustomAttributes = "";
+			$this->codigo_barra->HrefValue = "";
+			$this->codigo_barra->TooltipValue = "";
 
 			// idcategoria
 			$this->idcategoria->LinkCustomAttributes = "";
@@ -793,7 +837,30 @@ class cproducto_edit extends cproducto {
 			$this->precio_compra->LinkCustomAttributes = "";
 			$this->precio_compra->HrefValue = "";
 			$this->precio_compra->TooltipValue = "";
+
+			// foto
+			$this->foto->LinkCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
+			$this->foto->TooltipValue = "";
+			if ($this->foto->UseColorbox) {
+				$this->foto->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->foto->LinkAttrs["data-rel"] = "producto_x_foto";
+				$this->foto->LinkAttrs["class"] = "ewLightbox";
+			}
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
+
+			// codigo_barra
+			$this->codigo_barra->EditAttrs["class"] = "form-control";
+			$this->codigo_barra->EditCustomAttributes = "";
+			$this->codigo_barra->EditValue = ew_HtmlEncode($this->codigo_barra->CurrentValue);
+			$this->codigo_barra->PlaceHolder = ew_RemoveHtml($this->codigo_barra->FldCaption());
 
 			// idcategoria
 			$this->idcategoria->EditAttrs["class"] = "form-control";
@@ -968,9 +1035,32 @@ class cproducto_edit extends cproducto {
 			$this->precio_compra->PlaceHolder = ew_RemoveHtml($this->precio_compra->FldCaption());
 			if (strval($this->precio_compra->EditValue) <> "" && is_numeric($this->precio_compra->EditValue)) $this->precio_compra->EditValue = ew_FormatNumber($this->precio_compra->EditValue, -2, -2, -2, -2);
 
-			// Edit refer script
-			// idcategoria
+			// foto
+			$this->foto->EditAttrs["class"] = "form-control";
+			$this->foto->EditCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->EditValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->EditValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->EditValue = "";
+			}
+			if (!ew_Empty($this->foto->CurrentValue))
+				$this->foto->Upload->FileName = $this->foto->CurrentValue;
+			if ($this->CurrentAction == "I" && !$this->EventCancelled) ew_RenderUploadField($this->foto);
 
+			// Edit refer script
+			// codigo_barra
+
+			$this->codigo_barra->HrefValue = "";
+
+			// idcategoria
 			$this->idcategoria->HrefValue = "";
 
 			// idmarca
@@ -990,6 +1080,16 @@ class cproducto_edit extends cproducto {
 
 			// precio_compra
 			$this->precio_compra->HrefValue = "";
+
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1012,6 +1112,9 @@ class cproducto_edit extends cproducto {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
+		if (!$this->codigo_barra->FldIsDetailKey && !is_null($this->codigo_barra->FormValue) && $this->codigo_barra->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->codigo_barra->FldCaption(), $this->codigo_barra->ReqErrMsg));
+		}
 		if (!$this->idcategoria->FldIsDetailKey && !is_null($this->idcategoria->FormValue) && $this->idcategoria->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->idcategoria->FldCaption(), $this->idcategoria->ReqErrMsg));
 		}
@@ -1095,6 +1198,9 @@ class cproducto_edit extends cproducto {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
+			// codigo_barra
+			$this->codigo_barra->SetDbValueDef($rsnew, $this->codigo_barra->CurrentValue, "", $this->codigo_barra->ReadOnly);
+
 			// idcategoria
 			$this->idcategoria->SetDbValueDef($rsnew, $this->idcategoria->CurrentValue, 0, $this->idcategoria->ReadOnly);
 
@@ -1116,6 +1222,23 @@ class cproducto_edit extends cproducto {
 			// precio_compra
 			$this->precio_compra->SetDbValueDef($rsnew, $this->precio_compra->CurrentValue, 0, $this->precio_compra->ReadOnly);
 
+			// foto
+			if (!($this->foto->ReadOnly) && !$this->foto->Upload->KeepFile) {
+				$this->foto->Upload->DbValue = $rsold['foto']; // Get original value
+				if ($this->foto->Upload->FileName == "") {
+					$rsnew['foto'] = NULL;
+				} else {
+					$rsnew['foto'] = $this->foto->Upload->FileName;
+				}
+				$this->foto->ImageWidth = 0; // Resize width
+				$this->foto->ImageHeight = 500; // Resize height
+			}
+			if (!$this->foto->Upload->KeepFile) {
+				if (!ew_Empty($this->foto->Upload->Value)) {
+					$rsnew['foto'] = ew_UploadFileNameEx(ew_UploadPathEx(TRUE, $this->foto->UploadPath), $rsnew['foto']); // Get new file name
+				}
+			}
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1126,6 +1249,12 @@ class cproducto_edit extends cproducto {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
+					if (!$this->foto->Upload->KeepFile) {
+						if (!ew_Empty($this->foto->Upload->Value)) {
+							$this->foto->Upload->Resize($this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+							$this->foto->Upload->SaveToFile($this->foto->UploadPath, $rsnew['foto'], TRUE);
+						}
+					}
 				}
 
 				// Update detail records
@@ -1178,6 +1307,9 @@ class cproducto_edit extends cproducto {
 			$this->WriteAuditTrailOnEdit($rsold, $rsnew);
 		}
 		$rs->Close();
+
+		// foto
+		ew_CleanUploadTempPath($this->foto, $this->foto->Upload->Index);
 		return $EditRow;
 	}
 
@@ -1485,6 +1617,9 @@ fproductoedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
+			elm = this.GetElements("x" + infix + "_codigo_barra");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->codigo_barra->FldCaption(), $producto->codigo_barra->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_idcategoria");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto->idcategoria->FldCaption(), $producto->idcategoria->ReqErrMsg)) ?>");
@@ -1574,6 +1709,16 @@ $producto_edit->ShowMessage();
 <input type="hidden" name="t" value="producto">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <div>
+<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+	<div id="r_codigo_barra" class="form-group">
+		<label id="elh_producto_codigo_barra" for="x_codigo_barra" class="col-sm-2 control-label ewLabel"><?php echo $producto->codigo_barra->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="col-sm-10"><div<?php echo $producto->codigo_barra->CellAttributes() ?>>
+<span id="el_producto_codigo_barra">
+<input type="text" data-field="x_codigo_barra" name="x_codigo_barra" id="x_codigo_barra" size="30" maxlength="45" placeholder="<?php echo ew_HtmlEncode($producto->codigo_barra->PlaceHolder) ?>" value="<?php echo $producto->codigo_barra->EditValue ?>"<?php echo $producto->codigo_barra->EditAttributes() ?>>
+</span>
+<?php echo $producto->codigo_barra->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 <?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 	<div id="r_idcategoria" class="form-group">
 		<label id="elh_producto_idcategoria" for="x_idcategoria" class="col-sm-2 control-label ewLabel"><?php echo $producto->idcategoria->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -1767,6 +1912,31 @@ if (is_array($producto->estado->EditValue)) {
 <input type="text" data-field="x_precio_compra" name="x_precio_compra" id="x_precio_compra" size="30" placeholder="<?php echo ew_HtmlEncode($producto->precio_compra->PlaceHolder) ?>" value="<?php echo $producto->precio_compra->EditValue ?>"<?php echo $producto->precio_compra->EditAttributes() ?>>
 </span>
 <?php echo $producto->precio_compra->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($producto->foto->Visible) { // foto ?>
+	<div id="r_foto" class="form-group">
+		<label id="elh_producto_foto" class="col-sm-2 control-label ewLabel"><?php echo $producto->foto->FldCaption() ?></label>
+		<div class="col-sm-10"><div<?php echo $producto->foto->CellAttributes() ?>>
+<span id="el_producto_foto">
+<div id="fd_x_foto">
+<span title="<?php echo $producto->foto->FldTitle() ? $producto->foto->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($producto->foto->ReadOnly || $producto->foto->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-field="x_foto" name="x_foto" id="x_foto">
+</span>
+<input type="hidden" name="fn_x_foto" id= "fn_x_foto" value="<?php echo $producto->foto->Upload->FileName ?>">
+<?php if (@$_POST["fa_x_foto"] == "0") { ?>
+<input type="hidden" name="fa_x_foto" id= "fa_x_foto" value="0">
+<?php } else { ?>
+<input type="hidden" name="fa_x_foto" id= "fa_x_foto" value="1">
+<?php } ?>
+<input type="hidden" name="fs_x_foto" id= "fs_x_foto" value="45">
+<input type="hidden" name="fx_x_foto" id= "fx_x_foto" value="<?php echo $producto->foto->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x_foto" id= "fm_x_foto" value="<?php echo $producto->foto->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x_foto" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<?php echo $producto->foto->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div>

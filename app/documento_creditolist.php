@@ -838,12 +838,8 @@ class cdocumento_credito_list extends cdocumento_credito {
 			$this->UpdateSort($this->serie); // serie
 			$this->UpdateSort($this->correlativo); // correlativo
 			$this->UpdateSort($this->fecha); // fecha
-			$this->UpdateSort($this->observaciones); // observaciones
 			$this->UpdateSort($this->estado_documento); // estado_documento
-			$this->UpdateSort($this->estado); // estado
 			$this->UpdateSort($this->monto); // monto
-			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
-			$this->UpdateSort($this->idproveedor); // idproveedor
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -881,12 +877,8 @@ class cdocumento_credito_list extends cdocumento_credito {
 				$this->serie->setSort("");
 				$this->correlativo->setSort("");
 				$this->fecha->setSort("");
-				$this->observaciones->setSort("");
 				$this->estado_documento->setSort("");
-				$this->estado->setSort("");
 				$this->monto->setSort("");
-				$this->fecha_insercion->setSort("");
-				$this->idproveedor->setSort("");
 			}
 
 			// Reset start position
@@ -944,9 +936,9 @@ class cdocumento_credito_list extends cdocumento_credito {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
-		$this->ListOptions->UseButtonGroup = TRUE;
+		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
 			$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->ButtonClass = "btn-sm"; // Class for button group
@@ -1497,6 +1489,8 @@ class cdocumento_credito_list extends cdocumento_credito {
 
 			// monto
 			$this->monto->ViewValue = $this->monto->CurrentValue;
+			$this->monto->ViewValue = ew_FormatNumber($this->monto->ViewValue, 2, -2, -2, -2);
+			$this->monto->CellCssStyle .= "text-align: right;";
 			$this->monto->ViewCustomAttributes = "";
 
 			// fecha_insercion
@@ -1505,7 +1499,31 @@ class cdocumento_credito_list extends cdocumento_credito {
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
 			// idproveedor
-			$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+			if (strval($this->idproveedor->CurrentValue) <> "") {
+				$sFilterWrk = "`idproveedor`" . ew_SearchString("=", $this->idproveedor->CurrentValue, EW_DATATYPE_NUMBER);
+			$sSqlWrk = "SELECT `idproveedor`, `nombre_factura` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `proveedor`";
+			$sWhereWrk = "";
+			$lookuptblfilter = "`estado` = 'Activo'";
+			if (strval($lookuptblfilter) <> "") {
+				ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			}
+			if ($sFilterWrk <> "") {
+				ew_AddFilter($sWhereWrk, $sFilterWrk);
+			}
+
+			// Call Lookup selecting
+			$this->Lookup_Selecting($this->idproveedor, $sWhereWrk);
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+				$rswrk = $conn->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$this->idproveedor->ViewValue = $rswrk->fields('DispFld');
+					$rswrk->Close();
+				} else {
+					$this->idproveedor->ViewValue = $this->idproveedor->CurrentValue;
+				}
+			} else {
+				$this->idproveedor->ViewValue = NULL;
+			}
 			$this->idproveedor->ViewCustomAttributes = "";
 
 			// idtipo_documento
@@ -1533,35 +1551,15 @@ class cdocumento_credito_list extends cdocumento_credito {
 			$this->fecha->HrefValue = "";
 			$this->fecha->TooltipValue = "";
 
-			// observaciones
-			$this->observaciones->LinkCustomAttributes = "";
-			$this->observaciones->HrefValue = "";
-			$this->observaciones->TooltipValue = "";
-
 			// estado_documento
 			$this->estado_documento->LinkCustomAttributes = "";
 			$this->estado_documento->HrefValue = "";
 			$this->estado_documento->TooltipValue = "";
 
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
 			// monto
 			$this->monto->LinkCustomAttributes = "";
 			$this->monto->HrefValue = "";
 			$this->monto->TooltipValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->LinkCustomAttributes = "";
-			$this->fecha_insercion->HrefValue = "";
-			$this->fecha_insercion->TooltipValue = "";
-
-			// idproveedor
-			$this->idproveedor->LinkCustomAttributes = "";
-			$this->idproveedor->HrefValue = "";
-			$this->idproveedor->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -2046,15 +2044,6 @@ $documento_credito_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($documento_credito->observaciones->Visible) { // observaciones ?>
-	<?php if ($documento_credito->SortUrl($documento_credito->observaciones) == "") { ?>
-		<th data-name="observaciones"><div id="elh_documento_credito_observaciones" class="documento_credito_observaciones"><div class="ewTableHeaderCaption"><?php echo $documento_credito->observaciones->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="observaciones"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_credito->SortUrl($documento_credito->observaciones) ?>',1);"><div id="elh_documento_credito_observaciones" class="documento_credito_observaciones">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_credito->observaciones->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($documento_credito->observaciones->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_credito->observaciones->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($documento_credito->estado_documento->Visible) { // estado_documento ?>
 	<?php if ($documento_credito->SortUrl($documento_credito->estado_documento) == "") { ?>
 		<th data-name="estado_documento"><div id="elh_documento_credito_estado_documento" class="documento_credito_estado_documento"><div class="ewTableHeaderCaption"><?php echo $documento_credito->estado_documento->FldCaption() ?></div></div></th>
@@ -2064,39 +2053,12 @@ $documento_credito_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
-<?php if ($documento_credito->estado->Visible) { // estado ?>
-	<?php if ($documento_credito->SortUrl($documento_credito->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_documento_credito_estado" class="documento_credito_estado"><div class="ewTableHeaderCaption"><?php echo $documento_credito->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_credito->SortUrl($documento_credito->estado) ?>',1);"><div id="elh_documento_credito_estado" class="documento_credito_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_credito->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_credito->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_credito->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($documento_credito->monto->Visible) { // monto ?>
 	<?php if ($documento_credito->SortUrl($documento_credito->monto) == "") { ?>
 		<th data-name="monto"><div id="elh_documento_credito_monto" class="documento_credito_monto"><div class="ewTableHeaderCaption"><?php echo $documento_credito->monto->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="monto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_credito->SortUrl($documento_credito->monto) ?>',1);"><div id="elh_documento_credito_monto" class="documento_credito_monto">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_credito->monto->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_credito->monto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_credito->monto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($documento_credito->fecha_insercion->Visible) { // fecha_insercion ?>
-	<?php if ($documento_credito->SortUrl($documento_credito->fecha_insercion) == "") { ?>
-		<th data-name="fecha_insercion"><div id="elh_documento_credito_fecha_insercion" class="documento_credito_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $documento_credito->fecha_insercion->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_credito->SortUrl($documento_credito->fecha_insercion) ?>',1);"><div id="elh_documento_credito_fecha_insercion" class="documento_credito_fecha_insercion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_credito->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_credito->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_credito->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($documento_credito->idproveedor->Visible) { // idproveedor ?>
-	<?php if ($documento_credito->SortUrl($documento_credito->idproveedor) == "") { ?>
-		<th data-name="idproveedor"><div id="elh_documento_credito_idproveedor" class="documento_credito_idproveedor"><div class="ewTableHeaderCaption"><?php echo $documento_credito->idproveedor->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idproveedor"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $documento_credito->SortUrl($documento_credito->idproveedor) ?>',1);"><div id="elh_documento_credito_idproveedor" class="documento_credito_idproveedor">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $documento_credito->idproveedor->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($documento_credito->idproveedor->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($documento_credito->idproveedor->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -2195,40 +2157,16 @@ $documento_credito_list->ListOptions->Render("body", "left", $documento_credito_
 <?php echo $documento_credito->fecha->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($documento_credito->observaciones->Visible) { // observaciones ?>
-		<td data-name="observaciones"<?php echo $documento_credito->observaciones->CellAttributes() ?>>
-<span<?php echo $documento_credito->observaciones->ViewAttributes() ?>>
-<?php echo $documento_credito->observaciones->ListViewValue() ?></span>
-</td>
-	<?php } ?>
 	<?php if ($documento_credito->estado_documento->Visible) { // estado_documento ?>
 		<td data-name="estado_documento"<?php echo $documento_credito->estado_documento->CellAttributes() ?>>
 <span<?php echo $documento_credito->estado_documento->ViewAttributes() ?>>
 <?php echo $documento_credito->estado_documento->ListViewValue() ?></span>
 </td>
 	<?php } ?>
-	<?php if ($documento_credito->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $documento_credito->estado->CellAttributes() ?>>
-<span<?php echo $documento_credito->estado->ViewAttributes() ?>>
-<?php echo $documento_credito->estado->ListViewValue() ?></span>
-</td>
-	<?php } ?>
 	<?php if ($documento_credito->monto->Visible) { // monto ?>
 		<td data-name="monto"<?php echo $documento_credito->monto->CellAttributes() ?>>
 <span<?php echo $documento_credito->monto->ViewAttributes() ?>>
 <?php echo $documento_credito->monto->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($documento_credito->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td data-name="fecha_insercion"<?php echo $documento_credito->fecha_insercion->CellAttributes() ?>>
-<span<?php echo $documento_credito->fecha_insercion->ViewAttributes() ?>>
-<?php echo $documento_credito->fecha_insercion->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($documento_credito->idproveedor->Visible) { // idproveedor ?>
-		<td data-name="idproveedor"<?php echo $documento_credito->idproveedor->CellAttributes() ?>>
-<span<?php echo $documento_credito->idproveedor->ViewAttributes() ?>>
-<?php echo $documento_credito->idproveedor->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

@@ -752,7 +752,9 @@ class cproducto_list extends cproducto {
 	// Return basic search SQL
 	function BasicSearchSQL($arKeywords, $type) {
 		$sWhere = "";
+		$this->BuildBasicSearchSQL($sWhere, $this->codigo_barra, $arKeywords, $type);
 		$this->BuildBasicSearchSQL($sWhere, $this->nombre, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->foto, $arKeywords, $type);
 		return $sWhere;
 	}
 
@@ -906,6 +908,7 @@ class cproducto_list extends cproducto {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
+			$this->UpdateSort($this->codigo_barra); // codigo_barra
 			$this->UpdateSort($this->idcategoria); // idcategoria
 			$this->UpdateSort($this->idmarca); // idmarca
 			$this->UpdateSort($this->nombre); // nombre
@@ -914,6 +917,7 @@ class cproducto_list extends cproducto {
 			$this->UpdateSort($this->estado); // estado
 			$this->UpdateSort($this->precio_venta); // precio_venta
 			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
+			$this->UpdateSort($this->foto); // foto
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -955,6 +959,7 @@ class cproducto_list extends cproducto {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
+				$this->codigo_barra->setSort("");
 				$this->idcategoria->setSort("");
 				$this->idmarca->setSort("");
 				$this->nombre->setSort("");
@@ -963,6 +968,7 @@ class cproducto_list extends cproducto {
 				$this->estado->setSort("");
 				$this->precio_venta->setSort("");
 				$this->fecha_insercion->setSort("");
+				$this->foto->setSort("");
 			}
 
 			// Reset start position
@@ -1044,9 +1050,9 @@ class cproducto_list extends cproducto {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
-		$this->ListOptions->UseButtonGroup = TRUE;
+		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
 			$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->ButtonClass = "btn-sm"; // Class for button group
@@ -1489,6 +1495,7 @@ class cproducto_list extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->codigo_barra->setDbValue($rs->fields('codigo_barra'));
 		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
@@ -1498,6 +1505,8 @@ class cproducto_list extends cproducto {
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->foto->Upload->DbValue = $rs->fields('foto');
+		$this->foto->CurrentValue = $this->foto->Upload->DbValue;
 	}
 
 	// Load DbValue from recordset
@@ -1505,6 +1514,7 @@ class cproducto_list extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->codigo_barra->DbValue = $row['codigo_barra'];
 		$this->idcategoria->DbValue = $row['idcategoria'];
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
@@ -1514,6 +1524,7 @@ class cproducto_list extends cproducto {
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->foto->Upload->DbValue = $row['foto'];
 	}
 
 	// Load old record
@@ -1560,6 +1571,7 @@ class cproducto_list extends cproducto {
 
 		// Common render codes for all row types
 		// idproducto
+		// codigo_barra
 		// idcategoria
 		// idmarca
 		// nombre
@@ -1569,12 +1581,17 @@ class cproducto_list extends cproducto {
 		// precio_venta
 		// precio_compra
 		// fecha_insercion
+		// foto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idproducto
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->ViewValue = $this->codigo_barra->CurrentValue;
+			$this->codigo_barra->ViewCustomAttributes = "";
 
 			// idcategoria
 			if (strval($this->idcategoria->CurrentValue) <> "") {
@@ -1668,6 +1685,8 @@ class cproducto_list extends cproducto {
 
 			// existencia
 			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewValue = ew_FormatNumber($this->existencia->ViewValue, 0, -2, -2, -2);
+			$this->existencia->CellCssStyle .= "text-align: right;";
 			$this->existencia->ViewCustomAttributes = "";
 
 			// estado
@@ -1689,18 +1708,41 @@ class cproducto_list extends cproducto {
 
 			// precio_venta
 			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
-			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewValue = ew_FormatNumber($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->CellCssStyle .= "text-align: right;";
 			$this->precio_venta->ViewCustomAttributes = "";
 
 			// precio_compra
 			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
-			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+			$this->precio_compra->ViewValue = ew_FormatNumber($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->CellCssStyle .= "text-align: right;";
 			$this->precio_compra->ViewCustomAttributes = "";
 
 			// fecha_insercion
 			$this->fecha_insercion->ViewValue = $this->fecha_insercion->CurrentValue;
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
+
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->ViewValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->ViewValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->ViewValue = "";
+			}
+			$this->foto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->LinkCustomAttributes = "";
+			$this->codigo_barra->HrefValue = "";
+			$this->codigo_barra->TooltipValue = "";
 
 			// idcategoria
 			$this->idcategoria->LinkCustomAttributes = "";
@@ -1741,6 +1783,23 @@ class cproducto_list extends cproducto {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// foto
+			$this->foto->LinkCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
+			$this->foto->TooltipValue = "";
+			if ($this->foto->UseColorbox) {
+				$this->foto->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->foto->LinkAttrs["data-rel"] = "producto_x" . $this->RowCnt . "_foto";
+				$this->foto->LinkAttrs["class"] = "ewLightbox";
+			}
 		}
 
 		// Call Row Rendered event
@@ -2301,6 +2360,15 @@ $producto_list->RenderListOptions();
 // Render list options (header, left)
 $producto_list->ListOptions->Render("header", "left");
 ?>
+<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+	<?php if ($producto->SortUrl($producto->codigo_barra) == "") { ?>
+		<th data-name="codigo_barra"><div id="elh_producto_codigo_barra" class="producto_codigo_barra"><div class="ewTableHeaderCaption"><?php echo $producto->codigo_barra->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="codigo_barra"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->codigo_barra) ?>',1);"><div id="elh_producto_codigo_barra" class="producto_codigo_barra">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->codigo_barra->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($producto->codigo_barra->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->codigo_barra->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 	<?php if ($producto->SortUrl($producto->idcategoria) == "") { ?>
 		<th data-name="idcategoria"><div id="elh_producto_idcategoria" class="producto_idcategoria"><div class="ewTableHeaderCaption"><?php echo $producto->idcategoria->FldCaption() ?></div></div></th>
@@ -2373,6 +2441,15 @@ $producto_list->ListOptions->Render("header", "left");
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
+<?php if ($producto->foto->Visible) { // foto ?>
+	<?php if ($producto->SortUrl($producto->foto) == "") { ?>
+		<th data-name="foto"><div id="elh_producto_foto" class="producto_foto"><div class="ewTableHeaderCaption"><?php echo $producto->foto->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="foto"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto->SortUrl($producto->foto) ?>',1);"><div id="elh_producto_foto" class="producto_foto">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto->foto->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($producto->foto->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto->foto->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+        </div></div></th>
+	<?php } ?>
+<?php } ?>		
 <?php
 
 // Render list options (header, right)
@@ -2438,11 +2515,17 @@ while ($producto_list->RecCnt < $producto_list->StopRec) {
 // Render list options (body, left)
 $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 ?>
+	<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+		<td data-name="codigo_barra"<?php echo $producto->codigo_barra->CellAttributes() ?>>
+<span<?php echo $producto->codigo_barra->ViewAttributes() ?>>
+<?php echo $producto->codigo_barra->ListViewValue() ?></span>
+<a id="<?php echo $producto_list->PageObjName . "_row_" . $producto_list->RowCnt ?>"></a></td>
+	<?php } ?>
 	<?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 		<td data-name="idcategoria"<?php echo $producto->idcategoria->CellAttributes() ?>>
 <span<?php echo $producto->idcategoria->ViewAttributes() ?>>
 <?php echo $producto->idcategoria->ListViewValue() ?></span>
-<a id="<?php echo $producto_list->PageObjName . "_row_" . $producto_list->RowCnt ?>"></a></td>
+</td>
 	<?php } ?>
 	<?php if ($producto->idmarca->Visible) { // idmarca ?>
 		<td data-name="idmarca"<?php echo $producto->idmarca->CellAttributes() ?>>
@@ -2484,6 +2567,13 @@ $producto_list->ListOptions->Render("body", "left", $producto_list->RowCnt);
 		<td data-name="fecha_insercion"<?php echo $producto->fecha_insercion->CellAttributes() ?>>
 <span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
 <?php echo $producto->fecha_insercion->ListViewValue() ?></span>
+</td>
+	<?php } ?>
+	<?php if ($producto->foto->Visible) { // foto ?>
+		<td data-name="foto"<?php echo $producto->foto->CellAttributes() ?>>
+<span>
+<?php echo ew_GetFileViewTag($producto->foto, $producto->foto->ListViewValue()) ?>
+</span>
 </td>
 	<?php } ?>
 <?php

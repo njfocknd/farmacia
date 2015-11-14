@@ -275,7 +275,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 		// Set up list options
 		$this->SetupListOptions();
-		$this->idproducto_precio_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -733,10 +732,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			return FALSE;
 		if ($objForm->HasValue("x_precio_compra") && $objForm->HasValue("o_precio_compra") && $this->precio_compra->CurrentValue <> $this->precio_compra->OldValue)
 			return FALSE;
-		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
-			return FALSE;
-		if ($objForm->HasValue("x_fecha_insercion") && $objForm->HasValue("o_fecha_insercion") && $this->fecha_insercion->CurrentValue <> $this->fecha_insercion->OldValue)
-			return FALSE;
 		return TRUE;
 	}
 
@@ -826,7 +821,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			if ($this->getSqlOrderBy() <> "") {
 				$sOrderBy = $this->getSqlOrderBy();
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idproducto_precio_historial->setSort("DESC");
 			}
 		}
 	}
@@ -880,7 +874,7 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
 		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
@@ -1022,8 +1016,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 	// Load default values
 	function LoadDefaultValues() {
-		$this->idproducto_precio_historial->CurrentValue = NULL;
-		$this->idproducto_precio_historial->OldValue = $this->idproducto_precio_historial->CurrentValue;
 		$this->idproducto->CurrentValue = 1;
 		$this->idproducto->OldValue = $this->idproducto->CurrentValue;
 		$this->fecha->CurrentValue = NULL;
@@ -1032,10 +1024,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 		$this->precio_venta->OldValue = $this->precio_venta->CurrentValue;
 		$this->precio_compra->CurrentValue = 0.00;
 		$this->precio_compra->OldValue = $this->precio_compra->CurrentValue;
-		$this->estado->CurrentValue = "Activo";
-		$this->estado->OldValue = $this->estado->CurrentValue;
-		$this->fecha_insercion->CurrentValue = NULL;
-		$this->fecha_insercion->OldValue = $this->fecha_insercion->CurrentValue;
 	}
 
 	// Load form values
@@ -1044,8 +1032,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
-		if (!$this->idproducto_precio_historial->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
-			$this->idproducto_precio_historial->setFormValue($objForm->GetValue("x_idproducto_precio_historial"));
 		if (!$this->idproducto->FldIsDetailKey) {
 			$this->idproducto->setFormValue($objForm->GetValue("x_idproducto"));
 		}
@@ -1063,15 +1049,8 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			$this->precio_compra->setFormValue($objForm->GetValue("x_precio_compra"));
 		}
 		$this->precio_compra->setOldValue($objForm->GetValue("o_precio_compra"));
-		if (!$this->estado->FldIsDetailKey) {
-			$this->estado->setFormValue($objForm->GetValue("x_estado"));
-		}
-		$this->estado->setOldValue($objForm->GetValue("o_estado"));
-		if (!$this->fecha_insercion->FldIsDetailKey) {
-			$this->fecha_insercion->setFormValue($objForm->GetValue("x_fecha_insercion"));
-			$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
-		}
-		$this->fecha_insercion->setOldValue($objForm->GetValue("o_fecha_insercion"));
+		if (!$this->idproducto_precio_historial->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
+			$this->idproducto_precio_historial->setFormValue($objForm->GetValue("x_idproducto_precio_historial"));
 	}
 
 	// Restore form values
@@ -1084,9 +1063,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 		$this->fecha->CurrentValue = ew_UnFormatDateTime($this->fecha->CurrentValue, 7);
 		$this->precio_venta->CurrentValue = $this->precio_venta->FormValue;
 		$this->precio_compra->CurrentValue = $this->precio_compra->FormValue;
-		$this->estado->CurrentValue = $this->estado->FormValue;
-		$this->fecha_insercion->CurrentValue = $this->fecha_insercion->FormValue;
-		$this->fecha_insercion->CurrentValue = ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7);
 	}
 
 	// Load recordset
@@ -1279,11 +1255,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// idproducto_precio_historial
-			$this->idproducto_precio_historial->LinkCustomAttributes = "";
-			$this->idproducto_precio_historial->HrefValue = "";
-			$this->idproducto_precio_historial->TooltipValue = "";
-
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
@@ -1303,21 +1274,9 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			$this->precio_compra->LinkCustomAttributes = "";
 			$this->precio_compra->HrefValue = "";
 			$this->precio_compra->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->LinkCustomAttributes = "";
-			$this->fecha_insercion->HrefValue = "";
-			$this->fecha_insercion->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
-			// idproducto_precio_historial
 			// idproducto
-
 			$this->idproducto->EditAttrs["class"] = "form-control";
 			$this->idproducto->EditCustomAttributes = "";
 			if ($this->idproducto->getSessionValue() <> "") {
@@ -1393,27 +1352,9 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			$this->precio_compra->OldValue = $this->precio_compra->EditValue;
 			}
 
-			// estado
-			$this->estado->EditAttrs["class"] = "form-control";
-			$this->estado->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-			$this->estado->EditValue = $arwrk;
-
-			// fecha_insercion
-			$this->fecha_insercion->EditAttrs["class"] = "form-control";
-			$this->fecha_insercion->EditCustomAttributes = "";
-			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
-			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
 			// Edit refer script
-			// idproducto_precio_historial
-
-			$this->idproducto_precio_historial->HrefValue = "";
-
 			// idproducto
+
 			$this->idproducto->HrefValue = "";
 
 			// fecha
@@ -1424,20 +1365,8 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 			// precio_compra
 			$this->precio_compra->HrefValue = "";
-
-			// estado
-			$this->estado->HrefValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
-			// idproducto_precio_historial
-			$this->idproducto_precio_historial->EditAttrs["class"] = "form-control";
-			$this->idproducto_precio_historial->EditCustomAttributes = "";
-			$this->idproducto_precio_historial->EditValue = $this->idproducto_precio_historial->CurrentValue;
-			$this->idproducto_precio_historial->ViewCustomAttributes = "";
-
 			// idproducto
 			$this->idproducto->EditAttrs["class"] = "form-control";
 			$this->idproducto->EditCustomAttributes = "";
@@ -1514,27 +1443,9 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			$this->precio_compra->OldValue = $this->precio_compra->EditValue;
 			}
 
-			// estado
-			$this->estado->EditAttrs["class"] = "form-control";
-			$this->estado->EditCustomAttributes = "";
-			$arwrk = array();
-			$arwrk[] = array($this->estado->FldTagValue(1), $this->estado->FldTagCaption(1) <> "" ? $this->estado->FldTagCaption(1) : $this->estado->FldTagValue(1));
-			$arwrk[] = array($this->estado->FldTagValue(2), $this->estado->FldTagCaption(2) <> "" ? $this->estado->FldTagCaption(2) : $this->estado->FldTagValue(2));
-			array_unshift($arwrk, array("", $Language->Phrase("PleaseSelect")));
-			$this->estado->EditValue = $arwrk;
-
-			// fecha_insercion
-			$this->fecha_insercion->EditAttrs["class"] = "form-control";
-			$this->fecha_insercion->EditCustomAttributes = "";
-			$this->fecha_insercion->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_insercion->CurrentValue, 7));
-			$this->fecha_insercion->PlaceHolder = ew_RemoveHtml($this->fecha_insercion->FldCaption());
-
 			// Edit refer script
-			// idproducto_precio_historial
-
-			$this->idproducto_precio_historial->HrefValue = "";
-
 			// idproducto
+
 			$this->idproducto->HrefValue = "";
 
 			// fecha
@@ -1545,12 +1456,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 			// precio_compra
 			$this->precio_compra->HrefValue = "";
-
-			// estado
-			$this->estado->HrefValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD ||
 			$this->RowType == EW_ROWTYPE_EDIT ||
@@ -1587,12 +1492,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 		}
 		if (!ew_CheckNumber($this->precio_compra->FormValue)) {
 			ew_AddMessage($gsFormError, $this->precio_compra->FldErrMsg());
-		}
-		if (!$this->estado->FldIsDetailKey && !is_null($this->estado->FormValue) && $this->estado->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
-		}
-		if (!ew_CheckEuroDate($this->fecha_insercion->FormValue)) {
-			ew_AddMessage($gsFormError, $this->fecha_insercion->FldErrMsg());
 		}
 
 		// Return validate result
@@ -1718,12 +1617,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 			// precio_compra
 			$this->precio_compra->SetDbValueDef($rsnew, $this->precio_compra->CurrentValue, 0, $this->precio_compra->ReadOnly);
 
-			// estado
-			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", $this->estado->ReadOnly);
-
-			// fecha_insercion
-			$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, $this->fecha_insercion->ReadOnly);
-
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1782,12 +1675,6 @@ class cproducto_precio_historial_grid extends cproducto_precio_historial {
 
 		// precio_compra
 		$this->precio_compra->SetDbValueDef($rsnew, $this->precio_compra->CurrentValue, 0, strval($this->precio_compra->CurrentValue) == "");
-
-		// estado
-		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, "", strval($this->estado->CurrentValue) == "");
-
-		// fecha_insercion
-		$this->fecha_insercion->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_insercion->CurrentValue, 7), NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;

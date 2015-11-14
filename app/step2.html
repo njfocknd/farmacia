@@ -1,0 +1,76 @@
+<html>
+<head>
+</head>
+<body>					
+						<table>
+						<tr>
+						<td>
+						<form class="form-inline">
+						  <div class="form-group">
+							<label class="text-muted"><small>Producto</small></label>
+							<input type="text" class="form-control input-sm" style="width:100px;" id="inputCodigo" placeholder="Codigo">
+						  </div>
+						  <div class="form-group">
+							<label class="text-muted"><small>Descripcion</small></label>
+							<input type="text" class="form-control input-sm" style="width:275px;" id="inputDescripcion" placeholder="descripcion" readonly>
+						  </div>
+						  <div class="form-group">
+							<label class="text-muted"><small>Precio</small></label>
+							<div class="input-group">
+								<div class="input-group-addon">Q.</div>
+								<input type="text" class="form-control input-sm" style="width:75px;" id="inputPrecio" placeholder="Precio" readonly>
+							</div>
+						  </div>
+						  <div class="form-group">
+							<label class="text-muted"><small>Cantidad</small></label>
+							<input type="text" class="form-control input-sm" style="width:90px;" id="inputCantidad" placeholder="Cantidad">
+						  </div>
+						  <div class="form-group">
+							<label class="text-muted"><small>Total</small></label>
+							<input type="text" class="form-control input-sm" style="width:75px;" id="inputTotalCompra" placeholder="Total" readonly>
+						  </div>
+						  <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-shopping-cart"></span> Agregar</button>
+						</form>
+						</td>
+						</tr>
+						</table>
+						<table class="table">
+							<tr>
+								<th></th>
+								<th>Codigo</th>
+								<th>Descripcion</th>
+								<th>Precio</th>
+								<th>Unidades</th>
+								<th>Total</th>
+							</tr>
+							<tr>
+								<td><button type="submit" class="btn btn-danger" onclick="fncQuitarProducto();"><span class="glyphicon glyphicon-minus-sign"></span></button></td>
+								<td>1</td>
+								<td>Bisolvon Compuesto</td>
+								<td>75.00</td>
+								<td>1</td>
+								<td>75.00</td>
+							</tr>
+						</table>
+						<div class="col-md-1">
+							<button type="button" class="btn btn-default" onclick="fncCambioFormulario(1,2);">
+							  <span class="glyphicon glyphicon-chevron-left"></span>
+							</button>
+						</div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1"></div>
+						<div class="col-md-1">
+							<button type="button" class="btn btn-default" onclick="fncCambioFormulario(3,2);">
+							  <span class="glyphicon glyphicon-chevron-right"></span>
+							</button>
+						</div>
+</body>
+</html>

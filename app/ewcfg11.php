@@ -46,10 +46,16 @@ define("EW_TMP_IMAGE_FONT", "DejaVuSans", TRUE); // Font for temp files
 $EW_FONT_PATH = realpath('./phpfont');
 
 // Database connection info
-define("EW_CONN_HOST", 'nexthordb.cquvmppcukva.us-west-2.rds.amazonaws.com', TRUE);
+// define("EW_CONN_HOST", 'nexthordb.cquvmppcukva.us-west-2.rds.amazonaws.com', TRUE);
+// define("EW_CONN_PORT", 3306, TRUE);
+// define("EW_CONN_USER", 'dbadmin', TRUE);
+// define("EW_CONN_PASS", '23Nexthor23', TRUE);
+// define("EW_CONN_DB", 'nexthor_empresa', TRUE);
+
+define("EW_CONN_HOST", 'localhost', TRUE);
 define("EW_CONN_PORT", 3306, TRUE);
-define("EW_CONN_USER", 'dbadmin', TRUE);
-define("EW_CONN_PASS", '23Nexthor23', TRUE);
+define("EW_CONN_USER", 'root', TRUE);
+define("EW_CONN_PASS", '', TRUE);
 define("EW_CONN_DB", 'nexthor_empresa', TRUE);
 
 // ADODB (Access/SQL Server)

@@ -725,7 +725,7 @@ class cproducto_view extends cproducto {
 		$option = &$options["action"];
 		$option->DropDownButtonPhrase = $Language->Phrase("ButtonActions");
 		$option->UseImageAndText = TRUE;
-		$option->UseDropDownButton = FALSE;
+		$option->UseDropDownButton = TRUE;
 		$option->UseButtonGroup = TRUE;
 		$item = &$option->Add($option->GroupOptionName);
 		$item->Body = "";
@@ -815,6 +815,7 @@ class cproducto_view extends cproducto {
 		$row = &$rs->fields;
 		$this->Row_Selected($row);
 		$this->idproducto->setDbValue($rs->fields('idproducto'));
+		$this->codigo_barra->setDbValue($rs->fields('codigo_barra'));
 		$this->idcategoria->setDbValue($rs->fields('idcategoria'));
 		$this->idmarca->setDbValue($rs->fields('idmarca'));
 		$this->nombre->setDbValue($rs->fields('nombre'));
@@ -824,6 +825,8 @@ class cproducto_view extends cproducto {
 		$this->precio_venta->setDbValue($rs->fields('precio_venta'));
 		$this->precio_compra->setDbValue($rs->fields('precio_compra'));
 		$this->fecha_insercion->setDbValue($rs->fields('fecha_insercion'));
+		$this->foto->Upload->DbValue = $rs->fields('foto');
+		$this->foto->CurrentValue = $this->foto->Upload->DbValue;
 	}
 
 	// Load DbValue from recordset
@@ -831,6 +834,7 @@ class cproducto_view extends cproducto {
 		if (!$rs || !is_array($rs) && $rs->EOF) return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->idproducto->DbValue = $row['idproducto'];
+		$this->codigo_barra->DbValue = $row['codigo_barra'];
 		$this->idcategoria->DbValue = $row['idcategoria'];
 		$this->idmarca->DbValue = $row['idmarca'];
 		$this->nombre->DbValue = $row['nombre'];
@@ -840,6 +844,7 @@ class cproducto_view extends cproducto {
 		$this->precio_venta->DbValue = $row['precio_venta'];
 		$this->precio_compra->DbValue = $row['precio_compra'];
 		$this->fecha_insercion->DbValue = $row['fecha_insercion'];
+		$this->foto->Upload->DbValue = $row['foto'];
 	}
 
 	// Render row values based on field settings
@@ -868,6 +873,7 @@ class cproducto_view extends cproducto {
 
 		// Common render codes for all row types
 		// idproducto
+		// codigo_barra
 		// idcategoria
 		// idmarca
 		// nombre
@@ -877,12 +883,17 @@ class cproducto_view extends cproducto {
 		// precio_venta
 		// precio_compra
 		// fecha_insercion
+		// foto
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
 			// idproducto
 			$this->idproducto->ViewValue = $this->idproducto->CurrentValue;
 			$this->idproducto->ViewCustomAttributes = "";
+
+			// codigo_barra
+			$this->codigo_barra->ViewValue = $this->codigo_barra->CurrentValue;
+			$this->codigo_barra->ViewCustomAttributes = "";
 
 			// idcategoria
 			if (strval($this->idcategoria->CurrentValue) <> "") {
@@ -976,6 +987,8 @@ class cproducto_view extends cproducto {
 
 			// existencia
 			$this->existencia->ViewValue = $this->existencia->CurrentValue;
+			$this->existencia->ViewValue = ew_FormatNumber($this->existencia->ViewValue, 0, -2, -2, -2);
+			$this->existencia->CellCssStyle .= "text-align: right;";
 			$this->existencia->ViewCustomAttributes = "";
 
 			// estado
@@ -997,12 +1010,14 @@ class cproducto_view extends cproducto {
 
 			// precio_venta
 			$this->precio_venta->ViewValue = $this->precio_venta->CurrentValue;
-			$this->precio_venta->ViewValue = ew_FormatCurrency($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->ViewValue = ew_FormatNumber($this->precio_venta->ViewValue, 2, -2, -2, -2);
+			$this->precio_venta->CellCssStyle .= "text-align: right;";
 			$this->precio_venta->ViewCustomAttributes = "";
 
 			// precio_compra
 			$this->precio_compra->ViewValue = $this->precio_compra->CurrentValue;
-			$this->precio_compra->ViewValue = ew_FormatCurrency($this->precio_compra->ViewValue, 0, -2, -2, -2);
+			$this->precio_compra->ViewValue = ew_FormatNumber($this->precio_compra->ViewValue, 2, -2, -2, -2);
+			$this->precio_compra->CellCssStyle .= "text-align: right;";
 			$this->precio_compra->ViewCustomAttributes = "";
 
 			// fecha_insercion
@@ -1010,10 +1025,31 @@ class cproducto_view extends cproducto {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
+			// foto
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->ImageWidth = 0;
+				$this->foto->ImageHeight = 50;
+				$this->foto->ImageAlt = $this->foto->FldAlt();
+				$this->foto->ViewValue = "ewbv11.php?fn=" . urlencode($this->foto->UploadPath . $this->foto->Upload->DbValue) . "&width=" . $this->foto->ImageWidth . "&height=" . $this->foto->ImageHeight;
+				if ($this->CustomExport == "pdf" || $this->CustomExport == "email") {
+					$tmpimage = file_get_contents(ew_UploadPathEx(TRUE, $this->foto->UploadPath) . $this->foto->Upload->DbValue);
+					ew_ResizeBinary($tmpimage, $this->foto->ImageWidth, $this->foto->ImageHeight, EW_THUMBNAIL_DEFAULT_QUALITY);
+					$this->foto->ViewValue = ew_TmpImage($tmpimage);
+				}
+			} else {
+				$this->foto->ViewValue = "";
+			}
+			$this->foto->ViewCustomAttributes = "";
+
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
 			$this->idproducto->TooltipValue = "";
+
+			// codigo_barra
+			$this->codigo_barra->LinkCustomAttributes = "";
+			$this->codigo_barra->HrefValue = "";
+			$this->codigo_barra->TooltipValue = "";
 
 			// idcategoria
 			$this->idcategoria->LinkCustomAttributes = "";
@@ -1059,6 +1095,23 @@ class cproducto_view extends cproducto {
 			$this->fecha_insercion->LinkCustomAttributes = "";
 			$this->fecha_insercion->HrefValue = "";
 			$this->fecha_insercion->TooltipValue = "";
+
+			// foto
+			$this->foto->LinkCustomAttributes = "";
+			if (!ew_Empty($this->foto->Upload->DbValue)) {
+				$this->foto->HrefValue = ew_UploadPathEx(FALSE, $this->foto->UploadPath) . $this->foto->Upload->DbValue; // Add prefix/suffix
+				$this->foto->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->foto->HrefValue = ew_ConvertFullUrl($this->foto->HrefValue);
+			} else {
+				$this->foto->HrefValue = "";
+			}
+			$this->foto->HrefValue2 = $this->foto->UploadPath . $this->foto->Upload->DbValue;
+			$this->foto->TooltipValue = "";
+			if ($this->foto->UseColorbox) {
+				$this->foto->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->foto->LinkAttrs["data-rel"] = "producto_x_foto";
+				$this->foto->LinkAttrs["class"] = "ewLightbox";
+			}
 		}
 
 		// Call Row Rendered event
@@ -1590,6 +1643,17 @@ $producto_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
+<?php if ($producto->codigo_barra->Visible) { // codigo_barra ?>
+	<tr id="r_codigo_barra">
+		<td><span id="elh_producto_codigo_barra"><?php echo $producto->codigo_barra->FldCaption() ?></span></td>
+		<td<?php echo $producto->codigo_barra->CellAttributes() ?>>
+<span id="el_producto_codigo_barra" class="form-group">
+<span<?php echo $producto->codigo_barra->ViewAttributes() ?>>
+<?php echo $producto->codigo_barra->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
 <?php if ($producto->idcategoria->Visible) { // idcategoria ?>
 	<tr id="r_idcategoria">
 		<td><span id="elh_producto_idcategoria"><?php echo $producto->idcategoria->FldCaption() ?></span></td>
@@ -1685,6 +1749,18 @@ $producto_view->ShowMessage();
 <span id="el_producto_fecha_insercion" class="form-group">
 <span<?php echo $producto->fecha_insercion->ViewAttributes() ?>>
 <?php echo $producto->fecha_insercion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($producto->foto->Visible) { // foto ?>
+	<tr id="r_foto">
+		<td><span id="elh_producto_foto"><?php echo $producto->foto->FldCaption() ?></span></td>
+		<td<?php echo $producto->foto->CellAttributes() ?>>
+<span id="el_producto_foto" class="form-group">
+<span>
+<?php echo ew_GetFileViewTag($producto->foto, $producto->foto->ViewValue) ?>
+</span>
 </span>
 </td>
 	</tr>

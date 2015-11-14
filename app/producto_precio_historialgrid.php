@@ -65,12 +65,6 @@ fproducto_precio_historialgrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_precio_compra");
 			if (elm && !ew_CheckNumber(elm.value))
 				return this.OnError(elm, "<?php echo ew_JsEncode2($producto_precio_historial->precio_compra->FldErrMsg()) ?>");
-			elm = this.GetElements("x" + infix + "_estado");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $producto_precio_historial->estado->FldCaption(), $producto_precio_historial->estado->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_fecha_insercion");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($producto_precio_historial->fecha_insercion->FldErrMsg()) ?>");
 
 			// Set up row object
 			ew_ElementsToRow(fobj);
@@ -90,8 +84,6 @@ fproducto_precio_historialgrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "fecha", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "precio_venta", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "precio_compra", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "fecha_insercion", false)) return false;
 	return true;
 }
 
@@ -181,15 +173,6 @@ $producto_precio_historial_grid->RenderListOptions();
 // Render list options (header, left)
 $producto_precio_historial_grid->ListOptions->Render("header", "left");
 ?>
-<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
-	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->idproducto_precio_historial) == "") { ?>
-		<th data-name="idproducto_precio_historial"><div id="elh_producto_precio_historial_idproducto_precio_historial" class="producto_precio_historial_idproducto_precio_historial"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idproducto_precio_historial"><div><div id="elh_producto_precio_historial_idproducto_precio_historial" class="producto_precio_historial_idproducto_precio_historial">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->idproducto_precio_historial->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->idproducto_precio_historial->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
 	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->idproducto) == "") { ?>
 		<th data-name="idproducto"><div id="elh_producto_precio_historial_idproducto" class="producto_precio_historial_idproducto"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto->FldCaption() ?></div></div></th>
@@ -223,24 +206,6 @@ $producto_precio_historial_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="precio_compra"><div><div id="elh_producto_precio_historial_precio_compra" class="producto_precio_historial_precio_compra">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->precio_compra->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->precio_compra->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->precio_compra->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
-	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_producto_precio_historial_estado" class="producto_precio_historial_estado"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div><div id="elh_producto_precio_historial_estado" class="producto_precio_historial_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
-	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->fecha_insercion) == "") { ?>
-		<th data-name="fecha_insercion"><div id="elh_producto_precio_historial_fecha_insercion" class="producto_precio_historial_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercion"><div><div id="elh_producto_precio_historial_fecha_insercion" class="producto_precio_historial_fecha_insercion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -353,26 +318,6 @@ while ($producto_precio_historial_grid->RecCnt < $producto_precio_historial_grid
 // Render list options (body, left)
 $producto_precio_historial_grid->ListOptions->Render("body", "left", $producto_precio_historial_grid->RowCnt);
 ?>
-	<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
-		<td data-name="idproducto_precio_historial"<?php echo $producto_precio_historial->idproducto_precio_historial->CellAttributes() ?>>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<input type="hidden" data-field="x_idproducto_precio_historial" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->OldValue) ?>">
-<?php } ?>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $producto_precio_historial_grid->RowCnt ?>_producto_precio_historial_idproducto_precio_historial" class="form-group producto_precio_historial_idproducto_precio_historial">
-<span<?php echo $producto_precio_historial->idproducto_precio_historial->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_precio_historial->idproducto_precio_historial->EditValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idproducto_precio_historial" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->CurrentValue) ?>">
-<?php } ?>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $producto_precio_historial->idproducto_precio_historial->ViewAttributes() ?>>
-<?php echo $producto_precio_historial->idproducto_precio_historial->ListViewValue() ?></span>
-<input type="hidden" data-field="x_idproducto_precio_historial" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->FormValue) ?>">
-<input type="hidden" data-field="x_idproducto_precio_historial" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->OldValue) ?>">
-<?php } ?>
-<a id="<?php echo $producto_precio_historial_grid->PageObjName . "_row_" . $producto_precio_historial_grid->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
 		<td data-name="idproducto"<?php echo $producto_precio_historial->idproducto->CellAttributes() ?>>
 <?php if ($producto_precio_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -462,8 +407,15 @@ if (@$emptywrk) $producto_precio_historial->idproducto->OldValue = "";
 <input type="hidden" data-field="x_idproducto" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto->FormValue) ?>">
 <input type="hidden" data-field="x_idproducto" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto->OldValue) ?>">
 <?php } ?>
-</td>
+<a id="<?php echo $producto_precio_historial_grid->PageObjName . "_row_" . $producto_precio_historial_grid->RowCnt ?>"></a></td>
 	<?php } ?>
+<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<input type="hidden" data-field="x_idproducto_precio_historial" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->CurrentValue) ?>">
+<input type="hidden" data-field="x_idproducto_precio_historial" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->OldValue) ?>">
+<?php } ?>
+<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_EDIT || $producto_precio_historial->CurrentMode == "edit") { ?>
+<input type="hidden" data-field="x_idproducto_precio_historial" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->CurrentValue) ?>">
+<?php } ?>
 	<?php if ($producto_precio_historial->fecha->Visible) { // fecha ?>
 		<td data-name="fecha"<?php echo $producto_precio_historial->fecha->CellAttributes() ?>>
 <?php if ($producto_precio_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -527,84 +479,6 @@ if (@$emptywrk) $producto_precio_historial->idproducto->OldValue = "";
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $producto_precio_historial->estado->CellAttributes() ?>>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $producto_precio_historial_grid->RowCnt ?>_producto_precio_historial_estado" class="form-group producto_precio_historial_estado">
-<select data-field="x_estado" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado"<?php echo $producto_precio_historial->estado->EditAttributes() ?>>
-<?php
-if (is_array($producto_precio_historial->estado->EditValue)) {
-	$arwrk = $producto_precio_historial->estado->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_precio_historial->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-if (@$emptywrk) $producto_precio_historial->estado->OldValue = "";
-?>
-</select>
-</span>
-<input type="hidden" data-field="x_estado" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto_precio_historial->estado->OldValue) ?>">
-<?php } ?>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $producto_precio_historial_grid->RowCnt ?>_producto_precio_historial_estado" class="form-group producto_precio_historial_estado">
-<select data-field="x_estado" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado"<?php echo $producto_precio_historial->estado->EditAttributes() ?>>
-<?php
-if (is_array($producto_precio_historial->estado->EditValue)) {
-	$arwrk = $producto_precio_historial->estado->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_precio_historial->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-if (@$emptywrk) $producto_precio_historial->estado->OldValue = "";
-?>
-</select>
-</span>
-<?php } ?>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $producto_precio_historial->estado->ViewAttributes() ?>>
-<?php echo $producto_precio_historial->estado->ListViewValue() ?></span>
-<input type="hidden" data-field="x_estado" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto_precio_historial->estado->FormValue) ?>">
-<input type="hidden" data-field="x_estado" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto_precio_historial->estado->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td data-name="fecha_insercion"<?php echo $producto_precio_historial->fecha_insercion->CellAttributes() ?>>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $producto_precio_historial_grid->RowCnt ?>_producto_precio_historial_fecha_insercion" class="form-group producto_precio_historial_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto_precio_historial->fecha_insercion->EditValue ?>"<?php echo $producto_precio_historial->fecha_insercion->EditAttributes() ?>>
-</span>
-<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->OldValue) ?>">
-<?php } ?>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $producto_precio_historial_grid->RowCnt ?>_producto_precio_historial_fecha_insercion" class="form-group producto_precio_historial_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto_precio_historial->fecha_insercion->EditValue ?>"<?php echo $producto_precio_historial->fecha_insercion->EditAttributes() ?>>
-</span>
-<?php } ?>
-<?php if ($producto_precio_historial->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span<?php echo $producto_precio_historial->fecha_insercion->ViewAttributes() ?>>
-<?php echo $producto_precio_historial->fecha_insercion->ListViewValue() ?></span>
-<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->FormValue) ?>">
-<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->OldValue) ?>">
-<?php } ?>
-</td>
-	<?php } ?>
 <?php
 
 // Render list options (body, right)
@@ -647,19 +521,6 @@ fproducto_precio_historialgrid.UpdateOpts(<?php echo $producto_precio_historial_
 // Render list options (body, left)
 $producto_precio_historial_grid->ListOptions->Render("body", "left", $producto_precio_historial_grid->RowIndex);
 ?>
-	<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
-		<td>
-<?php if ($producto_precio_historial->CurrentAction <> "F") { ?>
-<?php } else { ?>
-<span id="el$rowindex$_producto_precio_historial_idproducto_precio_historial" class="form-group producto_precio_historial_idproducto_precio_historial">
-<span<?php echo $producto_precio_historial->idproducto_precio_historial->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_precio_historial->idproducto_precio_historial->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_idproducto_precio_historial" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_idproducto_precio_historial" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_idproducto_precio_historial" value="<?php echo ew_HtmlEncode($producto_precio_historial->idproducto_precio_historial->OldValue) ?>">
-</td>
-	<?php } ?>
 	<?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
 		<td>
 <?php if ($producto_precio_historial->CurrentAction <> "F") { ?>
@@ -757,56 +618,6 @@ if (@$emptywrk) $producto_precio_historial->idproducto->OldValue = "";
 <input type="hidden" data-field="x_precio_compra" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_precio_compra" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_precio_compra" value="<?php echo ew_HtmlEncode($producto_precio_historial->precio_compra->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-field="x_precio_compra" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_precio_compra" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_precio_compra" value="<?php echo ew_HtmlEncode($producto_precio_historial->precio_compra->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
-		<td>
-<?php if ($producto_precio_historial->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_producto_precio_historial_estado" class="form-group producto_precio_historial_estado">
-<select data-field="x_estado" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado"<?php echo $producto_precio_historial->estado->EditAttributes() ?>>
-<?php
-if (is_array($producto_precio_historial->estado->EditValue)) {
-	$arwrk = $producto_precio_historial->estado->EditValue;
-	$rowswrk = count($arwrk);
-	$emptywrk = TRUE;
-	for ($rowcntwrk = 0; $rowcntwrk < $rowswrk; $rowcntwrk++) {
-		$selwrk = (strval($producto_precio_historial->estado->CurrentValue) == strval($arwrk[$rowcntwrk][0])) ? " selected=\"selected\"" : "";
-		if ($selwrk <> "") $emptywrk = FALSE;
-?>
-<option value="<?php echo ew_HtmlEncode($arwrk[$rowcntwrk][0]) ?>"<?php echo $selwrk ?>>
-<?php echo $arwrk[$rowcntwrk][1] ?>
-</option>
-<?php
-	}
-}
-if (@$emptywrk) $producto_precio_historial->estado->OldValue = "";
-?>
-</select>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_producto_precio_historial_estado" class="form-group producto_precio_historial_estado">
-<span<?php echo $producto_precio_historial->estado->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_precio_historial->estado->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_estado" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto_precio_historial->estado->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_estado" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_estado" value="<?php echo ew_HtmlEncode($producto_precio_historial->estado->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td>
-<?php if ($producto_precio_historial->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_producto_precio_historial_fecha_insercion" class="form-group producto_precio_historial_fecha_insercion">
-<input type="text" data-field="x_fecha_insercion" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" placeholder="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->PlaceHolder) ?>" value="<?php echo $producto_precio_historial->fecha_insercion->EditValue ?>"<?php echo $producto_precio_historial->fecha_insercion->EditAttributes() ?>>
-</span>
-<?php } else { ?>
-<span id="el$rowindex$_producto_precio_historial_fecha_insercion" class="form-group producto_precio_historial_fecha_insercion">
-<span<?php echo $producto_precio_historial->fecha_insercion->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $producto_precio_historial->fecha_insercion->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-field="x_fecha_insercion" name="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="x<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-field="x_fecha_insercion" name="o<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" id="o<?php echo $producto_precio_historial_grid->RowIndex ?>_fecha_insercion" value="<?php echo ew_HtmlEncode($producto_precio_historial->fecha_insercion->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

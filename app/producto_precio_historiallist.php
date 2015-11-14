@@ -379,7 +379,6 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 
 		// Setup export options
 		$this->SetupExportOptions();
-		$this->idproducto_precio_historial->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -659,13 +658,10 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 		if (@$_GET["order"] <> "") {
 			$this->CurrentOrder = ew_StripSlashes(@$_GET["order"]);
 			$this->CurrentOrderType = @$_GET["ordertype"];
-			$this->UpdateSort($this->idproducto_precio_historial); // idproducto_precio_historial
 			$this->UpdateSort($this->idproducto); // idproducto
 			$this->UpdateSort($this->fecha); // fecha
 			$this->UpdateSort($this->precio_venta); // precio_venta
 			$this->UpdateSort($this->precio_compra); // precio_compra
-			$this->UpdateSort($this->estado); // estado
-			$this->UpdateSort($this->fecha_insercion); // fecha_insercion
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -677,7 +673,6 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 			if ($this->getSqlOrderBy() <> "") {
 				$sOrderBy = $this->getSqlOrderBy();
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idproducto_precio_historial->setSort("DESC");
 			}
 		}
 	}
@@ -703,13 +698,10 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
-				$this->idproducto_precio_historial->setSort("");
 				$this->idproducto->setSort("");
 				$this->fecha->setSort("");
 				$this->precio_venta->setSort("");
 				$this->precio_compra->setSort("");
-				$this->estado->setSort("");
-				$this->fecha_insercion->setSort("");
 			}
 
 			// Reset start position
@@ -744,9 +736,9 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 
 		// Drop down button for ListOptions
 		$this->ListOptions->UseImageAndText = TRUE;
-		$this->ListOptions->UseDropDownButton = FALSE;
+		$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->DropDownButtonPhrase = $Language->Phrase("ButtonListOptions");
-		$this->ListOptions->UseButtonGroup = TRUE;
+		$this->ListOptions->UseButtonGroup = FALSE;
 		if ($this->ListOptions->UseButtonGroup && ew_IsMobile())
 			$this->ListOptions->UseDropDownButton = TRUE;
 		$this->ListOptions->ButtonClass = "btn-sm"; // Class for button group
@@ -1129,11 +1121,6 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 			$this->fecha_insercion->ViewValue = ew_FormatDateTime($this->fecha_insercion->ViewValue, 7);
 			$this->fecha_insercion->ViewCustomAttributes = "";
 
-			// idproducto_precio_historial
-			$this->idproducto_precio_historial->LinkCustomAttributes = "";
-			$this->idproducto_precio_historial->HrefValue = "";
-			$this->idproducto_precio_historial->TooltipValue = "";
-
 			// idproducto
 			$this->idproducto->LinkCustomAttributes = "";
 			$this->idproducto->HrefValue = "";
@@ -1153,16 +1140,6 @@ class cproducto_precio_historial_list extends cproducto_precio_historial {
 			$this->precio_compra->LinkCustomAttributes = "";
 			$this->precio_compra->HrefValue = "";
 			$this->precio_compra->TooltipValue = "";
-
-			// estado
-			$this->estado->LinkCustomAttributes = "";
-			$this->estado->HrefValue = "";
-			$this->estado->TooltipValue = "";
-
-			// fecha_insercion
-			$this->fecha_insercion->LinkCustomAttributes = "";
-			$this->fecha_insercion->HrefValue = "";
-			$this->fecha_insercion->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1636,15 +1613,6 @@ $producto_precio_historial_list->RenderListOptions();
 // Render list options (header, left)
 $producto_precio_historial_list->ListOptions->Render("header", "left");
 ?>
-<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
-	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->idproducto_precio_historial) == "") { ?>
-		<th data-name="idproducto_precio_historial"><div id="elh_producto_precio_historial_idproducto_precio_historial" class="producto_precio_historial_idproducto_precio_historial"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="idproducto_precio_historial"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->idproducto_precio_historial) ?>',1);"><div id="elh_producto_precio_historial_idproducto_precio_historial" class="producto_precio_historial_idproducto_precio_historial">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto_precio_historial->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->idproducto_precio_historial->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->idproducto_precio_historial->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
 <?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
 	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->idproducto) == "") { ?>
 		<th data-name="idproducto"><div id="elh_producto_precio_historial_idproducto" class="producto_precio_historial_idproducto"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->idproducto->FldCaption() ?></div></div></th>
@@ -1678,24 +1646,6 @@ $producto_precio_historial_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="precio_compra"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->precio_compra) ?>',1);"><div id="elh_producto_precio_historial_precio_compra" class="producto_precio_historial_precio_compra">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->precio_compra->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->precio_compra->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->precio_compra->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
-	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->estado) == "") { ?>
-		<th data-name="estado"><div id="elh_producto_precio_historial_estado" class="producto_precio_historial_estado"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->estado->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="estado"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->estado) ?>',1);"><div id="elh_producto_precio_historial_estado" class="producto_precio_historial_estado">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->estado->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->estado->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->estado->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-        </div></div></th>
-	<?php } ?>
-<?php } ?>		
-<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
-	<?php if ($producto_precio_historial->SortUrl($producto_precio_historial->fecha_insercion) == "") { ?>
-		<th data-name="fecha_insercion"><div id="elh_producto_precio_historial_fecha_insercion" class="producto_precio_historial_fecha_insercion"><div class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="fecha_insercion"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $producto_precio_historial->SortUrl($producto_precio_historial->fecha_insercion) ?>',1);"><div id="elh_producto_precio_historial_fecha_insercion" class="producto_precio_historial_fecha_insercion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $producto_precio_historial->fecha_insercion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($producto_precio_historial->fecha_insercion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($producto_precio_historial->fecha_insercion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
         </div></div></th>
 	<?php } ?>
 <?php } ?>		
@@ -1764,17 +1714,11 @@ while ($producto_precio_historial_list->RecCnt < $producto_precio_historial_list
 // Render list options (body, left)
 $producto_precio_historial_list->ListOptions->Render("body", "left", $producto_precio_historial_list->RowCnt);
 ?>
-	<?php if ($producto_precio_historial->idproducto_precio_historial->Visible) { // idproducto_precio_historial ?>
-		<td data-name="idproducto_precio_historial"<?php echo $producto_precio_historial->idproducto_precio_historial->CellAttributes() ?>>
-<span<?php echo $producto_precio_historial->idproducto_precio_historial->ViewAttributes() ?>>
-<?php echo $producto_precio_historial->idproducto_precio_historial->ListViewValue() ?></span>
-<a id="<?php echo $producto_precio_historial_list->PageObjName . "_row_" . $producto_precio_historial_list->RowCnt ?>"></a></td>
-	<?php } ?>
 	<?php if ($producto_precio_historial->idproducto->Visible) { // idproducto ?>
 		<td data-name="idproducto"<?php echo $producto_precio_historial->idproducto->CellAttributes() ?>>
 <span<?php echo $producto_precio_historial->idproducto->ViewAttributes() ?>>
 <?php echo $producto_precio_historial->idproducto->ListViewValue() ?></span>
-</td>
+<a id="<?php echo $producto_precio_historial_list->PageObjName . "_row_" . $producto_precio_historial_list->RowCnt ?>"></a></td>
 	<?php } ?>
 	<?php if ($producto_precio_historial->fecha->Visible) { // fecha ?>
 		<td data-name="fecha"<?php echo $producto_precio_historial->fecha->CellAttributes() ?>>
@@ -1792,18 +1736,6 @@ $producto_precio_historial_list->ListOptions->Render("body", "left", $producto_p
 		<td data-name="precio_compra"<?php echo $producto_precio_historial->precio_compra->CellAttributes() ?>>
 <span<?php echo $producto_precio_historial->precio_compra->ViewAttributes() ?>>
 <?php echo $producto_precio_historial->precio_compra->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($producto_precio_historial->estado->Visible) { // estado ?>
-		<td data-name="estado"<?php echo $producto_precio_historial->estado->CellAttributes() ?>>
-<span<?php echo $producto_precio_historial->estado->ViewAttributes() ?>>
-<?php echo $producto_precio_historial->estado->ListViewValue() ?></span>
-</td>
-	<?php } ?>
-	<?php if ($producto_precio_historial->fecha_insercion->Visible) { // fecha_insercion ?>
-		<td data-name="fecha_insercion"<?php echo $producto_precio_historial->fecha_insercion->CellAttributes() ?>>
-<span<?php echo $producto_precio_historial->fecha_insercion->ViewAttributes() ?>>
-<?php echo $producto_precio_historial->fecha_insercion->ListViewValue() ?></span>
 </td>
 	<?php } ?>
 <?php

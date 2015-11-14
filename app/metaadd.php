@@ -803,28 +803,6 @@ class cmeta_add extends cmeta {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $conn, $Language, $Security;
-		if ($this->idsucursal->CurrentValue <> "") { // Check field with unique index
-			$sFilter = "(idsucursal = " . ew_AdjustSql($this->idsucursal->CurrentValue) . ")";
-			$rsChk = $this->LoadRs($sFilter);
-			if ($rsChk && !$rsChk->EOF) {
-				$sIdxErrMsg = str_replace("%f", $this->idsucursal->FldCaption(), $Language->Phrase("DupIndex"));
-				$sIdxErrMsg = str_replace("%v", $this->idsucursal->CurrentValue, $sIdxErrMsg);
-				$this->setFailureMessage($sIdxErrMsg);
-				$rsChk->Close();
-				return FALSE;
-			}
-		}
-		if ($this->idperiodo_contable->CurrentValue <> "") { // Check field with unique index
-			$sFilter = "(idperiodo_contable = " . ew_AdjustSql($this->idperiodo_contable->CurrentValue) . ")";
-			$rsChk = $this->LoadRs($sFilter);
-			if ($rsChk && !$rsChk->EOF) {
-				$sIdxErrMsg = str_replace("%f", $this->idperiodo_contable->FldCaption(), $Language->Phrase("DupIndex"));
-				$sIdxErrMsg = str_replace("%v", $this->idperiodo_contable->CurrentValue, $sIdxErrMsg);
-				$this->setFailureMessage($sIdxErrMsg);
-				$rsChk->Close();
-				return FALSE;
-			}
-		}
 
 		// Load db values from rsold
 		if ($rsold) {
